@@ -33,7 +33,7 @@ import net.minecraft.world.level.Level;
  * from two or more different things (one of them food), ground in a mortar or served from a feast (those two stations add
  * their results through {@link #addSource}); and it's a proper meal: on Farmer's Delight's meal list, filling
  * ({@link Kitchen#MEAL_NUTRITION} or more), or, from an addon (neither vanilla nor Farmer's Delight),
- * {@link #DISH_SNACK_NUTRITION} or more (a sandwich, toast; not a vanilla cookie, not Farmer's Delight's tomato sauce). Farmer's Delight's own meal list always counts, however it's made (a feast's roast chicken), so the meals
+ * {@link #DISH_SNACK_NUTRITION} or more (a sandwich, toast; not a vanilla cookie, not Farmer's Delight's tomato sauce). Vanilla's food is never a dish. Farmer's Delight's meal list always counts (its own entries), however it's made (a feast's roast chicken), so the meals
  * it cooked and ate before still count as meals. Nothing without Farmer's Delight: no kitchen, no dishes.
  *
  * <p>Worked out once per recipe reload (keyed on the recipe manager, like the planner's recipe index), never per tick.
@@ -117,7 +117,7 @@ public final class Dishes {
 	private static boolean meal(Item item) {
 		ItemStack stack = new ItemStack(item);
 		FoodProperties food = stack.get(DataComponents.FOOD);
-		if (food == null || Food.isBad(stack)) {
+		if (food == null || Food.isBad(stack) || vanilla(item)) {
 			return false;
 		}
 
@@ -125,6 +125,11 @@ public final class Dishes {
 		// and for dogs, and its meals stay as they were before the addons; the 0.23.22-side.3 fix.)
 		return FarmersDelight.isMeal(stack) || food.nutrition() >= Kitchen.MEAL_NUTRITION
 			|| food.nutrition() >= DISH_SNACK_NUTRITION && addonNamespace(item);
+	}
+
+	/** Vanilla's food is never a dish (a golden carrot, a pumpkin pie, rabbit stew: plain food as before; controller ruling). */
+	private static boolean vanilla(Item item) {
+		return BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("minecraft");
 	}
 
 	private static boolean addonNamespace(Item item) {
@@ -211,7 +216,7 @@ public final class Dishes {
 			// (Farmer's Delight's meal list, however it's made: a feast's servings count before anything cooks feasts.)
 			BuiltInRegistries.ITEM.getTagOrEmpty(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM,
 				FarmersDelight.id("meals"))).forEach(holder -> {
-					if (food(holder.value())) {
+					if (food(holder.value()) && !vanilla(holder.value())) {
 						all.add(holder.value());
 					}
 				});
