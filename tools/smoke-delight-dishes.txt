@@ -57,6 +57,9 @@ execute as @e[tag=dishbob] at @s run drifter brain
 execute as @e[tag=dishbob] at @s run drifter inventory
 gamerule doDaylightCycle true
 gamerule doMobSpawning true
+# (Leaves the shared dev world as it was: the test Drifters and the glass box go.)
+execute as @e[type=drifter:drifter,x=4990,y=195,z=4990,dx=36,dy=15,dz=36] at @s run drifter remove
+fill 4990 199 4990 5026 206 5026 air
 forceload remove 4880 4880 5135 5135
 wait 2
 stop

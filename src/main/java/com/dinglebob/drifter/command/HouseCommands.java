@@ -504,7 +504,7 @@ public final class HouseCommands {
 		var level = ctx.getSource().getLevel();
 		var all = com.dinglebob.drifter.compat.Dishes.all(level);
 		if (all.isEmpty()) {
-			say(ctx, "No dishes (Farmer's Delight isn't loaded)");
+			say(ctx, com.dinglebob.drifter.compat.FarmersDelight.loaded() ? "No dishes found" : "No dishes (Farmer's Delight isn't loaded)");
 			return 0;
 		}
 
