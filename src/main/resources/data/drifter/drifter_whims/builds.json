@@ -44,7 +44,15 @@
 				"creativity": 0.5
 			},
 			"cooldown": 72000,
-			"chat": ["made a snowman", "built a snow golem", "meet frosty", "he lives", "snow buddy acquired", "look at my snowman"],
+			"chat": ["made a snowman", "built a snow golem", "meet frosty", "he lives", "snow buddy acquired", "look at my snowman",
+					"pumpkin on top and boom", "hes alive!!", "snowy boi", "hes gonna guard the base", "built a little guard",
+					"my snow guy throws snowballs at mobs lol", "dont take him to the desert, he melts", "named him chilly",
+					"2 snow blocks and a pumpkin, easy", "snowman squad", "hes cute ngl", "he leaves snow wherever he walks",
+					"my new bodyguard", "he wont do much damage but he tries", "snowballs actually hurt blazes btw",
+					"a snowman that fights, what more do you want", "lil guy", "say hi to my snowman", "keep him out of the rain, poor guy",
+					"built a friend", "snow golem army time", "he already threw a snowball at a zombie", "look at him go",
+					"no arms but he still throws", "naming him snowbert", "carved a pumpkin just for him", "hope he survives the night",
+					"two blocks of snow, one pumpkin, one buddy", "shear his pumpkin off and he looks so sad", "free snow trail, nice"],
 			"thought": "building a snow golem"
 		},
 		{

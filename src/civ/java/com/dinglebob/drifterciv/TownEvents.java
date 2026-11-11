@@ -93,12 +93,13 @@ final class TownEvents {
 				marketTrades.put(town.id, town.trades);
 				DrifterEntity keeper = town.keeper == null ? null : TownFounding.loaded(server, town.keeper);
 				if (keeper != null) {
-					com.dinglebob.drifter.social.ChatLines.speak(keeper, pick(keeper, "market day! come see whats for sale", "market's open, come on by",
-						"its market day, best prices all week", "market day today!"));
+					com.dinglebob.drifter.social.ChatLines.speak(keeper, CivLines.pick(keeper, "town.market.open", "market day! come see whats for sale",
+						"town", town.name));
 				}
 
 				Chronicle.add(server, "market", "Market day in " + town.name);
-				TownBells.ring(server, town, "market day", java.util.List.of("market day! the stall's open", "market's open, come and see!"));
+				TownBells.ring(server, town, "market day", CivLines.bell("bell.market", java.util.List.of("market day! the stall's open",
+					"market's open, come and see!"), "town", town.name));
 			}
 
 			if (contestDay(town, day)) {
@@ -140,8 +141,8 @@ final class TownEvents {
 			} else {
 				DrifterEntity winner = TownFounding.loaded(server, best);
 				if (winner != null) {
-					com.dinglebob.drifter.social.ChatLines.speak(winner, pick(winner, "i won the fishing contest!! " + most + " fish", "ez, " + most + " fish",
-						"fishing champ right here", "gg everyone"));
+					com.dinglebob.drifter.social.ChatLines.speak(winner, CivLines.pick(winner, "town.contest.won", "i won the fishing contest!! " + most + " fish",
+						"count", most, "town", town.name));
 				}
 
 				town.contestWinner = name;
@@ -156,10 +157,6 @@ final class TownEvents {
 
 	private static int fish(DrifterEntity one) {
 		return one.getInventory().count(stack -> FISH.contains(stack.getItem()));
-	}
-
-	private static String pick(DrifterEntity one, String... lines) {
-		return lines[one.getRandom().nextInt(lines.length)];
 	}
 
 	/** Its people's talk: market day, the contest and who won. */

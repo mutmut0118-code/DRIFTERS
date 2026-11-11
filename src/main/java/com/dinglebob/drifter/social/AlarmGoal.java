@@ -258,7 +258,9 @@ public final class AlarmGoal extends Goals.Goal {
 				ran(heard);
 				if (far <= 8.0) {
 					int heardIt = BellHearing.callDown(this.drifter, heard, mouth, CALL_DOWN);
-					com.dinglebob.drifter.social.ChatLines.speak(this.drifter, "everyone up! " + (heard.why() == null ? "the alarm's ringing!" : heard.why() + "!"));
+					String shout = heard.why() == null ? Lines.pick(this.drifter, "alarm.shout_plain") : Lines.pick(this.drifter, "alarm.shout", "why", heard.why());
+					com.dinglebob.drifter.social.ChatLines.speak(this.drifter, shout != null ? shout
+						: "everyone up! " + (heard.why() == null ? "the alarm's ringing!" : heard.why() + "!"));
 					this.think("shouted down the mine: " + heardIt + " heard");
 				} else {
 					this.think("couldn't get to the mine");

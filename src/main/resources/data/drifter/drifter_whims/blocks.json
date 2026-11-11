@@ -21,7 +21,13 @@
 				"fidget": 0.5
 			},
 			"cooldown": 24000,
-			"chat": ["ding ding", "DING", "bell go brr", "ding dong", "dinner time?", "ding ding ding"],
+			"chat": ["ding ding", "DING", "bell go brr", "ding dong", "dinner time?", "ding ding ding",
+					"dong dong dong", "*rings bell*", "couldnt resist the bell", "had to ring it", "ding! anyone home?", "village wake up call",
+					"bonk the bell", "clang clang", "every bell must be rung", "ring ring", "its free to ring it right",
+					"the bell asked for it", "one more ding", "DONG", "hear ye hear ye", "town meeting lol", "watch the villagers run inside",
+					"ding, sorry, had to", "i love this bell", "bell spam", "ding. ok im done", "ding (sorry)", "best block in the village tbh",
+					"villagers all ran indoors lol", "nothing to see here, just ringing", "sorry villagers, false alarm", "BONG",
+					"ding, everybody up"],
 			"thought": "ringing the village bell"
 		},
 		{
@@ -189,7 +195,14 @@
 				"triumphant": 2.0
 			},
 			"cooldown": 24000,
-			"chat": ["cake :)", "cake time", "free cake", "mm cake", "one slice wont hurt", "cake W"],
+			"chat": ["cake :)", "cake time", "free cake", "mm cake", "one slice wont hurt", "cake W",
+					"one slice. ok two", "lets say its my birthday", "cake is the best food, fight me", "nom", "who left a cake out",
+					"cake for breakfast", "had a slice, left the rest for you guys", "this cake slaps", "only 2 hunger a slice but worth it",
+					"cant say no to cake", "slice number 3 dont judge", "cake break", "treat yourself", "yum", "sugar rush incoming",
+					"mmm frosting", "someone should bake another one", "i deserve this", "the cake was just sitting there",
+					"just a little bite", "cake > bread", "best snack in the game", "who baked this, its good", "shh dont tell anyone",
+					"cake o clock", "life is good, theres cake", "couldnt walk past it", "dessert first", "sweet tooth acting up",
+					"save me a piece next time"],
 			"thought": "having a slice of cake"
 		},
 		{

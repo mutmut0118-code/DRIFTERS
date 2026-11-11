@@ -388,8 +388,9 @@ final class Justice {
 							criminal.name));
 						alarm(server, town, player);
 						if (!TownBells.alarmed(town)) {
-							bell(server, town, player, criminal.name + ", wanted here", List.of("it's " + criminal.name + "! they're back!",
-								criminal.name + "'s here! guards!", "everyone inside! " + criminal.name + "'s back!"), WANTED_ALARM);
+							bell(server, town, player, criminal.name + ", wanted here", CivLines.bell("bell.wanted", List.of("it's " + criminal.name
+								+ "! they're back!", criminal.name + "'s here! guards!", "everyone inside! " + criminal.name + "'s back!"), "player", criminal.name,
+								"town", town.name), WANTED_ALARM);
 						}
 
 						break;
@@ -773,11 +774,13 @@ final class Justice {
 	}
 
 	private static List<String> killingLines(String killer, String victim) {
-		return List.of("MURDER! " + killer + " killed " + victim + "!", "guards! " + killer + "'s killed " + victim + "!", "help! murder! it's " + killer + "!");
+		return CivLines.bell("bell.killing", List.of("MURDER! " + killer + " killed " + victim + "!", "guards! " + killer + "'s killed " + victim + "!",
+			"help! murder! it's " + killer + "!"), "player", killer, "victim", victim);
 	}
 
 	private static List<String> massacreLines(String killer) {
-		return List.of("MASSACRE! " + killer + " is killing everyone!", "everyone inside! " + killer + "'s killing us!", "to arms! stop " + killer + "!");
+		return CivLines.bell("bell.massacre", List.of("MASSACRE! " + killer + " is killing everyone!", "everyone inside! " + killer + "'s killing us!",
+			"to arms! stop " + killer + "!"), "player", killer);
 	}
 
 	/**
@@ -880,8 +883,9 @@ final class Justice {
 		}
 
 		town.heard.put(player.getUUID(), -100.0);
-		bell(server, town, player, "the murder of " + victim, List.of("THEY KILLED " + victim.toUpperCase(java.util.Locale.ROOT) + "! get " + name + "!",
-			name + " murdered " + victim + "! to arms!", victim + "'s dead! don't let " + name + " get away!"), MASSACRE_ALARM);
+		bell(server, town, player, "the murder of " + victim, CivLines.bell("bell.murder_leader", List.of("THEY KILLED " + victim.toUpperCase(java.util.Locale.ROOT)
+			+ "! get " + name + "!", name + " murdered " + victim + "! to arms!", victim + "'s dead! don't let " + name + " get away!"), "player", name,
+			"victim", victim, "victim_caps", victim.toUpperCase(java.util.Locale.ROOT), "town", town.name), MASSACRE_ALARM);
 		if (DrifterApi.postBounty(player, "the people of " + town.name, "the murder of " + victim + ", leader of " + town.name)) {
 			Chronicle.add(server, "law", "The people of " + town.name + " put a price on " + name + "'s head for the murder of " + victim);
 		}

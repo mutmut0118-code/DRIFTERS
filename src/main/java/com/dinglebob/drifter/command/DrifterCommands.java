@@ -86,7 +86,9 @@ public final class DrifterCommands {
 				String line = com.dinglebob.drifter.social.Lines.pick(drifter, key, "player", ctx.getSource().getTextName(), "who", "Bob", "what", "fell from a high place",
 					"things", "torches", "payment", "2 emeralds", "goods", "8 torches", "dog", "Rex", "way", "north", "far", 120, "pay", 5, "coords", "120 64 -40", "depth", 20,
 					"n", 3, "stake", 3, "bet", 4, "count", 3, "demand", 5, "thief", "Bob", "victim", "Bob", "army", "the Reds", "target", "Bob", "crime", "murder",
-					"reward", 5, "place", "Oakvale", "friend", "Bob");
+					"reward", 5, "place", "Oakvale", "friend", "Bob", "town", "Oakvale", "years", "3 years", "given", 2, "why", "the raiders",
+					"news", "bandits seen near Oakvale", "where", "by the river", "them", "Pinewood", "enemy", "Pinewood", "victim_caps", "BOB",
+					"leader", "Bob", "warning", "bandits on the north road", "fine", "3 emeralds", "amount", "5 emeralds");
 				if (line == null) {
 					ctx.getSource().sendFailure(Component.literal("No lines for " + key + " (see docs/CHAT_LINES.md)"));
 					return 0;

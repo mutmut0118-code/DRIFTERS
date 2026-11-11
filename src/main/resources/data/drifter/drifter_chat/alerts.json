@@ -1,0 +1,269 @@
+{
+  "_comment": "Alarms and the paper crier (0.23.41-side.1: fixed lines in the code before). {why} is what the alarm is about ('the raiders', 'the massacre'), {news} the first headline.",
+  "lines": {
+    "alarm.shout": {
+      "any": [
+        "everyone up! {why}!",
+        "everybody up top! {why}!",
+        "come up, the bell's ringing! {why}!",
+        "get out of the mine! {why}!",
+        "up up up! {why}!",
+        "drop your picks! {why}!",
+        "hey down there! {why}! come up!",
+        "anyone down there? {why}! up now!",
+        "the bell's ringing for {why}, come up!",
+        "leave the ores, it's {why}!",
+        "climb up! {why}!",
+        "out of the tunnels! {why}!",
+        "{why}! everyone to the surface!",
+        "can you hear me down there? {why}!",
+        "{why}! get up here!",
+        "stop digging! {why}!",
+        "up to the bell! {why}!",
+        "{why}! we need everyone up top!",
+        "it's {why}! come up now!",
+        "hurry up the ladder! {why}!",
+        "OI! {why}! up!",
+        "miners, up! {why}!",
+        "no time for ores, {why}!",
+        "get to the bell, {why}!",
+        "everybody out of the hole! {why}!",
+        "the mines can wait! {why}!",
+        "{why}!! the town needs you up here!"
+      ],
+      "hoarder": [
+        "your chests are safe, just come up! {why}!"
+      ],
+      "nomad": [
+        "out of the dark, all of you! {why}!"
+      ],
+      "pvp_sweat": [
+        "up top, {why}. time to fight"
+      ],
+      "homebody": [
+        "come up, everyone home! {why}!"
+      ],
+      "casual": [
+        "yo guys up top, {why}",
+        "ngl you should come up. {why}"
+      ],
+      "hermit": [
+        "...{why}. come"
+      ],
+      "speedrunner": [
+        "up. {why}. now",
+        "{why}. surface. go"
+      ],
+      "helper": [
+        "come up carefully, but fast! {why}!",
+        "watch your step on the way up, {why}!"
+      ],
+      "newbie": [
+        "um everyone come up!! {why}!!",
+        "guys up pls!! {why}!"
+      ],
+      "miner": [
+        "leave the dias, {why}! up!",
+        "y -59 can wait, {why}!",
+        "pause the strip mine, {why}!"
+      ]
+    },
+    "alarm.shout_plain": {
+      "any": [
+        "everyone up! the alarm's ringing!",
+        "come up! the bell's going!",
+        "get up here, the alarm's going off!",
+        "the bell! everyone out of the mine!",
+        "drop your picks, the alarm's ringing!",
+        "up up up! alarm!",
+        "hey down there! the bell!",
+        "anyone down there? alarm!",
+        "out of the tunnels, the bell's ringing!",
+        "climb up! something's wrong in town!",
+        "everybody up, the bell won't stop!",
+        "can you hear me? the bell! come up!",
+        "stop digging! alarm!",
+        "no idea what's going on but the bell's ringing!",
+        "the bell's going crazy!",
+        "up to the plaza! alarm!",
+        "something's happening up top! come up!",
+        "miners! up!",
+        "everybody to the surface!",
+        "leave the ores! bell's ringing!",
+        "hurry, there's an alarm up top!",
+        "OI! bell! come up!",
+        "trouble in town! everyone up!",
+        "dunno what it is, just come up!",
+        "you hear that bell? up, now!",
+        "come on up, the town needs us!",
+        "put the pickaxe down and come up!"
+      ],
+      "hoarder": [
+        "leave the chests, the bell's ringing!"
+      ],
+      "pvp_sweat": [
+        "bell's ringing, sounds like a fight. up!"
+      ],
+      "nomad": [
+        "out of the dark, the bell's calling!"
+      ],
+      "homebody": [
+        "the bell! everyone come home!"
+      ],
+      "casual": [
+        "yo the bell's going off, come up"
+      ],
+      "hermit": [
+        "...bell. up"
+      ],
+      "speedrunner": [
+        "alarm. up. now"
+      ],
+      "helper": [
+        "come up carefully, the alarm's ringing!"
+      ],
+      "newbie": [
+        "guys the bell is ringing!! come up pls!!",
+        "is that the alarm?? everyone up!!"
+      ],
+      "miner": [
+        "dias can wait, the bell's ringing!",
+        "pause the mining, alarm's going!"
+      ]
+    },
+    "crier.open": {
+      "any": [
+        "extra extra! {news}",
+        "hear ye, hear ye! {news}",
+        "todays news! {news}",
+        "news from the plaza! {news}",
+        "fresh off the press: {news}",
+        "big news today! {news}",
+        "listen up everyone! {news}",
+        "the paper's in! {news}",
+        "read all about it! {news}",
+        "headline today: {news}",
+        "gather round for the news! {news}",
+        "you won't believe this one. {news}",
+        "news! news! {news}",
+        "todays top story: {news}",
+        "morning paper! {news}",
+        "hot off the press! {news}",
+        "{news}! read it in todays paper!",
+        "{news}! more inside, come grab a copy",
+        "{news}! get your paper here!",
+        "first up today: {news}",
+        "this just in: {news}",
+        "word around town: {news}",
+        "papers! papers! {news}",
+        "you heard it here first: {news}",
+        "the town's talking about it: {news}",
+        "front page today! {news}",
+        "{news}! that's the big one today",
+        "here's what's new: {news}"
+      ],
+      "hoarder": [
+        "one paper each! first story: {news}"
+      ],
+      "builder": [
+        "front page, laid out nice and neat: {news}"
+      ],
+      "bandit": [
+        "listen close, could be worth your while: {news}"
+      ],
+      "miner": [
+        "news from up top: {news}"
+      ],
+      "speedrunner": [
+        "news. {news}. papers here"
+      ],
+      "hermit": [
+        "...news. {news}"
+      ],
+      "helper": [
+        "good morning everyone! todays news: {news}"
+      ],
+      "nomad": [
+        "news from the roads: {news}"
+      ],
+      "homebody": [
+        "news from around home: {news}"
+      ],
+      "newbie": [
+        "um news everyone!! {news}!!",
+        "i get to read the news!! {news}"
+      ],
+      "casual": [
+        "ok so today's news: {news}",
+        "ngl wild headline today. {news}"
+      ]
+    },
+    "crier.paper": {
+      "any": [
+        "here, todays paper",
+        "here, have a paper",
+        "todays paper, for you",
+        "grab a copy",
+        "here's your copy",
+        "take one, it's free",
+        "fresh paper, here",
+        "here, read up",
+        "one for you",
+        "papers! here's yours",
+        "catch up on the news",
+        "a copy for you",
+        "here, all the news is in there",
+        "take a paper, it's a good one today",
+        "read it and pass it on",
+        "here, hot off the press",
+        "don't lose it",
+        "here, latest news",
+        "you'll want to read this one",
+        "copy for you, friend",
+        "take it, there's plenty",
+        "here, gossip and all",
+        "paper's in, here you go",
+        "page two's the good part",
+        "read it while it's fresh",
+        "here, the latest",
+        "take one home",
+        "fresh copy, still warm"
+      ],
+      "miner": [
+        "something to read down the mine"
+      ],
+      "builder": [
+        "here, try not to crease it"
+      ],
+      "bandit": [
+        "here. the paper's free, the rest isn't"
+      ],
+      "hoarder": [
+        "here. only one per person"
+      ],
+      "nomad": [
+        "take one for the road"
+      ],
+      "homebody": [
+        "here, read it by the fire"
+      ],
+      "speedrunner": [
+        "paper. take it"
+      ],
+      "hermit": [
+        "...here"
+      ],
+      "helper": [
+        "here's a copy for you, enjoy"
+      ],
+      "newbie": [
+        "here!! i made sure you got one",
+        "paper for you!! read it pls"
+      ],
+      "casual": [
+        "here lol, todays news",
+        "yo, paper"
+      ]
+    }
+  }
+}

@@ -5832,3 +5832,32 @@ the Spawning page, `/drifter config realnames true|false` (`DrifterConfig.realNa
   became SSundee (name and `DrifterAutoName`, so the save works).
 - Not tested: a rude name being refused (`Usernames.allowed` as used for every made-up name), the signs in a real town, and
   the settings-page toggle (compiles; the client wasn't opened, the user had the game open).
+
+## Side session: 50 more of every chat line (0.23.41-side.1)
+
+The user (2026-11-11): "can we add more lines to every chat line excluding dialogue ... chat lines from encounters,
+alerts, begging, shopkeeping, etc ... like 50 more variations of each line".
+
+- **Done.** 15,210 new lines in 343 kinds: every reaction and ritual (hi, rip, gg, thief...), shop/trade/news, crimes and
+  guards, unrest, envoys, war, every encounter, the gm/gn rounds and bystander chimes, friends (the addon), and every
+  whim's chat/say list (not sign text). From 2,150 lines to 17,360. Counts per kind, before and after:
+  `docs/CHAT_LINE_COUNTS.md`. 108 narrow kinds got fewer than 45 (a countdown number, "go", humming, a bell shout,
+  "one at a time, im busy"): the writers stopped where more would have been the same line reworded.
+- **Lines that were fixed in the code are now data** (with the old line as the fallback), so they could get variations:
+  town greetings by standing, festival openings, market day, the fishing contest, notice and bounty payouts, the
+  enchanter/smith service lines, every bell ringer's shout (war declared, raid march, wanted, killing, massacre, the
+  leader murdered, raiders, festivals, market), the alarm shout down a mine and the paper crier.
+  New files `drifter_civ/drifter_chat/town.json` and `drifter/drifter_chat/alerts.json`; `CivLines` in the addon picks
+  them (a bell gets 8 random lines per ring).
+- **Not touched (the user's "dialogue"):** the talk topics (`drifter_talk`), talk segues (`talk_web.json`), doing things
+  together (`together.json`), and replies when a player talks to a Drifter (`requests.json`, `heard.json`); also the
+  running jokes' words (`joke.*`, used inside talks).
+- **Tools:** `tools/chat_more/pools.py` lists the pools (what each is, its fill words); `tools/chat_more/merge.py` adds
+  lines checked (fill words, banned words, repeats and near repeats, ASCII, length) without reformatting the files.
+  `tools/gen_chat_doc.py` now also lists the town, law, war, friend and alarm lines (section 11 of docs/CHAT_LINES.md).
+- `/drifter lines say <key>` fills more words now (town, years, why, news, where, them, enemy, warning, fine, amount...)
+  so every kind can be tried.
+- **Checked:** build; headless smoke (`tools/smoke-chatlines.txt`): 14,817 chat lines (569 kinds) loaded with no
+  warnings, no whim warnings, every sampled kind said a new line. Not checked in a real game yet.
+- Seen while writing (left as it was): `Warbands` picks `war.rally` with the word `army`, but the rally lines use
+  `{enemy}`, so warband captains only get the rally lines without a fill word.

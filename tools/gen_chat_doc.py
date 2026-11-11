@@ -113,7 +113,11 @@ def esc(text):
     return text.replace('|', '\\|').replace('<', '&lt;')
 
 
+SHOWN = set()
+
+
 def block(key, when):
+    SHOWN.add(key)
     out = ['#### `' + key + '`', '', when, '']
     for voice, said in lines.get(key, {}).items():
         out.append('- **' + VOICE.get(voice, voice) + ':** ' + ' · '.join(esc(s) for s in said))
@@ -515,6 +519,26 @@ for intent, phrases in answers.items():
     doc.append('- **' + intent + '** (%d): ' % len(phrases) + ' · '.join(esc(p) for p in phrases))
 doc.append('')
 doc += ['**Slang words:** ' + ' · '.join(esc(k) + ' = ' + esc(v) for k, v in sorted(slang.items()) if k != v), '']
+
+# Everything not in a section above: towns, law, war, friends, alerts (and the addon's own files).
+sys.path.insert(0, os.path.join(ROOT, 'tools/chat_more'))
+import pools as chat_pools  # noqa: E402
+CIV_CHAT = os.path.join(ROOT, 'src/civ/resources/data/drifter_civ/drifter_chat')
+for path in sorted(glob.glob(CIV_CHAT + '/*.json')):
+    for key, value in json.load(open(path, encoding='utf-8')).get('lines', {}).items():
+        voices = lines.setdefault(key, {})
+        for voice, more in ({'any': value} if isinstance(value, list) else value).items():
+            voices.setdefault(voice, []).extend(more)
+about = {p.id.split(':', 1)[1]: p.about for p in chat_pools.chat_pools(ROOT)}
+rest = [k for k in lines if k not in SHOWN and not k.startswith(('joke.', 'told.', 'ask.', 'going.', 'memory.', 'place.', 'plan.', 'when.',
+                                                                  'talk.', 'together.'))]
+if rest:
+    doc += ['## 11. Towns, law, war, friends and alarms', '',
+            'The rest of the canned lines: crimes and guards, unrest and envoys, war, town life (greetings, festivals, market day, '
+            'notices, the enchanter and smith), what bell ringers shout, the alarm and the paper crier, and friendship with players '
+            '(the town, friend and bell lines come with Drifter: Civilizations).', '']
+    for key in rest:
+        doc += block(key, about.get(key, ''))
 
 doc += ['## Where they live', '',
         '- Lines and answers: `src/main/resources/data/drifter/drifter_chat/` (`reactions.json`, `encounters.json`, `answers.json`, `requests.json`, `rounds.json`, `heard.json`, `slang.json`, `talk_web.json`); whims\' '

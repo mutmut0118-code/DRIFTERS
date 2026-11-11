@@ -162,19 +162,18 @@ final class TownReputation {
 		}
 
 		greeted.put(key, now);
-		// (What they chose to be called; said about them to the others, their pronouns. Citizens.)
-		String name = Citizens.called(player);
-		List<String> lines = switch (standing) {
+		// (Their Minecraft name in: said as what they chose to be called, their pronouns filled in. Lines, Citizens.)
+		String name = player.getGameProfile().getName();
+		String line = switch (standing) {
 			case WELCOME -> Citizens.ownTown(town, player.getUUID())
-				? List.of("hey " + name + ", good to have you home", name + "! one of our own", "oh hey " + name + ". {theyre} one of ours", "welcome home " + name)
-				: List.of("hey " + name + "! welcome back", "oh hey " + name, name + "!! good to see you", "look who it is. hi " + name);
-			case WARY -> List.of("keep an eye on {them}", "hm. " + name + " again", "...hi", "we're watching you " + name, "dont let {them} out of your sight");
-			case UNWELCOME -> List.of("you again? we dont want trouble", name + ". just keep walking", "nobody wants you here " + name,
-				"{theyve} got no business here");
-			case WANTED -> List.of("its " + name + "! guards!", "GUARDS! its " + name, "you've got some nerve showing up here", "its " + name + "! get {them}!");
-			default -> List.of("hey");
+				? CivLines.pick(speaker, "town.greet.home", "welcome home " + Citizens.called(player), "player", name)
+				: CivLines.pick(speaker, "town.greet.welcome", "hey " + name + "! welcome back", "player", name);
+			case WARY -> CivLines.pick(speaker, "town.greet.wary", "hm. " + name + " again", "player", name);
+			case UNWELCOME -> CivLines.pick(speaker, "town.greet.unwelcome", "you again? we dont want trouble", "player", name);
+			case WANTED -> CivLines.pick(speaker, "town.greet.wanted", "its " + name + "! guards!", "player", name);
+			default -> "hey";
 		};
-		com.dinglebob.drifter.social.ChatLines.speak(speaker, DrifterApi.pronouns(lines.get(speaker.getRandom().nextInt(lines.size())), player.getUUID()));
+		com.dinglebob.drifter.social.ChatLines.speak(speaker, line);
 	}
 
 	/** The word about each player it has an opinion of, passed on to the towns round it (a fifth of the way). */

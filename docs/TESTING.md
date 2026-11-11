@@ -3506,6 +3506,23 @@ Off by default. Turn it on in Mod Menu (Drifter's settings, the "Spawning" page,
       "scroll down for more" at the bottom. (I couldn't test a list this long myself.)
 - [ ] **As text.** `/drifterciv journal` prints the same in chat.
 
+## Side session: 50 more of every chat line (new, 0.23.41-side.1)
+
+Every canned chat line has about 50 more ways to say it (encounters, begging, alarms, shopkeeping, crimes, war, friends,
+whims). Talks between Drifters and their answers to you are unchanged.
+
+- [ ] **They repeat less.** Play as usual near Drifters and towns for a while. Greetings, rips, gg's, thanks, the gm/gn
+      in the morning and at night, encounter speeches: you should rarely see the same line twice in a session.
+- [ ] **Try any kind.** Stand near a Drifter and run `/drifter lines say <kind>` a few times, e.g. `hi`, `rip_funny`,
+      `encounter.duel.ask`, `encounter.hungry.ask`, `crime.theft`, `envoy.war`, `friends.tip.ore`. Each time a different
+      line. The full list of kinds and lines is in docs/CHAT_LINES.md.
+- [ ] **Town lines (new kinds, with Civilizations).** In a town: `/drifter lines say town.greet.welcome`,
+      `town.market.open`, `town.festival.founding`, `service.quote.enchant`, `service.done`, `bell.raiders`,
+      `alarm.shout`, `crier.open`. Then in real play: walk into a town where they like you (a greeting), a market day
+      morning (the keeper's call and the bell), throw the town enchanter or smith something to enchant or repair (it
+      quotes a price, then hands it back), and a raid or a crime (the bell ringer's shouts vary now).
+- [ ] **Nothing odd.** Tell me any line that reads wrong, is out of place for the moment, has a word in braces left in
+      it (like `{town}`), or sounds rude. Copy it from chat (or the log) so I can find it.
 
 ## 0.23.42: "Who are you?", the menu as a new world starts (new)
 

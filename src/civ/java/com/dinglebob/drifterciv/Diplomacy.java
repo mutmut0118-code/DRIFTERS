@@ -750,10 +750,10 @@ final class Diplomacy {
 		long day = Chronicle.day(server);
 		boolean brokePeace = r.pacts.contains(Pact.PEACE) || r.pacts.contains(Pact.ALLIANCE);
 		Chronicle.add(server, "war", attacker.name + " declared war on " + defender.name + (brokePeace ? ", breaking its word" : ""));
-		TownBells.ring(server, attacker, "the war on " + defender.name, java.util.List.of("we're at war with " + defender.name + "!",
-			"war! " + defender.name + " has it coming"));
-		TownBells.ring(server, defender, "war declared by " + attacker.name, java.util.List.of(attacker.name + " declared war on us!",
-			"war! " + attacker.name + " wants a fight"));
+		TownBells.ring(server, attacker, "the war on " + defender.name, CivLines.bell("bell.war.declare", java.util.List.of("we're at war with "
+			+ defender.name + "!", "war! " + defender.name + " has it coming"), "them", defender.name, "town", attacker.name));
+		TownBells.ring(server, defender, "war declared by " + attacker.name, CivLines.bell("bell.war.declared", java.util.List.of(attacker.name
+			+ " declared war on us!", "war! " + attacker.name + " wants a fight"), "them", attacker.name, "town", defender.name));
 		begin(server, attacker, defender, r, day, "war");
 		if (brokePeace) {
 			brokenWord.merge(attacker.id, 1, Integer::sum);

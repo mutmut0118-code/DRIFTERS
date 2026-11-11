@@ -114,7 +114,7 @@ final class TownServices {
 		boolean money = DrifterApi.moneyWorth(stack) > 0;
 		if (job != null && !job.player.equals(player.getUUID())) {
 			if (!money && wanted(line, stack) != null) {
-				say(drifter, "one at a time, im busy");
+				say(drifter, CivLines.pick(drifter, "service.busy", "one at a time, im busy", "player", player.getGameProfile().getName()));
 				giveBack(drifter, player, take(drifter, stack));
 			}
 
@@ -128,7 +128,7 @@ final class TownServices {
 			}
 
 			if (standing == TownReputation.Standing.WANTED) {
-				say(drifter, "not doing anything for you");
+				say(drifter, CivLines.pick(drifter, "service.refuse", "not doing anything for you", "player", player.getGameProfile().getName()));
 				giveBack(drifter, player, take(drifter, stack));
 				return;
 			}
@@ -174,14 +174,17 @@ final class TownServices {
 		};
 		if (ready) {
 			job.working = true;
-			say(drifter, "ok, give me a minute");
+			say(drifter, CivLines.pick(drifter, "service.start", "ok, give me a minute", "player", job.playerName));
 			DrifterApi.think(drifter, "took a job: " + job.what());
 		} else if (money || job.materials.isEmpty()) {
 			String pay = TownNotices.describe(DrifterApi.money(Math.max(0, price - job.paid)));
+			String more = pay + (job.paid > 0 ? " more" : "");
 			say(drifter, switch (job.kind) {
-				case "enchant" -> "i can enchant that for " + pay + (job.paid > 0 ? " more" : "");
-				case "netherite" -> "netherite? " + pay + ", and the ingot and the template";
-				default -> "ill fix it for " + pay + (job.paid > 0 ? " more" : "") + ", bring the stuff to fix it with";
+				case "enchant" -> CivLines.pick(drifter, "service.quote.enchant", "i can enchant that for " + more, "pay", more, "player", job.playerName);
+				case "netherite" -> CivLines.pick(drifter, "service.quote.netherite", "netherite? " + pay + ", and the ingot and the template", "pay", more,
+					"player", job.playerName);
+				default -> CivLines.pick(drifter, "service.quote.repair", "ill fix it for " + more + ", bring the stuff to fix it with", "pay", more,
+					"player", job.playerName);
 			});
 		}
 	}
@@ -263,7 +266,7 @@ final class TownServices {
 		job.back = new ArrayList<>(back);
 		DrifterApi.think(drifter, (done ? "done: " : "couldn't: ") + job.what());
 		if (!done) {
-			say(drifter, "sorry, couldnt do it. heres your stuff");
+			say(drifter, CivLines.pick(drifter, "service.failed", "sorry, couldnt do it. heres your stuff", "player", job.playerName));
 		}
 
 		handBack(drifter, job, done);
@@ -282,7 +285,7 @@ final class TownServices {
 		}
 
 		if (done) {
-			say(drifter, "here you go " + job.playerName);
+			say(drifter, CivLines.pick(drifter, "service.done", "here you go " + job.playerName, "player", job.playerName));
 		}
 
 		jobs.remove(drifter.getUUID());
@@ -305,7 +308,7 @@ final class TownServices {
 				}
 
 				job.back.addAll(job.materials);
-				say(drifter, "never mind then. heres your stuff back");
+				say(drifter, CivLines.pick(drifter, "service.timeout", "never mind then. heres your stuff back", "player", job.playerName));
 			}
 
 			if (job.back != null) {

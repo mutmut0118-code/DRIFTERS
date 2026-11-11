@@ -3,7 +3,18 @@
 		{
 			"id": "watch_sunset", "category": "exploration", "action": "watch_sky", "params": {"what": "sun"}, "when": "sunset",
 			"archetypes": {"hermit": 2.0, "builder": 1.5, "nomad": 1.5, "speedrunner": 0.3}, "traits": {"curiosity": 0.3, "patience": 0.4},
-			"duration": 400, "cooldown": 24000, "chat": ["sunset :)", "pretty", "look at that sunset", "golden hour", "nice sky tonight", "mobs soon tho"], "thought": "watching the sunset"
+			"duration": 400, "cooldown": 24000, "chat": ["sunset :)", "pretty", "look at that sunset", "golden hour", "nice sky tonight", "mobs soon tho",
+					"the sky is orange", "suns going down", "look west", "days almost done", "i love this time of day", "sky looks painted",
+					"watching the sun go", "bye sun", "thats a good one tonight", "pink and orange, nice", "beds work soon",
+					"one last look then inside", "what a view", "golden everything", "sunsets on the water are the best", "ok thats beautiful",
+					"the clouds are glowing", "end of a good day", "sun is sinking fast", "i never get tired of these",
+					"the trees look gold right now", "stop and look for a sec", "calm before the zombies", "the sun is so big right now",
+					"sun says gn", "warm colors everywhere", "sunset > sunrise, fight me", "should get home before dark", "time to wrap up",
+					"even the water is orange", "i could watch this forever", "dusk", "day well spent", "all the colors",
+					"the sky is on fire. pretty fire", "goodbye day, hello mobs", "sunsets here are so good", "red sky tonight",
+					"someone screenshot this", "best part of the day", "slow sunset tonight", "torches out, its getting dark",
+					"the moon is already coming up the other side", "the sun just touched the edge", "sky going purple now",
+					"last light, gotta hurry", "evening already?", "farm work done right before sundown, nice"], "thought": "watching the sunset"
 		},
 		{
 			"id": "watch_sunrise", "category": "exploration", "action": "watch_sky", "params": {"what": "sun"}, "when": "sunrise",
@@ -32,7 +43,20 @@
 		},
 		{
 			"id": "watch_storm", "category": "weather", "action": "watch_sky", "params": {"what": "clouds"}, "when": "thunder", "gates": "R",
-			"archetypes": {"hermit": 1.5, "newbie": 1.5}, "duration": 200, "cooldown": 48000, "chat": ["big storm", "thunder!!", "charged creeper weather", "stay inside lol", "look at that lightning", "storms are cool ngl"],
+			"archetypes": {"hermit": 1.5, "newbie": 1.5}, "duration": 200, "cooldown": 48000, "chat": ["big storm", "thunder!!", "charged creeper weather", "stay inside lol", "look at that lightning", "storms are cool ngl",
+					"the whole sky is grey", "its dark enough for mobs out there", "mobs can spawn even in the day in this",
+					"lightning keeps hitting the hills", "skeleton horses show up in storms, be careful",
+					"you can sleep through a thunderstorm btw", "free charged creepers if youre brave", "the rain is so loud",
+					"this storm is no joke", "wow the clouds", "lightning rod time", "channeling works now if anyone has a trident",
+					"im staying dry", "what a storm", "the rain wont stop", "loud night", "storms getting worse",
+					"lightning turns villagers into witches btw", "huge flash just now", "i love the sound of rain", "is it gonna stop soon",
+					"dramatic weather", "storm vibes", "its pouring", "lightning near the trees, fire watch", "that one was right over us",
+					"cozy storm", "free light show", "wild weather today", "the thunder is rolling", "dont stand on the hill",
+					"storm watching is the best", "look at it come down", "everything is soaked", "big boom", "dark as night out there",
+					"that storm is massive", "epic storm", "the sky keeps flashing", "lightning turns red mooshrooms brown, fun fact",
+					"its so moody out", "good day to stay in and craft", "pigs better hide, lightning makes them zombie piglins",
+					"glad i built a roof", "stuck inside till it passes", "lightning just lit a fire over there",
+					"the rain is drumming on the roof"],
 			"thought": "watching the storm"
 		}
 	]

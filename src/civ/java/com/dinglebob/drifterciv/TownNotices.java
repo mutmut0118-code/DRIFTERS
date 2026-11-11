@@ -218,7 +218,8 @@ final class TownNotices {
 
 				int given = notice.delivered.merge(player.getUUID(), stack.getCount(), Integer::sum);
 				if (given < notice.count) {
-					com.dinglebob.drifter.social.ChatLines.speak(drifter, given + " of " + notice.count + ", keep em coming");
+					com.dinglebob.drifter.social.ChatLines.speak(drifter, CivLines.pick(drifter, "town.notice.progress", given + " of " + notice.count + ", keep em coming",
+						"given", given, "count", notice.count));
 					Towns.save(server);
 					return;
 				}
@@ -262,7 +263,8 @@ final class TownNotices {
 			poster.tossForward(stack);
 		}
 
-		com.dinglebob.drifter.social.ChatLines.speak(poster, left > 0 ? "thats all i have, sorry" : "thanks! here, as promised");
+		com.dinglebob.drifter.social.ChatLines.speak(poster, left > 0 ? CivLines.pick(poster, "town.notice.short", "thats all i have, sorry")
+			: CivLines.pick(poster, "town.notice.paid", "thanks! here, as promised"));
 	}
 
 	/** Money out of this container, a piece at a time, till it's worth {@code points}; what's still owed. */

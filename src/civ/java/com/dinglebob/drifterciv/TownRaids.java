@@ -184,8 +184,8 @@ final class TownRaids {
 
 		Chronicle.add(level.getServer(), "town", "Raiders came for " + raid.town.name + (raid.waves > 1 ? " (wave " + raid.wave + " of " + raid.waves + ")" : ""));
 		// The alarm, while this wave's about (0.23.30).
-		TownBells.alarm(level.getServer(), raid.town, "the raiders", List.of("RAIDERS! to arms!", "pillagers! everyone inside!",
-			"raid! they're coming for the plaza!"), () -> nearest(raid), () -> raids.get(raid.town.id) == raid && !raid.raiders.isEmpty(), GIVES_UP + NEXT_AFTER);
+		TownBells.alarm(level.getServer(), raid.town, "the raiders", CivLines.bell("bell.raiders", List.of("RAIDERS! to arms!", "pillagers! everyone inside!",
+			"raid! they're coming for the plaza!"), "town", raid.town.name), () -> nearest(raid), () -> raids.get(raid.town.id) == raid && !raid.raiders.isEmpty(), GIVES_UP + NEXT_AFTER);
 	}
 
 	/** Where the raiders are: the one nearest the town's middle. */

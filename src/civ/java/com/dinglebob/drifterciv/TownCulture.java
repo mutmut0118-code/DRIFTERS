@@ -116,24 +116,25 @@ final class TownCulture {
 		UUID leader = town.leader != null ? town.leader : group == null ? null : group.leader;
 		DrifterEntity speaker = leader == null ? null : TownFounding.loaded(server, leader);
 		if (speaker != null) {
-			String[] lines = switch (festival) {
-				case "founding" -> new String[] {"happy founding day everyone!", "its founding day! " + years + " years of " + town.name,
-					"founding day, everyone to the plaza!", "happy founding day " + town.name};
-				case "victory" -> new String[] {"victory day! we beat " + forWhom, "remember when we won against " + forWhom + "? party at the plaza",
-					"happy victory day " + town.name};
-				case "remembrance" -> new String[] {"today we remember " + forWhom, "miss you " + forWhom, "a quiet one today. for " + forWhom};
-				default -> new String[] {"harvest festival today!", "happy harvest everyone", "harvest festival, food at the plaza!",
-					"good harvest this year, lets celebrate"};
+			String yearsText = years + (years == 1 ? " year" : " years");
+			String line = switch (festival) {
+				case "founding" -> CivLines.pick(speaker, "town.festival.founding", "happy founding day everyone!", "town", town.name, "years", yearsText);
+				case "victory" -> CivLines.pick(speaker, "town.festival.victory", "happy victory day " + town.name, "town", town.name, "who", forWhom);
+				case "remembrance" -> CivLines.pick(speaker, "town.festival.remembrance", "today we remember " + forWhom, "town", town.name, "who", forWhom);
+				default -> CivLines.pick(speaker, "town.festival.harvest", "harvest festival today!", "town", town.name);
 			};
-			com.dinglebob.drifter.social.ChatLines.speak(speaker, lines[speaker.getRandom().nextInt(lines.length)]);
+			com.dinglebob.drifter.social.ChatLines.speak(speaker, line);
 		}
 
 		DrifterCivilizations.LOGGER.info("[culture] {}", text);
 		TownBells.ring(server, town, name(festival), switch (festival) {
-			case "founding" -> java.util.List.of("founding day! everyone to the plaza!", "ding ding! happy founding day!");
-			case "victory" -> java.util.List.of("victory day! everyone to the plaza!", "for " + town.name + "!");
-			case "remembrance" -> java.util.List.of("to the plaza, for " + forWhom, "we remember " + forWhom);
-			default -> java.util.List.of("harvest festival! everyone to the plaza!", "festival time!");
+			case "founding" -> CivLines.bell("bell.festival.founding", java.util.List.of("founding day! everyone to the plaza!", "ding ding! happy founding day!"),
+				"town", town.name);
+			case "victory" -> CivLines.bell("bell.festival.victory", java.util.List.of("victory day! everyone to the plaza!", "for " + town.name + "!"),
+				"town", town.name, "who", forWhom);
+			case "remembrance" -> CivLines.bell("bell.festival.remembrance", java.util.List.of("to the plaza, for " + forWhom, "we remember " + forWhom),
+				"town", town.name, "who", forWhom);
+			default -> CivLines.bell("bell.festival.harvest", java.util.List.of("harvest festival! everyone to the plaza!", "festival time!"), "town", town.name);
 		});
 		Towns.save(server);
 	}

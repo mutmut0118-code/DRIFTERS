@@ -10,23 +10,97 @@
         "{player} youre chill, my door's open",
         "ok we're friends now {player}, no takebacks",
         "glad you showed up round here {player} fr",
-        "{player} youre basically one of us now lol"
+        "{player} youre basically one of us now lol",
+        "alright {player}, i like you. friends",
+        "you know what, youre good people {player}",
+        "ok {player} i'm calling it, we're friends",
+        "friends? friends. cool",
+        "{player} youre welcome round mine anytime now",
+        "think we're mates now {player} lol",
+        "ngl i was unsure about you at first {player}. not anymore",
+        "consider yourself a friend {player}",
+        "you've grown on me {player}",
+        "ok youre officially on my good list {player}",
+        "friend unlocked lol",
+        "{player} if you ever need anything just ask",
+        "we should hang more {player}, youre fun",
+        "youre not half bad {player}, friends?",
+        "yeah {player} youre one of mine now",
+        "i trust you {player}. dont make me regret it lol",
+        "you're cool {player}. like actually cool",
+        "{player} youre always welcome by my fire",
+        "glad its you that wandered in {player}",
+        "ok {player}, friends. shake on it",
+        "youre good company {player}",
+        "wanna be friends {player}? cause we kinda are already",
+        "i like having you around {player}",
+        "{player} youre on the friends list now, congrats lol",
+        "we're friends now, so you have to say hi every time"
       ],
       "hermit": [
         "...you're alright, {player}. dont tell anyone",
-        "i dont say this much. youre alright {player}"
+        "i dont say this much. youre alright {player}",
+        "...fine. friends {player}",
+        "you can stay. youre alright",
+        "dont usually like people. you're ok {player}"
       ],
       "helper": [
         "{player}!! youre officially my friend now :D",
-        "so glad we met {player}, friends for real"
+        "so glad we met {player}, friends for real",
+        "{player} you're the best, so glad we're friends!",
+        "friends!! if you ever need a hand just shout {player}",
+        "aw {player} i'm so happy we're friends now",
+        "anything you need {player}, im here for you now"
       ],
       "newbie": [
         "omg {player} are we friends now?? we're friends now",
-        "{player} youre like my first real friend here lol"
+        "{player} youre like my first real friend here lol",
+        "wait does this mean we're friends?? {player}!!",
+        "{player} omg youre so nice, friends pls?",
+        "yay a friend!! hi {player}",
+        "{player} can you be my friend? pls say yes"
       ],
       "pvp_sweat": [
         "youre alright {player}. still clap you in a 1v1 tho",
-        "ok {player} youre cool. friends. dont get soft"
+        "ok {player} youre cool. friends. dont get soft",
+        "youre cool {player}, i'll go easy on you. maybe",
+        "friends {player}. you still owe me a rematch tho"
+      ],
+      "speedrunner": [
+        "gg {player}, friends. ok moving on"
+      ],
+      "hoarder": [
+        "{player} youre a friend. still not touching my chests tho",
+        "friends {player}. maybe i'll even share some iron. maybe"
+      ],
+      "bandit": [
+        "lucky you {player}, friends dont get robbed",
+        "youre alright {player}. youre off my list"
+      ],
+      "nomad": [
+        "met a lot of folks on the road. youre one of the good ones {player}",
+        "{player} if our roads cross again, good. friends o7"
+      ],
+      "miner": [
+        "{player} youre alright. might show you my cave one day",
+        "friends {player}. i'll let you in on my mine sometime"
+      ],
+      "homebody": [
+        "{player} you're welcome for dinner anytime now",
+        "come by the farm whenever {player}, friends get bread",
+        "theres always a seat by my fire for you {player}"
+      ],
+      "builder": [
+        "{player} you can come see my builds now, friends only",
+        "ok youre a friend {player}, you get the house tour",
+        "friends {player}. just dont break any of my blocks lol"
+      ],
+      "casual": [
+        "ngl {player} youre a vibe, friends fr",
+        "lol ok we're friends now i guess, cool cool",
+        "you're chill {player}, fr fr",
+        "ok {player} youre the homie now",
+        "friends? yeah sure why not lol"
       ]
     },
     "friends.up.best": {
@@ -36,18 +110,89 @@
         "ngl {player} youre my favourite person on this server",
         "best friends {player}. i mean it",
         "{player} if anything ever happens youre who i'd call",
-        "you and me {player}, best friends. deal with it"
+        "you and me {player}, best friends. deal with it",
+        "{player} youre my best friend, no question",
+        "ok {player}, best friends. its official",
+        "honestly {player} you're the best person i know here",
+        "if i had to pick one person on this server its you {player}",
+        "{player} youre my number one, dont tell the others",
+        "best friend status unlocked lol {player}",
+        "i'd follow you into the nether {player}. best friends",
+        "{player} youre stuck with me now, best friends",
+        "never had a best friend before {player}. now i do",
+        "youre the first one i'd tell about diamonds {player}",
+        "my best friend {player}. has a nice ring to it",
+        "{player} you're family now basically",
+        "you've got my back and i got yours {player}. always",
+        "{player} youre my person here, fr",
+        "best friends {player}. if anyone messes with you they mess with me",
+        "if you ever need anything {player}, and i mean anything, ask",
+        "you and me against the world {player}",
+        "{player} youve been there every time. best friend for sure",
+        "i'd share my last steak with you {player}",
+        "ok {player} youre officially my favourite",
+        "{player} best friends now. that means you get the good bed",
+        "i trust you more than anyone here {player}",
+        "honestly dont know what id do without you {player}",
+        "{player} i'd give you my spare totem. thats how you know",
+        "youre the best thing about this place {player}"
       ],
       "hermit": [
         "{player}. youre the only one i actually trust round here",
-        "...best friend. yeah. dont make it weird {player}"
+        "...best friend. yeah. dont make it weird {player}",
+        "...{player}. youre the only one i'd open the door for",
+        "dont have many friends. you're the best one {player}",
+        "you. best friend. thats it {player}"
       ],
       "helper": [
         "{player} youre my BEST friend!! :D",
-        "best friends forever {player} <3"
+        "best friends forever {player} <3",
+        "{player} you're my best friend and i'll always help you!",
+        "best friends {player}! i'll always have food for you",
+        "aww {player} you mean so much to me, best friends!"
       ],
       "pvp_sweat": [
-        "{player} youre my duo now. best friend. thats final"
+        "{player} youre my duo now. best friend. thats final",
+        "{player} youre my duo for life. we'd clear anyone",
+        "best friends {player}. nobody 1v1s you without going through me",
+        "ok {player} best friend. still dont let me catch you slipping lol"
+      ],
+      "speedrunner": [
+        "best friend {player}. now keep up"
+      ],
+      "hoarder": [
+        "{player} youre the only one allowed near my chests now"
+      ],
+      "miner": [
+        "{player} best friend. i'd show you my strip mine. thats huge"
+      ],
+      "builder": [
+        "{player} i'm building you a room in my house. best friends",
+        "best friend {player}. you get naming rights on my next build"
+      ],
+      "nomad": [
+        "{player} of everyone ive met on the road, youre the best",
+        "best friend {player}. i'd walk a thousand blocks for you o7"
+      ],
+      "homebody": [
+        "{player} my home is your home now. best friends",
+        "you've got a key to the house now {player}. best friends"
+      ],
+      "bandit": [
+        "{player}, best friend. you'd be the last one i'd rob",
+        "anyone touches you {player}, they answer to me. best friends"
+      ],
+      "newbie": [
+        "{player} youre my BEST friend!! is that ok??",
+        "omg {player} best friends?? yesss",
+        "{player} ur the best, like best best friend",
+        "i've never had a best friend in a game before {player}!!"
+      ],
+      "casual": [
+        "lol {player} youre my bestie now, no going back",
+        "ngl {player} youre my day one fr",
+        "{player} youre literally my best friend lol, wild",
+        "bffs {player} fr fr"
       ]
     },
     "friends.back_from_cool": {
@@ -56,7 +201,80 @@
         "oh hey {player}, long time no see",
         "{player} you disappeared on me lol, good to see you",
         "look who it is. missed you round here {player}",
-        "{player}! thought you quit fr"
+        "{player}! thought you quit fr",
+        "{player}! where have you been??",
+        "wait is that {player}? no way",
+        "{player} its been forever",
+        "oh wow {player}, missed you",
+        "look whos back lol. hi {player}",
+        "{player}! i was starting to worry",
+        "{player} you're alive! thought a creeper got you",
+        "hey stranger. long time {player}",
+        "{player}!! back from the dead huh",
+        "been too long {player}, how you been",
+        "well well, {player}. been a while",
+        "{player} my old friend. where'd you go",
+        "kept wondering where you went {player}",
+        "{player}! you have to tell me everything",
+        "there you are {player}. missed having you around",
+        "hey {player}, you look different lol. been a while",
+        "{player} welcome back, place wasnt the same",
+        "almost forgot what you looked like {player} lol",
+        "{player}! knew you'd turn up eventually",
+        "good to have you back {player}",
+        "{player} back at last. we've got catching up to do",
+        "{player} where'd you run off to",
+        "thought you moved away {player}",
+        "wb {player}, been a minute",
+        "{player}! back in one piece too",
+        "oh hey, {player} returns",
+        "{player} i saved your spot lol, been ages",
+        "finally, {player}. been quiet without you"
+      ],
+      "speedrunner": [
+        "{player}. wb. lots changed"
+      ],
+      "hoarder": [
+        "{player}! i got so much more stuff since you left"
+      ],
+      "pvp_sweat": [
+        "{player} back already? still owe me a 1v1"
+      ],
+      "builder": [
+        "{player} you missed like three builds, come look"
+      ],
+      "miner": [
+        "{player}! been underground so long i forgot what daylight looks like lol"
+      ],
+      "nomad": [
+        "{player}! roads bring everyone back eventually o/",
+        "back from wherever you were {player}? tell me about it",
+        "{player} o/ thought you were off travelling like me"
+      ],
+      "homebody": [
+        "{player}! come in, i'll catch you up over some bread",
+        "{player} the farm grew a ton while you were gone"
+      ],
+      "hermit": [
+        "...{player}. been a while",
+        "oh. its you {player}. good",
+        "{player}. you came back. huh"
+      ],
+      "helper": [
+        "{player}! so good to see you, need anything?",
+        "welcome back {player}! you hungry?",
+        "{player}!! i kept your bed made up just in case"
+      ],
+      "newbie": [
+        "{player}!!! i missed you so much",
+        "omg {player} youre back!! where did you go??",
+        "{player} hi!! i thought you left forever"
+      ],
+      "casual": [
+        "yooo {player} long time lol",
+        "{player}!! bro where you been fr",
+        "ayy {player}'s back, nice",
+        "lol {player} ghosted me for days, good to see you tho"
       ]
     },
     "friends.brush_off": {
@@ -66,14 +284,84 @@
         "later {player}, kinda busy",
         "not now lol",
         "gimme a sec",
-        "cant rn, sorry"
+        "cant rn, sorry",
+        "busy rn {player}",
+        "maybe later",
+        "not today {player}",
+        "uh, no thanks",
+        "i dont really know you {player}",
+        "ask someone else lol",
+        "nah im good",
+        "kinda in the middle of something",
+        "sorry, got stuff to do",
+        "we're not there yet {player}",
+        "hmm, no",
+        "bad timing {player}",
+        "do i know you?",
+        "catch me another time",
+        "eh. no",
+        "i'm a bit busy {player}, sorry",
+        "nope, sorry",
+        "can't help rn",
+        "hold on, im doing stuff",
+        "{player} i barely know you lol",
+        "pass",
+        "not right now, maybe some other day",
+        "uh, who are you again",
+        "i'll think about it {player}"
       ],
       "hermit": [
         "not now.",
-        "..."
+        "...",
+        "no.",
+        "leave it.",
+        "go away {player}",
+        "not interested"
       ],
       "helper": [
-        "sorry {player}! not a good time, later?"
+        "sorry {player}! not a good time, later?",
+        "sorry {player}, cant right now! maybe once i know you better?",
+        "aw i'm swamped rn {player}, catch me later?",
+        "sorry! i'd love to help another time {player}"
+      ],
+      "miner": [
+        "heading underground, cant rn"
+      ],
+      "builder": [
+        "busy building {player}, later"
+      ],
+      "homebody": [
+        "sorry {player}, got crops to tend"
+      ],
+      "nomad": [
+        "just passing through, cant help sorry"
+      ],
+      "hoarder": [
+        "nah, my stuff stays mine",
+        "dont even look at my chests {player}"
+      ],
+      "bandit": [
+        "you dont want to owe me {player}. walk away",
+        "favours cost. you cant afford it"
+      ],
+      "pvp_sweat": [
+        "lol who are you {player}",
+        "earn it first {player}"
+      ],
+      "speedrunner": [
+        "no time",
+        "busy. later",
+        "cant, on a schedule"
+      ],
+      "newbie": [
+        "um sorry i dont know you yet {player}",
+        "uhh im kinda busy sorry!!",
+        "wait who are you? sorry, cant rn"
+      ],
+      "casual": [
+        "nah, maybe tomorrow lol",
+        "eh maybe later {player}, idk",
+        "lol no, busy"
       ]
     },
     "friends.food": {
@@ -83,14 +371,82 @@
         "{player} eat something before you pass out lol",
         "here, i got spare",
         "you're starving dude, take this",
-        "heard your stomach from here lol, catch"
+        "heard your stomach from here lol, catch",
+        "{player} you're running on empty, take this",
+        "here, dont starve on me",
+        "yo {player} eat this",
+        "you look hungry, have some of mine",
+        "catch {player}, food",
+        "dont sprint on an empty stomach lol, here",
+        "{player} take some food before you drop",
+        "i got extra, eat up",
+        "here {player}, your hunger bar looks rough",
+        "eat something {player}, you cant even sprint like that",
+        "tossing you some food, eat it",
+        "food, catch",
+        "{player} you're gonna starve out here, take this",
+        "have some of my stash, go on",
+        "you need this more than me {player}",
+        "here, its not much but eat",
+        "{player} fill up, cant have you passing out",
+        "brought too much anyway, here",
+        "dont be shy {player}, eat",
+        "{player} have a bite, you look wiped",
+        "eat before you start taking damage lol",
+        "here {player}, on me",
+        "no healing on an empty stomach, eat up",
+        "{player} grab this, you're half dead",
+        "you're starving, i can tell. take it"
       ],
       "helper": [
         "{player}! you need food, here you go!",
-        "eat eat eat, here"
+        "eat eat eat, here",
+        "{player}! here, eat up, i've got plenty",
+        "take as much as you need {player}!",
+        "dont go hungry {player}, here's some food!",
+        "i always carry extra for friends, here {player}",
+        "eat up {player}! cant have you starving"
       ],
       "hermit": [
-        "...eat. here"
+        "...eat. here",
+        "food. take it",
+        "just eat. dont thank me"
+      ],
+      "bandit": [
+        "here {player}. dont say i never gave you anything"
+      ],
+      "pvp_sweat": [
+        "cant win a fight on half hunger {player}, eat"
+      ],
+      "speedrunner": [
+        "eat. fast. we're moving"
+      ],
+      "miner": [
+        "brought snacks down the mine, have one {player}"
+      ],
+      "nomad": [
+        "road food, but it works. eat {player}",
+        "always pack extra on the road. here"
+      ],
+      "hoarder": [
+        "fine, take one. just one {player}",
+        "dont tell anyone i gave you food from my stash"
+      ],
+      "newbie": [
+        "{player} are you hungry? here have some!!",
+        "omg {player} your food bar!! take this",
+        "here {player}! i dont need it i think"
+      ],
+      "homebody": [
+        "fresh from my farm {player}, eat",
+        "made extra bread today, here {player}",
+        "{player} have some of my cooking"
+      ],
+      "casual": [
+        "lol you look starved {player}, catch",
+        "bro eat something fr, here",
+        "here, snack time lol",
+        "ngl you look rough {player}, eat this"
       ]
     },
     "friends.invite.night": {
@@ -100,14 +456,83 @@
         "yo come in before the mobs show up",
         "get in here {player}, its dark out",
         "door's open, come in",
-        "{player} you can crash at mine tonight"
+        "{player} you can crash at mine tonight",
+        "night's coming {player}, come inside",
+        "{player} its getting late, come in",
+        "sun's going down, get in here",
+        "{player} dont stay out there at night, come in",
+        "mobs are spawning, come in {player}",
+        "come in {player}, its not safe out there now",
+        "its dark, come hang at mine",
+        "stay here tonight {player}",
+        "get inside, i hear zombies already",
+        "{player} come in, i'll shut the door behind you",
+        "night time, come in and wait it out",
+        "come on in {player}, its about to get ugly out there",
+        "{player} dont risk it, come inside",
+        "skeletons out soon, come in",
+        "come in {player}, theres room",
+        "{player} spend the night here, its safer",
+        "its night {player}, come in quick",
+        "door's open {player}, hurry before the creepers",
+        "you're not walking home in the dark, come in",
+        "{player} sleep here tonight, way safer",
+        "too dark to be wandering {player}, come in",
+        "get in before the phantoms find you lol",
+        "{player} its dark, come in and warm up",
+        "inside {player}, now, its night"
       ],
       "helper": [
         "come in come in! its dangerous out there",
-        "{player}! stay at mine tonight!"
+        "{player}! stay at mine tonight!",
+        "{player} come in! i'll keep the door shut for you",
+        "please come in {player}, i dont want you getting hurt",
+        "come in {player}! theres food and a bed"
       ],
       "hermit": [
-        "...come in. dont touch anything"
+        "...come in. dont touch anything",
+        "in. its night",
+        "...get in {player}. quick",
+        "door's open. close it behind you"
+      ],
+      "bandit": [
+        "come in {player}. nights out here belong to worse than me"
+      ],
+      "speedrunner": [
+        "{player} in. skip the night"
+      ],
+      "miner": [
+        "{player} come in, its darker out there than my mine"
+      ],
+      "hoarder": [
+        "{player} come in. chests are off limits tho"
+      ],
+      "pvp_sweat": [
+        "come in {player}, not worth dying to a zombie lol"
+      ],
+      "builder": [
+        "come in {player}, walls are solid, mobs cant get you",
+        "{player} come see the inside at night, the lighting's nice"
+      ],
+      "nomad": [
+        "dont travel at night {player}, trust me. come in",
+        "{player} rest here tonight, road'll be there tomorrow"
+      ],
+      "homebody": [
+        "{player} come in, i've got the furnace going",
+        "come in {player}, the house is warm and theres bread",
+        "{player} stay the night, i love having company"
+      ],
+      "newbie": [
+        "{player} the moon is up!! hurry inside!!",
+        "come inside {player} pls the zombies scare me",
+        "omg its dark already, come in {player}!"
+      ],
+      "casual": [
+        "yo its dark lol come in",
+        "{player} come chill inside, mobs are out",
+        "lol get in here before you get creepered",
+        "come in fr, its night"
       ]
     },
     "friends.invite.rain": {
@@ -115,10 +540,79 @@
         "come in, its pouring",
         "{player} get out of the rain lol",
         "its raining, come inside",
-        "you're soaked, come in"
+        "you're soaked, come in",
+        "{player} its raining, get in here",
+        "come in {player}, its wet out",
+        "rain's coming down hard, come in",
+        "dont stand in the rain {player}, come in",
+        "{player} come dry off inside",
+        "get in out of the rain lol",
+        "its storming {player}, come in",
+        "{player} youre dripping, come inside",
+        "come in, wait out the rain with me",
+        "{player} come in till it clears up",
+        "rain rain rain. come in",
+        "dont get struck by lightning lol, come in",
+        "{player} the rains not stopping anytime soon, come in",
+        "come in {player}, rain's ruining my day too",
+        "{player} hop inside, its chucking it down",
+        "come in and wait for the sun {player}",
+        "come in before it gets worse {player}",
+        "you look like a drowned lol, come in {player}",
+        "{player} its a thunderstorm, mobs spawn in this. come in",
+        "{player} get under a roof, its pouring",
+        "rain's here, come in {player}",
+        "{player} come in, i'll get the furnace going",
+        "lol you're soaking, get in",
+        "{player} theres room in here, come out of the rain",
+        "come in {player}, no point getting soaked"
       ],
       "helper": [
-        "come in out of the rain {player}!"
+        "come in out of the rain {player}!",
+        "{player}! come in, i'll find you a dry spot",
+        "come in and dry off {player}, take your time",
+        "{player}! dont stand out there, come in out of the wet"
+      ],
+      "hoarder": [
+        "come in {player}. drip on the floor, not my chests"
+      ],
+      "pvp_sweat": [
+        "{player} come in, lightning's not a fair fight lol"
+      ],
+      "speedrunner": [
+        "{player} in. wait out the rain"
+      ],
+      "miner": [
+        "{player} come in, its as dry as a cave in here"
+      ],
+      "builder": [
+        "come in {player}, roof doesnt leak, i made sure",
+        "{player} come see how dry it is in here, good roof"
+      ],
+      "nomad": [
+        "{player} no sense walking in this, come in",
+        "rain slows the road anyway {player}, rest here"
+      ],
+      "homebody": [
+        "{player} come in, perfect weather for staying home",
+        "rainy days are for indoors {player}, come in",
+        "{player} come in, i love the sound of rain on the roof"
+      ],
+      "hermit": [
+        "rain. come in",
+        "...in. till it stops",
+        "get in {player}. wipe your feet"
+      ],
+      "newbie": [
+        "{player} its raining!! come in come in",
+        "come in {player}! does lightning hurt? dont find out",
+        "{player} youre all wet lol come inside!"
+      ],
+      "casual": [
+        "lol {player} come in, its pouring fr",
+        "yo get in, rain's wild",
+        "come chill inside till it stops",
+        "ngl {player} you look like a wet cat, come in"
       ]
     },
     "friends.bed": {
@@ -126,10 +620,79 @@
         "theres a spare bed if you want it",
         "you can sleep in the spare bed",
         "spare bed's yours tonight",
-        "take the spare bed, its fine"
+        "take the spare bed, its fine",
+        "spare bed's made up if you need it",
+        "got a spare bed, its yours",
+        "you can take the extra bed",
+        "theres a bed with your name on it",
+        "extra bed's free tonight",
+        "sleep here if you want, spare bed's empty",
+        "spare bed, upstairs, all yours",
+        "use the other bed, i dont mind",
+        "if you're tired theres a spare bed",
+        "bed's free, go for it",
+        "you can crash in the spare bed",
+        "other bed's yours, sleep well",
+        "the spare's clean, go ahead",
+        "need a bed? i got one spare",
+        "spare bed. you. sleep. lol",
+        "theres a free bed if you want to skip the night",
+        "take the bed by the window",
+        "set your spawn here if you want, spare bed's free",
+        "grab the spare bed, i'll take mine",
+        "you can sleep over, theres a bed for you",
+        "spare bed's not doing anything, use it",
+        "go ahead and use the bed, i insist",
+        "theres an extra bed, no charge",
+        "bed's in the corner, its yours",
+        "i keep a spare bed for friends. thats you"
       ],
       "helper": [
-        "the spare bed's all yours!"
+        "the spare bed's all yours!",
+        "spare bed's ready for you, sleep tight!",
+        "i made up the spare bed just for you!",
+        "take the spare bed, and shout if you need anything!"
+      ],
+      "bandit": [
+        "spare bed's yours. i dont rob friends in their sleep"
+      ],
+      "pvp_sweat": [
+        "take the spare bed, cant fight tired lol"
+      ],
+      "speedrunner": [
+        "spare bed. sleep, skip the night"
+      ],
+      "hoarder": [
+        "spare bed's yours. the chest next to it isnt"
+      ],
+      "nomad": [
+        "a real bed beats the ground, take the spare",
+        "sleep in the spare, you need it after the road"
+      ],
+      "builder": [
+        "spare bed's in the guest room, matched the wool and everything",
+        "check out the guest bed, color coded lol"
+      ],
+      "homebody": [
+        "spare bed's got fresh wool, enjoy",
+        "the guest bed's all ready, make yourself at home",
+        "i love having guests, spare bed's yours"
+      ],
+      "hermit": [
+        "bed's there.",
+        "...spare bed. use it. quietly",
+        "you can have the bed. dont snore"
+      ],
+      "newbie": [
+        "you can use my other bed!! i made two",
+        "do you want the spare bed? its red!",
+        "i have an extra bed!! does that set your spawn? i think it does"
+      ],
+      "casual": [
+        "spare bed's there lol, help yourself",
+        "crash here, theres a bed, its chill",
+        "ngl the spare bed is comfy",
+        "spare bed or the floor lol, your call"
       ]
     },
     "friends.tip.ore": {
@@ -138,7 +701,74 @@
         "{what} at {where}, didnt get round to it",
         "btw theres {what} at {where}",
         "saw some {what} around {where} if you need it",
-        "found {what} at {where}, go for it"
+        "found {what} at {where}, go for it",
+        "saw some {what}, {where}",
+        "fyi, {what}. {where}",
+        "{what}: {where}. all yours",
+        "if you need {what}, theres some {where}",
+        "spotted {what} {where}",
+        "theres {what} {where}, didnt mine it",
+        "ran past {what}, {where}",
+        "{what} {where}, go grab it",
+        "left some {what} {where} for you",
+        "you need {what}? {where}",
+        "{where}, theres {what}. go get it",
+        "saw a vein of {what}, {where}",
+        "quick tip: {what}, {where}",
+        "there was {what} {where} last i checked",
+        "walked right by some {what}, {where}",
+        "noticed {what} {where}, didnt have a pick on me",
+        "tip for you: {what} {where}",
+        "go check {where}, theres {what}",
+        "if you're mining, {what} {where}",
+        "free {what}, {where}. youre welcome",
+        "{where}. {what}. thank me later",
+        "heads up, {what} {where}",
+        "{what}, {where}. bring a pick",
+        "pretty sure i saw {what} {where}",
+        "you'll want this: {what}, {where}",
+        "{what} out in the open, {where}"
+      ],
+      "hermit": [
+        "{what}. {where}. thats all"
+      ],
+      "nomad": [
+        "passed {what} on my travels, {where}",
+        "{what} {where}, right off the road"
+      ],
+      "speedrunner": [
+        "{what}, {where}. go",
+        "{what} {where}. quick grab"
+      ],
+      "hoarder": [
+        "{what} {where}. usually i'd keep it, but you're a friend",
+        "dont tell the others. {what}, {where}",
+        "had my eye on that {what} {where}, but take it"
+      ],
+      "newbie": [
+        "i saw {what}!! {where} i think",
+        "{what} {where}!! is that good?",
+        "omg i found {what}, {where}! you want it?"
+      ],
+      "helper": [
+        "{what} {where}! hope that helps",
+        "saved you some {what}, its {where}",
+        "thought of you when i saw {what}, {where}",
+        "go grab the {what} {where}, i left it for you!"
+      ],
+      "casual": [
+        "lol theres {what} {where}, go for it",
+        "ngl saw {what} {where}, couldnt be bothered",
+        "{what} {where} fr, free loot",
+        "oh and {what}, {where}"
+      ],
+      "miner": [
+        "nice {what} vein, {where}. take it",
+        "{what} {where}, exposed on a cave wall",
+        "found {what} while caving, {where}",
+        "{what} {where}. bring an iron pick to be safe",
+        "decent {what} {where}, ore's all yours",
+        "{what} {where}. i ran out of torches before i got to it"
       ]
     },
     "friends.tip.diamonds": {
@@ -147,7 +777,73 @@
         "{what} at {where}. keep it quiet",
         "only telling you this. {what}, {where}",
         "my secret spot: {what} at {where}",
-        "you didnt hear it from me. {what} at {where}"
+        "you didnt hear it from me. {what} at {where}",
+        "between us: {what}, {where}",
+        "dont spread this. {what} {where}",
+        "{what}. {where}. you owe me",
+        "you're the only one i'm telling. {what} {where}",
+        "keep this quiet ok? {what} {where}",
+        "{what} {where}. tell nobody",
+        "found {what} {where}. its yours, best friend",
+        "promise you wont tell? {what}, {where}",
+        "psst. {what}. {where}. go",
+        "secret's out, but only to you. {what} {where}",
+        "i was saving this. {what}, {where}",
+        "this stays between us: {what} {where}",
+        "lean in. {what}, {where}",
+        "{what} {where}. dont bring anyone",
+        "not even telling my town this. {what} {where}",
+        "{where}. {what}. shh",
+        "okay big secret. {what} {where}",
+        "{what} {where}, go before anyone else finds it",
+        "for your ears only: {what}, {where}",
+        "{what} {where}. forget i said anything after lol",
+        "best friend perk: {what}, {where}",
+        "trusting you with this. {what} {where}",
+        "{what}... {where}... not a word",
+        "theres {what} {where} and nobody else knows",
+        "go quiet, go alone. {what} {where}"
+      ],
+      "bandit": [
+        "{what} {where}. anyone else asks, i never said a thing",
+        "{what} {where}. if this gets out i'll know who"
+      ],
+      "speedrunner": [
+        "{what} {where}. take it, gear up",
+        "{what}, {where}. skip the grind"
+      ],
+      "hermit": [
+        "...{what}. {where}. nobody else",
+        "{what} {where}. dont talk about it"
+      ],
+      "helper": [
+        "found {what} {where}, i saved it for you!",
+        "{what} {where}, go get yourself some gear!",
+        "i want you to have it. {what}, {where}"
+      ],
+      "newbie": [
+        "{what}!!! {where}!!! dont tell anyone ok??",
+        "i found {what} {where}!! secret ok?",
+        "omg {what} {where}, is that rare? keep it secret"
+      ],
+      "casual": [
+        "ngl this is huge. {what} {where}, shh",
+        "lol ok dont freak. {what} {where}",
+        "{what} {where} fr, dont snitch"
+      ],
+      "hoarder": [
+        "it hurts to say this. {what} {where}",
+        "i should keep this for me. {what}, {where}",
+        "{what} {where}. dont make me regret it",
+        "only because youre my best friend. {what} {where}"
+      ],
+      "miner": [
+        "{what} {where}. bring your best pick",
+        "{what} {where}. watch for lava down there",
+        "my best find this week: {what}, {where}",
+        "{what} {where}, still in the wall. i left it",
+        "mined around it so nobody'd notice. {what} {where}",
+        "{what} {where}. its legit, trust me"
       ]
     },
     "friends.tip.place": {
@@ -155,7 +851,79 @@
         "theres {what} at {where} btw",
         "found {what} at {where}",
         "saw {what} around {where}, careful",
-        "fyi theres {what} at {where}"
+        "fyi theres {what} at {where}",
+        "fyi, {what} {where}",
+        "found {what}, {where}. worth a look",
+        "spotted {what} {where}",
+        "{what} {where}, check it out",
+        "if you're exploring, theres {what} {where}",
+        "{what}, {where}. bring torches",
+        "came across {what} {where}",
+        "{where}: {what}. go take a look",
+        "theres {what} {where}. i didnt go in",
+        "{what} {where}. be careful",
+        "remember {where}, theres {what}",
+        "tip: {what}, {where}",
+        "saw {what} {where}, might be useful to you",
+        "{what} {where}, didnt explore it much",
+        "{what} {where}. go armored up",
+        "you might want {what}, its {where}",
+        "{what} {where}. i made a note of it",
+        "stumbled on {what} {where}",
+        "{what}, {where}. thought you'd want to know",
+        "{what} {where} if youre after loot",
+        "check {where}, theres {what}",
+        "{what}, {where}. dont go alone",
+        "found {what} by accident, {where}",
+        "noticed {what} {where}, havent been back",
+        "{what} {where}. bring food",
+        "go see {what} {where} sometime"
+      ],
+      "builder": [
+        "{what} {where}. great blocks to pinch for builds"
+      ],
+      "bandit": [
+        "{what} {where}. good spot for an ambush, careful"
+      ],
+      "hoarder": [
+        "{what} {where}. loot it before someone else does"
+      ],
+      "hermit": [
+        "{what}. {where}. careful"
+      ],
+      "pvp_sweat": [
+        "{what} {where}. good loot if you dont die lol"
+      ],
+      "speedrunner": [
+        "{what} {where}. useful. go",
+        "{what}, {where}. saves you a search",
+        "{what} {where}. route it"
+      ],
+      "helper": [
+        "{what} {where}! happy to come with you",
+        "{what} {where}, be safe in there!",
+        "{what}, {where}. i can show you the way"
+      ],
+      "newbie": [
+        "i found {what}!! {where}!!",
+        "{what} {where}, is that good? i got scared lol",
+        "omg there's {what} {where}, wanna go together?"
+      ],
+      "casual": [
+        "lol theres {what} {where}",
+        "ngl {what} {where}, kinda cool",
+        "{what} {where} fr, check it"
+      ],
+      "nomad": [
+        "{what} {where}. saw it on my wanderings",
+        "{what} on the way, {where}. worth the trip",
+        "travelled past {what}, {where}",
+        "{what} {where}. good landmark too"
+      ],
+      "miner": [
+        "{what} {where}. found it caving",
+        "{what} {where}, came out of a cave right next to it",
+        "{what} {where}, mind the drop on the way"
       ]
     },
     "friends.tip.town": {
@@ -163,14 +931,148 @@
         "stay away from {town}, they hate us. {way}",
         "dont go to {town}, they dont like our lot ({way})",
         "heads up, {town}'s bad news. its {way}",
-        "{town} is {way}. wouldnt go there"
+        "{town} is {way}. wouldnt go there",
+        "{town} is bad news, {way}. avoid it",
+        "keep clear of {town}. its {way}",
+        "{town}, {way}. not friendly to us",
+        "dont wander into {town}, its {way}",
+        "{town} doesnt like our town. {way}, just so you know",
+        "{way} is {town}. stay out",
+        "careful near {town} ({way}), they're against us",
+        "{town} has it in for us. {way}. go round",
+        "if you see {town}, {way}, turn back",
+        "word is {town} wants trouble with us. {way}",
+        "{town}'s {way}. we're not on good terms",
+        "skip {town}, {way}. they wont be nice",
+        "{town} wont welcome you. its {way}",
+        "{way} theres {town}. bad blood there",
+        "heads up {town} is {way}, and they hate our lot",
+        "{town}, {way}. dont trade there, trust me",
+        "steer clear of {town}, {way}",
+        "{town} and us dont get along. {way}",
+        "if you go to {town} ({way}) dont say where youre from",
+        "{town} is {way}. keep your armor on if you pass it",
+        "watch out for {town}, its {way}. they're hostile",
+        "{town}... {way}. not our friends",
+        "{town} is trouble. {way}. go around it",
+        "we've got beef with {town}. {way}",
+        "{town}'s {way} and they'd love to catch one of us"
+      ],
+      "hoarder": [
+        "{town}, {way}. they'd rob you blind"
+      ],
+      "homebody": [
+        "{town}'s {way}. stay home where its safe"
+      ],
+      "speedrunner": [
+        "{town}, {way}. path around",
+        "{town} {way}. not worth the detour"
+      ],
+      "helper": [
+        "please be careful near {town}, {way}",
+        "{town} is {way}. if you have to go, take someone",
+        "dont want you getting hurt. {town} is {way}, avoid it"
+      ],
+      "newbie": [
+        "{town} is {way} and they dont like us?? why",
+        "is {town} scary? they say its {way}. i wont go",
+        "{town}, {way}!! dont go there ok?"
+      ],
+      "casual": [
+        "ngl {town} is sus, {way}. dont go",
+        "lol {town} hates us, {way}. skip it",
+        "{town} {way}, they're mad at us fr"
+      ],
+      "nomad": [
+        "roads near {town} arent safe for us. {way}",
+        "{town} is {way}. i go the long way round it",
+        "{town}, {way}. pick another road o7"
+      ],
+      "bandit": [
+        "{town}, {way}. even i dont go there",
+        "{town} is {way}. they've got guards and grudges",
+        "{town}, {way}. they'd take your stuff and laugh"
+      ],
+      "pvp_sweat": [
+        "{town}, {way}. i'd fight em all but dont go alone",
+        "{town} is {way}. bunch of noobs but they hate us",
+        "{town}, {way}. if they start something, finish it"
+      ],
+      "hermit": [
+        "{town}. {way}. avoid",
+        "...{town}. {way}. dont"
       ]
     },
     "friends.tip.bandits": {
       "any": [
         "heads up: {warning}",
         "btw, {warning}",
-        "careful out there. {warning}"
+        "careful out there. {warning}",
+        "word around town: {warning}",
+        "{warning}. just so you know",
+        "fyi {warning}",
+        "{warning}. keep your sword out",
+        "town's saying {warning}",
+        "careful, {warning}",
+        "dont go out alone. {warning}",
+        "guards say {warning}",
+        "saw it on the notice board: {warning}",
+        "psst. {warning}",
+        "{warning}. stay close to town",
+        "news from the guards: {warning}",
+        "just a warning, {warning}",
+        "{warning}. bring armor",
+        "listen. {warning}",
+        "{warning}. i'd stay in tonight",
+        "everyone's talking about it: {warning}",
+        "{warning}. dont say i didnt warn you",
+        "be smart out there. {warning}",
+        "{warning}. watch your back",
+        "{warning}. leave your valuables in a chest",
+        "not to scare you but {warning}",
+        "{warning}. eyes open on the road",
+        "a guard told me: {warning}"
+      ],
+      "speedrunner": [
+        "{warning}. route around"
+      ],
+      "homebody": [
+        "{warning}. good night to stay home"
+      ],
+      "bandit": [
+        "{warning}. not my crew, before you ask",
+        "{warning}. amateurs, but still"
+      ],
+      "nomad": [
+        "{warning}. pick your road carefully",
+        "{warning}. travel in daylight"
+      ],
+      "pvp_sweat": [
+        "{warning}. let em come lol",
+        "{warning}. i'll 1v1 every one of them"
+      ],
+      "hoarder": [
+        "{warning}. hide your stuff",
+        "{warning}. dont carry anything you cant lose"
+      ],
+      "hermit": [
+        "{warning}. thats all",
+        "...{warning}"
+      ],
+      "helper": [
+        "please be careful, {warning}",
+        "want me to come with you? {warning}",
+        "{warning}. shout if you need help"
+      ],
+      "newbie": [
+        "omg {warning}!! scary",
+        "um {warning}? is that bad",
+        "{warning}!! stay safe ok"
+      ],
+      "casual": [
+        "lol not great but {warning}",
+        "ngl {warning}, so yeah",
+        "{warning} fr, be careful"
       ]
     },
     "friends.warn.wanted": {
@@ -180,7 +1082,75 @@
         "{player} the guards want you, careful",
         "they're after you {player}. just saying",
         "psst. guards are looking for you",
-        "bro what did you do, the guards are after you"
+        "bro what did you do, the guards are after you",
+        "{player} the guards have your name, lay low",
+        "psst, guards are asking about you",
+        "heads up, guards are hunting for you",
+        "{player} keep your head down, the guards want you",
+        "guards were asking about you {player}, careful",
+        "dont go near the guards {player}, they're after you",
+        "you're wanted round here {player}, just saying",
+        "the guards are out for you, stay out of sight",
+        "{player} what happened? the guards are mad",
+        "maybe skip town for a bit {player}, guards are looking",
+        "word is the guards want a word with you lol",
+        "{player} dont walk past the guards rn",
+        "every guard in town is looking for you {player}",
+        "laying low might be smart {player}. guards",
+        "{player}, you're in trouble with the guards",
+        "guards are on the lookout for you {player}",
+        "heard the guards say your name {player}. not good",
+        "if i were you i'd hide. guards want you",
+        "{player} sneak out of town, the guards are after you",
+        "you didnt hear it from me but the guards want you",
+        "guards are after you {player}, dont let them corner you",
+        "keep moving {player}, the guards are searching",
+        "{player} whatever you did, the guards know",
+        "the guards are after you. i'm not saying anything though",
+        "{player} stay off the main road, guards are out for you"
+      ],
+      "hoarder": [
+        "{player} guards want you. dont hide anything in my chests"
+      ],
+      "homebody": [
+        "{player} the guards came by asking. you're welcome to hide here"
+      ],
+      "speedrunner": [
+        "{player}. guards. go now"
+      ],
+      "pvp_sweat": [
+        "{player} guards want you lol. fight or run",
+        "guards are after you {player}. skill issue lol"
+      ],
+      "nomad": [
+        "{player} might be time to hit the road, guards are after you",
+        "guards want you {player}. the road's always open o7"
+      ],
+      "bandit": [
+        "welcome to the club {player}, guards want you too",
+        "{player} the guards are on you. lay low like a pro",
+        "heh, wanted already {player}? guards are looking"
+      ],
+      "hermit": [
+        "guards. after you. go",
+        "...they want you {player}. leave",
+        "guards are looking. not my business"
+      ],
+      "helper": [
+        "{player}, the guards are after you. i'll keep quiet",
+        "be careful {player}, guards are looking. i wont say a thing",
+        "{player} if you need to hide, guards wont check my place"
+      ],
+      "newbie": [
+        "{player}!! the guards are looking for you!! run??",
+        "omg {player} are you in trouble?? the guards said your name",
+        "{player} i think youre in big trouble, the guards keep asking"
+      ],
+      "casual": [
+        "lol {player} you're wanted, what did you do",
+        "bro the guards are hunting you fr",
+        "ngl {player} you should dip, guards are looking",
+        "yikes {player}, guards want you lol"
       ]
     },
     "friends.warn.wanted_elsewhere": {
@@ -189,7 +1159,73 @@
         "everyone's talking about what happened in {town}",
         "heard about {town}... not cool {player}",
         "{town}?? seriously? i cant help you with that one",
-        "dont come round for a bit. word from {town} got here"
+        "dont come round for a bit. word from {town} got here",
+        "{town} wants you, {player}",
+        "word from {town} says you're wanted there",
+        "{player} you're wanted in {town}, heard it today",
+        "what happened in {town}? everyone's whispering",
+        "heard {town} is after you {player}",
+        "{town}'s guards want you, dont go back there",
+        "{player} stay clear of {town} for a while",
+        "news from {town}... it's about you {player}",
+        "you're not welcome in {town} anymore, heard that much",
+        "{town} wants your head lol, what did you do",
+        "dont go near {town} {player}, they'll grab you",
+        "{player} people from {town} are talking about you",
+        "rumor from {town}: you did something bad {player}",
+        "so... {town}. you wanna explain?",
+        "{town} has you wanted {player}. careful",
+        "i heard what you did in {town}. i'm not judging. much",
+        "{player} if you're heading to {town}, dont",
+        "{town} guards are looking for you, heard it from a trader",
+        "is it true about {town}, {player}?",
+        "{town} is hunting for you, keep your distance",
+        "{player} you made enemies in {town}",
+        "a {town} trader said your name. not in a good way",
+        "{player} i'd avoid {town} for a long while",
+        "heard {town} put your name up. what happened",
+        "you've got trouble in {town} {player}. lay low"
+      ],
+      "hoarder": [
+        "{player} if you nicked something in {town}, keep it away from my chests"
+      ],
+      "homebody": [
+        "{player} forget {town}, stay here a while"
+      ],
+      "speedrunner": [
+        "{town} wants you. skip it"
+      ],
+      "pvp_sweat": [
+        "{town} wants you {player}? lol let them try",
+        "{player} wanted in {town}. thats kinda sick ngl"
+      ],
+      "nomad": [
+        "{player} heard about {town} on the road. take another route",
+        "news from {town} travels fast {player}. stay out of there"
+      ],
+      "bandit": [
+        "heh, {town} wants you {player}? look at you",
+        "{player} wanted in {town}? you'd fit right in with my lot",
+        "{town} is after you. welcome to my life {player}"
+      ],
+      "hermit": [
+        "{town} wants you. not my problem. careful",
+        "...{town}. word got here"
+      ],
+      "helper": [
+        "{player}, heard about {town}. if you need a place to hide, come to mine",
+        "i dont care what {town} says {player}, youre still my friend",
+        "{town} wants you {player}. be careful, ok?"
+      ],
+      "newbie": [
+        "{player} why does {town} want you?? are you a bandit??",
+        "omg {player} people say youre wanted in {town}!!",
+        "{town} is after you?? that sounds bad {player}"
+      ],
+      "casual": [
+        "lol {player} {town} hates you now",
+        "bro {town} is mad at you fr",
+        "ngl {player} you're famous in {town}. not the good kind"
       ]
     },
     "friends.favor.flaked": {
@@ -198,7 +1234,76 @@
         "still waiting on {what} btw",
         "guess you forgot {what}",
         "thanks for nothing with {what} lol",
-        "you said you'd come lol"
+        "you said you'd come lol",
+        "so much for {what}, huh",
+        "remember {what}? me neither apparently",
+        "you never did {what} thing",
+        "i waited on {what} for days lol",
+        "never mind {what}, i'll do it myself",
+        "guess {what} wasnt important to you",
+        "you promised to help with {what}. just saying",
+        "{what} never happened huh",
+        "thanks for the help with {what}... oh wait",
+        "kinda let me down on {what} ngl",
+        "i was counting on you for {what}",
+        "{what}? forget it, i sorted it",
+        "you said you'd handle {what} lol",
+        "still thinking about {what}. you know, the thing you said you'd do",
+        "next time dont promise {what} if you wont do it",
+        "{what}. you said yes. remember?",
+        "heh, {what}. noted",
+        "so {what} was a no then",
+        "i told everyone you'd help with {what}. awkward",
+        "you bailed on {what}",
+        "{what} fell through i guess",
+        "i'll remember {what} next time you ask me for something",
+        "its fine. about {what}. its fine",
+        "wow, {what}. thanks a lot"
+      ],
+      "builder": [
+        "my build stalled waiting on {what}"
+      ],
+      "nomad": [
+        "waited around for {what} when i could've been travelling"
+      ],
+      "speedrunner": [
+        "{what}. you wasted my time"
+      ],
+      "homebody": [
+        "sat home all day waiting on {what}"
+      ],
+      "bandit": [
+        "{what}. you dont want to owe me, friend",
+        "you skipped out on {what}. i dont forget"
+      ],
+      "pvp_sweat": [
+        "{what}? L. big L",
+        "bailing on {what}, thats weak"
+      ],
+      "hoarder": [
+        "i'm keeping track. {what}, never done",
+        "you owe me for {what}. i wrote it down"
+      ],
+      "hermit": [
+        "{what}. figures",
+        "...{what}. never mind",
+        "said {what}. didnt. ok"
+      ],
+      "helper": [
+        "its ok about {what}, maybe next time?",
+        "no worries about {what}, i know you're busy",
+        "{what} didnt happen, but i'm not mad. promise"
+      ],
+      "newbie": [
+        "did you forget about {what}? :(",
+        "i waited for {what} all day...",
+        "um was {what} still happening? no? ok"
+      ],
+      "casual": [
+        "lol you totally ghosted on {what}",
+        "ngl kinda sad about {what}",
+        "bro you said yes to {what} lol",
+        "yikes, {what}. whatever"
       ]
     },
     "friends.favor.thanks.iron": {
@@ -206,7 +1311,74 @@
         "you're a legend, thanks for the iron",
         "ty for the iron!! i owe you",
         "clutch, thanks",
-        "ok thats the iron sorted, ty"
+        "ok thats the iron sorted, ty",
+        "thank you so much for the iron",
+        "iron! you're the best",
+        "ty, i really needed that iron",
+        "you came through with the iron, thanks",
+        "perfect, thats exactly what i needed",
+        "omg iron, ty ty",
+        "thanks, now i can finally make that pick",
+        "thats plenty of iron, thank you",
+        "you remembered! thanks for the iron",
+        "legend. iron received",
+        "ok i can make tools again, ty",
+        "appreciate it, the iron helps a ton",
+        "thanks a bunch, iron's always useful",
+        "nice, now i can patch up my armor",
+        "ty, that saves me a mining trip",
+        "huge, thanks for the iron",
+        "ah you actually brought iron, thank you",
+        "time to craft a bucket, thanks to you",
+        "you're a lifesaver, i was out of iron",
+        "iron! now i can make a shield",
+        "thanks friend, that iron's going to good use",
+        "got it, thank you!! iron at last",
+        "cheers for the iron",
+        "you kept your word. thanks for the iron"
+      ],
+      "nomad": [
+        "thanks, i can make a compass for the road now"
+      ],
+      "pvp_sweat": [
+        "iron armor here i come, thanks"
+      ],
+      "hermit": [
+        "...thanks. for the iron"
+      ],
+      "speedrunner": [
+        "iron. ty. crafting now"
+      ],
+      "homebody": [
+        "thanks, i can finally make shears for the sheep"
+      ],
+      "casual": [
+        "ayy iron, ty fr",
+        "ngl you saved me with that iron"
+      ],
+      "hoarder": [
+        "iron! that goes straight in the chest. thanks",
+        "counted it, all there. thanks for the iron",
+        "more iron for the pile, ty"
+      ],
+      "helper": [
+        "thank you so much! let me know if i can return the favor",
+        "you're so kind, thanks for the iron!"
+      ],
+      "newbie": [
+        "thank u for the iron!! what should i make first?",
+        "omg iron!! i can make armor now right??",
+        "ty ty!! iron is the shiny grey one right lol"
+      ],
+      "builder": [
+        "thanks for the iron, gonna make some iron bars for the windows",
+        "iron! perfect for the lanterns i wanted",
+        "ty, those iron doors are finally happening"
+      ],
+      "miner": [
+        "ty for the iron, saves me a trip down to y 16",
+        "iron! now i can afford to lose a pick in lava lol",
+        "thanks, now i can make a better pick and go deeper"
       ]
     },
     "friends.favor.thanks.food": {
@@ -214,7 +1386,75 @@
         "omg thank you, i was starving",
         "ty ty ty, saved my life",
         "thanks for the food!!",
-        "you're the best, thanks"
+        "you're the best, thanks",
+        "food! thank you, i was so hungry",
+        "you're a lifesaver, ty for the food",
+        "finally, food. thank you",
+        "ty, my stomach thanks you too lol",
+        "i owe you big for the food",
+        "thank you thank you, i was down to rotten flesh",
+        "ah perfect, i can sprint again",
+        "you remembered! thanks for feeding me",
+        "this is great, ty",
+        "food at last, you're awesome",
+        "thanks, i was about to eat my boots lol",
+        "ok i can stop starving now, thank you",
+        "you brought food, you actual hero",
+        "much appreciated, i was running on fumes",
+        "ty, that'll keep me going for days",
+        "yes, food! you're amazing",
+        "thanks, my hunger bar was shaking",
+        "lifesaver. literally. thank you",
+        "omg real food, ty",
+        "thanks friend, i'll eat well tonight",
+        "you kept your promise, ty for the food",
+        "thanks, i can finally heal up",
+        "i was so hungry, thanks a ton",
+        "food delivered, you're a legend",
+        "ty, now i can actually go do stuff"
+      ],
+      "builder": [
+        "thanks, i can build all night now"
+      ],
+      "nomad": [
+        "thanks, now i can hit the road with a full belly"
+      ],
+      "pvp_sweat": [
+        "full hunger again, thanks. back to winning"
+      ],
+      "speedrunner": [
+        "food. ty. back to it",
+        "thanks, no more stopping to forage"
+      ],
+      "hermit": [
+        "...food. thanks",
+        "thanks. needed that"
+      ],
+      "casual": [
+        "ayy food, ty fr",
+        "lol thank you, i was so done"
+      ],
+      "miner": [
+        "thanks, now i can stay down the mine longer",
+        "food! i can finally go back underground, ty"
+      ],
+      "hoarder": [
+        "food! thats going straight in the chest, ty",
+        "ty, more for the stockpile"
+      ],
+      "helper": [
+        "thank you so much, i'll share it with the neighbours",
+        "you're so sweet, thanks for the food!"
+      ],
+      "homebody": [
+        "thank you, i'll cook something nice with it",
+        "ty for the food, come round for dinner sometime",
+        "thanks, the pantry chest was looking sad"
+      ],
+      "newbie": [
+        "thank u!! i didnt know what to eat",
+        "omg food!! is it ok to eat it all at once?",
+        "ty!! i was eating berries all day lol"
       ]
     },
     "friends.favor.thanks.zombies": {
@@ -222,7 +1462,74 @@
         "thanks for clearing them out",
         "you actually did it, ty",
         "no more zombies at mine, thanks to you",
-        "owe you one for the zombies"
+        "owe you one for the zombies",
+        "thanks for dealing with the zombies",
+        "you cleared them all? thank you",
+        "my place is safe again, thanks",
+        "zombies gone, you're a hero",
+        "finally i can sleep without groaning outside lol",
+        "ty for taking care of those zombies",
+        "no more moaning at my door, thanks",
+        "i can go outside again, ty",
+        "thanks for the cleanup, they were everywhere",
+        "you're a legend, the zombies are gone",
+        "zombie free at last, thank you",
+        "thanks for keeping my place safe",
+        "they were banging on my door all night, thanks",
+        "that was brave, thanks for clearing them",
+        "ty, i was getting tired of all the groaning",
+        "my farm's safe again because of you",
+        "you handled those zombies like a pro, ty",
+        "i owe you big, those zombies were the worst",
+        "thank you! i didnt want to fight them myself",
+        "clean sweep, thanks",
+        "the zombies are gone? you're amazing",
+        "ty, my door's still in one piece thanks to you",
+        "hero of the neighbourhood right here",
+        "appreciate you clearing those out",
+        "safe to walk around at night again, ty"
+      ],
+      "speedrunner": [
+        "zombies cleared. ty. efficient"
+      ],
+      "nomad": [
+        "thanks, the road past my place is clear again"
+      ],
+      "miner": [
+        "ty, i can get to my mine entrance again"
+      ],
+      "hoarder": [
+        "thanks, my chests are safe again"
+      ],
+      "builder": [
+        "thanks, they were wandering all over my build site",
+        "ty, now i can finish the walls in peace"
+      ],
+      "hermit": [
+        "quiet again. thanks",
+        "...zombies gone. good. thanks"
+      ],
+      "casual": [
+        "lol you wiped them, ty",
+        "ngl that was clutch, thanks"
+      ],
+      "pvp_sweat": [
+        "nice clears, ty. respect",
+        "ez clean up huh, thanks"
+      ],
+      "homebody": [
+        "thank you, the garden's safe again",
+        "ty, i can tend the crops without looking over my shoulder",
+        "thanks, home feels like home again"
+      ],
+      "helper": [
+        "thank you so much, let me know if you ever need help back",
+        "you're so kind for clearing them, thank you!"
+      ],
+      "newbie": [
+        "omg you beat all the zombies?? thank u!!",
+        "ty!! they were so scary",
+        "thank you!! i was hiding inside the whole time lol"
       ]
     }
   },
