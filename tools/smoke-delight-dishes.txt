@@ -1,0 +1,62 @@
+# Dishes (Farmer's Delight addons, task 2): run with DRIFTER_DELIGHT=1, again with DRIFTER_FD=1 only, and with neither.
+# A glass box up in the sky far from anything (any world): a crafting table, a furnace and a lit stove with a cooking pot on it. Alice
+# lives there with the makings of More Delight's chicken sandwich with egg and tomato (the egg still to fry in the furnace).
+# Expected with the addons: `kitchen dishes` lists More Delight's sandwiches and pot dishes and Ocean's pot dishes; the
+# plan crafts the sandwich at the table; she cooks it ("cook chicken sandwich ..."); Bob, hungry, eats a sandwich before bread.
+# With Farmer's Delight only: its dishes only (no moredelight/oceansdelight ids). With neither: "No dishes".
+until Done_( 900
+wait 3
+time set 1000
+gamerule doDaylightCycle false
+gamerule doMobSpawning false
+# (16 x 16 chunks, the most one forceload takes: exploring she sets off for places outside what runs, through the glass.)
+forceload add 4880 4880 5135 5135
+wait 120
+fill 4990 199 4990 5026 206 5026 glass
+fill 4991 200 4991 5025 205 5025 air
+fill 4991 199 4991 5025 199 5025 stone
+setblock 5010 200 5004 crafting_table
+setblock 5012 200 5004 furnace
+setblock 5014 200 5004 farmersdelight:stove[lit=true]
+setblock 5014 201 5004 farmersdelight:cooking_pot
+execute positioned 5008 200 5010 run drifter spawn Alice
+wait 2
+execute positioned 5008 200 5010 run drifter tier full
+execute positioned 5008 200 5010 run drifter thoughts log true
+execute positioned 5008 200 5010 run drifter home here
+execute positioned 5008 200 5010 run drifter give bread 2
+execute positioned 5008 200 5010 run drifter give cooked_chicken 2
+execute positioned 5008 200 5010 run drifter give egg 1
+execute positioned 5008 200 5010 run drifter give farmersdelight:tomato 1
+execute positioned 5008 200 5010 run drifter give coal 4
+execute positioned 5008 200 5010 run drifter kitchen dishes
+wait 8
+execute positioned 5008 200 5010 run drifter plan moredelight:chicken_sandwich_with_egg_and_tomato
+execute positioned 5008 200 5010 run drifter plan farmersdelight:beef_stew
+execute positioned 5008 200 5010 run drifter brain
+sprint 1200
+execute positioned 5008 200 5010 run drifter brain
+sprint 1200
+execute positioned 5008 200 5010 run drifter brain
+sprint 1200
+execute positioned 5008 200 5010 run drifter brain
+execute positioned 5008 200 5010 run drifter inventory
+# Eating: Bob (a fresh one, so Alice's wandering doesn't matter), hungry with bread, cooked chicken and a sandwich, eats the sandwich.
+execute positioned 4998 200 5020 run drifter spawn Bob
+wait 2
+execute positioned 4998 200 5020 run tag @e[type=drifter:drifter,sort=nearest,limit=1] add dishbob
+execute as @e[tag=dishbob] at @s run drifter tier full
+execute as @e[tag=dishbob] at @s run drifter give bread 2
+execute as @e[tag=dishbob] at @s run drifter give cooked_chicken 2
+execute as @e[tag=dishbob] at @s run drifter give moredelight:chicken_sandwich_with_egg_and_tomato 1
+execute as @e[tag=dishbob] at @s run drifter inventory
+execute as @e[tag=dishbob] at @s run drifter food 8
+execute as @e[tag=dishbob] at @s run drifter brain goal eat
+sprint 300
+execute as @e[tag=dishbob] at @s run drifter brain
+execute as @e[tag=dishbob] at @s run drifter inventory
+gamerule doDaylightCycle true
+gamerule doMobSpawning true
+forceload remove 4880 4880 5135 5135
+wait 2
+stop

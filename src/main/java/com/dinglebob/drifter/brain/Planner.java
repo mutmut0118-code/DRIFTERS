@@ -1149,6 +1149,20 @@ public final class Planner {
 				}
 			}
 		});
+		// (The smoker's food too, so food only a smoker cooks counts as raw food that cooks: addons' smoker-only recipes. The
+		// furnace's form wins where both cook it.)
+		for (RecipeHolder<? extends AbstractCookingRecipe> holder : manager.getAllRecipesFor(RecipeType.SMOKING)) {
+			ItemStack result = holder.value().getResultItem(level.registryAccess());
+			if (result.isEmpty() || !result.has(net.minecraft.core.component.DataComponents.FOOD) || holder.value().getIngredients().isEmpty()) {
+				continue;
+			}
+
+			for (Item raw : itemsOf(holder.value().getIngredients().get(0))) {
+				if (new ItemStack(raw).has(net.minecraft.core.component.DataComponents.FOOD)) {
+					cooked.putIfAbsent(raw, result.getItem());
+				}
+			}
+		}
 
 		Map<Item, List<com.dinglebob.drifter.compat.FarmersDelight.CutRecipe>> cutting = new HashMap<>();
 		for (com.dinglebob.drifter.compat.FarmersDelight.CutRecipe recipe : com.dinglebob.drifter.compat.FarmersDelight.cutRecipes(level)) {

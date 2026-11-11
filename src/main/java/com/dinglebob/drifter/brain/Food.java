@@ -131,8 +131,9 @@ public final class Food {
 
 			int nutrition = properties.nutrition();
 			double waste = Math.max(0, nutrition - room);
-			// A proper meal from the kitchen (Farmer's Delight's stews, rice dishes) a little before plain food: it cooked it to eat.
-			double meal = com.dinglebob.drifter.compat.FarmersDelight.isMeal(stack) ? 2.0 : 0.0;
+			// A proper meal from the kitchen (Farmer's Delight's stews, rice dishes, an addon's sandwich: compat.Dishes) a little
+			// before plain food: it made it to eat.
+			double meal = com.dinglebob.drifter.compat.Dishes.isDish(level, stack) ? 2.0 : 0.0;
 			double score = Math.min(nutrition, room) - waste * 1.5 + properties.saturation() * 0.5 - (bad ? 20 : 0) - (raw ? 3 : 0) + meal;
 			if (score > bestScore) {
 				bestScore = score;

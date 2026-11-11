@@ -37,6 +37,8 @@ public final class HouseCommands {
 
 	public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
 		root.then(Commands.literal("houses").executes(HouseCommands::list));
+		// Debug: every dish a kitchen makes (compat.Dishes), by station, with how filling each is.
+		root.then(Commands.literal("kitchen").then(Commands.literal("dishes").executes(HouseCommands::dishes)));
 		root.then(Commands.literal("house")
 			.then(Commands.literal("status").executes(HouseCommands::status))
 			// Debug: the house as a map, layer by layer.
@@ -496,6 +498,38 @@ public final class HouseCommands {
 		}
 
 		return 1;
+	}
+
+	private static int dishes(CommandContext<CommandSourceStack> ctx) {
+		var level = ctx.getSource().getLevel();
+		var all = com.dinglebob.drifter.compat.Dishes.all(level);
+		if (all.isEmpty()) {
+			say(ctx, "No dishes (Farmer's Delight isn't loaded)");
+			return 0;
+		}
+
+		java.util.Map<String, java.util.List<String>> byStation = new java.util.TreeMap<>();
+		for (var dish : all) {
+			var food = new net.minecraft.world.item.ItemStack(dish).get(net.minecraft.core.component.DataComponents.FOOD);
+			String entry = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(dish) + " " + (food == null ? 0 : food.nutrition())
+				+ (com.dinglebob.drifter.compat.Dishes.isAddonDish(dish) ? "*" : "");
+			var recipes = com.dinglebob.drifter.compat.Dishes.recipes(level, dish);
+			java.util.Set<String> stations = new java.util.LinkedHashSet<>();
+			recipes.forEach(recipe -> stations.add(recipe.station()));
+			if (stations.isEmpty()) {
+				stations.add("meal list only");
+			}
+
+			stations.forEach(station -> byStation.computeIfAbsent(station, key -> new java.util.ArrayList<>()).add(entry));
+		}
+
+		long addon = all.stream().filter(com.dinglebob.drifter.compat.Dishes::isAddonDish).count();
+		say(ctx, all.size() + " dishes (" + addon + " from the addons, marked *; the number is how filling)");
+		byStation.forEach((station, entries) -> {
+			java.util.Collections.sort(entries);
+			say(ctx, station + " (" + entries.size() + "): " + String.join(", ", entries));
+		});
+		return all.size();
 	}
 
 	/** Debug: what's round a cell that has no way to be placed (its neighbours, and anything standing in it). */

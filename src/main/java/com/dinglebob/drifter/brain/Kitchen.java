@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.dinglebob.drifter.compat.Dishes;
 import com.dinglebob.drifter.compat.FarmersDelight;
 import com.dinglebob.drifter.entity.DrifterEntity;
 import com.dinglebob.drifter.memory.MemoryKind;
@@ -37,8 +38,8 @@ public final class Kitchen {
 	private static final long CHOICE_MIN_TICKS = 20L * 5;
 	/** Cooked within this long: something to talk about. */
 	public static final long COOKED_LATELY = 24000L * 2;
-	/** Below this (and not on the mod's meal list) a pot recipe is an ingredient, not dinner. */
-	private static final int MEAL_NUTRITION = 6;
+	/** Below this (and not on the mod's meal list, nor a mod's snack: compat.Dishes) food a kitchen makes is an ingredient, not dinner. */
+	public static final int MEAL_NUTRITION = 6;
 	/** Meals it likes to have on it (or in its cabinets) before it cooks more. */
 	public static final int MEALS_WANTED = 3;
 
@@ -149,9 +150,9 @@ public final class Kitchen {
 		return Math.min(2, count);
 	}
 
-	/** Meals it carries (the mod's meal list). */
+	/** Meals it carries (dishes: the mod's meal list, and any kitchen's sandwiches and stews; compat.Dishes). */
 	public static int mealsCarried(DrifterEntity drifter) {
-		return drifter.getInventory().count(FarmersDelight::isMeal);
+		return drifter.getInventory().count(stack -> Dishes.isDish(drifter.level(), stack));
 	}
 
 	private static final Map<java.util.UUID, Choice> CHOICES = new java.util.concurrent.ConcurrentHashMap<>();
@@ -171,9 +172,10 @@ public final class Kitchen {
 	}
 
 	/**
-	 * The meal it would cook now: of the best few pot meals, the one worth most for what it takes (a plan within
-	 * {@link #MEAL_PLAN_LIMIT} that needs no exploring). Null if it has no kitchen or nothing it could cook soon. Kept for half
-	 * a minute while what it carries stays the same.
+	 * The meal it would cook now: of the best few dishes it could make (compat.Dishes: pot meals with a pot it can use,
+	 * sandwiches and salads at a crafting table without one, any addon's), the one worth most for what it takes (a plan within
+	 * {@link #MEAL_PLAN_LIMIT} that needs no exploring). Null if it has nothing it could make soon. Kept for half a minute
+	 * while what it carries stays the same.
 	 */
 	@Nullable
 	public static Item chooseMeal(DrifterEntity drifter, KnownWorld world) {
@@ -186,19 +188,25 @@ public final class Kitchen {
 		}
 
 		Item best = null;
-		if (FarmersDelight.loaded() && Planner.usablePot(drifter) != null) {
+		if (FarmersDelight.loaded()) {
+			boolean pot = Planner.usablePot(drifter) != null;
 			double bestScore = Double.NEGATIVE_INFINITY;
-			// What it has the makings of first (on it or in its chests), the more filling first among those.
+			// What it has the makings of first (on it or in its chests), the more filling first among those. (Every dish is
+			// a real meal: tomato sauce is for cooking with.) Pot dishes only with a pot it can use.
 			Map<Item, Double> ready = new java.util.HashMap<>();
-			Planner.potMeals(drifter.level()).forEach((meal, recipes) -> ready.put(meal,
-				recipes.stream().mapToDouble(recipe -> readiness(drifter, recipe)).max().orElse(0.0)));
-			List<Item> meals = new ArrayList<>(ready.keySet());
-			// (A real meal: the mod's meal list, or something filling. Tomato sauce or cooked rice is for cooking with.)
-			meals.removeIf(meal -> {
-				ItemStack stack = new ItemStack(meal);
-				FoodProperties food = stack.get(DataComponents.FOOD);
-				return food == null || Food.isBad(stack) || !FarmersDelight.isMeal(stack) && food.nutrition() < MEAL_NUTRITION;
+			Dishes.makeable(drifter.level()).forEach((meal, recipes) -> {
+				double readiness = -1.0;
+				for (Dishes.Recipe recipe : recipes) {
+					if (pot || !recipe.station().equals(Dishes.POT)) {
+						readiness = Math.max(readiness, readiness(drifter, recipe.inputs()));
+					}
+				}
+
+				if (readiness >= 0.0) {
+					ready.put(meal, readiness);
+				}
 			});
+			List<Item> meals = new ArrayList<>(ready.keySet());
 			meals.sort(Comparator.comparingDouble((Item meal) -> -ready.get(meal)).thenComparingDouble(meal -> -value(meal)));
 			for (Item meal : meals.subList(0, Math.min(MEALS_CONSIDERED, meals.size()))) {
 				Planner.Plan plan = Planner.plan(drifter, world, meal, drifter.getInventory().count(stack -> stack.is(meal)) + 1);
@@ -222,8 +230,9 @@ public final class Kitchen {
 	}
 
 	/**
-	 * It keeps this for the meal it would cook (an ingredient of it): raw beef and potatoes for a stew don't go in the furnace
-	 * on their own. Only with a kitchen it can cook in.
+	 * It keeps this for the meal it would cook (an ingredient of it, any way of making it): raw beef and potatoes for a stew
+	 * don't go in the furnace on their own, nor the sandwich's fried egg (More Delight smelts fried eggs into omelettes). Only
+	 * with a kitchen it can cook in.
 	 */
 	public static boolean saving(DrifterEntity drifter, KnownWorld world, ItemStack stack) {
 		if (!FarmersDelight.loaded() || stack.isEmpty() || Planner.usablePot(drifter) == null) {
@@ -235,7 +244,7 @@ public final class Kitchen {
 			return false;
 		}
 
-		for (FarmersDelight.PotRecipe recipe : Planner.potMeals(drifter.level()).getOrDefault(meal, List.of())) {
+		for (Dishes.Recipe recipe : Dishes.recipes(drifter.level(), meal)) {
 			for (var ingredient : recipe.inputs()) {
 				if (ingredient.test(stack)) {
 					return true;
@@ -246,11 +255,14 @@ public final class Kitchen {
 		return false;
 	}
 
-	/** How much of a recipe it has the makings of (0 to 1): its ingredients it carries or has in its chests at home. */
-	private static double readiness(DrifterEntity drifter, FarmersDelight.PotRecipe recipe) {
+	/**
+	 * How much of a recipe it has the makings of (0 to 1): its ingredients (a pot's, a crafting table's, the board's) it carries
+	 * or has in its chests at home. Nothing for a station that told only what it makes.
+	 */
+	private static double readiness(DrifterEntity drifter, List<net.minecraft.world.item.crafting.Ingredient> inputs) {
 		Home home = drifter.getDrifterBrain().home();
 		int have = 0;
-		for (var ingredient : recipe.inputs()) {
+		for (var ingredient : inputs) {
 			boolean found = drifter.getInventory().count(ingredient::test) > 0;
 			if (!found && home != null) {
 				for (ItemStack option : ingredient.getItems()) {
@@ -261,7 +273,7 @@ public final class Kitchen {
 			have += found ? 1 : 0;
 		}
 
-		return have / (double)Math.max(1, recipe.inputs().size());
+		return have / (double)Math.max(1, inputs.size());
 	}
 
 	/** Forget the choice (a meal cooked, the kitchen changed). */
@@ -297,7 +309,7 @@ public final class Kitchen {
 			if (!words.containsKey("meal")) {
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 					ItemStack stack = me.getInventory().getItem(slot);
-					if (FarmersDelight.isMeal(stack)) {
+					if (Dishes.isDish(me.level(), stack)) {
 						words.put("meal", Planner.name(stack.getItem()));
 						break;
 					}

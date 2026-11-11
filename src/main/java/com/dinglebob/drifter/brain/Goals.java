@@ -555,7 +555,9 @@ public final class Goals {
 				return "take the " + Planner.name(batch.meal()) + " out of the pot";
 			}
 
-			Item meal = this.meal(context);
+			// (Named every time the brain scores its goals: without a pot it can use the goal doesn't run, so it doesn't choose
+			// a meal just for the name; choosing plans several dishes.)
+			Item meal = Planner.usablePot(context.drifter()) == null ? null : this.meal(context);
 			return meal == null ? "cook a meal" : "cook " + Planner.name(meal);
 		}
 
