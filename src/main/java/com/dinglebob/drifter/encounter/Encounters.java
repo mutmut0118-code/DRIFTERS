@@ -750,6 +750,13 @@ public final class Encounters {
 		return true;
 	}
 
+	/** The price on their head now, for the API (who and why), or null. */
+	@Nullable
+	public static com.dinglebob.drifter.api.DrifterApi.PlayerBounty bountyOn(UUID player) {
+		PlayerState state = players.get(player);
+		return state == null || state.bounty == null ? null : new com.dinglebob.drifter.api.DrifterApi.PlayerBounty(state.bounty.issuer(), state.bounty.reason());
+	}
+
 	/** Debug (`/drifter encounter band <tier> <count>`): an ambush's band kitted here, with no player or encounter behind it. */
 	public static java.util.List<com.dinglebob.drifter.entity.DrifterEntity> debugBand(net.minecraft.server.level.ServerLevel level,
 		net.minecraft.core.BlockPos spot, int tier, int count) {

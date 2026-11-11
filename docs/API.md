@@ -279,6 +279,12 @@ feature. Each hook is one listener, a no-op until the addon sets it.
 | `TalkApi.callName(drifter, player)`, `meaning(text, keys...)` | What it calls a player; which of the chat files' `answers` meanings a message has (an addon's own phrases too). |
 | `TalkApi.topicAbout(topic)`, `playerTopics(tag)` | A player topic's `about` words; the player topics with a tag (or a word of their id). |
 
+## A price on a player's head (API 7)
+
+`DrifterApi.postBounty(player, issuer, reason)` puts one up (bounty hunters come; false if there's one already).
+`DrifterApi.bounty(playerId)` reads it: a `PlayerBounty(issuer, reason)` or null. For showing a player their own (the
+addon's journal), never for a Drifter to know.
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

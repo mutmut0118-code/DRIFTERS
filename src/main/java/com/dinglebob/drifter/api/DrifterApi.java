@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 6;
+	public static final int API_VERSION = 7;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -1166,6 +1166,16 @@ public final class DrifterApi {
 	/** A price on this player's head, from {@code issuer} for {@code reason} (bounty hunters come); false if there is one. */
 	public static boolean postBounty(net.minecraft.server.level.ServerPlayer player, String issuer, String reason) {
 		return com.dinglebob.drifter.encounter.Encounters.postBountyFor(player, issuer, reason);
+	}
+
+	/** A price on a player's head: who put it up and what for. */
+	public record PlayerBounty(String issuer, String reason) {
+	}
+
+	/** The price on this player's head now, or null (for showing them; API 7). */
+	@org.jetbrains.annotations.Nullable
+	public static PlayerBounty bounty(java.util.UUID player) {
+		return com.dinglebob.drifter.encounter.Encounters.bountyOn(player);
 	}
 
 	/** It goes on this trade run to another town (step 4), or (null) it's off it. */
