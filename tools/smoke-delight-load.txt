@@ -1,0 +1,11 @@
+until Done_( 900
+wait 3
+drifter spawn Alice
+wait 3
+drifter plan moredelight:mashed_potatoes
+drifter plan oceansdelight:squid_rings
+drifter plan muffins_thaidelight:pesto_sauce
+drifter plan cratedelight:carrot_crate
+drifter plan storagedelight:oak_drawer
+wait 3
+stop

@@ -82,8 +82,30 @@ dependencies {
 	// Optional: Farmer's Delight, for cooking (compat/farmersdelight). Compile-only, so Drifter runs with or without it.
 	// The dev game launches only load it when asked: ./gradlew runServer -PfarmersDelight, or DRIFTER_FD=1 (tests run both ways).
 	modCompileOnly "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
-	if (project.hasProperty("farmersDelight") || System.getenv("DRIFTER_FD") == "1") {
+	def delight = project.hasProperty("delight") || System.getenv("DRIFTER_DELIGHT") == "1"
+	if (project.hasProperty("farmersDelight") || System.getenv("DRIFTER_FD") == "1" || delight) {
 		modLocalRuntime "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
+	}
+
+	// Optional: the five Farmer's Delight addons (More Delight, Ocean's Delight, Thai's Delight, Crate Delight, Storage
+	// Delight). Thai's Delight is compile-only too (its mortar recipe class is used directly); the rest only run in dev.
+	// Dev launches load them with ./gradlew runServer -Pdelight, or DRIFTER_DELIGHT=1 (this also loads Farmer's Delight).
+	modCompileOnly "maven.modrinth:muffins-thais-delight:${project.thais_delight_version}"
+	modCompileOnly "maven.modrinth:muffins-oven-api:${project.muffins_oven_api_version}"
+	if (delight) {
+		modLocalRuntime "maven.modrinth:cloth-config:${project.cloth_config_version}"
+		modLocalRuntime "maven.modrinth:cardinal-components-api:${project.cca_version}"
+		modLocalRuntime "maven.modrinth:more-delight:${project.more_delight_version}"
+		modLocalRuntime "maven.modrinth:oceans-delight:${project.oceans_delight_version}"
+		modLocalRuntime "maven.modrinth:crate-delight:${project.crate_delight_version}"
+		modLocalRuntime "maven.modrinth:storage-delight:${project.storage_delight_version}"
+	}
+	// Thai's Delight 2.0.0 touches a client-only class in its common init (ThaiDelightFabric.onInitialize, line 97:
+	// NoClassDefFoundError net.minecraft.client.multiplayer.ClientLevel), so it cannot load on a dedicated server (runServer,
+	// the smoke tests). It loads on runClient: add it there with DRIFTER_THAI=1 (or -Pthai) together with DRIFTER_DELIGHT=1.
+	if (delight && (project.hasProperty("thai") || System.getenv("DRIFTER_THAI") == "1")) {
+		modLocalRuntime "maven.modrinth:muffins-thais-delight:${project.thais_delight_version}"
+		modLocalRuntime "maven.modrinth:muffins-oven-api:${project.muffins_oven_api_version}"
 	}
 }
 
