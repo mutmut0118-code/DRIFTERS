@@ -322,7 +322,8 @@ final class TownBounties {
 		tell(to, town.name + " paid you " + pay + " for the " + what + ".");
 		Chronicle.add(server, "town", name + " filled " + town.name + "'s notice: " + what);
 		if (poster != null) {
-			com.dinglebob.drifter.social.ChatLines.speak(poster, owed > 0 ? "got your " + what + ", thats all i could pay" : "got the " + what + ", thanks " + name + "!");
+			com.dinglebob.drifter.social.ChatLines.speak(poster, owed > 0 ? CivLines.pick(poster, "town.bounty.short", "got your " + what + ", thats all i could pay", "what", what,
+				"player", name) : CivLines.pick(poster, "town.bounty.paid", "got the " + what + ", thanks " + name + "!", "what", what, "player", name));
 			if (drifter == null) {
 				DrifterApi.addTrustInPlayer(poster, to.getUUID(), name, 10.0);
 			}

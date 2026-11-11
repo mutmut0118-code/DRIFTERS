@@ -21,7 +21,14 @@
 					{"do": "hold", "item": "minecraft:clock"},
 					{"do": "look_at", "at": "down", "ticks": 40},
 					{"do": "look_at", "at": "sun", "ticks": 30},
-					{"do": "say", "lines": ["getting late", "almost night", "time to head in soon", "sun's going down"], "chance": 0.3}
+					{"do": "say", "lines": ["getting late", "almost night", "time to head in soon", "sun's going down",
+							"clock says sunset", "getting dark out", "night soon, better wrap up", "ok sun's almost down", "mobs come out soon",
+							"dusk already?", "where did the day go", "ok need to find a bed soon", "clock's nearly all dark lol", "night incoming",
+							"half the clock is dark", "should head back before the zombies", "time flies", "already sunset huh",
+							"gotta be quick then", "not much daylight left", "one more thing then bed", "time to light some torches",
+							"clock's saying go home", "nearly bedtime", "moon's coming up", "day's over already?", "better get inside",
+							"need to sleep tonight or phantoms", "im losing the light", "the clock never lies", "skip the night or tough it out",
+							"creepers soon. nope"], "chance": 0.3}
 				]
 			},
 			"needs": [{"item": "minecraft:clock"}],
@@ -39,7 +46,16 @@
 					{"do": "use_item", "item": "minecraft:spyglass", "ticks": 100},
 					{"do": "look_around"},
 					{"do": "use_item", "item": "minecraft:spyglass", "ticks": 60},
-					{"do": "say", "lines": ["can see for miles", "ooh whats that over there", "spyglass goes hard", "i spy"], "chance": 0.3}
+					{"do": "say", "lines": ["can see for miles", "ooh whats that over there", "spyglass goes hard", "i spy",
+							"whoa thats far", "is that a village out there", "i see a mountain way back", "is that a shipwreck on the beach",
+							"zoom zoom", "everything looks so tiny", "spotted a cow lol", "nothing out there but trees", "i see smoke over there",
+							"is that someones house", "lots of sheep that way", "that hill looks good for a base", "thats a long walk",
+							"creeper on the ridge. nope", "wish it could see underground lol", "birds eye view", "ocean out that way",
+							"desert past those hills", "tiny little villagers lol", "someone's walking way out there",
+							"theres a cave opening in that cliff", "ok i know where im going now", "is that a pillager tower out there. yikes",
+							"the horizon goes forever", "copper and amethyst well spent", "all clear", "no mobs close by", "ooh flowers over there",
+							"lava pool on that hill", "the far mountains look all blue", "cherry trees over there!", "pretty view",
+							"big oak over there, nice", "noted, noted", "i can see the next town from here"], "chance": 0.3}
 				],
 				"make": {"minecraft:spyglass": "minecraft:spyglass"}
 			},
@@ -53,7 +69,12 @@
 				"steps": [
 					{"do": "look_at", "at": "up", "ticks": 10},
 					{"do": "use_item", "item": "minecraft:goat_horn", "ticks": 60},
-					{"do": "say", "lines": ["AWOOOO", "did u hear that", "horn time", "the horn goes hard"], "chance": 0.3}
+					{"do": "say", "lines": ["AWOOOO", "did u hear that", "horn time", "the horn goes hard",
+							"BWAAAAH", "hear ye hear ye", "sorry if that woke anyone", "everyone hear that?", "that echoed lol", "whoops, loud",
+							"thanks goat", "toot toot", "rally!", "that one went far", "my ears", "ok that was loud", "calling everyone over",
+							"sounds like a raid lol, its just me", "dont panic its just me", "i love this horn", "loudest thing i own",
+							"the mobs are gonna hate me", "pretty sure the whole biome heard that", "best thing i ever got off a goat",
+							"answer the horn!", "did it echo back?", "one more? nah", "HOOOOOO", "thats my signal, come find me"], "chance": 0.3}
 				]
 			},
 			"needs": [{"item": "minecraft:goat_horn"}],
@@ -68,7 +89,14 @@
 					{"do": "walk_to", "target": "axolotl", "near": 2.5},
 					{"do": "crouch", "ticks": 20},
 					{"do": "look_at", "target": "axolotl", "ticks": 80, "hops": true},
-					{"do": "say", "lines": ["axolotl!!", "its smiling at me", "so cute", "the little gills", "i want one"], "chance": 0.4}
+					{"do": "say", "lines": ["axolotl!!", "its smiling at me", "so cute", "the little gills", "i want one",
+							"look at its little face", "hi buddy", "pink one!", "its so wiggly", "the way it swims", "it plays dead lol",
+							"hey little guy", "wait is that a blue one", "need a bucket of tropical fish", "they hunt drowned right",
+							"axolotl best mob", "baby axolotl!!", "i need a bucket", "dont be shy", "my new best friend", "im naming it bubbles",
+							"they fight with you underwater", "blub blub", "look at it go", "its waving at me i swear", "too cute to leave",
+							"i could watch it all day", "cave friend", "tiny frills", "must protect", "you live down here alone?",
+							"found it in the lush cave", "i love these things", "hello sir", "it looks so happy", "just vibing in the water",
+							"adorable", "a gold one, cute", "the pink ones are my fav", "wanna come home with me?"], "chance": 0.4}
 				]
 			},
 			"archetypes": {"newbie": 1.5, "homebody": 1.3}, "traits": {"curiosity": 0.4, "patience": 0.3}, "cooldown": 24000, "offscreen": "show",
@@ -81,7 +109,13 @@
 				"steps": [
 					{"do": "walk_to", "target": "frog", "near": 3},
 					{"do": "look_at", "target": "frog", "ticks": 80},
-					{"do": "say", "lines": ["ribbit", "froggy", "hes just a little guy", "frog.", "the tongue!!"], "chance": 0.4}
+					{"do": "say", "lines": ["ribbit", "froggy", "hes just a little guy", "frog.", "the tongue!!",
+							"croak", "look at him sit", "hes thinking about something", "big frog energy", "he eats magma cubes. legend",
+							"orange one, nice", "a green one, from the cold", "white frog! warm swamp guy", "tiny frog big jump", "hop hop",
+							"hi mr frog", "look at his eyes", "he's judging me", "frog on a lily pad", "just sitting there", "swamp king",
+							"respect the frog", "boing", "the throat thing lol", "frogs are underrated", "hello frog", "dont eat me",
+							"anyone got a slimeball for him", "froglight maker", "what a guy", "staring contest", "he blinked first",
+							"small green friend", "can i pet you", "he wants a little slime to snack on"], "chance": 0.4}
 				]
 			},
 			"archetypes": {"newbie": 1.5, "nomad": 1.3}, "traits": {"curiosity": 0.4}, "cooldown": 24000, "offscreen": "show",
@@ -91,28 +125,60 @@
 			"id": "watch_glow_squid", "category": "animals", "action": "watch_mob", "when": "night",
 			"params": {"mobs": ["minecraft:glow_squid"], "range": 16},
 			"archetypes": {"newbie": 1.5, "hermit": 1.3}, "traits": {"curiosity": 0.5}, "duration": 160, "cooldown": 24000,
-			"chat": ["glowy squid!", "look its glowing", "glow squid my beloved", "nightlight squid"],
+			"chat": ["glowy squid!", "look its glowing", "glow squid my beloved", "nightlight squid",
+					"its lighting up the water", "so pretty", "tiny underwater lamp", "the glow is so soft", "look how it shines",
+					"glow squid spotted", "glowing friend", "dont hurt it, its pretty", "it sparkles", "their ink makes signs glow btw",
+					"glow item frames come from these", "swimming lantern", "i love these guys", "little glow buddy", "so calm watching it",
+					"a squid but cooler", "glowing in the dark water", "it lights up the whole pool", "hi glowy",
+					"watching it swim around, so chill", "squid with a glow up", "best squid", "teal and glowing", "shine on little squid",
+					"i could watch this for hours", "regular squid wish they were this cool", "wow its bright", "how does it even glow",
+					"blue glow in the deep", "it glows more in the dark i swear"],
 			"thought": "watching a glow squid shine in the water"
 		},
 		{
 			"id": "eye_a_goat", "category": "animals", "action": "watch_mob",
 			"params": {"mobs": ["minecraft:goat"], "range": 20},
 			"archetypes": {"nomad": 1.3, "newbie": 1.3}, "traits": {"caution": 0.4, "curiosity": 0.3}, "duration": 100, "cooldown": 24000,
-			"chat": ["that goat's looking at me funny", "dont ram me", "i see you goat", "goats are menaces"],
+			"chat": ["that goat's looking at me funny", "dont ram me", "i see you goat", "goats are menaces",
+					"ok goat, back off", "that goat is plotting something", "head down, here it comes", "goats jump so high",
+					"dont you dare goat", "if it rams me off this cliff im done", "did that goat just scream", "staring contest with a goat",
+					"the horns on that one", "goat horns drop if they ram a tree", "you can milk goats btw", "it keeps lowering its head",
+					"not today goat", "goat stare is intense", "goats are cute until they arent", "keeping my distance",
+					"tiny horns, big attitude", "dont let it near the edge", "that goat has beef with me", "hey goat. truce?", "goats are wild",
+					"careful, that thing rams hard", "the bleat on that one", "nope, not turning my back on it", "goat looks so smug",
+					"staying out of ramming range", "goat vibes: hostile", "why is it climbing that", "if it charges im running",
+					"cute but dangerous", "goats knock you so far back", "that goat respects no one", "goat just bonked a tree",
+					"its doing the head thing again", "bonk incoming", "goats have zero respect for personal space"],
 			"thought": "keeping an eye on a goat"
 		},
 		{
 			"id": "watch_a_sniffer", "category": "animals", "action": "watch_mob",
 			"params": {"mobs": ["minecraft:sniffer"], "range": 16},
 			"archetypes": {"newbie": 1.5, "homebody": 1.5}, "traits": {"curiosity": 0.5}, "duration": 160, "cooldown": 24000,
-			"chat": ["big sniffy guy", "what are you digging for", "sniffer!!", "the nose on that thing"],
+			"chat": ["big sniffy guy", "what are you digging for", "sniffer!!", "the nose on that thing",
+					"its sniffing everything", "look at it go", "such a big boi", "the sniff sounds are the best",
+					"torchflower seeds come from these guys", "pitcher pods too", "that thing is ancient right", "slow and happy",
+					"gentle giant", "sniff sniff sniff", "what did you find buddy", "the nose wiggle", "its back looks all mossy",
+					"i want ten of them", "good sniffer", "sniffer eggs come from warm ocean ruins, crazy", "it waddles", "happy little sniffs",
+					"it found something!", "go on, dig", "its so big and so chill", "what a creature",
+					"dont mind me, just watching the sniffer", "hes on a mission", "watching it dig is so relaxing", "best mob ever made",
+					"ok i love it", "snout first, always", "the cutest dinosaur", "such a good nose", "sniffing for flowers from forever ago",
+					"it keeps sticking its nose in the dirt", "such a big nose for such a big guy"],
 			"thought": "watching a sniffer sniff about"
 		},
 		{
 			"id": "watch_a_camel", "category": "animals", "action": "watch_mob",
 			"params": {"mobs": ["minecraft:camel"], "range": 16},
 			"archetypes": {"nomad": 1.8, "newbie": 1.3}, "traits": {"curiosity": 0.4}, "duration": 120, "cooldown": 24000,
-			"chat": ["camel!", "hes so tall", "desert horse", "look at him just standing there"],
+			"chat": ["camel!", "hes so tall", "desert horse", "look at him just standing there",
+					"camels are so chill", "look at that hump", "two people can ride one", "hes chewing on something", "tall boy",
+					"can i ride him", "camels can dash, did you know", "he sat down lol", "the walk is so goofy", "big sleepy camel",
+					"desert buddy", "they like cactus", "he looks bored", "camel just standing in the sand", "long legs, long face",
+					"such a good boy", "want one so bad", "he looks at me like im the weird one", "the eyelashes tho",
+					"slow and happy, just like me", "you can see over everything from up there", "so lumpy", "he blinked at me",
+					"thats one fancy horse", "camel spotted", "floppy lips", "hes just walking in circles", "the sound he makes lol",
+					"cutest desert mob", "camels are so underrated", "id put a saddle on him in a heartbeat", "hes taller than the house",
+					"imagine a camel caravan across the desert", "the way he folds his legs to sit", "desert taxi"],
 			"thought": "watching a camel"
 		}
 	]

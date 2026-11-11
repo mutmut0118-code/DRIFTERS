@@ -4,7 +4,12 @@
 			"id": "hop_about", "category": "movement", "action": "hop", "params": {"times": 5},
 			"archetypes": {"newbie": 2.0, "speedrunner": 1.5, "homebody": 0.6}, "traits": {"fidget": 0.8},
 			"moods": {"bored": 1.0, "triumphant": 2.0}, "cooldown": 6000,
-			"chat": ["wheee", ":)", "boing", "hop hop", "bunny hopping", "cant stop wont stop"], "thought": "hopping about for no reason"
+			"chat": ["wheee", ":)", "boing", "hop hop", "bunny hopping", "cant stop wont stop",
+					"hoppity", "bounce bounce", "spring in my step", "jumping is free", "cant catch me", "jump jump jump", "im a rabbit now",
+					"feeling bouncy today", "my legs have too much energy", "yippee", "boingy boing", "sproing",
+					"just jumping around, dont mind me", "happy hops", "i cant stop jumping lol", "im so light rn", "bunny mode",
+					"one more jump", "jumpy day", "woo", "legs go up legs go down", "this is fun actually", "bouncing for no reason",
+					"jumping makes me hungry but worth it", "up, down, up, down", "if i jump high enough maybe i fly", "the ground is lava. jk"], "thought": "hopping about for no reason"
 		},
 		{
 			"id": "bounce_on_bed", "category": "movement", "action": "hop", "params": {"on": "bed", "times": 4},
@@ -14,7 +19,18 @@
 		{
 			"id": "go_for_a_swim", "category": "movement", "action": "swim", "params": {"radius": 24}, "when": "day",
 			"archetypes": {"nomad": 1.5, "newbie": 1.5, "miner": 0.6}, "moods": {"bored": 1.0}, "duration": 300,
-			"cooldown": 24000, "chat": ["water's nice", "swim time", "come in, waters warm", "cannonball", "just keep swimming"], "thought": "going for a swim"
+			"cooldown": 24000, "chat": ["water's nice", "swim time", "come in, waters warm", "cannonball", "just keep swimming",
+					"the water is so clear", "swimming laps", "sprint swimming is the best", "look at the fish", "anyone wanna race across",
+					"dont mind me, just floating", "splash", "a dolphin would be nice right now", "watch out for drowned",
+					"nice and cool in here", "hold your breath challenge", "bubbles running low, brb surfacing", "i could swim all day",
+					"water feels great after mining", "turtles over there!", "swimming is so relaxing", "a little swim never hurt anyone",
+					"pretend im a dolphin", "dive dive dive", "found some kelp down here", "underwater is so pretty",
+					"the sand at the bottom is so nice", "the squid are judging me", "im a fish now", "laps done, one more",
+					"the sun on the water looks nice", "belly flop", "cooling off", "swimming beats walking honestly", "hey come swim",
+					"splashing around", "that was refreshing", "salmon swam right past me", "careful, its deep here",
+					"the ocean is huge from down here", "touched the bottom!", "my hair is gonna be wet all day lol",
+					"the coral down there is so colorful", "seagrass everywhere", "gonna swim to that island",
+					"water breathing would be so good rn", "swim near dolphins and you get a speed boost", "floating like a log"], "thought": "going for a swim"
 		},
 		{
 			"id": "lookout_pillar", "category": "movement", "action": "lookout", "params": {"height": 8}, "when": "day", "stage": 2,

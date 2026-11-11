@@ -438,7 +438,21 @@
 			"gates": "M",
 			"params": {
 				"requires_mod": "simplybows",
-				"lines": ["found a unique bow", "this bow is something else", "look at this bow", "wait till you see what this bow does", "this bow is op", "bow diff", "new bow, who dis"]
+				"lines": ["found a unique bow", "this bow is something else", "look at this bow", "wait till you see what this bow does", "this bow is op", "bow diff", "new bow, who dis",
+						"check the draw on this", "this bow hits different", "pulled this bow out of a chest and im obsessed",
+						"my old bow is crying", "dont even ask where i got it", "look at the shine on it", "arrows go zoom now",
+						"one shot and theyre gone", "i might name this bow", "this bow and i are a team now",
+						"skeletons should be scared of me now", "longest range ive ever had", "nobody has a bow like this",
+						"the string sounds so nice", "rate my bow 1 to 10", "yes its rare, yes im proud", "best loot ive ever pulled",
+						"bow upgrade unlocked", "this bow is my whole personality now", "gonna snipe from so far away",
+						"watch me hit that from here", "ok i might be a little in love with this bow", "not trading this. ever",
+						"your bow could never", "built different. the bow i mean", "i feel like a ranger now", "ranged diff",
+						"this thing pulls back so smooth", "had to show someone", "someone tell me this isnt cool",
+						"arrows fly so straight with it", "this bow has a story i bet", "i got carried by a bow and im fine with it",
+						"mobs wont know what hit them", "no more missing shots. probably", "picked this up and it just felt right",
+						"dont touch the bow", "shiny bow, happy me", "gonna be the best archer here", "thats not a bow, thats art",
+						"my aim got better overnight lol", "im keeping this one forever", "bow so good i stopped using my sword",
+						"the weight on this is perfect", "legendary find right here"]
 			},
 			"needs": [
 				{
@@ -462,7 +476,20 @@
 			"gates": "M",
 			"params": {
 				"requires_mod": "spartanshields",
-				"lines": ["new shield", "this shield takes a beating", "reinforced, finally", "cant touch this", "shield up", "blocked lol"]
+				"lines": ["new shield", "this shield takes a beating", "reinforced, finally", "cant touch this", "shield up", "blocked lol",
+						"this shield is so sturdy", "arrows just bounce off", "my new best friend is a shield", "look at the pattern on it",
+						"tanked a whole skeleton with this", "crouch and nothing gets through", "not even a scratch", "heavy but worth it",
+						"defense is the best offense", "try me", "holding this makes me feel brave", "this thing has saved me like five times",
+						"i could stand here all day", "axes are its only weakness tbh", "shield game strong", "turtle mode activated",
+						"nothing gets past this", "blocked it, blocked that, blocked everything", "shields are underrated",
+						"check out my new wall", "portable wall lol", "watch me block this", "solid. like really solid",
+						"my shield is better than yours", "this one feels tougher than the old one", "getting a banner on it next",
+						"dents? what dents", "zombie tried it. zombie failed", "i love this thing", "swing at me, i dare you",
+						"impenetrable. probably", "tank build", "skeletons hate this one trick", "good shield, good day",
+						"the clang it makes is so satisfying", "feels like holding a door", "shield check",
+						"creeper blew up right in front of me and i barely felt it", "blocked an arrow without even looking",
+						"shield in the offhand, sword in the main", "they shoot, i block, they cry", "this shield has seen things",
+						"raise it and relax"]
 			},
 			"needs": [
 				{

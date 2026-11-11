@@ -9,7 +9,16 @@
 		{
 			"id": "eats_a_spider_eye", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:spider_eye"]},
 			"archetypes": {"newbie": 2.5, "casual": 1.0, "speedrunner": 0.1}, "traits": {"knowledge": -1.0}, "weight": 0.5, "cooldown": 96000,
-			"chat": ["ew", "why did i eat that", "that was a mistake", "blegh", "poison. great", "note to self: dont eat that"], "thought": "eating a spider eye (not a good idea)"
+			"chat": ["ew", "why did i eat that", "that was a mistake", "blegh", "poison. great", "note to self: dont eat that",
+					"my stomach", "why are my hearts going green", "i thought it was a berry", "tasted like regret", "ok that was gross",
+					"crunchy. bad crunchy", "never again", "worst snack ever", "dont tell anyone i did that", "i am a genius (i am not)",
+					"poisoned by my own lunch", "hunger said yes, brain said no", "worth it? no", "yuck yuck yuck",
+					"that was a dare right? no? ok", "wait spider eyes are for potions not eating", "guess ill sit here and suffer a sec",
+					"at least it filled me up a bit", "mmm. no", "i was hungry ok", "learned something today",
+					"spiders keep their eyes for a reason", "cool, poison, love that", "still squishy", "dumbest thing ive done today",
+					"the aftertaste", "should have eaten bread", "whyyy", "my hp bar is so sad rn", "10/10 would not recommend",
+					"hungry enough to eat that. sad", "nobody saw that", "anyone got milk? asking for me",
+					"it was looking at me from the inventory, so i ate it"], "thought": "eating a spider eye (not a good idea)"
 		},
 		{
 			"id": "eats_rotten_flesh", "category": "mistakes", "action": "eat", "params": {"items": ["minecraft:rotten_flesh"]},
@@ -24,7 +33,12 @@
 				"steps": [
 					{"do": "walk_to", "target": "bush", "near": 0.4},
 					{"do": "jump", "times": 1},
-					{"do": "say", "lines": ["ow", "ow ow ow", "OW", "why is this bush spiky", "the bush attacked me", "ouch"], "chance": 0.6},
+					{"do": "say", "lines": ["ow", "ow ow ow", "OW", "why is this bush spiky", "the bush attacked me", "ouch",
+							"spikes!!", "ah!", "owie", "ow why", "that hurt", "thorns!!", "OW OW", "bad bush", "stupid bush",
+							"i got stabbed by a bush", "berries are not worth this", "oops", "argh", "itchy", "my legs!!", "who put that there",
+							"rude bush", "ow my shins", "AAAA", "pokey", "dumb berries", "lost half a heart to a bush lol", "i'm stuck in it",
+							"ok bush 1 me 0", "ugh", "eek", "ow ow ok ok", "this is how i die", "watch out for the berry bush, trust", "hurts so bad",
+							"prickly", "the bush wins", "never again", "why do i keep walking into these", "wow ok"], "chance": 0.6},
 					{"do": "think", "text": "walked straight into a berry bush"}
 				]
 			},
@@ -39,10 +53,27 @@
 				"steps": [
 					{"do": "hold", "item": "minecraft:diamond"},
 					{"do": "look_at", "at": "ahead", "ticks": 30, "hops": true},
-					{"do": "say", "lines": ["DIAMOND!!", "first diamond lets gooo", "DIAMONDS", "im rich"]},
+					{"do": "say", "lines": ["DIAMOND!!", "first diamond lets gooo", "DIAMONDS", "im rich",
+							"DIAMOND DIAMOND DIAMOND", "a diamond!!", "my first diamond!!", "no way", "WE GOT ONE", "LETS GOOO", "YES YES YES",
+							"finally!!", "i'm gonna cry", "look at it!!", "it's real!!", "omg diamond", "i did it", "no way no way no way", "OMG",
+							"after all that digging!!", "diamond acquired", "DIAS", "WOOO", "i'm a real miner now", "it's so blue",
+							"the hours paid off", "hey everyone i found a diamond", "shiny!!", "no shot", "big day!!", "screaming rn", "first one!!",
+							"i can't believe it", "best day ever", "IM SHAKING", "diamond gang", "W", "pog", "its beautiful",
+							"WAIT is that a diamond", "ok ok stay calm. DIAMOND", "they said y -59 and they were right", "jackpot",
+							"i'm never selling this"]},
 					{"do": "wait", "ticks": 50},
 					{"do": "look_at", "at": "down", "ticks": 40},
-					{"do": "say", "lines": ["wait... a pickaxe takes three", "oh. i need three for a pick", "ok one diamond isnt much", "...need two more"]},
+					{"do": "say", "lines": ["wait... a pickaxe takes three", "oh. i need three for a pick", "ok one diamond isnt much", "...need two more",
+							"wait. i need more than one", "hmm. that's not a pick", "oh no, picks take 3", "...it's only one", "well. a shovel then?",
+							"one diamond makes a shovel. great", "hmm, that's not much actually", "ok back to mining", "two more. cool. cool cool",
+							"got excited too early", "i guess i'll keep digging", "one. just one", "hm. a sword needs two",
+							"...and i need a lot more", "oh. not enough for anything good", "wait how many does armor take",
+							"a chestplate takes eight?? oh", "back to the caves i guess", "not rich. not even close", "uh. now what", "oh. right",
+							"so... a diamond shovel", "the celebration was premature", "one down, a lot to go", "hmm i got hyped for nothing",
+							"need a whole vein, not one", "shoulda kept mining before yelling", "hm, where's the rest of the vein",
+							"two more for a pick, eight for a chest, ugh", "i still have an iron pick lol", "...ok it's still cool",
+							"guess i'm not rich", "math is hard", "enchanting table needs two. hm", "this is a start i guess", "cool. one",
+							"back down i go", "dang, just one", "i was gonna make a whole set...", "humble beginnings"]},
 					{"do": "think", "text": "found out a pickaxe takes three diamonds"}
 				]
 			},
@@ -57,7 +88,14 @@
 				"steps": [
 					{"do": "jump", "times": 1},
 					{"do": "look_around"},
-					{"do": "say", "lines": ["what was that", "did u hear that", "nope nope nope", "who's there", "...hello?"], "chance": 0.5},
+					{"do": "say", "lines": ["what was that", "did u hear that", "nope nope nope", "who's there", "...hello?",
+							"huh?", "who goes there", "who's out there", "was that a creeper", "uhh", "i heard something", "eek", "what the",
+							"zombie? where", "is someone there", "dont like that", "just the wind... right?", "skeleton? show yourself", "nope", "um",
+							"hiss? did something hiss", "creepy", "ok who's there", "that wasnt me", "something's moving", "heart attack",
+							"jumpscare", "AH", "bats. it's just bats. right?", "...anyone?", "i'm not scared. i'm not", "cave noises",
+							"ok i'm going inside", "who said that", "did a spider just", "footsteps?", "WHAT", "dont do that to me",
+							"probably a cat. probably", "oh no", "show yourself", "i dont like the night", "that came from behind me", "nervous rn",
+							"spooked", "uh oh", "something's out there", "rattling bones? skeleton", "i think i'm being watched", "hold up"], "chance": 0.5},
 					{"do": "think", "text": "jumped at a noise in the dark"}
 				]
 			},
@@ -73,7 +111,14 @@
 					{"do": "walk_to", "target": "chest", "near": 2},
 					{"do": "look_at", "target": "chest", "ticks": 40},
 					{"do": "look_around"},
-					{"do": "say", "lines": ["...what was i doing", "why did i come here", "forgot what i came for lol", "wait what did i need"], "chance": 0.5},
+					{"do": "say", "lines": ["...what was i doing", "why did i come here", "forgot what i came for lol", "wait what did i need",
+							"uh", "hm.", "what was it again", "i forgot", "brain empty", "huh. why am i here", "what did i open this for",
+							"forgot already", "it'll come to me", "um.", "i had a reason", "what was i looking for", "blanked", "was it coal? iron?",
+							"lost my train of thought", "aaaand it's gone", "i swear i needed something", "wait", "ok what now",
+							"i came here for... something", "oops, forgot", "brain lag", "nope, gone", "this happens too much", "lol i forgot",
+							"what was the thing", "was it torches?", "hmm. sticks maybe?", "my memory is trash", "think think think",
+							"why did i walk over here", "i literally just knew", "chest, why did i want you", "ugh what was it", "eh, whatever",
+							"brain fog", "...nevermind", "i'll remember later", "goldfish brain", "classic me", "forgot mid walk"], "chance": 0.5},
 					{"do": "think", "text": "forgot what it came to the chest for"}
 				]
 			},

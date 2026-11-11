@@ -1,0 +1,2297 @@
+{
+  "_comment": "Town life said in chat (0.23.41-side.1: these were fixed lines in the code before; now lines here, with the old ones as the code's fallback). {player} is the player's name, {town} the town's, {who} who a festival is for, {years} how long since founding ('3 years'), {count} a number, {given} how many handed in so far, {what} the thing a notice asked for, {pay} a price ('2 emeralds', or '2 emeralds more'), {them}/{enemy} the other town, {victim} who was killed ({victim_caps} the same in capitals). 'bell.' lines are what a bell ringer shouts (picked when the bell is rung).",
+  "lines": {
+    "town.greet.welcome": {
+      "any": [
+        "hey {player}! welcome back",
+        "oh hey {player}",
+        "{player}!! good to see you",
+        "look who it is. hi {player}",
+        "welcome to town {player}",
+        "{player}! been a while",
+        "hey hey, {player}'s here",
+        "oh nice, {player} came by",
+        "wb {player}",
+        "hi {player} o/",
+        "{player}! you staying the night?",
+        "there they are. hi {player}",
+        "sup {player}, town's been quiet without you",
+        "ayy {player}",
+        "hey {player}, make yourself at home",
+        "welcome back, the beds are still where you left em",
+        "{player} o/ how was the road",
+        "look whos back",
+        "{player}! hows it going",
+        "hey stranger. kidding, hi {player}",
+        "glad you made it {player}",
+        "oh its {player}, hi!",
+        "{player} back in town, nice",
+        "yo {player}, long time",
+        "hey {player}, need anything just ask",
+        "always good to see a friendly face",
+        "welcome welcome",
+        "{player}!! you made it back alive",
+        "town missed you {player}",
+        "hey {player}, perfect weather for a visit",
+        "{player}! knew youd come back",
+        "oh good, {player}. we could use the company",
+        "hi {player}! the town's grown a bit since you left"
+      ],
+      "pvp_sweat": [
+        "{player} back, nice. 1v1 later?",
+        "ayy {player}, you still owe me a rematch"
+      ],
+      "hermit": [
+        "...oh. hi {player}",
+        "{player}. good"
+      ],
+      "speedrunner": [
+        "{player} o/ quick hi",
+        "hi {player}. busy, but hi"
+      ],
+      "miner": [
+        "{player}! found dias under the well last week",
+        "yo {player}, the mine's still open if you want in"
+      ],
+      "hoarder": [
+        "{player}. hi. dont touch the chests by my house ok",
+        "oh hi {player}, ive got 3 new chests since you left"
+      ],
+      "nomad": [
+        "o7 {player}, welcome off the road",
+        "{player}! rest those legs, the road's long"
+      ],
+      "helper": [
+        "hey {player}! need a bed for the night? got a spare",
+        "welcome back {player}, want me to show you whats new"
+      ],
+      "homebody": [
+        "hi {player}, theres bread at mine if youre hungry",
+        "welcome home {player}. well, our home. you know what i mean",
+        "{player}! come in and sit, the campfire's going"
+      ],
+      "builder": [
+        "hey {player}, check out the new roof on the smithy",
+        "{player}! come see the plaza, we redid the paths"
+      ],
+      "newbie": [
+        "omg hi {player}!!",
+        "hi {player}! can u show me how to fish later?"
+      ],
+      "casual": [
+        "ayy {player} lol hi",
+        "yo {player} whats good",
+        "ngl i was hoping youd drop by {player}"
+      ]
+    },
+    "town.greet.wary": {
+      "any": [
+        "keep an eye on that one",
+        "hm. {player} again",
+        "...hi",
+        "we're watching you {player}",
+        "{player}. hi. i guess",
+        "oh. its you",
+        "hm, {player}'s back",
+        "hi {player}. behave this time ok",
+        "keep your hands where we can see em",
+        "dont make this weird {player}",
+        "were not forgetting last time {player}",
+        "...{player}",
+        "careful in here ok",
+        "someone tell the others {player}s in town",
+        "{player}. just here to trade right?",
+        "hey. no funny business",
+        "uh, hi {player}",
+        "hope youre in a better mood this time",
+        "we remember you {player}",
+        "ok but stay on the paths",
+        "fine, come in. slowly",
+        "you again {player}. alright",
+        "just dont touch anything",
+        "eyes on {player} everyone",
+        "right. hi. we'll see how this goes",
+        "not saying leave. not saying stay either",
+        "mhm. {player}",
+        "hi i guess. dont start anything",
+        "{player} back huh. ok",
+        "hm. walk slow {player}",
+        "oh. hi. stay where we can see you",
+        "{player}... ok. one chance",
+        "not sure about you yet {player}",
+        "you here to cause trouble again?"
+      ],
+      "speedrunner": [
+        "{player}. dont waste our time"
+      ],
+      "bandit": [
+        "heh. {player}. i know the type"
+      ],
+      "miner": [
+        "stay out of the mine {player}"
+      ],
+      "nomad": [
+        "{player}. passing through i hope"
+      ],
+      "helper": [
+        "hi {player}. give us a reason to trust you ok?",
+        "hey {player}. clean slate if you play nice"
+      ],
+      "pvp_sweat": [
+        "try something {player}, i dare you",
+        "{player} back for round 2? lol"
+      ],
+      "hermit": [
+        "...",
+        "hm.",
+        "go on then"
+      ],
+      "hoarder": [
+        "{player}. im counting my chests rn",
+        "everything's counted {player}. everything"
+      ],
+      "homebody": [
+        "{player}... please be nice to the crops this time",
+        "hi. shut the door behind you, and dont take anything"
+      ],
+      "builder": [
+        "{player}. stay off the scaffolding pls",
+        "dont touch my walls {player}"
+      ],
+      "newbie": [
+        "um is that {player}? the one from before??",
+        "omg its {player}. should i hide my stuff"
+      ],
+      "casual": [
+        "oh its {player}. ok. chill this time yeah?",
+        "ngl kinda nervous seeing you {player}",
+        "lol {player} back. we good? kinda?"
+      ]
+    },
+    "town.greet.unwelcome": {
+      "any": [
+        "you again? we dont want trouble",
+        "{player}. just keep walking",
+        "nobody wants you here {player}",
+        "you're not welcome here {player}",
+        "turn around {player}",
+        "leave. now",
+        "we havent forgotten what you did",
+        "{player}. the gate is that way",
+        "dont even stop walking",
+        "go away {player}",
+        "whatever you want, the answer is no",
+        "nobody's trading with you {player}",
+        "you've done enough to this town",
+        "{player} back? seriously?",
+        "get out before someone gets hurt",
+        "not today {player}. not any day",
+        "you broke our stuff last time {player}",
+        "we dont serve you here {player}",
+        "just go {player}",
+        "out. this isnt your town",
+        "i'd leave if i were you",
+        "what part of not welcome is hard {player}",
+        "doors are locked for you {player}",
+        "keep moving, nothing for you here",
+        "ugh. {player}",
+        "the guards know your face {player}",
+        "we're still cleaning up after you",
+        "shoo",
+        "nope. turn back {player}",
+        "youve got a lot to make up for {player}. go",
+        "this town remembers, {player}. leave",
+        "not after last time. out",
+        "we're done with you {player}",
+        "dont make me call anyone. just go"
+      ],
+      "speedrunner": [
+        "{player}. no. bye"
+      ],
+      "miner": [
+        "stay out of our tunnels {player}"
+      ],
+      "nomad": [
+        "road's that way {player}. use it"
+      ],
+      "helper": [
+        "sorry {player}, i cant help you here. please go"
+      ],
+      "bandit": [
+        "even i dont like you {player}, and thats saying something"
+      ],
+      "pvp_sweat": [
+        "keep walking {player} or get sent",
+        "{player} you really want this L? walk away"
+      ],
+      "hermit": [
+        "go.",
+        "no.",
+        "...leave"
+      ],
+      "hoarder": [
+        "you stole from my chests {player}. out",
+        "i know what you took {player}. every item"
+      ],
+      "homebody": [
+        "you took from our farms {player}. please just go",
+        "my garden still hasnt grown back {player}"
+      ],
+      "builder": [
+        "you griefed my house {player}. get lost",
+        "still fixing the wall you broke. go away"
+      ],
+      "newbie": [
+        "why is {player} here?? they wrecked stuff"
+      ],
+      "casual": [
+        "bro just leave lol",
+        "nah {player}, not doing this again"
+      ]
+    },
+    "town.greet.wanted": {
+      "any": [
+        "its {player}! guards!",
+        "GUARDS! its {player}",
+        "you've got some nerve showing up here",
+        "GUARDS! {player} is here!",
+        "guards!! {player} at the gate",
+        "someone get the guards, its {player}",
+        "HEY GUARDS, {player}'s back",
+        "its them! {player}! guards!",
+        "call the guards, {player} just walked in",
+        "{player}!! somebody ring for the guards",
+        "guards over here! wanted one!",
+        "thats {player}, theres a price on them! guards!",
+        "GUARDS GUARDS GUARDS",
+        "wanted criminal in town! guards!",
+        "you shouldnt have come back {player}. GUARDS",
+        "run everyone, its {player}! guards!",
+        "{player} is in town! get the guards",
+        "guards! the wanted one is here!",
+        "you're done {player}. guards!",
+        "bold move coming here {player}. GUARDS",
+        "grab them! guards, its {player}",
+        "guards, {player}, now!",
+        "i see {player}! guards please!",
+        "{player} is back, someone get the guards up here",
+        "HELP, its {player}! guards!",
+        "the wanted poster is walking right at me. guards!",
+        "guards! dont let {player} get away",
+        "stop right there {player}! guards!",
+        "the guards are coming for you {player}",
+        "guards! {player} is right here!",
+        "WANTED! guards, get over here!",
+        "{player}?! someone fetch the guards!",
+        "guards, quick! {player}'s in town",
+        "youve got a bounty, {player}. GUARDS",
+        "ring the bell! guards! its {player}",
+        "guards!! dont let them leave!"
+      ],
+      "speedrunner": [
+        "guards. {player}. go"
+      ],
+      "miner": [
+        "guards! {player}s here! someone grab a pickaxe"
+      ],
+      "nomad": [
+        "seen your face on boards all down the road {player}. guards!"
+      ],
+      "bandit": [
+        "heh, theres money on your head {player}. GUARDS"
+      ],
+      "hermit": [
+        "guards.",
+        "...its {player}. get the guards"
+      ],
+      "pvp_sweat": [
+        "guards! or let me fight {player} myself",
+        "{player} back? GUARDS. and me. lets go"
+      ],
+      "helper": [
+        "everyone stay back! guards, its {player}!",
+        "stay calm everyone, the guards will handle {player}. GUARDS!"
+      ],
+      "hoarder": [
+        "guards! {player}s here, protect the chests!"
+      ],
+      "homebody": [
+        "lock the doors, its {player}! guards!"
+      ],
+      "builder": [
+        "{player}! guards! keep them off my build"
+      ],
+      "newbie": [
+        "omg its {player}!! guards?? guards!!",
+        "AAA its {player} from the poster! guards!"
+      ],
+      "casual": [
+        "lol {player} really walked in. guards!!",
+        "nah {player} is wild for this. GUARDS"
+      ]
+    },
+    "town.festival.founding": {
+      "any": [
+        "happy founding day everyone!",
+        "its founding day! {years} of {town}",
+        "founding day, everyone to the plaza!",
+        "happy founding day {town}",
+        "{years} of {town} today!",
+        "happy founding day {town}! {years} already",
+        "founding day! come eat at the plaza",
+        "{town} turns {years} old today",
+        "{years} since we put down the first block. happy founding day",
+        "everyone to the plaza, its founding day!",
+        "{years} of {town}, cant believe it",
+        "founding day! no work today, just food",
+        "happy birthday {town}!",
+        "its been {years}. happy founding day all",
+        "remember when {town} was one dirt hut? {years} ago now",
+        "founding day festival is on, plaza!",
+        "happy founding day! cake at the plaza",
+        "grab your friends, founding day at the plaza",
+        "{years} and still standing. happy founding day {town}",
+        "to {years} of {town}!",
+        "founding day! lets make it a good one",
+        "{years} of {town}, heres to many more",
+        "morning all! founding day, come celebrate",
+        "another year for {town}! founding day!",
+        "founding day everyone, put the pickaxes down",
+        "happy founding day, we made it {years}",
+        "day off for founding day! see you at the plaza",
+        "{town} founding day! {years} strong",
+        "{town} is {years} old, party time",
+        "founding day! {town} was built {years} ago today",
+        "the first day of {town}, {years} back. lets party",
+        "happy founding day! music and food at the plaza",
+        "{years}! {town} is all grown up",
+        "founding day. thanks everyone who built {town}",
+        "wake up {town}, its founding day",
+        "{years} of us. happy founding day",
+        "{town}, {years} old and better than ever",
+        "founding day! the whole town is invited to the plaza"
+      ],
+      "pvp_sweat": [
+        "{years} of {town} and nobody's taken it. founding day!"
+      ],
+      "hermit": [
+        "founding day. {years}. ok"
+      ],
+      "speedrunner": [
+        "founding day. {years}. plaza. go"
+      ],
+      "miner": [
+        "{years} of {town}. the first stone came out of that hill"
+      ],
+      "hoarder": [
+        "{years} of {town}! and {years} of my chests filling up"
+      ],
+      "nomad": [
+        "{years} in one place. founding day in {town}, not bad"
+      ],
+      "helper": [
+        "founding day! come help set up the tables",
+        "happy founding day! anyone new, come join us at the plaza"
+      ],
+      "homebody": [
+        "happy founding day, {town} is home. {years} of it",
+        "founding day! ive baked bread for everyone"
+      ],
+      "builder": [
+        "{years} of building {town}. it looks great today",
+        "founding day! go look how much {town} grew in {years}"
+      ],
+      "newbie": [
+        "happy founding day!! i wasnt even here {years} ago lol",
+        "omg founding day!! is there cake??"
+      ],
+      "casual": [
+        "founding day lol, {years} of this place",
+        "ayy {years} of {town}, party"
+      ]
+    },
+    "town.festival.victory": {
+      "any": [
+        "victory day! we beat {who}",
+        "remember when we won against {who}? party at the plaza",
+        "happy victory day {town}",
+        "victory day! {who} never stood a chance",
+        "happy victory day everyone!",
+        "on this day we beat {who}. party at the plaza",
+        "victory day! raise a bottle to {town}",
+        "remember {who}? we do. victory day!",
+        "victory day in {town}! food at the plaza",
+        "the day we won against {who}. never forget",
+        "victory day! {town} stood strong",
+        "{who} still talks about it. victory day!",
+        "its victory day, everyone to the plaza",
+        "happy victory day {town}, we earned this",
+        "victory over {who}! celebrate!",
+        "victory day! cheers to everyone who fought",
+        "{town} won. {who} lost. victory day!",
+        "victory day, put the swords down and eat",
+        "we held the line against {who}. happy victory day",
+        "victory day! the war with {who} is ours",
+        "victory day! tell the new ones how we beat {who}",
+        "hey everyone, its victory day! come out",
+        "party time, its the day we beat {who}",
+        "victory day. {who} can watch from home",
+        "happy victory day! honor those who fought",
+        "victory day is here, {town}!",
+        "this is the day {who} gave up. victory day!",
+        "victory day! the plaza's waiting",
+        "victory day! the banners are up",
+        "{who} came at us and lost. victory day!",
+        "victory day! nobody works, everybody eats",
+        "today we celebrate beating {who}",
+        "victory day, {town}! we earned the rest",
+        "{who} wont forget this day. neither will we",
+        "victory day! tell the story of {who} again",
+        "heres to {town}, and so long {who}",
+        "victory day! swords up, then plates up"
+      ],
+      "hermit": [
+        "victory day. {who} lost. thats it"
+      ],
+      "speedrunner": [
+        "victory day. beat {who}. plaza"
+      ],
+      "miner": [
+        "victory day. we tunneled right under {who} lol"
+      ],
+      "hoarder": [
+        "victory day! the loot from {who} is still in my chests"
+      ],
+      "nomad": [
+        "victory day in {town}. heard about {who} all down the road"
+      ],
+      "helper": [
+        "victory day! thanks to everyone who kept {town} safe"
+      ],
+      "homebody": [
+        "victory day! so glad everyone came home after {who}"
+      ],
+      "builder": [
+        "victory day! we rebuilt the walls stronger after {who}"
+      ],
+      "bandit": [
+        "victory day! we took {who} for everything"
+      ],
+      "pvp_sweat": [
+        "victory day. {who} got farmed. ez",
+        "{who} L. happy victory day {town}",
+        "gg {who}, ggez. victory day!"
+      ],
+      "newbie": [
+        "victory day!! i heard we beat {who} really bad",
+        "wait whos {who}? oh the war! happy victory day!"
+      ],
+      "casual": [
+        "victory day lol, rip {who}",
+        "ayy we beat {who}, party"
+      ]
+    },
+    "town.festival.remembrance": {
+      "any": [
+        "today we remember {who}",
+        "miss you {who}",
+        "a quiet one today. for {who}",
+        "for {who}, today",
+        "remembering {who} today",
+        "we miss you {who}",
+        "a quiet day for {who}",
+        "{who} would have liked today",
+        "today is for {who}",
+        "flowers at the plaza for {who}",
+        "thinking of {who}",
+        "rest easy {who}",
+        "{who}. we havent forgotten",
+        "a minute of quiet for {who} pls",
+        "{who} built half this town",
+        "still miss {who}",
+        "this ones for {who}",
+        "{who}. o7",
+        "light a candle for {who} today",
+        "{who} was one of the good ones",
+        "remembrance day. for {who}",
+        "{who}, we kept the town going",
+        "we remember {who} today. take it easy everyone",
+        "{who} would laugh at us all standing around like this",
+        "think of {who} today if you can",
+        "no market today. its for {who}",
+        "a torch on the plaza for {who}",
+        "{who} is gone but not forgotten",
+        "quiet in town today. we remember {who}",
+        "{who} was here from the start",
+        "a moment for {who}, everyone",
+        "the plaza is quiet for {who} today",
+        "{who} taught me half of what i know",
+        "if you knew {who}, say something nice today",
+        "heres to {who}. we miss them"
+      ],
+      "bandit": [
+        "even i miss {who}"
+      ],
+      "pvp_sweat": [
+        "{who} fought harder than any of us. respect"
+      ],
+      "speedrunner": [
+        "{who}. remembered"
+      ],
+      "hoarder": [
+        "i kept {who}'s sword. still in my chest"
+      ],
+      "helper": [
+        "if youre sad about {who} today, come sit with us",
+        "we look after each other today, for {who}"
+      ],
+      "hermit": [
+        "...{who}",
+        "{who}. yeah"
+      ],
+      "nomad": [
+        "o7 {who}. safe travels, wherever you are"
+      ],
+      "miner": [
+        "{who} dug the first tunnel here. rest easy"
+      ],
+      "builder": [
+        "{who} laid the first stones here. we remember",
+        "{who}'s house still stands. we keep it fixed"
+      ],
+      "homebody": [
+        "i still set an extra bowl out for {who}",
+        "{who}'s garden is still growing. we keep it up"
+      ],
+      "newbie": [
+        "i never met {who} but everyone says they were great",
+        "who was {who}? oh... im sorry. remembering them today"
+      ],
+      "casual": [
+        "miss {who} fr",
+        "ngl still weird without {who}"
+      ]
+    },
+    "town.festival.harvest": {
+      "any": [
+        "harvest festival today!",
+        "happy harvest everyone",
+        "harvest festival, food at the plaza!",
+        "good harvest this year, lets celebrate",
+        "harvest day! bring a basket",
+        "the fields are full, harvest festival!",
+        "harvest festival, come eat",
+        "happy harvest! wheat's in",
+        "pumpkin pie at the plaza, harvest festival!",
+        "harvest festival everyone, all the food you want",
+        "crops are in, time to party",
+        "harvest day! the barns are full",
+        "best harvest yet, festival at the plaza",
+        "harvest festival! bring whatever you grew",
+        "carrots, potatoes, wheat, beets. its harvest day",
+        "come on out, harvest festival's started",
+        "harvest festival! bread for everyone",
+        "the farmers did great this year. harvest festival!",
+        "its harvest time! plaza, now",
+        "happy harvest festival, eat up",
+        "harvest festival today, no one goes hungry",
+        "melons and pumpkins at the plaza, harvest day!",
+        "fields are bare, barns are full. harvest festival",
+        "good morning! its harvest festival",
+        "happy harvest, thank the farmers",
+        "big harvest this year, big party",
+        "harvest festival is on! come grab a bowl of stew",
+        "harvest party at the plaza, all day",
+        "farm work can wait, its harvest festival",
+        "harvest festival! the beetroot soup is ready",
+        "barns full, bellies next. harvest festival",
+        "harvest festival, take a pie home",
+        "the whole town worked the fields. now we eat",
+        "harvest festival! all that bonemeal paid off",
+        "happy harvest! save some seeds for next year",
+        "harvest festival! come for the stew, stay for the pie"
+      ],
+      "bandit": [
+        "harvest festival. so much food, so few guards"
+      ],
+      "pvp_sweat": [
+        "harvest festival. carrot eating contest, 1v1 me"
+      ],
+      "hermit": [
+        "harvest. food. fine"
+      ],
+      "helper": [
+        "harvest festival! need help carrying? ill bring a cart",
+        "anyone short on food, harvest festival has plenty"
+      ],
+      "nomad": [
+        "harvest festival! good time to stock up before the road"
+      ],
+      "speedrunner": [
+        "harvest day. grab food. go"
+      ],
+      "miner": [
+        "harvest festival. came up from the mine for the pie"
+      ],
+      "hoarder": [
+        "harvest day. 6 chests of wheat. not sharing. ok maybe some"
+      ],
+      "builder": [
+        "harvest festival! i put up a new barn just for this",
+        "hay bales all over the plaza, looks great. happy harvest"
+      ],
+      "homebody": [
+        "harvest festival! i baked so many pies",
+        "my wheat came in great. happy harvest everyone",
+        "nothing better than a full barn. happy harvest"
+      ],
+      "newbie": [
+        "harvest festival!! do we get free bread??",
+        "omg i planted some of these carrots myself!!"
+      ],
+      "casual": [
+        "harvest fest lol, free food",
+        "ngl harvest day is the best day"
+      ]
+    },
+    "bell.festival.founding": {
+      "any": [
+        "founding day! everyone to the plaza!",
+        "ding ding! happy founding day!",
+        "happy founding day everyone!",
+        "it's founding day! come to the plaza!",
+        "founding day! gather round!",
+        "everyone out, it's founding day!",
+        "the town's birthday! to the plaza!",
+        "come celebrate, it's founding day!",
+        "founding day! drop your tools!",
+        "the plaza's waiting!",
+        "this is the day the town was founded! come!",
+        "another year standing! to the plaza!",
+        "it's our town's day! everyone come!",
+        "founding day feast at the plaza!",
+        "come one, come all! founding day!",
+        "put the picks down, it's founding day!",
+        "ding dong! founding day!",
+        "happy birthday, town! everyone out!",
+        "food and friends at the plaza!",
+        "the bell rings for founding day!",
+        "come out of your houses!",
+        "the day we laid the first block! to the plaza!",
+        "it's that day again!",
+        "the town turns another year older!",
+        "nobody works today!",
+        "come out, come out! it's founding day!",
+        "celebrate with us!",
+        "bring your friends, it's founding day!",
+        "one more year of this town! come celebrate!",
+        "remember when this was all grass? come!",
+        "the whole town's invited!",
+        "up and out, everyone!",
+        "we made it another year!",
+        "it's founding day, don't miss it!",
+        "cake at the plaza! founding day!",
+        "who remembers the first house? come to the plaza!",
+        "the town's still standing! party at the plaza!"
+      ]
+    },
+    "bell.festival.victory": {
+      "any": [
+        "victory day! everyone to the plaza!",
+        "for {town}!",
+        "we won! victory day!",
+        "victory day! come celebrate!",
+        "it's victory day! to the plaza!",
+        "{town} wins! everyone out!",
+        "victory day! remember when we won?",
+        "come out and cheer!",
+        "three cheers for {town}!",
+        "victory day! gather at the plaza!",
+        "the day we beat them! to the plaza!",
+        "{town} stands tall!",
+        "everyone out! today we celebrate the win!",
+        "raise your swords!",
+        "long live {town}!",
+        "victory! victory!",
+        "we fought and we won! come celebrate!",
+        "glory to {town}!",
+        "come one, come all! victory day!",
+        "{town} never forgets the win!",
+        "food and songs at the plaza!",
+        "ding ding! victory day!",
+        "remember the fight? today we celebrate it!",
+        "the bell rings for victory!",
+        "drop your tools and come!",
+        "{town} won the war! never forget!",
+        "cheer for our fighters!",
+        "honor the ones who fought!",
+        "{town}! {town}! {town}!",
+        "out of your houses! it's victory day!",
+        "we're still here and they know it!",
+        "celebrate the win with us!",
+        "for {town} and everyone who fought!",
+        "they came, we won! to the plaza!",
+        "the day {town} didn't fall! come out!",
+        "swords in the air, it's victory day!"
+      ]
+    },
+    "bell.festival.remembrance": {
+      "any": [
+        "to the plaza, for {who}",
+        "we remember {who}",
+        "come to the plaza and remember {who}",
+        "a moment for {who}, everyone",
+        "today is for {who}",
+        "remembrance day. for {who}",
+        "the bell rings for {who}",
+        "come quietly, for {who}",
+        "let's take a moment for {who}",
+        "never forget {who}",
+        "we gather today for {who}",
+        "come pay respects to {who}",
+        "for {who}, who isn't here anymore",
+        "remember {who} with us at the plaza",
+        "come, we honor {who} today",
+        "a quiet day for {who}. come to the plaza",
+        "the town hasn't forgotten {who}",
+        "bow your heads for {who}",
+        "light a torch for {who}",
+        "come stand together, for {who}",
+        "this bell is for {who}",
+        "{who}, gone but not forgotten",
+        "come share a memory of {who}",
+        "{who} would want us all together today",
+        "remembrance day. {who}, always",
+        "for those we lost. for {who}",
+        "say their names. {who}",
+        "{who}. rest easy",
+        "come lay flowers for {who}",
+        "in memory of {who}, gather round",
+        "{who} fought for us. come",
+        "don't forget {who}. plaza, please",
+        "a day to think of {who}",
+        "{who} is missed. come to the plaza",
+        "quiet now. for {who}",
+        "put your tools down for {who}",
+        "come, all of you. {who} deserves that much"
+      ]
+    },
+    "bell.festival.harvest": {
+      "any": [
+        "harvest festival! everyone to the plaza!",
+        "festival time!",
+        "harvest's in! come to the plaza!",
+        "it's harvest time! everyone out!",
+        "harvest festival! bring your wheat!",
+        "the crops are in, come celebrate!",
+        "harvest day! food at the plaza!",
+        "come feast! the harvest is in!",
+        "put down the hoes, the festival's starting!",
+        "pumpkin pie at the plaza!",
+        "bread for everyone! harvest festival!",
+        "carrots, potatoes, the works!",
+        "a good harvest this year! come celebrate!",
+        "everyone to the plaza, the fields did well!",
+        "harvest festival's on! come eat!",
+        "the farms fed us all year! come say thanks!",
+        "ding ding! harvest time!",
+        "come one, come all! harvest festival!",
+        "fresh bread and pie!",
+        "harvest's done! party at the plaza!",
+        "the barns are full! everyone come!",
+        "festival! festival! the crops are in!",
+        "bring a dish, it's the harvest festival!",
+        "nobody goes hungry today!",
+        "golden wheat and full chests! come celebrate!",
+        "it's the harvest feast! everyone out!",
+        "come celebrate the harvest with us!",
+        "hay bales up, the festival's on!",
+        "farmers, come take a bow!",
+        "melons, berries, beetroot!",
+        "the fields are bare and the plates are full! come!",
+        "end of the harvest! to the plaza!",
+        "don't miss the pie!",
+        "everyone out of the fields, the feast's on!",
+        "eat till you're full!",
+        "the harvest is in and the town's hungry! come!",
+        "come out! the feast's begun!"
+      ]
+    },
+    "town.market.open": {
+      "any": [
+        "market day! come see whats for sale",
+        "market's open, come on by",
+        "its market day, best prices all week",
+        "market day today!",
+        "market day! stalls are up",
+        "come buy stuff, market's open",
+        "market day, get it while its fresh",
+        "fresh bread, iron, wool. market day!",
+        "stalls are open, come take a look",
+        "market day! bring your emeralds",
+        "everything must go, market day",
+        "market's open til sundown",
+        "good prices today, market day",
+        "market day, step right up",
+        "anyone need anything? market's open",
+        "market day! trades all morning",
+        "market day today, dont miss it",
+        "open for business! market day",
+        "got new stuff in, market day!",
+        "market at the plaza, come on down",
+        "market day, haggling welcome",
+        "emeralds out, its market day",
+        "market day! first come first served",
+        "stall's set up, market day is go",
+        "market day! cheaper than the villagers",
+        "morning! the market is open",
+        "market day, something for everyone",
+        "come shop, market day is here",
+        "the stalls are full today, come see",
+        "market day! bargains at every stall",
+        "market day, browse all you like",
+        "market day! arrows, books, beds, you name it",
+        "the market's up and running, come by",
+        "market day! ill buy your extra stuff too"
+      ],
+      "hermit": [
+        "market. open. buy something"
+      ],
+      "bandit": [
+        "market day. dont ask where my stuff came from"
+      ],
+      "pvp_sweat": [
+        "market day. got swords. best in town"
+      ],
+      "speedrunner": [
+        "market open. buy fast"
+      ],
+      "nomad": [
+        "market day! stock up before the road",
+        "got stuff from far away at the stall today"
+      ],
+      "helper": [
+        "market day! ask me if you need help finding something",
+        "market day, ill knock a bit off for new folks"
+      ],
+      "hoarder": [
+        "market day. selling... some things. not the good things",
+        "market's open. dont touch what you dont buy"
+      ],
+      "homebody": [
+        "market day! eggs, milk, fresh bread",
+        "come by my stall, homemade pie for market day"
+      ],
+      "miner": [
+        "market day! fresh iron and coal, just dug",
+        "got some redstone and lapis at the stall today"
+      ],
+      "builder": [
+        "market day! got stone, wood, glass, all the blocks",
+        "market day, good building blocks for cheap"
+      ],
+      "newbie": [
+        "market day!! i have my own stall now!!",
+        "market's open! um how much is a diamond worth??"
+      ],
+      "casual": [
+        "market day lol come buy my junk",
+        "ngl good deals today, market's open"
+      ]
+    },
+    "bell.market": {
+      "any": [
+        "market day! the stall's open",
+        "market's open, come and see!",
+        "come buy!",
+        "market day! bring your emeralds!",
+        "fresh goods at the stalls!",
+        "come trade! market day!",
+        "the stalls are open, come see!",
+        "market day! everyone to the plaza!",
+        "got something to sell? market's open!",
+        "bread, tools, wool! come see!",
+        "best prices in town!",
+        "market day! come look around!",
+        "stalls are up! come trade!",
+        "emeralds out, it's market day!",
+        "fresh fish and bread at the market!",
+        "market's on at the plaza!",
+        "come buy, come sell!",
+        "the market is open for business!",
+        "trades today! come to the stalls!",
+        "ding ding! market day!",
+        "new stock at the stalls!",
+        "don't miss the deals!",
+        "everything must go!",
+        "come grab a bargain!",
+        "iron, wheat, wool, all at the market!",
+        "first come first served!",
+        "bring your spare stuff to trade!",
+        "come one, come all! market's open!",
+        "fill your chests! market day!",
+        "trade day at the plaza!",
+        "need a new pick? market's open!",
+        "deals at the plaza!",
+        "market's open till sundown!",
+        "cheap torches!",
+        "come see what's for sale!",
+        "fresh from the farms!",
+        "stalls are full today!"
+      ]
+    },
+    "town.contest.won": {
+      "any": [
+        "i won the fishing contest!! {count} fish",
+        "ez, {count} fish",
+        "fishing champ right here",
+        "gg everyone",
+        "{count} fish! i won!",
+        "fishing contest is mine. {count} fish",
+        "caught {count}, nobody beat that",
+        "winner winner fish dinner. {count} of em",
+        "{count} fish and the trophy, lets go",
+        "i won! {count} fish in one day",
+        "champ of the pond, {count} fish",
+        "yes!! won the fishing contest",
+        "{count} fish, best rod in town",
+        "fishing contest winner right here",
+        "i won with {count}! gg all",
+        "{count} fish caught, first place",
+        "the fish just kept biting. {count}!",
+        "won the contest! fish for everyone",
+        "{count} fish, new record? maybe",
+        "first place! all {count} fish",
+        "somebody tell the town, i won the fishing contest",
+        "{count} fish and a lot of patience",
+        "couldnt believe it, {count} fish",
+        "won it! {count} fish, my arms hurt",
+        "gg, i got lucky with {count} fish",
+        "fishing contest done, i got {count}",
+        "best fisher in town. {count} fish",
+        "won! not even one boot this time",
+        "who brought the most fish? me. {count}",
+        "{count} fish, and one of them was a pufferfish",
+        "i outfished all of you! {count}",
+        "sat by the water all day for {count} fish. worth it",
+        "{count} fish! someone else can win next year",
+        "{count} fish and a saddle lol. won",
+        "the pond was generous today. {count} fish"
+      ],
+      "bandit": [
+        "won. {count} fish. dont ask how"
+      ],
+      "hermit": [
+        "won. {count}"
+      ],
+      "builder": [
+        "{count} fish. built a nice dock for it too"
+      ],
+      "miner": [
+        "{count} fish. not mining, but still won"
+      ],
+      "nomad": [
+        "{count} fish! good water here"
+      ],
+      "helper": [
+        "won with {count}! anyone want some fish?",
+        "gg everyone, ill share the {count} fish"
+      ],
+      "hoarder": [
+        "{count} fish. all mine. into the chest"
+      ],
+      "homebody": [
+        "{count} fish! fish stew for everyone tonight",
+        "won the contest! cooking all {count} for dinner"
+      ],
+      "speedrunner": [
+        "{count} fish. done. win",
+        "optimal casting. {count} fish"
+      ],
+      "pvp_sweat": [
+        "{count} fish. ggez. get good",
+        "nobody even close. {count}. L",
+        "1v1 me in fishing anytime. {count}"
+      ],
+      "newbie": [
+        "WAIT i won?? {count} fish!!",
+        "omg i won the fishing thing!! {count}!!"
+      ],
+      "casual": [
+        "lol i won, {count} fish",
+        "ngl {count} fish is kinda insane"
+      ]
+    },
+    "town.notice.progress": {
+      "any": [
+        "{given} of {count}, keep em coming",
+        "{given} out of {count}, nice",
+        "thats {given} of {count}",
+        "{given}/{count} so far, thanks",
+        "ok {given} of {count}. more pls",
+        "got {given}, need {count}",
+        "{given} of {count} done",
+        "nice, {given} of the {count}",
+        "{given} down, {count} total",
+        "keep going, {given} of {count}",
+        "thanks! {given} of {count} now",
+        "{given} of {count}. still need more",
+        "counting... {given} of {count}",
+        "{given} so far out of {count}",
+        "appreciate it, {given} of {count}",
+        "good, thats {given}. i need {count}",
+        "{given} of {count} in. bring the rest when you can",
+        "{given} handed in, {count} needed",
+        "ty, {given} of {count}",
+        "{given} of my {count}, keep at it",
+        "{given} of {count}, getting there",
+        "more! {given} of {count}",
+        "{given} of {count} on the board now",
+        "thats {given}. {count} would finish it",
+        "marked down {given} of {count}",
+        "{given} of {count}, dont stop now",
+        "{given} of {count}, nice one",
+        "that brings it to {given} of {count}",
+        "{given} done, {count} wanted. thanks",
+        "ok, {given} of {count}. bring more when you find em",
+        "{given} now, out of {count}",
+        "putting it on the tally: {given} of {count}",
+        "great, {given} of {count} handed in"
+      ],
+      "bandit": [
+        "keep bringing em, {given} of {count}"
+      ],
+      "pvp_sweat": [
+        "{given} of {count}. thats it? lol jk ty"
+      ],
+      "nomad": [
+        "{given} of {count}, good going"
+      ],
+      "miner": [
+        "{given} of {count}, nice haul"
+      ],
+      "hermit": [
+        "{given}. of {count}",
+        "hm. {given} of {count}"
+      ],
+      "speedrunner": [
+        "{given}/{count}. faster",
+        "{given} of {count}. hurry"
+      ],
+      "helper": [
+        "{given} of {count}, youre doing great",
+        "thanks so much, thats {given} of {count}"
+      ],
+      "homebody": [
+        "{given} of {count}, youre a lifesaver"
+      ],
+      "builder": [
+        "{given} of {count}, cant build till its all here"
+      ],
+      "hoarder": [
+        "{given} of {count}. i counted twice",
+        "{given} in the chest. want {count}"
+      ],
+      "newbie": [
+        "{given} of {count}!! thank u!!",
+        "omg {given} already? need {count} total!"
+      ],
+      "casual": [
+        "{given} of {count} lol nice",
+        "ngl {given} of {count} is solid"
+      ]
+    },
+    "town.notice.paid": {
+      "any": [
+        "thanks! here, as promised",
+        "thank you! heres your reward",
+        "all done, heres what i promised",
+        "you did it! here, all of it",
+        "full pay, as promised",
+        "thanks a ton, take this",
+        "heres your payment, every bit",
+        "deal's a deal, here",
+        "thats everything i asked for. here you go",
+        "perfect, heres the reward",
+        "notice filled! here, take it",
+        "great work, heres your pay",
+        "pleasure doing business. here",
+        "you earned this",
+        "thanks! paid in full",
+        "heres what i owe you",
+        "appreciate it, the reward's all yours",
+        "just what i needed, here",
+        "taking that notice down. heres your pay",
+        "all there. take your reward",
+        "you came through! here",
+        "here, the whole reward",
+        "thank you so much, this is yours",
+        "done and paid. thanks",
+        "good as your word. heres mine",
+        "everything i promised, right here",
+        "thanks for filling the notice. heres your reward",
+        "all paid up. thank you",
+        "as promised, take it",
+        "you did the job, heres the pay",
+        "thats the notice done. reward's yours",
+        "here, you more than earned it"
+      ],
+      "bandit": [
+        "i pay my debts. here"
+      ],
+      "pvp_sweat": [
+        "not bad. heres your reward"
+      ],
+      "hermit": [
+        "here. thanks",
+        "...paid"
+      ],
+      "nomad": [
+        "thanks friend. heres your pay, safe travels"
+      ],
+      "miner": [
+        "nice haul. heres the reward"
+      ],
+      "builder": [
+        "now i can finish the build. heres your pay"
+      ],
+      "speedrunner": [
+        "done. paid. thanks",
+        "reward. here. go"
+      ],
+      "hoarder": [
+        "ugh, fine. heres all of it. as promised",
+        "counted it out exactly. heres your reward",
+        "parting with this hurts. but here"
+      ],
+      "homebody": [
+        "thank you! heres your pay. stop by for supper sometime"
+      ],
+      "helper": [
+        "thank you so much! heres your reward, come back anytime",
+        "you're a star. heres everything i promised"
+      ],
+      "newbie": [
+        "omg thank u!! heres ur reward!!",
+        "yay its all here! take the stuff i promised!!"
+      ],
+      "casual": [
+        "ayy thanks, heres ur stuff",
+        "ngl you saved me, take this"
+      ]
+    },
+    "town.notice.short": {
+      "any": [
+        "thats all i have, sorry",
+        "sorry, this is all i can pay",
+        "i ran out, thats all ive got",
+        "heres what i have. its not all of it, sorry",
+        "ugh, i came up short. sorry",
+        "thats everything in my chest, sorry",
+        "couldnt cover all of it. heres what i had",
+        "sorry, i promised more than i had",
+        "best i can do, sorry",
+        "not the full reward, sorry. im out",
+        "i owe you, this is all i got right now",
+        "sorry, im tapped out",
+        "thats it, the chests are empty",
+        "not everything i promised, sorry",
+        "paid what i could. sorry about the rest",
+        "i feel bad, thats all i have",
+        "here, its less than i said. sorry",
+        "turns out i had less than i thought",
+        "thats all of it, im broke now",
+        "sorry sorry, i ran out",
+        "only part of the reward, sorry",
+        "wish i had more to give you"
+      ],
+      "builder": [
+        "spent most of it on blocks. heres whats left"
+      ],
+      "pvp_sweat": [
+        "thats all i got. dont @ me"
+      ],
+      "nomad": [
+        "sorry, travelling light. thats what i got"
+      ],
+      "miner": [
+        "sorry, ran out. gotta go mine more"
+      ],
+      "bandit": [
+        "thats all you're getting. sorry, not sorry"
+      ],
+      "hermit": [
+        "thats all",
+        "...all i have"
+      ],
+      "speedrunner": [
+        "short. sorry. all i got"
+      ],
+      "homebody": [
+        "sorry, thats all i had in the house"
+      ],
+      "helper": [
+        "im really sorry, thats all i had. ill make it up to you"
+      ],
+      "hoarder": [
+        "thats... all i can part with. sorry",
+        "my chests are empty now. thats it"
+      ],
+      "newbie": [
+        "oh no i dont have enough!! sorry, heres what i got",
+        "sorry!! i thought i had more"
+      ],
+      "casual": [
+        "oof thats all i got, sorry lol",
+        "ngl i ran out, my bad"
+      ]
+    },
+    "town.bounty.paid": {
+      "any": [
+        "got the {what}, thanks {player}!",
+        "the {what}! thank you {player}",
+        "you got the {what}, nice work",
+        "{what} delivered. thanks!",
+        "perfect, thats the {what} i needed",
+        "thanks for the {what} {player}, heres your pay",
+        "{what} in hand. paid in full",
+        "oh nice, the {what}. thank you",
+        "you found the {what}! here",
+        "{what}, finally. thanks {player}",
+        "ty for the {what}",
+        "thats exactly the {what} i wanted",
+        "{what} received. reward's yours",
+        "the {what}, all of it. thanks so much",
+        "great, {what}. take your reward {player}",
+        "knew i could count on you for the {what}",
+        "{what} checked off, thanks",
+        "appreciate the {what}, {player}",
+        "yes! the {what}. heres your pay",
+        "{what} done. thank you {player}",
+        "{what} for the town, thanks {player}",
+        "you brought the {what}! full reward",
+        "nice, {what}. you earned it",
+        "the {what} made my day",
+        "{what}? perfect. paid",
+        "that {what} is going straight to use. thanks",
+        "the {what}, right on time. thanks {player}",
+        "wow, the {what}. paid in full, thanks",
+        "the {what} came through, heres your reward",
+        "you got the {what} for me? thanks {player}",
+        "{what} brought in. thank you",
+        "thats the {what}. good work {player}"
+      ],
+      "bandit": [
+        "the {what}. good. heres your cut"
+      ],
+      "pvp_sweat": [
+        "{what} done, not bad {player}"
+      ],
+      "hermit": [
+        "{what}. thanks",
+        "...the {what}. good"
+      ],
+      "nomad": [
+        "the {what}, brought all this way? thanks {player}"
+      ],
+      "speedrunner": [
+        "{what}. paid. ty",
+        "{what} in. thanks. go"
+      ],
+      "miner": [
+        "good {what}, thanks {player}"
+      ],
+      "builder": [
+        "the {what}! now i can finish my build"
+      ],
+      "homebody": [
+        "thank you, the {what} is lovely",
+        "thanks for the {what}, come by for supper"
+      ],
+      "helper": [
+        "thank you {player}! the {what} helps so much",
+        "{what}! youre the best {player}"
+      ],
+      "hoarder": [
+        "{what}. counted. thanks",
+        "the {what} goes right in my chest. thanks {player}"
+      ],
+      "newbie": [
+        "omg the {what}!! thank u {player}!!",
+        "yay the {what}! is that all of it? yes! ty"
+      ],
+      "casual": [
+        "ayy the {what}, ty {player}",
+        "lol you actually got the {what}. ty"
+      ]
+    },
+    "town.bounty.short": {
+      "any": [
+        "got your {what}, thats all i could pay",
+        "got the {what}, but im short on pay. sorry",
+        "thanks for the {what}. this is all i have",
+        "the {what}! i can only pay part of it though",
+        "{what} received, but the till's empty. sorry",
+        "sorry, i ran out paying for the {what}",
+        "{what} delivered, reward came up short. my bad",
+        "thank you for the {what}. wish i had more",
+        "i owe you more for the {what}, sorry",
+        "the {what}, thanks. thats all i can give",
+        "couldnt pay the whole {what} reward. sorry",
+        "{what}, nice. pay's short though",
+        "for the {what}... this is all i got",
+        "heres part of the reward for the {what}",
+        "the {what} was worth more than i have. sorry",
+        "ugh, the till's dry. thanks for the {what} anyway",
+        "{what}, thanks. not all the pay, sorry",
+        "best i can do for the {what}",
+        "the {what}! and. um. heres whats left in the till",
+        "got your {what}. paid what i could",
+        "{what} in. the till ran out halfway"
+      ],
+      "pvp_sweat": [
+        "{what}. pay's short. deal with it"
+      ],
+      "miner": [
+        "the {what}, thanks. gotta sell some ore before i can pay the rest"
+      ],
+      "nomad": [
+        "the {what}, thanks. sorry the pay's light"
+      ],
+      "bandit": [
+        "the {what}. you get what i give"
+      ],
+      "speedrunner": [
+        "{what}. short. sorry"
+      ],
+      "hermit": [
+        "{what}. thats all"
+      ],
+      "homebody": [
+        "sorry, times are lean. thanks for the {what}"
+      ],
+      "helper": [
+        "thank you for the {what}. im so sorry its not all of it"
+      ],
+      "hoarder": [
+        "{what}... thats all i can spare for it"
+      ],
+      "newbie": [
+        "oh no i dont have enough to pay for the {what}!! sorry"
+      ],
+      "casual": [
+        "ty for the {what}, im broke tho lol",
+        "{what} ty, ngl i ran out of pay"
+      ]
+    },
+    "service.busy": {
+      "any": [
+        "one at a time, im busy",
+        "hang on, someone else first",
+        "wait your turn",
+        "busy with another job, one sec",
+        "im working on someone's stuff, wait",
+        "not now, finishing a job",
+        "one job at a time pls",
+        "got my hands full, hold on",
+        "someone's ahead of you",
+        "wait til im done with this one",
+        "still busy, try again soon",
+        "in the middle of something",
+        "give me a bit, im on another job",
+        "theres a job ahead of yours",
+        "busy! come back in a minute",
+        "hold up, almost done with this one",
+        "cant take it right now, busy",
+        "im booked, wait a sec",
+        "after this one, ok?",
+        "shh im concentrating",
+        "hang on, im not done with the last one"
+      ],
+      "pvp_sweat": [
+        "chill, im busy"
+      ],
+      "builder": [
+        "busy. dont rush good work"
+      ],
+      "hoarder": [
+        "dont throw stuff at me while im busy"
+      ],
+      "helper": [
+        "sorry, just finishing someone else's job. ill be right with you"
+      ],
+      "speedrunner": [
+        "occupied. later"
+      ],
+      "hermit": [
+        "busy.",
+        "...wait"
+      ],
+      "newbie": [
+        "wait!! im still doing the other one"
+      ],
+      "casual": [
+        "lol hold on, busy",
+        "one sec, doing someone else's thing"
+      ]
+    },
+    "service.refuse": {
+      "any": [
+        "not doing anything for you",
+        "no. not for you",
+        "i dont work for criminals",
+        "go away, not happening",
+        "you're wanted here. no deal",
+        "not doing business with you",
+        "find someone else",
+        "no jobs for wanted folks",
+        "forget it",
+        "the town says no, so i say no",
+        "id get in trouble helping you",
+        "with a price on your head? no",
+        "take your stuff and leave",
+        "i dont serve your sort",
+        "no way. the guards would have my head",
+        "no service for you",
+        "not touching anything of yours",
+        "try another town",
+        "you think im helping you? no",
+        "clear your name first"
+      ],
+      "miner": [
+        "go dig your own way out. no"
+      ],
+      "builder": [
+        "my work doesnt go to criminals"
+      ],
+      "speedrunner": [
+        "no. next"
+      ],
+      "hoarder": [
+        "not wasting my stuff on you"
+      ],
+      "pvp_sweat": [
+        "no. L"
+      ],
+      "helper": [
+        "sorry, i cant help someone the town is after"
+      ],
+      "bandit": [
+        "even i wouldnt. no"
+      ],
+      "hermit": [
+        "no.",
+        "...nope"
+      ],
+      "newbie": [
+        "um no, youre the wanted one!!"
+      ],
+      "casual": [
+        "lol no",
+        "nah, not after what you did"
+      ]
+    },
+    "service.start": {
+      "any": [
+        "ok, give me a minute",
+        "alright, working on it",
+        "got it, give me a sec",
+        "ok, starting now",
+        "on it",
+        "one moment",
+        "all here, lets do this",
+        "paid and ready. working",
+        "give me a minute or two",
+        "ok hold on, this takes a bit",
+        "right, let me get to it",
+        "deal. starting",
+        "everything's here, starting the job",
+        "stand back a sec",
+        "ok, watch this",
+        "alright, just a moment",
+        "good, lets get started",
+        "thanks, starting now",
+        "ok ok, working",
+        "give me a moment to work",
+        "starting. dont go far"
+      ],
+      "nomad": [
+        "sit tight, wont take long"
+      ],
+      "miner": [
+        "alright, starting. done in a sec"
+      ],
+      "pvp_sweat": [
+        "easy job. watch"
+      ],
+      "hoarder": [
+        "all paid up. ok. starting"
+      ],
+      "builder": [
+        "give me a minute, good work takes time"
+      ],
+      "helper": [
+        "got everything, thanks! wont be long"
+      ],
+      "speedrunner": [
+        "starting. quick",
+        "on it. fast"
+      ],
+      "hermit": [
+        "fine. wait",
+        "...working"
+      ],
+      "newbie": [
+        "ok!! starting!! i hope i do it right"
+      ],
+      "casual": [
+        "ok bet, one sec",
+        "aight, doing it"
+      ]
+    },
+    "service.quote.enchant": {
+      "any": [
+        "i can enchant that for {pay}",
+        "enchanting that? {pay}",
+        "{pay} and its yours, enchanted",
+        "ill do it for {pay}",
+        "{pay} to enchant it",
+        "for {pay} ill put something good on it",
+        "cost you {pay}",
+        "thatll be {pay} for the enchant",
+        "{pay}, then i get to work",
+        "want it enchanted? {pay}",
+        "price is {pay}",
+        "toss me {pay} and its done",
+        "enchant for {pay}, deal?",
+        "i charge {pay} for that",
+        "{pay}, fair price for an enchant",
+        "nice item. {pay} to enchant",
+        "sure, {pay}",
+        "{pay} and some patience",
+        "{pay} and youll have it glowing",
+        "give me {pay} and ill enchant it",
+        "{pay}. no haggling",
+        "{pay} for a good enchant",
+        "i can do that. {pay}",
+        "{pay}, and i need a sec at the table",
+        "{pay}. no promises on what it rolls",
+        "the table's ready. {pay}",
+        "{pay} for some magic on that",
+        "enchants arent free. {pay}",
+        "hmm, {pay} for that one",
+        "{pay}, take it or leave it",
+        "if you want it enchanted, {pay}",
+        "{pay} and its enchanted, simple",
+        "{pay}. pay up and ill start",
+        "my price for that is {pay}"
+      ],
+      "nomad": [
+        "{pay}. good enchants for the road"
+      ],
+      "bandit": [
+        "{pay}. cheap, for me"
+      ],
+      "pvp_sweat": [
+        "{pay}, and youll be a menace with it"
+      ],
+      "hermit": [
+        "{pay}.",
+        "...{pay}"
+      ],
+      "miner": [
+        "{pay}. if its a pick, hope you roll fortune"
+      ],
+      "builder": [
+        "{pay} and itll look great glowing"
+      ],
+      "helper": [
+        "happy to enchant it, {pay}",
+        "i can do that for {pay}, fair deal"
+      ],
+      "speedrunner": [
+        "{pay}. enchant. fast",
+        "{pay}, quick job"
+      ],
+      "hoarder": [
+        "{pay}. not one less",
+        "{pay}. exact amount"
+      ],
+      "newbie": [
+        "ooh i can enchant that! {pay} pls",
+        "{pay}? is that ok? ill enchant it!!"
+      ],
+      "casual": [
+        "ez, {pay} lol",
+        "{pay} and ill make it shiny"
+      ]
+    },
+    "service.quote.netherite": {
+      "any": [
+        "netherite? {pay}, and the ingot and the template",
+        "{pay}, plus a netherite ingot and the upgrade template",
+        "netherite upgrade: {pay}, an ingot and a template",
+        "bring an ingot and a smithing template, and {pay}",
+        "ill do it for {pay}. need the ingot and the template too",
+        "{pay} and the netherite ingot. oh, and the template",
+        "netherite? sure. {pay}, ingot, template",
+        "{pay}. cant make netherite out of nothing, need the ingot and template",
+        "upgrade costs {pay}. ingot and template are on you",
+        "want it netherite? {pay} plus ingot plus template",
+        "{pay}, a netherite ingot, and the smithing template",
+        "ingot, template, {pay}. then its netherite",
+        "{pay}. and ill need the ingot and template, i dont stock those",
+        "no ingot and template, no netherite. plus {pay}",
+        "{pay} for the work, ingot and template for the upgrade",
+        "give me {pay}, one ingot, one template",
+        "{pay} and the upgrade stuff: ingot and template",
+        "{pay}, then hand over the ingot and the template",
+        "template and ingot first, and {pay}",
+        "netherite job: {pay}. bring the ingot and template",
+        "thatll be {pay}, plus your ingot and template",
+        "{pay}. you got the netherite ingot and the template?",
+        "sure, {pay}. dont forget the ingot and the template",
+        "{pay}, the ingot, and that template from the bastion",
+        "{pay} plus ingot and template. diamond to netherite in a sec",
+        "{pay}, plus a netherite ingot and the template. then it laughs at lava",
+        "{pay}. bring the netherite ingot and the template and its done",
+        "need an ingot, a template and {pay}",
+        "{pay}, the upgrade template and an ingot. i dont have spares",
+        "to make it netherite: {pay}, ingot, smithing template",
+        "{pay} is my fee. ingot and template are yours to bring",
+        "upgrade? {pay}. got an ingot and a template on you?",
+        "{pay}. no template, no ingot, no upgrade"
+      ],
+      "bandit": [
+        "{pay}, the ingot, the template. no questions asked"
+      ],
+      "nomad": [
+        "{pay}, plus the ingot and template you found on your travels"
+      ],
+      "hermit": [
+        "{pay}. ingot. template"
+      ],
+      "pvp_sweat": [
+        "{pay}, ingot, template. then youre unstoppable"
+      ],
+      "builder": [
+        "{pay}. bring the ingot and template, itll look sharp"
+      ],
+      "helper": [
+        "happy to! {pay}, and youll need an ingot and the template",
+        "{pay}, plus ingot and template. bastions have the template if you need one"
+      ],
+      "hoarder": [
+        "{pay}, your ingot, your template. none of mine",
+        "{pay}. im not giving up my own ingot or template"
+      ],
+      "speedrunner": [
+        "{pay}, ingot, template. go",
+        "{pay}+ingot+template. quick"
+      ],
+      "miner": [
+        "{pay}. ancient debris is the hard part, bring the ingot and the template"
+      ],
+      "newbie": [
+        "netherite!! {pay}, and um the ingot and template thing",
+        "{pay}! oh and the netherite ingot and the template pls"
+      ],
+      "casual": [
+        "{pay} + ingot + template, ez",
+        "ngl {pay}, and i need the ingot n template"
+      ]
+    },
+    "service.quote.repair": {
+      "any": [
+        "ill fix it for {pay}, bring the stuff to fix it with",
+        "{pay}, and bring what its made of",
+        "i can fix that for {pay}. need the materials too",
+        "repair's {pay}. bring me some of the same stuff",
+        "{pay} plus whatever its made from",
+        "{pay}, and ill need iron or diamonds or whatever it is",
+        "thatll be {pay}, and the material to patch it",
+        "{pay}. got the stuff to fix it with?",
+        "fixing it costs {pay}, bring the materials",
+        "sure, {pay}. hand me the repair material",
+        "{pay} and some of the right material",
+        "{pay}, and i need something to patch it with",
+        "bring the materials and {pay}, good as new",
+        "{pay}. cant fix it with nothing, bring the stuff",
+        "{pay} for the work. materials are on you",
+        "repair? {pay}, plus the matching material",
+        "{pay}. iron for iron, diamond for diamond, you know the deal",
+        "{pay} and the stuff to mend it",
+        "{pay}, plus the material it needs",
+        "thats beat up. {pay}, and bring what i need to fix it",
+        "{pay}. you bring the materials, i bring the skill",
+        "ill patch it for {pay}. got the materials?",
+        "{pay} and its matching material, then its fixed",
+        "{pay}, then give me the bits to fix it with",
+        "{pay}, and a few of whatever its made of",
+        "{pay}, and some of the stuff its made of so i can patch it",
+        "repair for {pay}, bring a bit of material",
+        "{pay}. leather, iron, whatever it is, bring some",
+        "seen worse. {pay}, and the materials",
+        "{pay} to fix it. materials too please",
+        "my fee is {pay}. bring something to mend it with",
+        "ill make it good for {pay}, once i have the materials"
+      ],
+      "homebody": [
+        "poor thing. {pay}, and bring the stuff to mend it"
+      ],
+      "bandit": [
+        "{pay}, plus materials. no freebies"
+      ],
+      "nomad": [
+        "road wore it down? {pay}, and the stuff to fix it"
+      ],
+      "hermit": [
+        "{pay}. materials"
+      ],
+      "pvp_sweat": [
+        "{pay} and materials. took a beating huh"
+      ],
+      "miner": [
+        "{pay}. bring some ingots or dias, whatever it needs"
+      ],
+      "builder": [
+        "{pay}. bring the right material, i hate a sloppy patch"
+      ],
+      "helper": [
+        "happy to fix it! {pay}, and some of the material its made from",
+        "{pay}, and bring the materials. ill make it like new"
+      ],
+      "hoarder": [
+        "{pay}. and your own materials, not mine",
+        "{pay}. bring your own stuff, my chests stay shut"
+      ],
+      "speedrunner": [
+        "{pay} + materials. go",
+        "{pay}, materials, done"
+      ],
+      "newbie": [
+        "i can fix it!! {pay} and the stuff its made of pls",
+        "{pay}? and um the materials! iron or whatever"
+      ],
+      "casual": [
+        "{pay} lol, and the stuff to fix it",
+        "ngl thats wrecked. {pay} + materials"
+      ]
+    },
+    "service.failed": {
+      "any": [
+        "sorry, couldnt do it. heres your stuff",
+        "couldnt do it, sorry. take your stuff back",
+        "didnt work. heres everything",
+        "sorry, no luck. all yours again",
+        "that didnt go right. heres your things",
+        "cant do this one, sorry. take it back",
+        "something went wrong. here, all your stuff",
+        "no good, sorry. giving it all back",
+        "sorry, couldnt manage it. heres your payment too",
+        "failed. heres your stuff and your pay",
+        "i messed up, sorry. take it all back",
+        "not happening, sorry. heres everything back",
+        "this one beat me. heres your things",
+        "didnt work out. full refund",
+        "sorry, i couldnt finish it. all yours",
+        "cant be done, sorry. heres all of it",
+        "no luck this time. take your stuff",
+        "sorry about that. everything back to you",
+        "it just wont take. heres your stuff",
+        "giving it all back, couldnt do it",
+        "tried, couldnt. heres your stuff"
+      ],
+      "nomad": [
+        "sorry friend, couldnt do it. heres your things"
+      ],
+      "miner": [
+        "no luck. heres your gear back"
+      ],
+      "pvp_sweat": [
+        "not my fault. heres your stuff"
+      ],
+      "hoarder": [
+        "couldnt do it. every item back, counted"
+      ],
+      "builder": [
+        "couldnt do it right, so i wont do it at all. heres your stuff"
+      ],
+      "helper": [
+        "im so sorry, i couldnt do it. heres all your things back"
+      ],
+      "speedrunner": [
+        "failed. refund. sorry"
+      ],
+      "hermit": [
+        "couldnt. take it",
+        "...no luck. here"
+      ],
+      "newbie": [
+        "oh no it didnt work!! sorry, heres everything"
+      ],
+      "casual": [
+        "welp didnt work lol. heres ur stuff",
+        "ngl couldnt do it, my bad. take it back"
+      ]
+    },
+    "service.done": {
+      "any": [
+        "here you go {player}",
+        "all done {player}",
+        "here you go, good as new",
+        "done! take it",
+        "finished, {player}",
+        "there, all yours {player}",
+        "one finished job, here",
+        "done and done",
+        "here {player}, enjoy",
+        "all set {player}",
+        "heres your item back",
+        "ta da, done",
+        "done. use it well {player}",
+        "here, try it out",
+        "job's done {player}",
+        "finished! here",
+        "there you go",
+        "all yours again",
+        "done, nice doing business {player}",
+        "here it is {player}",
+        "that came out nice. here",
+        "here, freshly done",
+        "{player}, its ready",
+        "take care of it {player}",
+        "done! come back anytime",
+        "thats it. here {player}",
+        "here, its finished {player}",
+        "done, hope you like it",
+        "theres your stuff {player}, finished",
+        "all good, take it {player}",
+        "and done. here",
+        "finished job for {player}, here"
+      ],
+      "homebody": [
+        "here you go {player}, all fixed up"
+      ],
+      "bandit": [
+        "done. a pleasure, {player}"
+      ],
+      "nomad": [
+        "here {player}, safe travels"
+      ],
+      "miner": [
+        "done {player}. go get those dias"
+      ],
+      "pvp_sweat": [
+        "done. go wreck someone {player}"
+      ],
+      "hermit": [
+        "done.",
+        "...here"
+      ],
+      "speedrunner": [
+        "done. here. go"
+      ],
+      "hoarder": [
+        "here. done. dont lose it {player}"
+      ],
+      "helper": [
+        "all done {player}! come back if you need anything else",
+        "here you go {player}, hope it serves you well"
+      ],
+      "builder": [
+        "done. look at that, perfect",
+        "here {player}, best work ive done all week"
+      ],
+      "newbie": [
+        "i did it!! here {player}!!",
+        "done!! is it good? here!"
+      ],
+      "casual": [
+        "ez, here u go {player}",
+        "done lol, here"
+      ]
+    },
+    "service.timeout": {
+      "any": [
+        "never mind then. heres your stuff back",
+        "never mind. take your stuff",
+        "too slow, heres your stuff back",
+        "guess youre not paying. take it back",
+        "forget it, heres your things",
+        "took too long, here",
+        "ok, changed your mind? heres your stuff",
+        "no pay, no job. take it back",
+        "waited long enough. here",
+        "alright, forget it. all yours",
+        "giving it back, you didnt pay",
+        "i dont have all day. heres your stuff",
+        "deal's off. take your things",
+        "no payment? fine. heres your stuff",
+        "times up, have it back",
+        "ok forget the job. here",
+        "you wandered off, so heres your stuff back",
+        "next time bring the pay. here",
+        "cancelled. take it",
+        "im not holding this forever. here"
+      ],
+      "bandit": [
+        "lucky im honest today. heres your stuff"
+      ],
+      "nomad": [
+        "no matter, heres your things. safe travels"
+      ],
+      "pvp_sweat": [
+        "wasting my time. take it"
+      ],
+      "builder": [
+        "not starting without pay. heres your item"
+      ],
+      "hoarder": [
+        "dont leave your junk with me. take it"
+      ],
+      "helper": [
+        "no worries if you changed your mind, heres your stuff"
+      ],
+      "speedrunner": [
+        "timeout. bye"
+      ],
+      "hermit": [
+        "whatever. here",
+        "...take it"
+      ],
+      "newbie": [
+        "um you didnt pay so... heres ur stuff back!"
+      ],
+      "casual": [
+        "lol ok guess not. heres ur stuff",
+        "nvm then, take it back"
+      ]
+    },
+    "bell.war.declare": {
+      "any": [
+        "we're at war with {them}!",
+        "war! {them} has it coming",
+        "war on {them}! to arms!",
+        "{them} crossed us. it's war!",
+        "it's war! {them} won't get away with it!",
+        "we declare war on {them}!",
+        "everyone listen! war with {them}!",
+        "{them} is our enemy now! to the plaza!",
+        "sharpen your swords, it's war with {them}!",
+        "war! we march on {them} soon!",
+        "{them} had their chance!",
+        "it's official! war on {them}!",
+        "the town's going to war with {them}!",
+        "war against {them}! gather up!",
+        "no more peace with {them}!",
+        "{them} pushed too far! to arms!",
+        "we're done talking to {them}!",
+        "WAR! WAR WITH {them}!",
+        "everyone to the plaza! we fight {them}!",
+        "{them} will pay!",
+        "gear up! we're fighting {them}!",
+        "war is here! {them} is the enemy!",
+        "we're taking the fight to {them}!",
+        "{them} wanted this. now they get it!",
+        "{them} is going down!",
+        "it's decided: war with {them}!",
+        "forge your swords! war on {them}!",
+        "{them}! we're coming for you!",
+        "arm up, all of you! it's {them} we fight!",
+        "ring it loud! war with {them}!",
+        "{them} picked the wrong town!",
+        "armor on! {them} is next!",
+        "hear the bell! war on {them}!",
+        "nobody trusts {them} anymore! war!",
+        "fighters to the plaza! {them} is the target!"
+      ]
+    },
+    "bell.war.declared": {
+      "any": [
+        "{them} declared war on us!",
+        "war! {them} wants a fight",
+        "{them} is coming for us! to arms!",
+        "{them} is marching on us! arm up!",
+        "{them} started a war! everyone to the plaza!",
+        "{them} has turned on us! to arms!",
+        "war is coming! {them} chose it!",
+        "{them} wants to fight? fine!",
+        "everyone listen! {them} is at war with us!",
+        "{them} picked a fight with the wrong town!",
+        "get ready! {them} is coming!",
+        "{them} broke the peace! arm up!",
+        "sharpen everything! {them} started it!",
+        "we didn't want this, but {them} did! to arms!",
+        "{them} thinks we're easy! show them!",
+        "WAR! {them} is after us!",
+        "{them} sent word: it's war!",
+        "to the walls! {them} means to fight!",
+        "{them} is the enemy now! gear up!",
+        "protect your homes! {them} is on the way!",
+        "{them} chose war. we'll give it to them!",
+        "{them} wants our town? come and take it!",
+        "{them} is out for blood! to arms!",
+        "doors shut, swords out! it's {them}!",
+        "{them} threw down the challenge! answer it!",
+        "we're being threatened by {them}! everyone up!",
+        "it's {them}! they want war! to the plaza!",
+        "{them} betrayed us! arm yourselves!",
+        "lock up the chests and grab a sword! {them} wants us!",
+        "{them} won't take this town!",
+        "the peace with {them} is over! fight!",
+        "{them} has called us out! armor on!",
+        "keep watch! {them} could hit any day!",
+        "we stand together against {them}!",
+        "{them} came for a war! give them one!",
+        "{them} wants a war with us! arm up, everyone!",
+        "shields up! {them} is our enemy now!"
+      ]
+    },
+    "bell.raid.march": {
+      "any": [
+        "to arms! we march on {enemy}",
+        "everyone who can fight, to the plaza!",
+        "gather up, we're going to {enemy}",
+        "fighters, to the plaza! we march!",
+        "grab your swords, we're raiding {enemy}!",
+        "to arms! the raid leaves soon!",
+        "{enemy} is next! gather up!",
+        "raid time! to the plaza!",
+        "armor on! we're hitting {enemy} today!",
+        "the warband forms at the plaza!",
+        "we head for {enemy}! fall in!",
+        "to the plaza, bring food and a shield!",
+        "it's time! the raid on {enemy} begins!",
+        "swords and shields to the plaza!",
+        "all fighters gather! we leave soon!",
+        "get your gear, we're marching!",
+        "{enemy}'s chests are calling! to the plaza!",
+        "raid on {enemy}! meet at the plaza!",
+        "the march starts now!",
+        "fighters wanted at the plaza!",
+        "everyone with armor, to the plaza!",
+        "warriors of the town, gather!",
+        "line up at the plaza! we're off to {enemy}!",
+        "time to march! bring your best sword!",
+        "to the plaza! we take the fight to {enemy}!",
+        "come on, fighters! we leave together!",
+        "pack your food, we march at once!",
+        "ready up! the warband's leaving!",
+        "who's fighting? plaza, now!",
+        "bows, swords, axes! to the plaza!",
+        "{enemy} won't see us coming! fighters, gather!",
+        "strong arms needed at the plaza!",
+        "the war party gathers! to the plaza!",
+        "{enemy} waits! fighters, on the plaza!",
+        "bring your bows! the raid's forming!"
+      ]
+    },
+    "bell.wanted": {
+      "any": [
+        "it's {player}! they're back!",
+        "{player}'s here! guards!",
+        "everyone inside! {player}'s back!",
+        "{player} is back! watch out!",
+        "it's the wanted one! {player}!",
+        "{player} showed their face again!",
+        "guards, {player}'s at the gates!",
+        "lock your doors! {player} is back!",
+        "{player}'s back in town! careful!",
+        "the wanted player is here!",
+        "everyone watch out, {player} returned!",
+        "bounty's walking in! it's {player}!",
+        "{player}! you're not welcome here!",
+        "look who came back! {player}!",
+        "{player} is wanted! somebody stop them!",
+        "keep away from {player}!",
+        "WANTED! {player}'s in town!",
+        "{player} has some nerve coming back!",
+        "hide your stuff, {player}'s here!",
+        "eyes open!",
+        "it's {player} again! ring the bell!",
+        "{player} came back! get the guards!",
+        "that's {player}! the one on the posters!",
+        "watch the chests! {player}'s returned!",
+        "don't let {player} near the plaza!",
+        "{player} is back. stay indoors!",
+        "the outlaw's back! {player}!",
+        "{player} spotted! everyone careful!",
+        "trouble's back! it's {player}!",
+        "{player}! you've got a price on your head!",
+        "we know you, {player}! get out!",
+        "it's that {player} again!",
+        "intruder!",
+        "back again, {player}? not here!",
+        "{player} is here! get the guards!",
+        "guards! the wanted one is back!",
+        "{player} dared to come back!",
+        "heads up! {player} walked back in!"
+      ]
+    },
+    "bell.killing": {
+      "any": [
+        "MURDER! {player} killed {victim}!",
+        "guards! {player}'s killed {victim}!",
+        "help! murder! it's {player}!",
+        "{player} just killed {victim}!",
+        "{victim} is dead! {player} did it!",
+        "murderer! {player} got {victim}!",
+        "somebody stop {player}! they killed {victim}!",
+        "{victim}'s down! it was {player}!",
+        "HELP! {player} murdered {victim}!",
+        "{player} killed one of ours!",
+        "they killed {victim}! get {player}!",
+        "no! {victim}! {player} did this!",
+        "{player} is a murderer! guards!",
+        "{victim} didn't do anything! get {player}!",
+        "{player} struck down {victim}!",
+        "murder in the town! it was {player}!",
+        "catch {player}! {victim}'s dead!",
+        "{victim} is gone! {player}, you'll pay!",
+        "don't let {player} go!",
+        "guards to the plaza! murder!",
+        "{player} took {victim} from us!",
+        "it was {player}! i saw them kill {victim}!",
+        "a murderer's loose!",
+        "MURDER! somebody grab {player}!",
+        "poor {victim}!",
+        "{victim}'s dead and {player} did it!",
+        "a killer's in town! it's {player}!",
+        "we lost {victim}!",
+        "{player}! why did you kill {victim}?!",
+        "after {player}!",
+        "{player} killed {victim} in cold blood!",
+        "the bell's for {victim}! get {player}!",
+        "somebody saw it! {player} killed {victim}!",
+        "{victim} was one of us! get {player}!",
+        "blood in the plaza! {player} did it!",
+        "{player} has to answer for {victim}!",
+        "nobody kills {victim} and walks away! stop {player}!",
+        "guards! {player}! they got {victim}!"
+      ]
+    },
+    "bell.massacre": {
+      "any": [
+        "MASSACRE! {player} is killing everyone!",
+        "everyone inside! {player}'s killing us!",
+        "to arms! stop {player}!",
+        "{player} is killing everyone! run!",
+        "it's a massacre!",
+        "RUN! {player} is slaughtering us!",
+        "everyone hide! {player}'s gone mad!",
+        "they're cutting us down! it's {player}!",
+        "stop {player} before we're all gone!",
+        "{player} won't stop killing! help!",
+        "people are dropping! it's {player}!",
+        "we're being massacred! to arms!",
+        "every fighter, now! {player} is killing us all!",
+        "{player} is a monster! fight back!",
+        "lock yourselves in! {player} is on a rampage!",
+        "get the guards, all of them!",
+        "RUN! RUN! it's {player}!",
+        "we can't let {player} finish us! fight!",
+        "{player} is cutting through the town!",
+        "doors shut! {player}'s killing anyone they see!",
+        "no one's safe!",
+        "everyone who can fight, stop {player}!",
+        "massacre at the plaza!",
+        "we need everyone!",
+        "{player} has gone crazy! help!",
+        "they're killing our people! get {player}!",
+        "the whole town against {player}! now!",
+        "stay indoors! {player} won't stop!",
+        "fight or hide! {player} is here!",
+        "call everyone! {player} is wiping us out!",
+        "{player} is murdering the whole town!",
+        "together or we're done!",
+        "{player} has a sword and won't stop! help!",
+        "hide in the houses! {player} is everywhere!",
+        "someone stop {player}, please!",
+        "grab anything sharp! {player} is killing us!",
+        "{player} is going house to house!"
+      ]
+    },
+    "bell.murder_leader": {
+      "any": [
+        "THEY KILLED {victim_caps}! get {player}!",
+        "{player} murdered {victim}! to arms!",
+        "{victim}'s dead! don't let {player} get away!",
+        "{victim_caps} IS DEAD!",
+        "our leader's been killed! get {player}!",
+        "{player} killed {victim}! our leader!",
+        "NO! {victim_caps}! get {player}!",
+        "{player} murdered our leader! to arms!",
+        "the leader's dead! it was {player}!",
+        "{victim} is gone! {player} did it!",
+        "nobody rests till {player} pays!",
+        "{victim_caps}!! who did this? {player}!",
+        "they took {victim} from us! get {player}!",
+        "{player} struck down our leader!",
+        "our leader {victim} is dead! seize {player}!",
+        "{victim_caps}! {player} WILL PAY!",
+        "{player} killed the leader! the town is in danger!",
+        "everyone! {victim} has been murdered!",
+        "who leads us now? {player} killed {victim}!",
+        "they got {victim_caps}! after {player}!",
+        "{player}!! you killed {victim}! you won't leave!",
+        "{victim} led us and {player} cut them down!",
+        "avenge {victim}! get {player}!",
+        "the leader is down!",
+        "no one lets {player} out of this town!",
+        "close the roads! {player} can't escape!",
+        "for {victim}! get {player}!",
+        "{victim_caps}! no!",
+        "our leader is murdered! everyone fight!",
+        "{victim} is dead! {player} did this! after them!",
+        "{player} killed {victim} right in the plaza!",
+        "the town has lost {victim}! catch {player}!",
+        "{player}! you'll answer for {victim}!",
+        "the leader! they killed the leader!",
+        "ring it louder! {victim} is dead!",
+        "{player} murdered {victim}! don't let them reach the road!",
+        "{victim_caps}! somebody stop {player}!"
+      ]
+    },
+    "bell.raiders": {
+      "any": [
+        "RAIDERS! to arms!",
+        "pillagers! everyone inside!",
+        "raid! they're coming for the plaza!",
+        "pillagers at the gate!",
+        "RAID! RAID!",
+        "raiders! get inside!",
+        "the pillagers are here!",
+        "ravager! everyone inside!",
+        "watch out for the evokers!",
+        "crossbows! take cover!",
+        "illagers! fight!",
+        "raid incoming! grab your swords!",
+        "pillagers in the streets!",
+        "to the walls! raiders!",
+        "they brought a ravager! RUN!",
+        "the raid is here! defend the town!",
+        "RAIDERS AT THE PLAZA!",
+        "pillager banner spotted! to arms!",
+        "doors shut! pillagers!",
+        "vindicators! they've got axes!",
+        "the raid's started!",
+        "a raid! protect the townsfolk!",
+        "illagers everywhere!",
+        "raiders! hold the plaza!",
+        "here they come! pillagers!",
+        "pillagers! protect the farms!",
+        "you hear that horn? RAID!",
+        "witches with them too! careful!",
+        "the illagers are back! to arms!",
+        "another raid! everyone up!",
+        "defend the houses! raiders!",
+        "the bell's for a raid! fight!",
+        "stay in your homes!",
+        "pillagers! grab a bow!",
+        "watch for vexes, they fly through walls!",
+        "evokers! take them out first!"
+      ]
+    }
+  }
+}

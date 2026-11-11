@@ -74,7 +74,9 @@ public final class CrierGoal extends Goals.Goal {
 		steps.then(() -> drifter.position().distanceTo(Vec3.atBottomCenterOf(spot)) > 3.0
 			? new NavigateTask(drifter, Vec3.atBottomCenterOf(spot), 2.0, "go to the plaza", NavigateTask.Pace.STROLL) : null);
 		for (int i = 0; i < news.headlines().size(); i++) {
-			String line = (i == 0 ? "extra extra! " : "") + news.headlines().get(i);
+			String headline = news.headlines().get(i);
+			String opening = i == 0 ? com.dinglebob.drifter.social.Lines.pick(drifter, "crier.open", "news", headline) : null;
+			String line = i > 0 ? headline : opening != null ? opening : "extra extra! " + headline;
 			steps.then(() -> {
 				ChatLines.speak(drifter, line);
 				return new WhimActions.Gaze(drifter, () -> {
@@ -122,7 +124,8 @@ public final class CrierGoal extends Goals.Goal {
 							if (slot >= 0) {
 								drifter.getInventory().removeItem(slot, 1);
 								drifter.tossForward(news.paper().copy());
-								ChatLines.speak(drifter, "here, todays paper");
+								String hand = com.dinglebob.drifter.social.Lines.pick(drifter, "crier.paper");
+								ChatLines.speak(drifter, hand != null ? hand : "here, todays paper");
 							}
 						}
 

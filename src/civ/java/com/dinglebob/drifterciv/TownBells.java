@@ -303,8 +303,8 @@ final class TownBells {
 		if (by != null && by.phase().equals("gather") && !Long.valueOf(by.startedAt()).equals(rungForRaid.get(town.id))) {
 			rungForRaid.put(town.id, by.startedAt());
 			String enemy = name(by.defenders());
-			ring(server, town, "the raid on " + enemy, List.of("to arms! we march on " + enemy, "everyone who can fight, to the plaza!",
-				"gather up, we're going to " + enemy));
+			ring(server, town, "the raid on " + enemy, CivLines.bell("bell.raid.march", List.of("to arms! we march on " + enemy,
+				"everyone who can fight, to the plaza!", "gather up, we're going to " + enemy), "enemy", enemy, "town", town.name));
 		}
 
 		DrifterApi.RaidInfo on = DrifterApi.raidOn(town.group);

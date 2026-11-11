@@ -33,7 +33,20 @@
 		{
 			"id": "tallest_mountain", "category": "exploration", "action": "high_point", "params": {"radius": 64, "rise": 20},
 			"archetypes": {"nomad": 2.0, "speedrunner": 0.5, "homebody": 0.4}, "traits": {"curiosity": 0.7, "bravery": 0.3}, "when": "day",
-			"duration": 240, "cooldown": 72000, "chat": ["made it to the top", "top of the world", "summit reached", "W climb", "king of the hill", "worth it"], "thought": "climbing the tallest mountain in sight"
+			"duration": 240, "cooldown": 72000, "chat": ["made it to the top", "top of the world", "summit reached", "W climb", "king of the hill", "worth it",
+					"i can see so far from here", "the view up here is crazy", "legs hurt but look at this", "snow all the way up here",
+					"careful, theres powder snow up here", "you can see the whole land from up here", "almost touching the clouds",
+					"that was a lot of jumping", "goats live up here, watch out", "i see a village way down there",
+					"the wind up here sounds cool", "dont look down", "ok i looked down", "best spot to watch the sunrise", "conquered",
+					"i climbed all of this on foot", "i feel tiny and huge at the same time", "cant believe i made it",
+					"highest point around, i think", "whole world below me", "peak acquired", "worth every jump", "stone, snow, and a view",
+					"im the tallest thing here", "someone should build a house up here", "that was a climb and a half",
+					"i can see the ocean from here", "feels quiet up here", "getting down is gonna be fun", "taking a break up here",
+					"mountain: 0, me: 1", "ice everywhere up here", "if anyone needs me im on the peak", "saw some emerald ore on the way up",
+					"the air feels thinner. not really but still", "the sky is huge from up here", "breathtaking. literally, im out of breath",
+					"view of the century", "this is why i explore", "top of the mountain, bottom of my hunger bar",
+					"wish i had a map to fill in from here", "i see forever", "dont fall dont fall dont fall", "i could stay up here all day",
+					"the trees look like moss from up here", "every biome at once from this spot"], "thought": "climbing the tallest mountain in sight"
 		},
 		{
 			"id": "craft_something", "category": "crafting", "action": "craft",

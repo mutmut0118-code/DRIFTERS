@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 3054 lines in the chat data, 273 in whims, and 2136 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 12166 lines in the chat data, 3496 in whims, and 2136 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -23,112 +23,154 @@ In the lines, `{player}` is your name, `{name}` the Drifter's own, `{who}` anoth
 
 A friendly Drifter that likes you walks over and greets you (crouching at you).
 
-- **everyone:** hi · hey · hello · yo · o/ · sup · heyo · hiya · yo {player} · hey {player} · o/ {player} · hi there · ayo · wsg
-- **casual:** yo · sup · hey hey · yo whats up · heyy · o/ · wassup {player}
-- **newbie:** hiii · hello!! · hi {player}!! · hey can we be friends · hi im new here · hello :) · yoo hi · omg hi
-- **builder:** o/ · hey {player} o/ · hello! nice to see someone · heya, come see the build later · o/ hi
-- **miner:** yo · hey · o/ · sup, just got back from mining · hey, found any dias?
-- **homebody:** hi! :) · hello, welcome · hiya {player} · oh hi! good to see you · o/ hello
-- **speedrunner:** yo · hi · o/ · hey gtg soon tho · sup
-- **nomad:** o7 traveller · hey stranger · o/ where you headed · well met · hey, long road?
-- **hoarder:** hi. dont touch my chests · hey · oh. hi · hello {player}... what do you want
-- **hermit:** hm · ...hi · oh · o/
-- **PvP sweat:** yo · sup · hey 1v1 later? · o/ nice gear · yo {player}
-- **bandit:** well hello there · hey {player} · nice stuff you got there · hey friend
-- **helper:** hey!! need anything? · hi {player}! o/ · hello! welcome welcome · hey! you good? · o/ hi friend
+- **everyone:** hi · hey · hello · yo · o/ · sup · heyo · hiya · yo {player} · hey {player} · o/ {player} · hi there · ayo · wsg · hey there · oh hey · heya · howdy · yo whats good · hey hows it going · hi hi · hey, nice to see a face · o/ hows your day going · yo, you good? · oh its {player}! hi · hey, been a while · hello again · yo {player}, whats new · hi, what you up to · hey neighbor · hi o/ nice weather huh · yo, survived the night? · heya {player} o/ · hey, how goes it · greetings · hey {player}, whatcha doing · oh hi, didnt see you there · yo, long time no see
+- **casual:** yo · sup · hey hey · yo whats up · heyy · o/ · wassup {player} · yo yo yo · ayy {player} · sup lol · heyo, ngl kinda bored · hey dude
+- **newbie:** hiii · hello!! · hi {player}!! · hey can we be friends · hi im new here · hello :) · yoo hi · omg hi · hi!! can you show me stuff · hello!! what are you doing · omg a person hi!! · hey!! how do i make a bed lol · hii!! is this your house??
+- **builder:** o/ · hey {player} o/ · hello! nice to see someone · heya, come see the build later · o/ hi · hey, like my roof? · o/ dont mind the scaffolding · hi! just finished a wall · hey {player}, got any spare stone?
+- **miner:** yo · hey · o/ · sup, just got back from mining · hey, found any dias? · yo, just back from y -59 · hey, cave sounds are crazy today · sup, got lapis if you need
+- **homebody:** hi! :) · hello, welcome · hiya {player} · oh hi! good to see you · o/ hello · hi! want some bread? · hello! the farm is doing great · oh hello, come in, its cozy
+- **speedrunner:** yo · hi · o/ · hey gtg soon tho · sup · hey. busy · yo, quick hi · hi, cant stay long
+- **nomad:** o7 traveller · hey stranger · o/ where you headed · well met · hey, long road? · o7, road treating you well? · hey, just passing through
+- **hoarder:** hi. dont touch my chests · hey · oh. hi · hello {player}... what do you want · hi... you didnt see my base right · hey. keep your hands to yourself
+- **hermit:** hm · ...hi · oh · o/ · oh. its you · hm. you again
+- **PvP sweat:** yo · sup · hey 1v1 later? · o/ nice gear · yo {player} · yo, nice sword · sup, still alive?
+- **bandit:** well hello there · hey {player} · nice stuff you got there · hey friend · hey there pal · well look who it is
+- **helper:** hey!! need anything? · hi {player}! o/ · hello! welcome welcome · hey! you good? · o/ hi friend · hey! want some food? · hi! need a hand with anything?
 
 #### `huh`
 
 You say its name in chat (or a part of it, 4 letters or more) within 32 blocks: it turns to look for you, nods, and may answer.
 
-- **everyone:** ? · yes? · hm? · what · yo? · ya? · wsp · huh · mhm? · whats up · you called? · me?
-- **newbie:** yes?? · what what · me?? hi · huh??
-- **homebody:** yes? :) · hm? what is it · oh, yes?
-- **hermit:** what · ...? · hm
-- **PvP sweat:** what · ? · 1v1?
-- **bandit:** what do you want · yeah?
-- **helper:** yes! need something? · hey whats up? · here! what is it?
+- **everyone:** ? · yes? · hm? · what · yo? · ya? · wsp · huh · mhm? · whats up · you called? · me? · who's asking · sup? · here · huh? oh hi · what is it · who said my name · someone call me? · im here · yea whats up · oh, me? · huh, who · what do you need · you rang? · listening · go on · yep? · uh yeah? · what happened · i heard that · whats going on · somebody say my name?
+- **newbie:** yes?? · what what · me?? hi · huh?? · omg someone said my name · wait me?? · hi!! yes? · did i do something wrong??
+- **homebody:** yes? :) · hm? what is it · oh, yes? · coming! what is it · mm? im here
+- **hermit:** what · ...? · hm · what now · speak · busy
+- **PvP sweat:** what · ? · 1v1? · you want something? · talking about me?
+- **bandit:** what do you want · yeah? · who wants to know · careful saying my name
+- **helper:** yes! need something? · hey whats up? · here! what is it? · yep! how can i help · im here! whats wrong?
+- **hoarder:** what. if its about my stuff, no
+- **nomad:** aye? · you call, traveller?
+- **speedrunner:** quick, what · what. in a hurry
+- **miner:** huh? i was mining · yeah? found something?
+- **builder:** hm? im mid build · yes? careful near the walls
+- **casual:** ya whats good · hm? lol · sup, what
 
 #### `thanks`
 
 You throw it an item from close by (a gift), or kill a mob that was attacking it.
 
-- **everyone:** ty · thx · thanks · tysm · ty! · ty ty · thank you · tyvm · oh ty · appreciate it · ty o7 · ty fr
-- **newbie:** omg thank you!! · tysm!!! · thanks!! :D · wait for me?? ty
-- **homebody:** oh thank you! · thats so kind, ty · ty, really
-- **hermit:** ...ty · thanks
-- **PvP sweat:** ty · w · ty bro
-- **bandit:** heh, thanks · ill take it
-- **hoarder:** mine now. ty · ooh ty · ty, going in the chest
-- **helper:** ahh ty!! you didnt have to · thank you so much! · ty! ill pay it back
+- **everyone:** ty · thx · thanks · tysm · ty! · ty ty · thank you · tyvm · oh ty · appreciate it · ty o7 · ty fr · thanks a ton · oh nice, ty · ty!! needed that · youre the best · ty, owe you one · much appreciated · thanks friend · ty, that was close · oh wow ty · ty that helps a lot · cheers · thanks man · legend, ty · aw ty · ty, saved me there · nice one, thanks · big ty · ty you rock · huge, thanks · oh sweet ty · ty, ill remember that · thanks, really needed it · W, ty · ty, that zombie almost had me
+- **newbie:** omg thank you!! · tysm!!! · thanks!! :D · wait for me?? ty · wow for me?? ty!! · omg thanks!!! you saved me · ty!! i almost died · aaa thank u so much
+- **homebody:** oh thank you! · thats so kind, ty · ty, really · aww thank you · ty, come by for dinner sometime
+- **hermit:** ...ty · thanks · hm. ty · ty. now go
+- **PvP sweat:** ty · w · ty bro · ty, had it tho · ty, i was fine
+- **bandit:** heh, thanks · ill take it · generous. ty · how kind of you
+- **hoarder:** mine now. ty · ooh ty · ty, going in the chest · ooh. adding it to the pile · ty. counting it now
+- **helper:** ahh ty!! you didnt have to · thank you so much! · ty! ill pay it back · ty!! let me know if you need anything · aw ty, youre sweet
+- **nomad:** ty, safe travels o7 · ty traveller
+- **speedrunner:** ty, saves time · ty. moving on
+- **miner:** ty, back to the mines · ty, ill bring you some iron later
+- **builder:** ty, this goes right in the build · ooh ty, perfect
+- **casual:** ayy ty · ty bro fr · ngl that helped, ty · thx lol
 
 #### `gg_won`
 
 It killed you (a hostile Drifter, over your body).
 
-- **everyone:** gg · ggs · gg wp · rip · gg go next · sorry lol · gg {player}
-- **PvP sweat:** gg · ez · L · gg ez · skill issue · get good · too easy · sit
-- **bandit:** should have paid · gg, ill take that · nothing personal · thanks for the loot
-- **homebody:** sorry!! you came at me · oh no, sorry · i didnt want that
-- **helper:** oh no, sorry {player} · gg, want your stuff back? · sorry!! that got out of hand
-- **newbie:** i won?? · omg gg · wait i actually won
+- **everyone:** gg · ggs · gg wp · rip · gg go next · sorry lol · gg {player} · gg, close one · gg that was fun · gg, you almost had me · good fight · sorry about that · gg, no hard feelings · rip, should have brought armor · gg, respawn and try again · that was close gg · gg, nice try · oops gg · gg {player}, well played · gg, you fought well · gg, better luck next time · welp gg · gg, you should have run · gg, dont come back · gg, that hurt tho · and stay down · gg, nice armor btw · gg, that was intense · gg, your bed better be close
+- **PvP sweat:** gg · ez · L · gg ez · skill issue · get good · too easy · sit · ez clap · too slow · sit down {player} · 1-0 · next · outplayed · get better armor · not even close · you need practice
+- **bandit:** should have paid · gg, ill take that · nothing personal · thanks for the loot · your loot is mine now · told you to pay up · should have handed it over · just business {player}
+- **homebody:** sorry!! you came at me · oh no, sorry · i didnt want that · why did you make me do that · im sorry, i had to · please just leave next time
+- **helper:** oh no, sorry {player} · gg, want your stuff back? · sorry!! that got out of hand · sorry!! ill guard your stuff · oh no, didnt mean to {player}
+- **newbie:** i won?? · omg gg · wait i actually won · WAIT i killed someone · gg!! my first win
+- **casual:** lol gg · gg ngl that was fun
+- **nomad:** gg traveller · the road is harsh, gg
+- **hermit:** should have left · told you
 
 #### `gg_lost`
 
 You killed it (said as it dies).
 
-- **everyone:** gg · rip · gg wp · ggs · rip me · oof · ow · really? · wow ok · unlucky
-- **PvP sweat:** gg · lag · nice ping · rematch · 1v1 again · ok that was lucky
-- **bandit:** you got lucky · this isnt over · my crew will hear about this
-- **homebody:** why · i didnt do anything · that was mean
-- **newbie:** noooo · my stuff!! · why did you do that
-- **hermit:** ... · figures
-- **helper:** ow... why · i was trying to help
+- **everyone:** gg · rip · gg wp · ggs · rip me · oof · ow · really? · wow ok · unlucky · gg you got me · ugh gg · ok you win · well that sucks · ggs i guess · rip my stuff · aaand im dead · i was so close · not like this · ow ow ow · ah come on · gg, well played · that was fast · argh · dang it · you win this one · see you at spawn · my gear... · worth a shot · fine. gg · tell my bed i tried · this is so unfair · ok ok gg · how · nooo my xp
+- **PvP sweat:** gg · lag · nice ping · rematch · 1v1 again · ok that was lucky · lag spike · rng carried you · run it back · i was low already · not fair, i was fighting mobs
+- **bandit:** you got lucky · this isnt over · my crew will hear about this · youll pay for this · the crew will find you · keep the loot... for now
+- **homebody:** why · i didnt do anything · that was mean · i just wanted to go home · my farm... · who will feed the chickens
+- **newbie:** noooo · my stuff!! · why did you do that · wait no!! · i just got that armor!! · i didnt even get to eat
+- **hermit:** ... · figures · hm. fine · should have stayed home
+- **helper:** ow... why · i was trying to help · ow... ok · i wasnt even fighting you
+- **casual:** lol ok gg
+- **builder:** my build will never be finished
+- **nomad:** end of the road · o7...
+- **hoarder:** my inventory!! · dont touch my stuff!!
+- **miner:** my pickaxe!! · all those dias...
 
 #### `stop`
 
 Warning you off: it doesn't trust you and won't fight, so it tells you to back off.
 
-- **everyone:** go away · stop · back off · wait · dont · leave me alone · dont come closer · personal space pls · bro back up · nope, stay there
-- **homebody:** please go away · stay away from my house · im not looking for trouble
-- **hermit:** leave · go · away · not today
-- **hoarder:** get away from my stuff · dont even think about it · these are MY chests
-- **newbie:** stop it!! · go awayyy · dont hurt me pls
-- **PvP sweat:** dont · you want this? · try it
-- **helper:** hey, easy · lets not do this · can we not?
+- **everyone:** go away · stop · back off · wait · dont · leave me alone · dont come closer · personal space pls · bro back up · nope, stay there · stay back · nah dont · keep your distance · hey stay over there · i see you · not one step more · turn around · go do your own thing · i dont trust you · leave it · walk away · please just go · thats close enough · nope · eyes on you · keep walking · not a chance · stop following me · dude, space · dont make this weird · go somewhere else · i mean it, go · dont push it
+- **homebody:** please go away · stay away from my house · im not looking for trouble · not near my farm · this is my home, please go · please leave my animals alone
+- **hermit:** leave · go · away · not today · no · turn back · elsewhere · leave me be
+- **hoarder:** get away from my stuff · dont even think about it · these are MY chests · hands off · those chests arent yours · i know whats in there. all of it
+- **newbie:** stop it!! · go awayyy · dont hurt me pls · please dont kill me · ahhh no no no · im scared stop
+- **PvP sweat:** dont · you want this? · try it · careful · one more step · not worth it bro
+- **helper:** hey, easy · lets not do this · can we not? · whoa, slow down · hey hey, lets keep it chill
+- **casual:** nah bro chill · ok thats enough lol
+- **nomad:** keep to your road · pass by, stranger
+- **speedrunner:** no time, go · move
+- **miner:** stay out of my tunnel · my mine, not yours
+- **builder:** dont touch the build · get off my scaffolding
+- **bandit:** walk away while you can · not today friend
 
 #### `ouch`
 
 You hit it once (the first hit).
 
-- **everyone:** bruh · ? · hey! · stop · ow · what was that for · ????? · excuse me · oi · dude · rude
-- **PvP sweat:** oh you want to fight? · bad idea · ? · 1v1 then
-- **bandit:** big mistake · you just picked the wrong one
-- **homebody:** ow! why? · please dont · that hurt
-- **newbie:** ow!! · why did you hit me · hey!! no hitting
-- **hermit:** ... · dont
-- **helper:** ow, accident? · hey, careful!
+- **everyone:** bruh · ? · hey! · stop · ow · what was that for · ????? · excuse me · oi · dude · rude · hey what · ouch · watch it · did you just hit me · uh, why · not cool · seriously? · quit it · knock it off · whoa · hey cut it out · ?? why · bro what · why tho · are you trying something · ow, what · hey, watch the sword · um ouch · careful · huh? why'd you do that · thats one · i felt that · pls dont · chill · dont do that again · was that on purpose?
+- **PvP sweat:** oh you want to fight? · bad idea · ? · 1v1 then · you sure about this? · oh its on · first hit doesnt count · do it again i dare you
+- **bandit:** big mistake · you just picked the wrong one · wrong move · youll regret that · do that again and see
+- **homebody:** ow! why? · please dont · that hurt · ow, i was just walking · ow, stop it please
+- **newbie:** ow!! · why did you hit me · hey!! no hitting · OW what did i do · ouchie!! · i didnt do anything!!
+- **hermit:** ... · dont · hm... · again and youre done
+- **helper:** ow, accident? · hey, careful! · ow! did you mean that? · careful, that was me
+- **nomad:** easy, traveller
+- **speedrunner:** dont waste my time
+- **casual:** bruh what lol · ayo chill
+- **hoarder:** dont even think about my stuff
+- **miner:** ow, i have a pickaxe too you know
+- **builder:** ow, not near the build · hey, im on scaffolding here
 
 #### `thief`
 
 It caught you at its chest with things gone, or sees you holding something missing from its chest.
 
-- **everyone:** thief · hey thats mine · give it back · my stuff?? · bro stole my stuff · thats MY gear · WHO TOOK MY STUFF · put it back · are you serious · who raided my chest
-- **hoarder:** THIEF · THATS MINE · my chest!! my stuff!! · you will pay for that · i counted everything
-- **homebody:** my things... why · please give it back · i trusted you
-- **newbie:** hey thats mine!! · give it back!!! · not cool
-- **bandit:** stealing from a thief? bold · you dont steal from me
-- **PvP sweat:** youre dead · give it back or fight
+- **everyone:** thief · hey thats mine · give it back · my stuff?? · bro stole my stuff · thats MY gear · WHO TOOK MY STUFF · put it back · are you serious · who raided my chest · where did my stuff go · HEY THIEF · you took my things · drop it. now · i saw that · you robbed me? · seriously, a thief? · i know you took it · those were mine · caught you · what did you take · empty chest?? you? · unbelievable · hand it over · my chest was full · return my things · you thought i wouldnt notice? · stop right there thief · thats stealing!! · everyone, we got a thief · how dare you · i worked for that · red handed · come back here · you better run · that was my food
+- **hoarder:** THIEF · THATS MINE · my chest!! my stuff!! · you will pay for that · i counted everything · SOMEONE TOUCHED MY CHEST · three stacks missing · i know exactly what you took · every single item. back. now
+- **homebody:** my things... why · please give it back · i trusted you · that was for the winter · i saved that for a long time
+- **newbie:** hey thats mine!! · give it back!!! · not cool · omg you stole my stuff · thats not yours!! · why would you take that
+- **bandit:** stealing from a thief? bold · you dont steal from me · nobody robs me · you picked the wrong chest
+- **PvP sweat:** youre dead · give it back or fight · fight me for it · drop it or get dropped
+- **casual:** bro really? · nah thats wild
+- **hermit:** dont come back · knew it
+- **helper:** id have given it if you asked · you could have just asked
+- **builder:** those blocks were for my build · my blocks!!
+- **miner:** those were my dias · my iron!! i mined that
 
 #### `war_cry`
 
 A raid (bandits, or a group at war) reaches the base it's raiding.
 
-- **everyone:** CHARGE · get them · raid time · for the crew! · lets go · attack!! · LETS GOOO · GET IN THERE · go go go · now! · hit the base
-- **bandit:** take everything · leave nothing · nobody walks away · loot it all
-- **PvP sweat:** ez raid · lock in · theyre cooked · go go go
-- **nomad:** for the road! · onward!
-- **helper:** stay together! · watch each others backs!
+- **everyone:** CHARGE · get them · raid time · for the crew! · lets go · attack!! · LETS GOOO · GET IN THERE · go go go · now! · hit the base · push in · for glory · here we go · move move move · dont stop · take the walls · AT THEM · break through · lets do this · they cant hold · together now · hit them hard · follow me in · storm the gates · now or never · dont hold back · show them · this is it · rush them · on me · this base is ours · no retreat · first one in gets first pick
+- **bandit:** take everything · leave nothing · nobody walks away · loot it all · grab the chests · every chest, every ingot · make them pay · take their dias · nothing personal. CHARGE · empty it out
+- **PvP sweat:** ez raid · lock in · theyre cooked · go go go · free kills · who wants first blood · too easy · dont miss your crits
+- **nomad:** for the road! · onward! · ride on! · through the gate! · for the long road!
+- **helper:** stay together! · watch each others backs! · heal up if you need! · nobody gets left behind · cover me!
+- **newbie:** ahh here we go!! · am i doing this right?? CHARGE
+- **speedrunner:** in and out, fast · no time, go in
+- **casual:** ok we doing this · send it
+- **hermit:** lets end this · fine. go
+- **builder:** knock down that ugly wall · tear it all down
+- **miner:** dig them out! · break the walls!
 
 ## 2. Chat rituals (answering you and the game)
 
@@ -138,120 +180,215 @@ Players reply to each other and to the game's own messages; so do Drifters. A mo
 
 You say hi in chat (hi, hey, yo, o/, sup, gm...): one or two Drifters within 64 blocks who don't mind you say it back.
 
-- **everyone:** o/ · \o · hi · hey · yo · hiya · heyo · hey {player} · o/ {player} · sup · hello · yo yo · hey hey
-- **casual:** yo · sup {player} · ayo
-- **newbie:** hiii {player}!! · hello!! · HI
-- **builder:** o/ morning · hey {player} o/ · heya
-- **homebody:** hi {player}! :) · hello hello · oh hi!
-- **nomad:** o7 · o/ traveller
-- **hermit:** o/ · hm. hi
-- **helper:** hey!! o/ · hi {player}! need anything? · o/ welcome
-- **PvP sweat:** yo · sup
+- **everyone:** o/ · \o · hi · hey · yo · hiya · heyo · hey {player} · o/ {player} · sup · hello · yo yo · hey hey · hey there · hi hi · hi there · oh hey · hey, whats new · o/ good to see you · hey friend · howdy · hey hows it going · wsg · sup sup · o/ hey · heya, all good? · ello · yo o/ · hey, you good? · o/ whats up · good to see you {player} · sup, whats the plan today · o/ o/ · heyo, whats happening · hey whats cooking · o/ back at you · hey hey hey
+- **casual:** yo · sup {player} · ayo · yo whats good · sup lol · heyy {player} whats up
+- **newbie:** hiii {player}!! · hello!! · HI · hi {player}!!! :D · omg hi hi · hello hello!! hi!!
+- **builder:** o/ morning · hey {player} o/ · heya · o/ hey, come see the house · hey {player}, nice timing
+- **homebody:** hi {player}! :) · hello hello · oh hi! · hi! want some bread? · hey {player}, nice day huh
+- **nomad:** o7 · o/ traveller · o7, where you at · hail traveller · \o from the road
+- **hermit:** o/ · hm. hi · hi. now shh · mm. o/
+- **helper:** hey!! o/ · hi {player}! need anything? · o/ welcome · hey {player}!! good to see you · hi hi! need a hand?
+- **PvP sweat:** yo · sup · yo {player}, 1v1? · sup, still alive?
+- **bandit:** well hey {player} · hey friend... heh
+- **hoarder:** hi. what do you want · oh. its you. hi
+- **speedrunner:** hi, busy · o/ quick
+- **miner:** yo, im underground but hi · o/ from y -40
 
 #### `night_back`
 
 You say good night in chat (gn, night, going to bed...).
 
-- **everyone:** gn · gn {player} · night · nn · gn o/ · night night · sleep well · gn o7 · gnight
-- **homebody:** good night {player} :) · sleep well!
-- **newbie:** gnnn · night night!!
-- **PvP sweat:** gn · gn, 1v1 tomorrow
-- **hermit:** gn
-- **helper:** gn! sleep well o/
+- **everyone:** gn · gn {player} · night · nn · gn o/ · night night · sleep well · gn o7 · gnight · night, sleep well · nighty night · gn, dont let the phantoms bite · sleep tight · sweet dreams · goodnight o/ · night o7 · gn, see you tomorrow · rest up · gn, i should sleep too · gn, dont forget to set your spawn · gn, dream of dias · gn, skip the night for us · nini · have a good night · gn gn · gn, ill keep watch · rest well {player} · gn friend · gn, the creepers can wait · night, see you at sunrise · gn, been a long day
+- **homebody:** good night {player} :) · sleep well! · sweet dreams, ill keep the fire going · sleep tight, keep warm · gn! ill feed the animals
+- **newbie:** gnnn · night night!! · nighttt!! see u tomorrow · gn {player}!! :D · night!! dont fall out of bed
+- **PvP sweat:** gn · gn, 1v1 tomorrow · gn, dont dream of losing · gn, rematch tomorrow
+- **hermit:** gn · mm. gn · sleep then
+- **helper:** gn! sleep well o/ · night {player}! rest up · gn! ill watch your stuff
+- **bandit:** gn... sleep with one eye open · sleep well. heh
+- **hoarder:** gn. lock your chests · night. ill count my stuff
+- **nomad:** gn o7 rest well traveller · night, ill camp here
+- **speedrunner:** gn. skip it fast · gn, sleep quick
+- **miner:** gn, im staying down here · night, mining till dawn
+- **builder:** gn, ill finish the roof tonight · night {player}, ill light up the build
+- **casual:** gn lol · night dude · aight gn
 
 #### `bye_back`
 
 You say bye in chat (cya, gtg, brb, o7...), or leave the game (by day).
 
-- **everyone:** cya · o7 · bye · cya {player} · later · o/ · take care · see ya · bye o/
-- **helper:** bye {player}! come back soon · cya! o/
-- **nomad:** o7 safe travels
-- **hermit:** bye
+- **everyone:** cya · o7 · bye · cya {player} · later · o/ · take care · see ya · bye o/ · bye bye · see you later · catch you later · bye for now · cya around · have fun · cya soon · see you around · peace · take it easy · cya o7 · alright cya · laters · bye, dont be gone long · ok bye o/ · gtg too actually · see you next time · toodles · bye, stay safe · cya, have a good one · farewell · bye, ill hold the fort
+- **helper:** bye {player}! come back soon · cya! o/ · bye! stay safe out there · cya {player}! o/ shout if you need me
+- **nomad:** o7 safe travels · o7 friend · may your road be safe
+- **hermit:** bye · go then · finally. bye · mm
+- **bandit:** see you around... heh · come back with more loot
+- **PvP sweat:** cya, 1v1 next time · bye, practice your aim
+- **hoarder:** bye. ill be watching the chests · bye. dont take anything
+- **speedrunner:** k bye · same, gtg
+- **homebody:** bye! ill keep the fire going · take good care of yourself {player} :) · bye bye, dont forget to eat
+- **miner:** cya, back to the mines for me · o7, ill save you some iron
+- **builder:** cya, ill keep building · bye o/ come see the house next time
+- **newbie:** aww bye!! · nooo dont go · bye {player}!! come back
+- **casual:** later gator lol · aight cya · peace out
 
 #### `bye_night`
 
 You leave the game at night.
 
-- **everyone:** gn · gn {player} · night · gn o7 · sleep well · gn all · gnn {player}
+- **everyone:** gn · gn {player} · night · gn o7 · sleep well · gn all · gnn {player} · gn {player} o/ · good night · sleep tight · night o/ · gn, see you tomorrow · gn gn · sweet dreams · night night {player} · gn, rest up · gn, mind the phantoms · goodnight o7 · gn, ill keep the torches lit · night, dont stay up · nini · gn, its late anyway · night, see you at sunrise · gn, the mobs are out anyway · good call, its dark out · night, dont let the creepers in · gn, smart to log before the zombies · night, ill save you a spot by the fire · gn, see you next morning
+- **helper:** gn {player}! see you tomorrow o/ · night! ill watch your base
+- **bandit:** gn... heh · sleep well. i wont
+- **PvP sweat:** gn, rematch tomorrow · gn, ez
+- **hermit:** finally quiet. gn · mm. night
+- **hoarder:** gn. ill guard my chests · night. dont dream of my loot
+- **nomad:** o7 rest well · night, traveller
+- **speedrunner:** gn. fast · gn, skip the night
+- **homebody:** gn {player}, the animals are tucked in · gn! ill lock up · night, keep warm
+- **miner:** gn, im staying down here · night, back to strip mining
+- **builder:** gn, ill light up the build · gn, roof done by morning
+- **newbie:** byee gn!! tomorrow again?? · nightt {player}!! sleep good
+- **casual:** gn lol · aight gn {player} · night dude
 
 #### `you_welcome`
 
 You say thanks in chat (ty, thx, tysm...): the nearest friendly Drifter within 16 blocks.
 
-- **everyone:** np · no problem · np o/ · anytime · np np · all good · sure thing · dw about it · yw · ofc
-- **helper:** anytime!! · np, happy to help · of course! :)
-- **hoarder:** dont get used to it · np. you owe me
-- **hermit:** mhm · np
-- **PvP sweat:** np · ez
-- **newbie:** yw!! · np :D
+- **everyone:** np · no problem · np o/ · anytime · np np · all good · sure thing · dw about it · yw · ofc · no worries · yep · happy to help · dont mention it · glad to help · no prob · you got it · sure · nbd · its nothing · mhm np · np, enjoy · for sure · no biggie · least i could do · dw · glad i could help · always · my pleasure · eh its fine · no need to thank me · yup np · np, just pay it forward · np, we gotta stick together · cool cool np
+- **helper:** anytime!! · np, happy to help · of course! :) · np! shout if you need more · of course!! anytime o/
+- **hoarder:** dont get used to it · np. you owe me · np. dont ask again · np. i wrote it down · fine. yw
+- **hermit:** mhm · np · whatever. np · sure. go
+- **PvP sweat:** np · ez · np, i got you · ez np
+- **newbie:** yw!! · np :D · yay!! np · youre welcome!! · np! glad i helped :)
+- **bandit:** np. remember who helped · np. ill collect later
+- **nomad:** np, safe travels · np o7
+- **speedrunner:** np. moving · yw. go
+- **homebody:** aww youre welcome · anytime dear · np, come by for food sometime
+- **miner:** np, got plenty · np, the mines provide
+- **builder:** np, come see the build later · np, just dont break anything
+- **casual:** np lol · ya np · no worries dude
 
 #### `welcome_back`
 
 You join the world and a Drifter round you knows you.
 
-- **everyone:** wb · wb {player} · o/ · welcome back · wb o/ · hey wb · oh hey wb · {player}! wb
-- **newbie:** WB!! · yay {player} is back
-- **homebody:** welcome back! :) · wb, missed you
-- **hermit:** wb
-- **helper:** wb!! o/ · welcome back {player}!
+- **everyone:** wb · wb {player} · o/ · welcome back · wb o/ · hey wb · oh hey wb · {player}! wb · hey, youre back · look whos back · back again {player}? · wb wb · oh wb {player} · good to have you back · there you are · {player} returns · hey hey wb · took you long enough · wb, missed anything? · ayy wb · back so soon? · wb, its been quiet · hey {player}, wb o7 · wb! the world didnt explode · {player} is back! · wb, your base is still there · hey, we were just talking about you · wb, how was it · yo {player} wb · wb, it rained while you were gone
+- **newbie:** WB!! · yay {player} is back · wb!!! i built a hut while you were gone · {player}!! hi again!! · yay ur back
+- **homebody:** welcome back! :) · wb, missed you · welcome home {player} · wb! i kept the farm going · aww wb
+- **hermit:** wb · hm. back · you again. wb
+- **helper:** wb!! o/ · welcome back {player}! · wb!! need anything? · yay wb {player}! o/
+- **bandit:** oh, youre back... heh
+- **PvP sweat:** wb, ready for a 1v1? · wb, still bad at pvp?
+- **hoarder:** wb. i counted everything, nothing moved · wb. dont touch my chests
+- **nomad:** o7 wb traveller · back from the road?
+- **speedrunner:** wb. lets go · wb, finally
+- **miner:** wb, found a cave while you were gone · wb, got a stack of iron
+- **builder:** wb, come see what i built · wb {player}, i redid the roof
+- **casual:** ayy look whos online · yo wb lol · wb dude
 
 #### `welcome_new`
 
 You join and none of the Drifters round you know you.
 
-- **everyone:** welcome! · o/ welcome · hi new person · welcome {player} o/ · hey, welcome · new face! hi
-- **helper:** welcome!! need help getting started? · hi {player}! ask if you need anything · welcome o/ spawn is safe-ish
-- **newbie:** hi are you new too?? · welcome!! im new too
-- **bandit:** fresh meat · welcome... heh
-- **hermit:** hm. new one
+- **everyone:** welcome! · o/ welcome · hi new person · welcome {player} o/ · hey, welcome · new face! hi · hey new player! · welcome to the world · oh a new one, hi · hi {player}, welcome · welcome aboard · o/ hi {player} · hey hey, welcome · new here? welcome · glad youre here · welcome in! · hi {player}! nice to meet you · watch out for creepers, welcome · nice name {player}, welcome · first night? good luck · yo welcome · oh hi, never seen you before · welcome! beds are important · hi stranger, welcome · welcome, grab some wood first · welcome o7 · another player! welcome
+- **helper:** welcome!! need help getting started? · hi {player}! ask if you need anything · welcome o/ spawn is safe-ish · welcome {player}! want some food? · welcome! i can show you around · need tools? welcome o/
+- **newbie:** hi are you new too?? · welcome!! im new too · omg another new person!! · hi!! wanna explore together?? · welcome!! do you know how to make a pickaxe
+- **bandit:** fresh meat · welcome... heh · welcome... nice starter gear · new arrival, heh
+- **hermit:** hm. new one · ...hi · another one
+- **PvP sweat:** fresh spawn, nice · welcome, 1v1 when youre geared
+- **hoarder:** new one. stay away from my chests · hm. welcome. dont touch anything
+- **nomad:** o7 newcomer · welcome, where you from?
+- **speedrunner:** welcome. punch trees fast · hi. dont waste daylight
+- **homebody:** welcome {player}! come by for food · hi hi, make yourself at home
+- **miner:** welcome! caves are that way · welcome, mine safe
+- **builder:** welcome! dont break the builds pls · welcome, the houses here are nice
+- **casual:** yo welcome lol · ayy new person · sup {player}, welcome
 
 #### `rip`
 
 Your death message (Drifters within 160 blocks read chat): an ordinary death.
 
-- **everyone:** rip · F · unlucky · rip {player} · oof · rip bro · rip your stuff · o7 · unlucky {player} · rip, want help getting your stuff? · f in chat
-- **helper:** oh no, need help getting your stuff back? · rip! want me to come with? · unlucky, ill help you get your stuff
-- **PvP sweat:** L · skill issue · rip lol · unlucky · get good
-- **bandit:** free loot somewhere · rip... wheres the stuff
-- **homebody:** oh no! are you ok? · rip, careful out there
-- **hermit:** rip
-- **newbie:** noooo rip · rip!!
+- **everyone:** rip · F · unlucky · rip {player} · oof · rip bro · rip your stuff · o7 · unlucky {player} · rip, want help getting your stuff? · f in chat · rip man · aw rip · rip, where did you die · unlucky man · rip, need coords? · that sucks, rip · rip, go get your stuff fast · big rip · rip, items despawn in 5 min · rip, what got you · rip, hope you had a bed · rip in pieces · pain · rip that one hurt · rip, you ok? · rip, was it a creeper · unlucky, happens to all of us · dang rip · rip, did you have dias on you · back to spawn {player} · rip, respawn and go again · oh no {player}, rip
+- **helper:** oh no, need help getting your stuff back? · rip! want me to come with? · unlucky, ill help you get your stuff · rip! i can come help · oh no! want me to bring food? · rip {player}, ill watch your back next time
+- **PvP sweat:** L · skill issue · rip lol · unlucky · get good · rip, should have blocked · skill diff · rip, get armor
+- **bandit:** free loot somewhere · rip... wheres the stuff · rip. whered you drop it · ooh, free gear somewhere
+- **homebody:** oh no! are you ok? · rip, careful out there · oh no {player}! come home and rest · rip, i made soup if you want
+- **hermit:** rip · hm. rip · happens
+- **newbie:** noooo rip · rip!! · noo {player}!! what happened · omg rip are you ok · wait you died?? rip
+- **speedrunner:** rip, run back · rip, clock is ticking on those items
+- **builder:** rip, hope you set your spawn
+- **casual:** oof rip bro · rip ngl
+- **hoarder:** rip. hope you had a chest · rip... so your stuff is free?
+- **nomad:** o7 rip · rip traveller
+- **miner:** rip, caves are rough · rip, did you lose your pick
 
 #### `rip_funny`
 
 Your death message, a silly death: a fall, lava, drowning, a cactus, a berry bush, a wall, starving, fire...
 
-- **everyone:** lmao · rip lol · lmaooo · bro · im dead · how · rip lmao · nice one · skill issue · classic · unlucky lmao · {player} im crying
-- **helper:** lmao rip, need help? · oh no lmao
-- **homebody:** oh dear · rip, be careful!
-- **hermit:** heh
-- **PvP sweat:** L · skill issue · how do you even do that
+- **everyone:** lmao · rip lol · lmaooo · bro · im dead · how · rip lmao · nice one · skill issue · classic · unlucky lmao · {player} im crying · how did that happen · bro what · {player} what was that · i cant breathe lol · pls tell me youre ok lol · legendary · rip, that was so dumb lol · ok that was funny · noooo lmao · how do you even · ahahaha · {player} are you good lol · it happens lol · i saw that lmao · W death · thats a new one · ok but how · 10/10 death · laughing so hard rn · rip bozo · {player} pls · who does that lol · the floor got you lol · nature won that one · absolute legend lol
+- **helper:** lmao rip, need help? · oh no lmao · lol rip, want me to come get you? · aw lol, you ok?
+- **homebody:** oh dear · rip, be careful! · oh no lol, come home · careful!! lol
+- **hermit:** heh · hm. lol · ha
+- **PvP sweat:** L · skill issue · how do you even do that · ez L · imagine dying to that
+- **bandit:** lmao free loot · heh, saves me the trouble
+- **hoarder:** lol where did your stuff land
+- **nomad:** the road is cruel lol · o7 lmao
+- **speedrunner:** lmao time lost · rip, reset
+- **miner:** lol happens in caves all the time · even i dont die like that lol
+- **builder:** should have built a railing lol
+- **newbie:** omg lol are you ok?? · wait how did you die like that · i did that too lol
+- **casual:** im wheezing · ngl that was funny
 
 #### `rip_drifter`
 
 A Drifter's death message: another Drifter within 160 blocks (now and then).
 
-- **everyone:** rip {who} · rip · F · o7 {who} · rip {who} o7 · nooo {who} · unlucky {who}
-- **PvP sweat:** rip · unlucky
-- **bandit:** one less to share with · rip i guess
-- **hermit:** rip
+- **everyone:** rip {who} · rip · F · o7 {who} · rip {who} o7 · nooo {who} · unlucky {who} · aw {who} · rip, poor {who} · {who} had a rough one · rip, what got them · oof {who} · dang, {who} died · {who} gone · rip {who}, they were alright · sad · rip, that sucks · {who} went down? · {who} again? · rip {who}, go get your stuff · rip {who} lol · hope {who} had a bed · rip, careful out there everyone · {who} :( · rip, the night is rough · {who} down · F in chat for {who} · rip, that was close by · big rip {who} · aw man, {who}
+- **PvP sweat:** rip · unlucky · {who} skill issue · L {who} · should have blocked
+- **bandit:** one less to share with · rip i guess · {who}'s loot is up for grabs · more for me · rip, wheres the drop
+- **hermit:** rip · hm · ...{who}
+- **builder:** rip {who}, their house was nice
+- **speedrunner:** rip. next
+- **casual:** rip {who} ngl · oof lol
+- **hoarder:** rip {who}. dibs on the chest
+- **nomad:** o7 {who}, safe travels · rip, the road takes us all
+- **miner:** rip {who}, caves get everyone
+- **newbie:** omg {who} died?? · {who} died?? oh no!!
+- **homebody:** poor {who} :( · oh no, {who}...
+- **helper:** oh no, {who}! anyone near them? · rip {who}, i hope they get their stuff
 
 #### `rip_friend`
 
 A Drifter's death message: one of its friends (always).
 
-- **everyone:** NOOO {who} · rip {who}... o7 · not {who} · {who} no · rest easy {who} · why {who} · o7 {who}, we wont forget
+- **everyone:** NOOO {who} · rip {who}... o7 · not {who} · {who} no · rest easy {who} · why {who} · o7 {who}, we wont forget · {who} didnt deserve that · come back {who} · {who}!!! no no no · rip {who}, best friend i had · ill miss you {who} · {who} please respawn · who got {who}?? who · ill get your stuff {who} · {who} was my buddy · this is so wrong, {who} · {who} gone... cant believe it · {who} we had plans · ill avenge you {who} · rest well {who}, friend · {who} :( o7 · WHO KILLED {who} · {who}... my friend · ill keep your house safe {who} · {who}, ill finish what you started · it should have been me, not {who} · o7 {who}... miss you already · {who}!! not like this · we just talked, {who} · {who} wait for me at spawn · ill remember you {who} · {who} was the best of us · i should have been there {who} · why did it have to be {who} · my buddy {who}... · {who} come on, get up
+- **casual:** nah not {who} bro · {who} rip fr
+- **builder:** {who}, ill finish your house
+- **miner:** {who}, we were gonna mine together
+- **nomad:** o7 {who}, walk on · {who}, safe travels friend
+- **newbie:** {who} NO!! why!! · wait {who} died?? no!!
+- **helper:** {who}! hang on, im coming!! · ill get {who}'s things back
+- **hermit:** ...{who} · hm. {who}. o7
+- **homebody:** oh {who}... ill keep a bed for you · {who}, who will i cook for now
+- **bandit:** someone pays for {who} · {who} was crew. they'll pay for this
+- **PvP sweat:** whoever got {who} is next · {who} was cracked, rip
 
 #### `congrats`
 
 You make an advancement that shows in chat: one or two Drifters within 160 blocks.
 
-- **everyone:** gg · W · gz · congrats · gg {player} · nice · W {player} · lets go · ggs · nice one · congrats o/
-- **newbie:** woah gg!! · W!! · how did you do that
-- **helper:** congrats!! :D · huge W {player}
-- **PvP sweat:** gg · ok W
-- **hermit:** gz
-- **hoarder:** nice. what did you get
+- **everyone:** gg · W · gz · congrats · gg {player} · nice · W {player} · lets go · ggs · nice one · congrats o/ · W W · nice job · well done · huge · gj · ayy nice · big W · proud of you · {player} cooking fr · nicely done · ooh nice · sick · thats a big one · W advancement · good stuff · cool · yesss · congratz · woo · nice work {player} · gg, whats next · look at you go · deserved · clean · ayy {player} W · massive W
+- **newbie:** woah gg!! · W!! · how did you do that · wow how do you get that?? · i want that one too!! · omg congrats!!
+- **helper:** congrats!! :D · huge W {player} · yay!! so happy for you {player} · W!! knew you could do it
+- **PvP sweat:** gg · ok W · not bad · gg, still worse than me
+- **hermit:** gz · hm. gg · ok. gz
+- **hoarder:** nice. what did you get · nice. share the loot? · gg. how many did you get
+- **bandit:** nice. what are you carrying now? · gg, anything shiny?
+- **nomad:** o7 gg · well earned, traveller
+- **speedrunner:** gg. now go faster · nice split
+- **homebody:** so proud of you! · aww congrats {player} :)
+- **miner:** gg, did you find dias? · nice, deep stuff
+- **builder:** nice, now build something with it · gg, very stylish
+- **casual:** ayy lets go lol · W ngl · sheesh
 
 ## 3. News, trades and the shop
 
@@ -259,55 +396,163 @@ You make an advancement that shows in chat: one or two Drifters within 160 block
 
 Two Drifters meet, one passes on news of something a player did ({what}); said a third of the time, with a player within 16 blocks.
 
-- **everyone:** did you hear? {who} {what} · yo did u hear, {who} {what} · apparently {who} {what} · heard {who} {what} · psa: {who} {what} · ngl heard {who} {what} · word is {who} {what} · so {who} {what}. just saying
+- **everyone:** did you hear? {who} {what} · yo did u hear, {who} {what} · apparently {who} {what} · heard {who} {what} · psa: {who} {what} · ngl heard {who} {what} · word is {who} {what} · so {who} {what}. just saying · you hear what {who} did? {who} {what} · get this: {who} {what} · not to gossip but {who} {what} · heads up, {who} {what} · fyi {who} {what} · someone told me {who} {what} · {who} {what}. thought you should know · {who}? yeah, {who} {what} · the talk around here is {who} {what} · remember {who}? {who} {what} · big news: {who} {what} · not sure what to make of it but {who} {what} · dunno if its true but {who} {what} · a friend of mine says {who} {what} · wanna know something? {who} {what} · {who} {what}, can you believe that · you know {who}? {who} {what} · rumor going round: {who} {what} · news from down the road, {who} {what} · between us, {who} {what} · my buddy saw it. {who} {what} · {who} {what}. true story · everyone's saying {who} {what} · pretty sure {who} {what} · funny thing, {who} {what} · {who} {what}, heard it today · the one who {what}? that's {who} · word on the road: {who} {what}
+- **builder:** heard at the build site, {who} {what}
+- **speedrunner:** quick news: {who} {what}
+- **miner:** heard it down in the mines, {who} {what}
+- **homebody:** heard over the fence that {who} {what}
+- **hoarder:** {who} {what}. writing that down
+- **PvP sweat:** lol {who} {what}, noted
+- **bandit:** heh. {who} {what}. good to know · interesting. {who} {what}
+- **helper:** just so you know, {who} {what} · figured you'd want to know, {who} {what}
+- **nomad:** picked this up on the road: {who} {what} · back at the last camp they said {who} {what} · travellers talk. {who} {what}
+- **hermit:** {who} {what}. that's all · ...{who} {what}
+- **newbie:** omg did u know {who} {what}?? · wait is it true {who} {what}? · someone said {who} {what}!! is that normal
+- **casual:** lowkey heard {who} {what} · bro {who} {what} lol · fr tho, {who} {what} · ngl kinda crazy, {who} {what}
 
 #### `news.death`
 
 The same, news of a Drifter's death ({what} is its death message).
 
-- **everyone:** did you hear? {who} {what} · rip {who}. {who} {what} · heard {who} {what} · {who} {what}. rip · apparently {who} {what} · o7 {who}, {what}
+- **everyone:** did you hear? {who} {what} · rip {who}. {who} {what} · heard {who} {what} · {who} {what}. rip · apparently {who} {what} · o7 {who}, {what} · sad news, {who} {what} · {who} {what}. gonna miss them · F for {who}. {who} {what} · bad news, {who} {what} · poor {who}. {who} {what} · {who} {what}, rough · {who} {what}. pour one out · {who} {what}. hope they get their stuff back · they say {who} {what} · {who} {what}. saw it happen · {who} {what}. hard to watch · {who} {what}, didnt see it coming · lost {who} today. {who} {what} · rest easy {who}. {who} {what} · {who} {what}. be careful out there · {who} {what}. could've been any of us · heard the news? {who} {what} · {who} {what}, what a way to go · {who} {what}. their stuff is still out there somewhere · {who} {what} earlier · {who} {what}. still cant believe it · {who} {what}. that's how it goes · {who}'s gone. {who} {what} · moment of silence for {who}, {who} {what} · {who} {what}... yeah · so {who} {what}. ouch · {who} {what}. keep your armor on · {who} {what}. gg {who} · {who} {what}. respect
+- **builder:** {who} {what}. their house still stands though
+- **speedrunner:** {who} {what}. respawn and go
+- **hoarder:** {who} {what}. hope their chests are locked
+- **homebody:** {who} {what}. should've stayed home · {who} {what}. i'll light a candle for them
+- **bandit:** {who} {what}. anyone grab the loot? · {who} {what}. more loot for whoever finds it
+- **PvP sweat:** {who} {what}. unlucky · {who} {what}, skill issue tbh
+- **miner:** {who} {what}. not again
+- **helper:** {who} {what}. if you find their stuff, keep it safe for them · {who} {what}. stay safe ok?
+- **nomad:** {who} {what}. safe travels wherever they are · the road took {who}. {who} {what}
+- **hermit:** {who} {what}. shame · ...{who} {what}
+- **newbie:** omg {who} {what}?? is that bad · wait {who} {what}?! scary · {who} {what} :( that could be me
+- **casual:** bro {who} {what}, rip fr · ngl {who} {what}, kinda sad · oof, {who} {what}
 
 #### `trade.ask`
 
 A Drifter asks another for things, for free (a player within 16 blocks).
 
-- **everyone:** got any {things} to spare? · anyone got spare {things}? · need {things} pls · u got {things}? · can i have some {things} · spare {things}?
+- **everyone:** got any {things} to spare? · anyone got spare {things}? · need {things} pls · u got {things}? · can i have some {things} · spare {things}? · could use some {things}, got any? · you wouldnt have {things} would you · hey, any {things} you dont need? · low on {things}, help a guy out? · ran out of {things}, can i borrow some · i'll owe you one for some {things} · short on {things} rn, spare a few? · any extra {things} on you? · {things}? even a couple · got {things} lying around? · mind sharing some {things}? · need a few {things}, can you help · out of {things} again lol, any spare · do you have {things} you can part with · lend me some {things}? ill pay you back later · {things} pls, im all out · hey, toss me some {things}? · would you give me some {things}? · {things} would really help me out rn · any chance of some {things}? · i forgot to grab {things}, got some? · running low on {things}, you got extra? · can you spare {things}? just a few · begging here, {things}? · {things}. please. anyone · share your {things}? · anyone feeling generous? need {things} · i'd take any {things} you've got
+- **PvP sweat:** need {things} for the next fight, hook me up
+- **bandit:** spare {things}? asking nicely this time
+- **helper:** sorry to ask, but do you have {things}?
+- **hermit:** {things}. got any
+- **hoarder:** can never have too many {things}. got extra?
+- **nomad:** long road ahead, spare some {things}? · passing through, any {things} for the road?
+- **speedrunner:** {things}? quick · need {things}, no time to farm
+- **miner:** need {things} before i go down, any spare? · heading to the caves, could use {things}
+- **builder:** short a few {things} for my build, help? · my build's stuck on {things}, got any?
+- **homebody:** could i have some {things} for the house? · need {things} for the farm, any spare?
+- **newbie:** um does anyone have {things}?? i dont know where to find them · pls can i have {things} im new · where do u get {things}? or can i just have some
+- **casual:** yo got {things}? lol im broke · ngl i need {things} so bad · toss me {things} fr · lowkey need {things}
 
 #### `trade.ask_pay`
 
 A Drifter asks another for things, offering pay.
 
-- **everyone:** got any {things} to spare? ill give you {payment} · wtb {things}, paying {payment} · {things} for {payment}? · trade you {payment} for {things} · need {things}, have {payment}
+- **everyone:** got any {things} to spare? ill give you {payment} · wtb {things}, paying {payment} · {things} for {payment}? · trade you {payment} for {things} · need {things}, have {payment} · i'll pay {payment} for {things} · {payment} for your {things}, fair? · buying {things}, got {payment} for it · need {things}. {payment} sound ok? · how about {payment} for some {things} · i can do {payment} if you've got {things} · looking for {things}, offering {payment} · swap you {payment} for {things}? · you got {things}? i've got {payment} with your name on it · {things} wanted. paying {payment} · would {payment} get me some {things}? · take {payment} for your {things}? · {payment} on the table for {things} · anyone selling {things}? i have {payment} · ill trade {payment} for whatever {things} you got · {things} pls, ill pay {payment} · buying {things} for {payment}, deal? · got {payment} burning a hole in my pocket. {things}? · pay you {payment} for {things}, cool? · let me get {things}, ill hand over {payment} · {payment} if you can spare {things} · short on {things}, but i have {payment} · is {payment} enough for some {things}? · want {payment}? i want {things} · lmk if {payment} works for {things} · fair offer: {payment}, for some {things} · i've got {payment} here if you've got {things} to sell · {things}? i'm good for {payment}
+- **hermit:** {things}. {payment}. yes?
+- **PvP sweat:** {payment} for {things}, take it or leave it
+- **bandit:** {payment} for {things}. best deal you'll get from me · i'm paying this time. {payment} for {things}
+- **helper:** {payment} for {things}? only if you can spare them
+- **homebody:** {payment} for {things}? need them for the house
+- **nomad:** trader's offer: {payment} for {things} · passing through, {payment} for some {things}?
+- **miner:** got {payment} from the mines, want it for {things}?
+- **builder:** need {things} for a build, paying {payment} · my build needs {things}. {payment} work?
+- **speedrunner:** {things} for {payment}. fast · {payment}, {things}, now?
+- **hoarder:** {payment} for {things}. thats my best offer · i'll part with {payment}, but only for {things} · {payment}, not a single one more. for {things}
+- **newbie:** can i buy {things}?? i have {payment}! · is {payment} a good price for {things}? i dont know prices lol
+- **casual:** yo {payment} for {things}? ez trade · ngl ill give {payment} for {things} rn · {payment} for {things}, chill price right?
 
 #### `trade.give_free`
 
 The one asked says yes, giving it free.
 
-- **everyone:** sure, have {goods} · here, {goods} · ofc, take {goods} · np, have {goods} · yeah have {goods}
+- **everyone:** sure, have {goods} · here, {goods} · ofc, take {goods} · np, have {goods} · yeah have {goods} · yeah here's {goods} · take {goods}, no charge · free of charge, {goods} · here, have {goods} on me · {goods}, all yours · dont worry about it, take {goods} · got plenty, here's {goods} · here's {goods}, no worries · {goods} coming your way · sure thing, {goods} · for you, {goods} · catch, {goods} · go ahead, take {goods} · {goods} for free, pay it forward · {goods}? yeah no problem · here's {goods}, we're good · have {goods}, i got extra · i can do {goods}, here · {goods}, take it · no need to pay, here's {goods} · always happy to share. {goods} · you can have {goods} · giving you {goods}, use it well · {goods}, on the house · alright, {goods} it is · it's just {goods} but take it
+- **PvP sweat:** {goods}, ez. i have way more
+- **bandit:** {goods}. dont say i never gave you anything · here's {goods}. remember who gave it to you
+- **speedrunner:** {goods}. gg, gotta go
+- **builder:** leftover from my build, take {goods}
+- **miner:** got loads from the mines, have {goods}
+- **nomad:** travellers help travellers. {goods} · {goods}, for the road
+- **hermit:** {goods}. go · take {goods}...
+- **hoarder:** fine. {goods}. just this once · {goods}. i counted, so dont ask again · ugh ok, {goods}. you owe me
+- **homebody:** grabbed {goods} from home for you · here, {goods}. stay warm out there
+- **helper:** of course! here's {goods}, ask anytime · take {goods}, and lmk if you need more · happy to help, {goods}
+- **newbie:** omg yes!! take {goods} · here!! {goods}, i hope it helps
+- **casual:** ye take {goods} lol · {goods}? ez, here · np fam, {goods} · fr take {goods}, dont even worry
 
 #### `trade.agree`
 
 The one asked says yes to a paid trade.
 
-- **everyone:** deal · bet · ok deal · sure · W trade · ight · sounds good · deal o/
+- **everyone:** deal · bet · ok deal · sure · W trade · ight · sounds good · deal o/ · you got it · done · fair enough · alright, deal · sure thing · works for me · yeah ok · deal, hold on · fine by me · sounds fair · yep · lets do it · agreed · cool, deal · can do · yeah why not · absolutely · fair price, deal · ok sure, one sec · that works · say less · yeah alright · sold · no problem, deal · yup, done deal · sure, gimme a sec · deal, coming right up
+- **homebody:** deal, that'll help around the house
+- **miner:** deal, that's pickaxe money
+- **builder:** deal, i needed that anyway
+- **nomad:** deal, traveller · fair trade, o7
+- **helper:** of course, happy to · yeah sure, glad to help
+- **bandit:** deal. for now · smart choice
+- **PvP sweat:** ez deal · you're overpaying lol, deal
+- **hermit:** fine · ..ok
+- **speedrunner:** k · deal, fast · y
+- **hoarder:** fine. deal. but no more after this · hm. fine, deal · barely worth it, but ok
+- **newbie:** yes!! deal!! · ok!! is this how trading works? deal · omg my first trade, yes
+- **casual:** ye deal lol · ight bet, one sec · sure sure
 
 #### `trade.handover_gift`
 
 The giver hands over a gift.
 
-- **everyone:** here you go · there ya go · np · all yours · enjoy
+- **everyone:** here you go · there ya go · np · all yours · enjoy · here, catch · dropped it for you · take it, it's yours · go on, grab it · there you are · use it well · no charge · on me · dont mention it · here ya go buddy · have fun with it · freebie · its nothing, take it · gift from me · hope it helps · yours now · there, now you've got some · any time · no need to thank me · sorted · consider it a gift · happy to share · you'd do the same for me · dont spend it all at once · free, like i said · done, you're set
+- **builder:** go build something nice
+- **miner:** plenty more where that came from
+- **speedrunner:** sent. bye
+- **PvP sweat:** ez gift
+- **bandit:** remember this · you owe me now
+- **nomad:** pass it on someday · safe travels, friend
+- **hermit:** there · take it. leave
+- **hoarder:** there. dont tell anyone i gave stuff away · ...fine, it's yours · i'll miss that
+- **homebody:** from my house to yours
+- **helper:** there! let me know if you need anything else · always glad to help · take care of yourself out there
+- **newbie:** here!! did it work? · i hope thats right!!
+- **casual:** here lol · np np · yw
 
 #### `trade.handover_paid`
 
 The giver hands over a paid trade.
 
-- **everyone:** pleasure doing business · ty for the trade · W trade · good doing business · ggs on the trade
+- **everyone:** pleasure doing business · ty for the trade · W trade · good doing business · ggs on the trade · nice doing business · fair trade · solid trade · thanks for the business · trade done · all square · we're even · thanks, enjoy · deal's done · good deal for both of us · come back if you need more · nice, ty · always a pleasure · thx, good luck with it · money well spent · trade complete o/ · both happy, nice · pleasure was mine · that was easy · good stuff, ty · smooth trade · even trade, cheers · lmk if you need more · nice, we should do this again · you know where to find me · thanks, see ya around
+- **homebody:** thanks, that helps around the house
+- **builder:** that'll go right into my build
+- **miner:** back to the mines with this
+- **nomad:** good trade, safe travels · trade done, o7
+- **helper:** thanks! come by anytime · hope it helps you out!
+- **bandit:** pleasure. honest work for once · a fair trade. dont get used to it
+- **PvP sweat:** ez trade · ez profit
+- **hermit:** even. bye · ..ty
+- **speedrunner:** done. moving on · ty, gtg
+- **hoarder:** counted it twice, we're good · pleasure. barely · no take backs
+- **newbie:** yay!! thanks for trading!! · did i do that right? ty!!
+- **casual:** ty ty · gg trade lol · W, ty
 
 #### `shop.nothing`
 
 You right-click a town's stall keeper who has nothing on offer (only you see it).
 
-- **everyone:** nothing to sell right now, come back later · sold out rn, try tomorrow · shop's empty atm, come back later · nothing left today sorry · out of stock, check back later
+- **everyone:** nothing to sell right now, come back later · sold out rn, try tomorrow · shop's empty atm, come back later · nothing left today sorry · out of stock, check back later · shelves are bare, sorry · nothing on the counter today · all gone, the last guy cleaned me out · got nothing for you rn · im restocking, give me a day · empty stall, check back tmrw · sold my last stack this morning · nothing to trade yet, sorry · no stock, still out gathering · come back after i restock · cupboard's bare lol · nothing here but me · sorry, nothing left to sell · fresh out. try again later · zero stock, my bad · you just missed it, all sold · nothing for sale atm · chests are empty, give it a day or two · nope, nothing today · nothing to offer you rn sorry · still waiting on stock · sold everything before noon · maybe tomorrow, nothing today · ask again in a bit, im out · gotta restock first · nothing worth selling yet · honestly nothing, sorry
+- **PvP sweat:** sold out. skill issue, shoulda come earlier
+- **bandit:** nothing for sale. try your luck elsewhere
+- **nomad:** just got back, nothing unpacked yet
+- **builder:** stall's empty, still fixing up the counter
+- **speedrunner:** sold out. next · empty, dont wait around
+- **miner:** no ores left, gotta go mining again · sold all my iron, back to the caves soon
+- **helper:** sorry! nothing yet, but check back tomorrow · out of everything, try the next stall over · nothing right now, ill have more soon i promise
+- **hermit:** nothing. go · empty... · no stock
+- **hoarder:** nothing for sale. what's left is mine · the rest isn't for sale · got stuff, but none of it's for you
+- **homebody:** harvest isn't in yet, come back soon · still waiting on the wheat to grow, sorry · nothing ready yet, the farm needs a day
+- **newbie:** oh no i dont have anything yet!! sorry · um i sold everything?? come back pls · my chest is empty :( sorry
+- **casual:** ngl i got nothing rn · lol im sold out fr · nada, try later
 
 ## 4. Whims (things it does for fun)
 
@@ -315,44 +560,82 @@ Said as the whim starts (half the time), as the whole of a chat whim, or at one 
 
 | Whim | When | Lines |
 | --- | --- | --- |
-| ring_the_bell | ringing the village bell (any) | ding ding · DING · bell go brr · ding dong · dinner time? · ding ding ding |
-| slice_of_cake | having a slice of cake (any) | cake :) · cake time · free cake · mm cake · one slice wont hurt · cake W |
-| snow_golem | building a snow golem (any) | made a snowman · built a snow golem · meet frosty · he lives · snow buddy acquired · look at my snowman |
-| brag_about_gear | showing off its gear (any) | check out my armor · full iron btw · look at my sword · new pickaxe :) · prot 4 coming soon · just got eff 5 · look at this drip · new armor who dis · finally full iron · sharp 5 lets go |
-| complain_about_mobs | complaining about the mobs (any) | so many zombies last night · creepers everywhere · a skeleton nearly got me · phantoms are the worst · who keeps letting creepers near my base · blew up my wall again · endermen took my grass block · drowned with tridents are op · spiders on my roof again · sleep pls the phantoms |
-| ask_for_help | asking around for help (any) | anyone have iron? · need food lol · how do i make a piston · where are the diamonds · anyone got spare string · tpa? jk · drop coords to the nearest village · how do you get to the end · need obby for a portal · anyone got a spare bucket · how deep are dias again · can someone help me build a farm |
-| smell_a_flower | stopping to smell a flower (day) | mm, nice · smells nice · flowers :) · pretty · cute flower |
-| pat_a_dog | patting a dog (any) | good dog · who's a good boy · good boy · doggo!! · pets the dog · best boy |
-| stare_at_its_reflection | staring at its reflection in the water (day) | looking good · huh. · is that me · ngl i look good · need a haircut · the drip |
-| knock_on_a_door | knocking on a door to see who's in (day) | knock knock · anyone home? · hellooo? · anyone in? · room service · open up |
-| hum_to_itself | humming to itself (any) | hm hm hmm · la la la · dum de dum · doo doo doo · mm mm mmm · la di da · hmm hm hmm hm |
-| sunset_with_a_friend | watching the sunset with a friend (sunset) | look at that · nice sunset, huh · pretty sky tonight · golden hour o/ · we should do this more · nice view with you here |
-| admire_a_diamond | turning a diamond over in its hands (any) | shiny · beautiful · dias :) · look at it sparkle · one day ill have a full set · precious |
-| nod_to_the_golem | nodding to the iron golem (any) | evening, big guy · keep up the good work · o7 golem · stay strong big man · thanks for the protection · hey iron man |
-| view_from_the_top | climbing up for the view (day) | nice view · woah · you can see so far from here · the view up here tho · worth the climb · is that a village over there · peak · ngl this view is crazy |
-| good_morning | saying good morning (sunrise) | gm · morning · good morning · mornin · gm all · gm o/ · morning everyone · rise and grind · gm chat · another day another dollar |
-| good_night | saying good night (sunset) | gn · night · going to bed · night all · gn all · gn o/ · sleep pls · bed · everyone sleep pls · skip the night? · zzz · nn |
-| happy_dance | doing a little dance (any) | lets gooo · yesss · LETS GOOO · W · hype · we up · woo! |
-| snowball_fight | starting a snowball fight (any) | snowball fight! · get rekt · incoming · SNOWBALL FIGHT · heads up · catch · you started this |
-| cook_for_a_friend | bringing a friend some of its cooking (any) | made too much, here · cooked extra for you · try this, made it myself · fresh from the pot · here, it's still warm · brought you some of my cooking |
-| share_a_meal | sharing a meal with a friend (any) | lunch break? · eat with me · food's better with company · sit down, have a bite · dinner time · mm · so good · needed that · hits the spot · ok i'm a good cook |
-| brag_about_the_stew | showing off its cooking (any) | just cooked the best stew of my life · my cooking is getting really good · who wants to try my stew · made a whole pot of soup, no big deal · i should open a restaurant · chef mode activated |
-| mind_the_pot | minding the cooking pot (any) | smells good · almost ready · needs more salt · mmm · don't burn, don't burn |
-| taste_test | taste-testing its ingredients (any) | needs something · hm. a bit plain · not bad · tastes like more |
+| ring_the_bell | ringing the village bell (any) | ding ding · DING · bell go brr · ding dong · dinner time? · ding ding ding · dong dong dong · *rings bell* · couldnt resist the bell · had to ring it · ding! anyone home? · village wake up call · bonk the bell · clang clang · every bell must be rung · ring ring · its free to ring it right · the bell asked for it · one more ding · DONG · hear ye hear ye · town meeting lol · watch the villagers run inside · ding, sorry, had to · i love this bell · bell spam · ding. ok im done · ding (sorry) · best block in the village tbh · villagers all ran indoors lol · nothing to see here, just ringing · sorry villagers, false alarm · BONG · ding, everybody up |
+| slice_of_cake | having a slice of cake (any) | cake :) · cake time · free cake · mm cake · one slice wont hurt · cake W · one slice. ok two · lets say its my birthday · cake is the best food, fight me · nom · who left a cake out · cake for breakfast · had a slice, left the rest for you guys · this cake slaps · only 2 hunger a slice but worth it · cant say no to cake · slice number 3 dont judge · cake break · treat yourself · yum · sugar rush incoming · mmm frosting · someone should bake another one · i deserve this · the cake was just sitting there · just a little bite · cake > bread · best snack in the game · who baked this, its good · shh dont tell anyone · cake o clock · life is good, theres cake · couldnt walk past it · dessert first · sweet tooth acting up · save me a piece next time |
+| snow_golem | building a snow golem (any) | made a snowman · built a snow golem · meet frosty · he lives · snow buddy acquired · look at my snowman · pumpkin on top and boom · hes alive!! · snowy boi · hes gonna guard the base · built a little guard · my snow guy throws snowballs at mobs lol · dont take him to the desert, he melts · named him chilly · 2 snow blocks and a pumpkin, easy · snowman squad · hes cute ngl · he leaves snow wherever he walks · my new bodyguard · he wont do much damage but he tries · snowballs actually hurt blazes btw · a snowman that fights, what more do you want · lil guy · say hi to my snowman · keep him out of the rain, poor guy · built a friend · snow golem army time · he already threw a snowball at a zombie · look at him go · no arms but he still throws · naming him snowbert · carved a pumpkin just for him · hope he survives the night · two blocks of snow, one pumpkin, one buddy · shear his pumpkin off and he looks so sad · free snow trail, nice |
+| brag_about_gear | showing off its gear (any) | check out my armor · full iron btw · look at my sword · new pickaxe :) · prot 4 coming soon · just got eff 5 · look at this drip · new armor who dis · finally full iron · sharp 5 lets go · prot 4 diamond chestplate, finally · got a fortune 3 pick today · unbreaking 3 on everything now · mending on my sword :) · new shield, check the pattern · netherite pick, never going back to diamond · power 5 bow lets gooo · got a trident off a drowned, so hyped · my sword glows now · enchanted everything, im shiny · feather falling 4 boots, fall damage who · full diamond and its not even day 5 · got depth strider on my boots · just put respiration on my helmet · look, silk touch pick · iron sword but its sharp 3, that counts · my armor has trims now · coast trim on my chestplate, fancy · check my elytra · got an elytra, im untouchable · fire aspect sword, mobs cook as they die · looting 3 sword, drops go brr · new crossbow with quick charge · multishot crossbow is so fun · netherite helmet, one down three to go · eff 5 unbreaking 3 pick, flawless · perfect roll on my pick ngl · dyed my leather boots blue, drip · chainmail. dont ask where from · made a mace, heavy core and all · shield with my own banner on it · totem in my offhand, try me · 3 totems in the chest, im set · look at all these enchants · my armor is all purple and glowy now :D · protection on every piece, im a tank · thorns 3 chestplate, hit me i dare you · got a frost walker book, walking on water now · swift sneak leggings from an ancient city · anyone else got a sharp 5 netherite sword? no? just me · iron to diamond today, big day · upgraded my whole kit · my gear is worth more than my house · swapped my stone pick for iron, im rich · gold armor for the nether, looking like a trophy · renamed my sword at the anvil, its called pointy · mending unbreaking elytra, endgame · shiny new helmet · soul speed boots from a bastion, rare flex · my bow has infinity, never buying arrows again |
+| complain_about_mobs | complaining about the mobs (any) | so many zombies last night · creepers everywhere · a skeleton nearly got me · phantoms are the worst · who keeps letting creepers near my base · blew up my wall again · endermen took my grass block · drowned with tridents are op · spiders on my roof again · sleep pls the phantoms · a creeper just took out my door · skeletons sniping me from a mile away · why do spiders climb everything · zombies broke my door down. on hard. great · baby zombies should not be that fast · witches throwing potions at me again · a slime chased me through the whole swamp · an enderman stole a block right out of my wall · pillagers shot my horse · creeper hissed behind me and my heart stopped · drowned all over the river · silverfish in the stronghold, never again · cave spiders and their poison ugh · stepped on a shrieker, the warden came, i left · ghasts blew up my portal again · piglins freaked out cause i opened a chest · hoglins hit way too hard · a creeper blew a hole in my farm · husks keep making me hungry · strays slowing me down with their arrows · zombies broke in and got my villagers · spider jockey, at night, in a forest. no thanks · skeletons have aimbot i swear · creeper sat on my roof all night · why do creepers make zero sound walking · forgot one torch and now theres a zombie in my basement · an endermite popped out of my pearl · vexes just fly through walls, so unfair · guardians lasered me at the monument · elder guardian gave me mining fatigue, cant even mine · blazes are just flying fire at this point · wither skeleton got me, my hearts went black · magma cubes bouncing at me in the basalt deltas · a shulker sent me floating · a breeze keeps knocking me off the ledge · bogged in the swamp with poison arrows, cool cool · hit one zombified piglin by accident and the whole pack came · slimes split into more slimes, stop · rabbits ate my carrots · a fox walked off with my emerald · skeleton spawner in a dungeon nearly ended me · a zombie villager in my mine scared me half to death · too many mobs, too little sword · a ravager trampled my whole wheat field · creepers spawn next to me on purpose, i swear · three creepers in one cave, why · the witch healed itself while i was hitting it · piglin brutes dont even care about gold, rude · mobs never take a night off huh · every night its zombies. every single night |
+| ask_for_help | asking around for help (any) | anyone have iron? · need food lol · how do i make a piston · where are the diamonds · anyone got spare string · tpa? jk · drop coords to the nearest village · how do you get to the end · need obby for a portal · anyone got a spare bucket · how deep are dias again · can someone help me build a farm · anyone got a spare bed? · need wool, anyone near sheep · can someone show me how to make a nether portal · anyone selling food? im starving · does anyone have a spare pickaxe · where do i find slimes · how do i get villagers to breed · anyone have a looting sword i can borrow · need help with a creeper problem · can someone come kill the spiders at my place · how do i find a stronghold · anyone got blaze rods · does anyone know where an ocean monument is · need sand, lots of sand · anyone have spare torches? its so dark · whats the recipe for a hopper · help, stuck in a hole · im lost, anyone know where spawn is · died in a cave, someone help me get my stuff back pls · anyone want to come mining with me · anyone have an extra shield · i need leather for books · is there a librarian around here? · how do you make an anvil · anyone got lapis for enchanting · need someone to help me fight a raid · how do you cure a zombie villager again · where do you get gunpowder besides creepers · anyone got seeds? my farm is empty · how do i stop my crops getting trampled · anyone have a boat i can use · my house is ugly, can a builder help · can someone light up my cave, im scared · does anyone have an ender pearl · whats the best y level for iron · need coal, anyone? · anyone know how to tame a horse · how do i tame a wolf · anyone got bones for my dog · someone help me move my chests pls · need a hand with a big build · can someone trade me iron for wheat · anyone up for a nether trip? dont wanna go alone · help my house is on fire · lava ate my stuff, anyone got spare tools · anyone know where a desert temple is · need someone with silk touch · how do i make a brewing stand · anyone got a golden apple, im low · whats the trick to finding ancient debris |
+| smell_a_flower | stopping to smell a flower (day) | mm, nice · smells nice · flowers :) · pretty · cute flower · smells like spring · ahh · *sniff* · mmm sweet · stop and smell the flowers they said · this one smells the best · nature's air freshener · smells like a meadow · hm, smells like honey · a bee was here first lol · smells better than the mine · if only i could carry the smell home · might pick this one for the house · nope, leaving it. too pretty · flower break · love a good poppy · dandelions dont even smell lol · bees know what's up · smells like a flower forest · my nose says yes · lovely · smells like home · fresh · ok that's nice · best part of the day ngl · little guy · sniff sniff · smells way better than zombies · this is the good stuff · imagine making dye out of you. couldnt · flower power · the world needs more of these · smells sunny somehow · allium? is that you · good flower · i see why the bees like it · nice break from the grind · 10/10 would smell again · so peaceful out here · smells like a field after rain · careful not to step on it · you're doing great, flower |
+| pat_a_dog | patting a dog (any) | good dog · who's a good boy · good boy · doggo!! · pets the dog · best boy · hi puppy · aww · who's a good pup · you're the best, you know that? · hey buddy · good doggy · such a good girl · pat pat · ear scritches · aww look at the tail go · you want a bone? i dont have one sorry · head pats for the good boy · hi friend · dog!! · cutest wolf ever · awww hi · good pupper · the floof · i would die for this dog · keep the skeletons away for me ok · nice collar · who's guarding the house today? · wolves are the best mob dont @ me · puppy!! · good job sitting · fluffy · hey little guy · such a good doggo · aw he likes it · pets pets pets · the best boy in the whole overworld · hey pal · awww puppy eyes · you get all the pats · doggo armor would look great on you · my best friend · who's the goodest · hi buddy, hi · too cute · aww he tilted his head · you're a very good wolf · *pets* · heyyy pupper · good dog, good dog · do you have a name? you should · dont chase sheep ok · tail wag detected · absolute unit of a good boy |
+| stare_at_its_reflection | staring at its reflection in the water (day) | looking good · huh. · is that me · ngl i look good · need a haircut · the drip · hey handsome · lookin fresh · the hair is a mess · is my skin always this blocky · who is this cool guy · oh hi me · hm. tired eyes · need some armor ngl · that's a face · fit check · not bad not bad · squid wont stop staring · the water's too wavy for this · ok ok i see you · rough day, huh · dirt on my face again · i look like i've been mining for days · should probably wash up · eh, could be worse · dang i look cool · the face of a legend · hi reflection · do i always look this square · looking a bit pale · new skin who dis · that guy looks hungry · lol what is that face · smile · looking sharp today · hm. needs a helmet · still got it · not my best angle · fish in my face lol · ok vanity break over · you look tired buddy · drip check passed · i'd trade with me · so this is what the zombies see · pixel perfect · wow ok · the water doesnt lie |
+| knock_on_a_door | knocking on a door to see who's in (day) | knock knock · anyone home? · hellooo? · anyone in? · room service · open up · excuse me? · anybody? · knock knock, who's home · yo, you in there? · just saying hi · anyone awake? · hey neighbor · it's me, open up · visitor! · you home? · delivery! jk · can i come in? · helloooo in there · hey, it's just me · door's shut. anyone? · not a zombie i swear · hi? · ding dong · got a sec? · is this a bad time? · anyone want company? · just checking in · yoo-hoo · nobody? ok · i hear a villager in there · hmm hello? · friendly visit · hrm, anyone around · open the door pls · you got any bread in there? · paying a visit · knock knock knock · hey, you alive in there? · i come in peace · anyone up for a chat? · *knocks* · are you there? · neighbor check · hi, it's your friendly neighbor · hm, quiet in there · dont make me break the door lol · hmmm nobody's answering · whose house is this anyway · home sweet... someone's home? · rent's due lol |
+| hum_to_itself | humming to itself (any) | hm hm hmm · la la la · dum de dum · doo doo doo · mm mm mmm · la di da · hmm hm hmm hm · hmm hmm · da da da · doo be doo · la la · dum dum dum · do do do doo · do re mi · ba da ba ba · pa pa pa paa · na na na · ta da da dum · dee dee dum · bum ba dum · tra la la · doo dee doo · hmmhmm · la da dee · dum di dum di dum · ooh ooh ooh · boop be doop · da dum · bop bop · la la la la la · dum dee dee dum · *hums* · *whistles* · doo doo da doo · dee da |
+| sunset_with_a_friend | watching the sunset with a friend (sunset) | look at that · nice sunset, huh · pretty sky tonight · golden hour o/ · we should do this more · nice view with you here · wow · look at those colors · sky's on fire · best part of the day · never gets old · sun's going down · pretty, right? · glad you're here for this · orange and pink, nice · check out the sky · watch the sun go · this is my favorite time · day's almost done · beautiful evening · soak it in · mobs soon, but first this · five more minutes then bed · worth stopping for · the clouds look so cool rn · sun's melting into the hills · good day today · glad we made it to another sunset · sit with me a sec · ok this is nice · another day survived · almost night, stay close · look how big the sun is · the sky's purple now · makes the grind worth it · dont talk, just watch · wish i could screenshot this · just us and the sunset · chill moment · gg today · the sun says gn · golden · everything's orange · what a view · this is why i live here · peaceful, huh · lets watch it go down · wanna stay and watch? · moon's coming up soon · bye sun o/ · ahh. sunset · the mountains look so good from here |
+| admire_a_diamond | turning a diamond over in its hands (any) | shiny · beautiful · dias :) · look at it sparkle · one day ill have a full set · precious · so shiny · my precious · look at you · gorgeous · the blue is so pretty · worth every block i mined · y -59 was worth it · a whole diamond · sparkly · not trading this one · beauty · best ore in the game · one diamond closer · shiny shiny · wow · you're coming home with me · the dream · this is what i mine for · pick, sword, or save it? hmm · enchanting table material right here · never getting old · just look at it · the glimmer · a little blue miracle · pretty rock · glittery · i'm keeping you safe · dias dias dias · the most beautiful thing ive ever held · feels heavy in my hand · nobody's stealing this · one day a jukebox. one day · hello gorgeous · rich vibes · in awe of this rock · not going in a hoe, dont worry · a diamond. a real one · shine bright · i love you diamond · into the chest you go. after i stare more · flawless · ooooh · best find all week · you and me, diamond |
+| nod_to_the_golem | nodding to the iron golem (any) | evening, big guy · keep up the good work · o7 golem · stay strong big man · thanks for the protection · hey iron man · hey big guy · o7 · thanks for keeping us safe · respect · you're doing great · hi golem · sup tin man · good work today · protect the villagers ok · salute · big man o7 · dont hit me pls · we're cool right? · stay iron · nice flower you got · keep smashing zombies · the real hero of the village · no rust on you, nice · how's patrol? · thank you for your service · hey buddy · glad you're on our side · big guy, big heart · carry on · still standing, huh · need a poppy? jk · looking strong · the village is lucky to have you · nod · metal friend · keep watch tonight · evening patrol going ok? · i'm one of the good ones, promise · hey iron guy · you ever get a day off? · you smell like iron lol · good golem · stand tall · ill bring you iron if you crack · keep those pillagers away · much respect, big guy · the gentle giant · quiet as always · watching out for us o7 · thanks for the save last night |
+| view_from_the_top | climbing up for the view (day) | nice view · woah · you can see so far from here · the view up here tho · worth the climb · is that a village over there · peak · ngl this view is crazy · look at all that · i can see my house from here · the sky is so pretty rn · clouds right there · hi from up here · dont look down · top of the world · made it to the top · legs are tired but it was worth it · spotted a mountain over there, going next · i think i see an ocean · thats a big forest · is that smoke? oh its a campfire · cool biome over there · the trees look tiny from here · this is my thinking spot · gonna sit here a sec · screenshot moment · whoa the river goes on forever · i see snow over that way · found a good spot for a base, right there · view 10/10 · dont mind me, just looking · how high am i even · the world is huge · breathtaking ngl · that cliff over there looks sick · king of the hill · everything looks so calm from up here · peaceful · this is why i play · i spy a pillager outpost. nope · desert, jungle and ocean all at once · clear day, can see for days · the mountains go on and on · wish i had a map right now · marking this spot · would put a beacon up here · i could stay up here all day · oh wow theres a lake · wish i had a water bucket to jump down lol · one more step and im in the clouds · sunlight hits different up here · so much world, so little time |
+| good_morning | saying good morning (sunrise) | gm · morning · good morning · mornin · gm all · gm o/ · morning everyone · rise and grind · gm chat · another day another dollar · morning o7 · gm gm · good mornin all · rise and shine · sun's up · wakey wakey · made it through the night · gm, zombies are burning · another day another mine · top of the morning · good morning world · morning, time to farm · morning chat · gm everyone, have a good one · gm, lets get to work · up and at em · heya, morning · gm, slept like a log · gm, nobody blew up my house · morning, still alive · hiya, good morning · gm frens · gm, what are we doing today · good morning sunshine · new day new loot · the sun is out, so am i · mornin, breakfast first · gm. bread for breakfast again · daytime, finally · woke up, ready to grind · gm, any plans? · yawn. morning · *yawns* gm · gm sleepyheads · morning! beautiful day · that sunrise tho · gm, skeletons are on fire lol · the night is over, we did it · gm to everyone except creepers · early bird gets the iron · morning, who slept in · gm, sky looks nice today · good morning, safe to go out now · morning y'all |
+| good_night | saying good night (sunset) | gn · night · going to bed · night all · gn all · gn o/ · sleep pls · bed · everyone sleep pls · skip the night? · zzz · nn · night night · nighty night · gn everyone · sleep tight · im off to bed · bedtime · time to sleep · gn, dont let the phantoms bite · night, see you tomorrow · sleeping, dont wake me · hop in bed pls · someone sleep, its getting dark · getting dark, im heading in · bed time, mobs are coming · gn o7 · goodnight chat · night y'all · gn, stay safe out there · going inside before the zombies come · sun's going down, home time · gn gn · sweet dreams · im tired, gn · calling it a day, gn · calling it a night · ok im done for today, night · lights out · sleep so we skip the dark pls · bed is calling · gn, lock your doors · zzz time · going to sleep, wake me at sunrise · gn everyone, good day today · heading home, gn · the moon is up, im out · full moon tonight, sleep fast · night, light your torches · gn frens · ight imma head to bed · see ya in the morning · dont stay out late, creepers do · night, close the door behind you · the zombies are coming out, gn · my bed misses me, gn |
+| happy_dance | doing a little dance (any) | lets gooo · yesss · LETS GOOO · W · hype · we up · woo! · yippee · AYYY · lets go lets go · happy happy · yay · im so hyped · best day ever · dance break · cant stop wont stop · good vibes only · feeling good · yeehaw · whoop whoop · woohoo! · WE DID IT · im so happy rn · party time · happy dance · look at me go · crouch dance activated · this calls for a dance · big W today · yesss sir · life is good · hoorayyy · cant contain it · wiggle wiggle · ez dub · mood: amazing · dance with me |
+| snowball_fight | starting a snowball fight (any) | snowball fight! · get rekt · incoming · SNOWBALL FIGHT · heads up · catch · you started this · take that! · haha gotcha · eat snow · youre going down · bombs away · snow war! · duck! · think fast · pew pew · bullseye · direct hit · got you lol · dont make me throw another · snowball to the face · winter war · im not done yet · got a full stack, 16 of these lol · ammo full · ready or not · dodge this · nothing personal, its just snow · revenge! · truce? nah · surprise! · the snowman made me do it · payback · it doesnt even hurt, just knockback lol · cant hurt you but it sure is funny · one more! · fire! · en garde · i call this one the frosty special · come on, throw back · first to fall in the snow loses |
+| show_off_a_diamond | showing a friend its diamond (any) | look what i found · dias!! · check this out · look look look · shiny right · look at this · guess what i got · check it out!! · diamond!! · see this? · found a diamond · look how shiny · lookie · bet you're jealous · found it deep down · behold · pretty cool huh · we're rich lol · look look · come look · got one! · yo yo yo check this · real diamond · isnt it pretty · y -58 baby · first one this week · mined it myself · ok be honest, cool right · this one's mine but you can look · dont tell anyone where i found it · check the shine on this · almost got enough for a pick · look what the caves gave me · found it next to lava, almost died · say it. say im cool · brag time · you seeing this? · a diamond. for real · proud of this one · hey look · show and tell · eyes on this · had to show someone · fresh from the mine · found more, there's a vein · wanna hold it? no · what do you think · ok i'm a little proud · rate it 1 to 10 · nice right?? |
+| high_five | giving a friend a high five (any) | up top! · high five · ayy · o/ · hands up! · yeah! · nice · booyah · woo! · teamwork · gimme five · slap · we're unstoppable · yes! · we did it · lets go · best team · heck yeah · nailed it · boom · too slow lol · oh yeah · the dream team · partners! · five! · woohoo · yay · smack · gg · ayy we're good at this · on three, up high · nice one · duo goals · missed a little lol · big W · up high, down low · o/ \o · hype |
+| fire_with_a_friend | sitting by the fire with a friend (night) | nice night · this is nice · campfire with the homie · we should do this more · cozy · warm · love a good fire · glad you're here · quiet night · this is the life · nice and warm · fire's crackling · pull up a log · good company · the stars are out · wanna roast something? · safe by the fire · long day huh · mobs out there, us in here · peaceful · smells like smoke and wood · good to rest · we earned this · dont fall in lol · what a day · i like these nights · the crackle is so nice · tell me a story · zombies cant ruin this · warm hands, warm heart · glad we found each other · just sitting is nice sometimes · chill · the fire keeps the dark away · sleep soon? · stay a while · ahh · fire's going good · best seat in the world · just us and the fire · nice to slow down · i'm not tired yet · this is my favorite part of the night · listen to that fire · you hear the crickets? · a creeper hissed somewhere lol, not here · who needs a bed · night's nicer with you · keep the fire going |
+| cook_for_a_friend | bringing a friend some of its cooking (any) | made too much, here · cooked extra for you · try this, made it myself · fresh from the pot · here, it's still warm · brought you some of my cooking · here, eat up · made this for you · you look hungry, take this · extra portion, all yours · saved you a bowl · here try this · dinner's on me · hot meal for you · eat something, you look tired · cooked it with love lol · careful its hot · made a big batch, have some · here, fresh off the stove · you hungry? i made food · take it, i insist · dont let it go to waste · home cooking, for you · i made your favorite. probably · here, a little something · eat before you go mining · fuel for the road · figured you could use a meal · dont thank me, just eat · tell me what you think · here, its better than raw beef lol · cooked too much again, help me out · a gift from my kitchen · grab a bowl · its got carrots in it, eat · pot was full, so here · for you, no charge · hot food beats bread any day · kept some warm for you · fresh batch, take one · from my pot to your hands · gotta keep you fed · here you go, bon appetit · saved the best bit for you |
+| share_a_meal | sharing a meal with a friend (any) | lunch break? · eat with me · food's better with company · sit down, have a bite · dinner time · hungry? · food time · lets eat · wanna eat together? · grab a plate · join me? · come eat · snack break? · made extra, want some? · dinner's on me · you look hungry · time to eat · break time, food? · sit, eat · let's grab a bite · eat with me, i insist · food! · hey, wanna share? · brought food · dont eat alone, come here · eat up · stew time · pull up a chair · hungry? i got plenty · food tastes better together · my treat · chow time · you hungry too? · lets take five and eat · lunch? · supper? · breakfast together? · i cooked, you eat · lets fill up the hunger bar · come on, sit · share a bite? · dont let your food bar drop, eat · got enough for two · meal time · eat something, you've been working all day · lets have a proper meal · food break, then back to work · enough work, food · hey, eat · made this for us · tummy says food · mm · so good · needed that · hits the spot · ok i'm a good cook · yum · delicious · mmm, savory · that was great · tasty · so full · ok that slaps · perfect · i was starving · nom · best meal all week · good stuff · full hunger bar · chef's kiss · wow · that's the stuff · my compliments to the chef. me · so tasty · ahh much better · could eat another · fills you right up · saturation maxed · tastes like home · warm food is the best · that's good eating · seconds? · my belly is happy · you like it? · really good · ok i'm stuffed · nice · back to work now · yummy · amazing · worth the wait · thanks for eating with me · nothing beats a hot meal · i should cook more often · mm so good · that hit different · hunger bar full, heart full |
+| brag_about_the_stew | showing off its cooking (any) | just cooked the best stew of my life · my cooking is getting really good · who wants to try my stew · made a whole pot of soup, no big deal · i should open a restaurant · chef mode activated · the stew is perfect today · i am the best cook here, no question · smell that? thats my stew · five stars, my own stew · my soup slaps · stew game strong · this pot is a masterpiece · just made dinner and its incredible · if anyone wants a bowl, i got plenty · head chef reporting in · cooked a feast · best meal in the whole world · cooking is my passion now · forget mining, im a chef · this stew fills you right up · the secret ingredient is more carrots · secret recipe, not telling · my pot never fails · nobody cooks like me · i make a mean stew · ok my cooking is kinda elite · anyone else a master chef? no? just me · stew of the day: amazing · gourmet over here · soup's on · the smell is everywhere and im proud · dinner is served · rate my stew. 10/10, i know · just perfected my stew recipe · the stove has been busy · baked a pie too, im unstoppable · cooking skill maxed · who needs golden carrots when you have my stew · my stew beats steak · best cook in town, ask anyone · took me all day but this soup is worth it · chef's kiss · made dinner for the whole town basically · the pot is full, come get some · cooked with fresh veggies from my own farm · the stew turned out so good · i think im better at cooking than fighting · tasty tasty · my kitchen smells amazing rn |
+| mind_the_pot | minding the cooking pot (any) | smells good · almost ready · needs more salt · mmm · don't burn, don't burn · smells amazing · not yet · few more minutes · stir stir · bubbling nicely · patience · dont touch it yet · looking good in there · ooh it's thickening · needs another onion · hm, more cabbage maybe · careful, it's hot · the stove's doing its thing · almost almost · wait for it · my stomach is growling · is it done? not yet · low and slow · the smell!! · this is gonna be so good · keep cooking little pot · watched pot never boils lol · steam's coming up · come on, cook faster · mmm stew · should've put a bowl ready · no peeking. ok one peek · the whole kitchen smells great · simmering · i'm a chef now · a pinch of this · go on, cook · hope i didnt forget the tomato · need more bowls for this · smells like dinner · ok it's getting there · not burning, good · yep, cooking · dont boil over · this pot never lets me down · beef stew incoming · who's hungry? soon · the heat's just right · giving it a look · hmm hmm, cooking |
+| taste_test | taste-testing its ingredients (any) | needs something · hm. a bit plain · not bad · tastes like more · hmm · could use salt but theres no salt lol · interesting · ok thats good · needs more carrots · too much onion · tastes fine · mmm · perfect · just right · needs to cook longer · raw. oops · huh, not bad at all · could be better · a little bland · oh thats tasty · needs a pinch of something · wow ok · this one's ready · better than yesterday · tastes like home · hm. more potato · one more taste · yep, thats the good stuff · just checking · quality control · chef approved · 7/10 · tastes like the garden · fresh. good |
+| tip_about_the_nether | giving a tip about the Nether (any) | pro tip: never sleep in the nether · bring fire res to the nether trust me · wear gold in the nether or the piglins jump you · nether portals go 8 blocks for 1 btw · dont dig straight down in the nether. lava everywhere · build your portal on blocks you placed, ghasts break the rest · bring flint and steel, ghasts can put your portal out · you can punch a ghast fireball right back at it · hit a ghast fireball back and it one shots the ghast · piglins trade stuff for gold ingots, just toss them one · dont mine gold near piglins, they get mad · opening a chest in a bastion makes the piglins angry · zombified piglins are chill till you hit one. then the whole pack comes · warped forest is the safest biome down there, mostly endermen · soul sand valleys are full of skeletons and ghasts, careful · ancient debris is best around y 15 · beds blow up the netherrack around debris but not the debris · netherite doesnt burn in lava, it just floats · saddle a strider and steer it with a warped fungus on a stick to cross lava · fire res potion and you can swim in lava · magma cream brews fire res · blazes only spawn in nether fortresses · snowballs hurt blazes, kinda funny · you need 3 wither skeleton skulls for the wither · looting helps a lot with wither skulls · fortresses have nether wart, grab some for brewing · bastions have the best loot but the brutes hit hard · piglin brutes ignore your gold armor · hoglins are scared of warped fungus · hoglins drop porkchops, free food in the crimson forest · nether quartz ore gives xp when you mine it · lava flows way faster and further in the nether · water just evaporates in the nether, dont bother · compasses spin in the nether, use a lodestone · clocks dont work down there either · nether gold ore drops nuggets, easy gold · one gold armor piece is enough to keep piglins calm · ghasts can see you from really far, stay under cover · soul sand slows you down, dont fight on it · soul speed boots make soul sand fast · ruined portals and bastions have crying obsidian for a respawn anchor · charge a respawn anchor with glowstone to set your spawn in the nether · never use a respawn anchor in the overworld, it blows up · put torches by your portal, all netherrack looks the same · write down your portal coords before you wander off · nether coords times 8 = overworld coords · sneak on magma blocks and they wont burn you · soul fire burns harder than normal fire · a shield blocks ghast fireballs · piglins pick up gold off the ground, dont drop your gold stuff · you need blaze rods for brewing and eyes of ender, so hit a fortress · gilded blackstone sometimes drops gold nuggets · bring a shield and a bow, ghasts and blazes stay out of reach · dig tunnels in the nether 2 high and watch the walls for lava · glowstone hangs from the nether ceiling, grab some · mine netherrack fast with any pick, its super soft |
+| tip_about_enchanting | giving a tip about enchanting (any) | 15 bookshelves for max level enchants · mending is the best enchant fr · put unbreaking on everything · dont waste levels on the 1 level enchant · leave a block of air between the table and the shelves · lapis goes in the table, keep some on you · you need level 30 for the best enchants · the top slot only takes 3 levels, not 30 · the best slot costs 3 lapis · enchanting table is a book, 2 diamonds and 4 obsidian · bookshelves are 3 books and 6 planks · books are 3 paper and a leather · use an anvil to put books on your gear · anvils say too expensive if you keep working the same item · plan your anvil order so it doesnt get too expensive · mending and infinity dont go together · sharpness and smite cant go on the same sword · silk touch and fortune cant share a pick · only one kind of protection per armor piece · you wont get mending from the table, trade or fish for it · fish with luck of the sea for enchanted books · librarians sell enchanted books for emeralds · a grindstone takes enchants off and gives some xp back · grindstones cant take off curses · curse of binding = you cant take it off till you die · curse of vanishing deletes the item when you die · a mob spawner makes a decent xp farm · smelting stuff gives xp when you take it out · mining lapis, redstone, quartz and coal gives xp · dont save up past 30, higher levels cost way more xp · mending fixes your gear with xp orbs · mending works on whatever you hold or wear · the table only shows one enchant, you might get more · dont like the options? enchant something cheap to reroll · unbreaking 3 makes tools last way longer · looting gets you more mob drops · fortune pick = more diamonds per ore · silk touch picks blocks up whole, great for glass · aqua affinity lets you mine at normal speed underwater · respiration lets you stay underwater longer · depth strider makes you way faster in water · frost walker freezes water under your feet · feather falling on boots saves your life · thorns hurts what hits you but eats durability · power is basically sharpness for your bow · channeling plus a thunderstorm = lightning trident · riptide flings you, but only in rain or water · loyalty makes your trident come back · lapis shows up a lot around y 0 · swift sneak only comes from ancient cities · soul speed only comes from piglins and bastions · two sharp 4 books in an anvil make sharp 5 · the mace gets density and breach, plus wind burst from vaults · enchant books at the table and save them for later · breeding animals gives a bit of xp too · the enchants change every time you enchant something |
+| tip_about_brewing | giving a tip about brewing (any) | blaze powder fuels the brewing stand · nether wart first, then the rest · redstone makes potions last longer · glowstone makes them stronger but shorter · gunpowder for splash potions · fermented spider eye flips a potion, kinda · water bottle plus nether wart = awkward potion · almost every potion starts with an awkward potion · sugar brews speed · golden carrot brews night vision · glistering melon brews healing · ghast tear brews regen · pufferfish brews water breathing · rabbit foot brews leaping · blaze powder in the top slot brews strength · a spider eye brews poison · phantom membrane brews slow falling · night vision plus fermented spider eye = invisibility · healing plus fermented spider eye = harming · speed plus fermented spider eye = slowness · fermented spider eye on plain water makes weakness · dragon's breath turns splash potions lingering · you can brew 3 potions at once · one blaze powder fuels 20 brews · fill bottles from water or a cauldron · glass bottles are 3 glass · a brewing stand is a blaze rod and 3 cobblestone · nether wart grows on soul sand, farm your own · witches drop half the brewing stuff you need · splash healing hurts zombies and skeletons · never throw harming at a zombie, it heals them · glowstone gets you strength 2 · you can extend or upgrade a potion, not both · weakness plus a golden apple cures a zombie villager · fire res before the nether, always · hoppers can load a brewing stand for you · igloo basements have a brewing stand · clerics use the brewing stand as their job block · slow falling saves you on elytra trips · milk clears any potion effect, good or bad · invisibility doesnt hide your armor · breeze rod brews wind charging · a cobweb brews weaving · a slime block brews oozing · stone brews infestation, silverfish come out when you get hit · lingering potion plus 8 arrows makes tipped arrows · redstone on a plain water bottle just makes a mundane potion · keep some blaze powder spare, running out mid brew is the worst · regen 2 heals crazy fast · splash potions hit everyone nearby, including you · throw a splash potion straight down to hit yourself · poison never kills you, it stops at half a heart · night vision is great for lighting up the ocean |
+| tip_about_raids | giving a tip about raids (any) | dont drink an ominous bottle unless you want a raid · kill the evokers first, vexes are the worst · evokers drop totems btw · a raid can get rough, get the villagers inside · ravagers hit like a truck, shield up · raid captains wear the banner on their head · killing a raid captain drops an ominous bottle now · bad omen kicks in once you walk into a village · drink milk to clear bad omen if you dont want the raid · raids come in waves, rest between them · more waves on hard, 7 of them · a higher omen level adds an extra wave · ring the bell and nearby raiders glow · ringing the bell sends villagers indoors · if every villager dies the raid is lost · win a raid and you get hero of the village · hero of the village means cheap trades · villagers throw you gifts when youre the hero · kill the witches fast, they keep drinking potions · pillagers shoot crossbows, bring a shield · vindicators swing axes, dont let them get close · evoker fangs come out of the ground, keep moving · ravagers break leaves and crops, protect the farms · block a ravager with your shield and it gets stunned · a ravager has 100 health, bring a good sword · iron golems help a ton in raids · keep a totem in your offhand during a raid · vexes go through walls, swing at them fast · vexes die on their own after a while · bring a bow, raiders spread out · witches throw slowness and poison at you · omen goes up to level 5 now · higher omen means raiders with enchanted gear · pillagers can ride ravagers in the later waves · you cant sleep with raiders nearby · the boss bar shows how many raiders are left · wall in the village and raids get way easier · raiders drop emeralds, nice bonus · evokers turn blue sheep red, dont ask · a vindicator named johnny attacks everything · armor up before you walk into town with bad omen · light up the village first, zombies join the party otherwise · raiders show up around the edge of town, check every side · dont start a raid at night unless you are ready · patrols have a captain too, kill it for the bottle · you can get a banner off a raid captain, looks cool on a wall · use the ominous bottle when you are ready, not before · raiders on rooftops? pillar up or use a bow · evokers hang back, go find them first · the last few raiders hide sometimes, go look around |
+| tip_about_the_end | giving a tip about the End (any) | bring loads of blocks to the end, the void is no joke · wear a pumpkin and endermen leave you alone · eyes of ender break sometimes, bring extra · dont look at endermen. just dont · beds blow up in the end. use that on the dragon · you need up to 12 eyes of ender for the portal · throw an eye of ender and follow it to the stronghold · eyes of ender are blaze powder plus an ender pearl · kill the end crystals first, they heal the dragon · two crystals have cages, climb up and break the bars · bring a bow for the crystals · dont stand in the dragon's purple breath · you can bottle the dragon's breath for lingering potions · the dragon lands on the portal, thats your time to hit · endermen take damage in water, stand in some · build a 2 block tall hut, endermen cant fit · the dragon egg teleports if you click it, push it with a piston · you only get one dragon egg · after the dragon dies, gateways open to the outer islands · throw an ender pearl into a gateway to go through · end ships have the elytra · shulkers make you float, bring milk · slow falling potions are a lifesaver in the end · die in the end and you respawn back home · die over the void and your stuff is gone forever · water works in the end, bring a bucket · chorus fruit teleports you randomly · smelt chorus fruit to make purpur · end cities have enchanted diamond gear in the chests · the dragon gives a ton of xp the first time · 4 end crystals on the portal respawns the dragon · end crystals are glass, an eye of ender and a ghast tear · pillar up next to the towers, careful with the jump · the dragon can knock you flying, stay away from the edge · strongholds have a silverfish spawner by the portal · the end has no day or night · clocks and compasses spin in the end too · a pumpkin head keeps endermen calm but you cant see much · end portal frames cant be broken in survival · some portal frames already have eyes in them · elytra plus rockets and you can fly anywhere · put mending on your elytra or it breaks fast · end ships have a dragon head on the front · the exit portal takes you home after the fight · endermen everywhere in the end, great for pearls · dont fight near the edge of an island · bring plenty of food, the fight takes a while · shulkers hide in their box, hit them when they open · stronghold libraries can have good books · bring a pickaxe, you might need to dig through end stone · bridge carefully in the end, one slip and its over · a water bucket under you saves a fall, even in the end · dont pearl near the void, the pearl can miss · snowballs break end crystals too, easy |
+| tip_about_redstone | giving a tip about redstone (any) | comparators can tell how full a chest is · observers are so op · repeaters carry a signal further · a redstone torch turns off when its block gets power · hoppers into chests = free sorting, sort of · redstone dust carries a signal 15 blocks · repeaters can delay a signal too · right click a repeater to change its delay · comparators can subtract signals · pistons push up to 12 blocks · sticky pistons pull the block back · pistons cant push obsidian · slime blocks drag the blocks next to them · honey and slime dont stick to each other · a lever stays on, a button turns itself off · wooden buttons stay pressed longer than stone ones · wooden pressure plates catch items, stone ones dont · invert a daylight detector and lamps turn on at night · tripwire is two hooks and string · target blocks send a signal when you shoot them · observers pulse when the block in front changes · droppers drop items, dispensers use them · a dispenser can place water or shoot arrows · a powered hopper stops moving items · redstone lamps light up with a signal · note blocks change sound based on the block under them · a redstone block is a power source pistons can push · flick a redstone torch too fast and it burns out · comparators can read a cake, a cauldron or a composter · a comparator by a jukebox tells which disc is playing · a lectern with a book gives a signal when you turn pages · sculk sensors pick up nearby sounds · wool blocks vibrations from sculk sensors · trapped chests give a signal when opened · the crafter crafts every time it gets a pulse · copper bulbs flip on or off every pulse · iron doors only open with redstone · powered rails need redstone or carts slow down · detector rails give a signal when a cart rolls over · activator rails set off tnt minecarts · redstone ore lights up when you touch it · a lightning rod gives a signal when it gets struck · pistons cant push chests or furnaces · bells can be rung with redstone · a lever on a block powers stuff touching that block · tnt lights up when it gets powered · observers and slime blocks make flying machines · pistons cant push bedrock either · a calibrated sculk sensor only listens for one kind of sound · comparators keep a signal strength, dust loses 1 per block · a redstone torch powers the block right above it · iron trapdoors need redstone too · a hopper under a furnace pulls out the smelted stuff · repeaters only go one way, handy for keeping signals apart · dust pointing into a block powers that block |
+| tip_about_trading | giving a tip about trading (any) | cure a zombie villager for cheap trades · librarians are the best villagers · trade once to lock a villager's job · a villager won't take a job without a workstation · emeralds are the money, farm them · librarians can sell mending · break the lectern before trading to reroll a librarian · hero of the village gets you discounts · villagers restock at their job block, twice a day · a villager has to reach its job block to restock · cartographers sell explorer maps · cartographers sell maps to trial chambers now · farmers buy wheat, carrots and potatoes · fletchers buy sticks, easiest emeralds ever · master armorers sell enchanted diamond armor · clerics sell ender pearls · masons buy clay and stone · shepherds buy wool · fishermen buy string and fish · butchers buy raw meat · leatherworkers buy leather · the wandering trader sells weird stuff like coral and saplings · you can lead the wandering trader's llamas away · trading levels villagers up · master villagers have the diamond badge · nitwits cant get a job, ever · baby villagers cant trade · hit a villager and prices go up · hurt a villager and the iron golem comes for you · a composter makes a farmer · a lectern makes a librarian · a blast furnace makes an armorer · a smoker makes a butcher · a fletching table makes a fletcher · a smithing table makes a toolsmith · a grindstone makes a weaponsmith · a stonecutter makes a mason · a loom makes a shepherd · a barrel makes a fisherman · a cauldron makes a leatherworker · a brewing stand makes a cleric · a cartography table makes a cartographer · villagers breed when they have food and spare beds · trading gives you xp too · farmers buy pumpkins and melons, grow a bunch · buy the same thing too much and the price climbs · master librarians sell name tags · librarians sell glass, handy for builders · cured zombie villagers keep their old trades · clerics buy rotten flesh, zombie loot = emeralds · trade with every villager a bit, they all level up · lock in a good trade by trading once · dont let zombies near your traders · toolsmiths sell enchanted diamond tools at master |
+| tip_about_trial_chambers | giving a tip about trial chambers (any) | a trial key opens a vault, one each · breezes knock your arrows away, go melee · ominous trials have the better loot · trial spawners come back after a while · watch out for the breeze's wind charges near ledges · trial chambers sit deep underground, around y -20 to -40 · all that copper and tuff means a trial chamber · trial spawners make more mobs the more people are around · beat a trial spawner and it rests for 30 minutes · ominous trial spawners drop ominous trial keys · ominous vaults need an ominous trial key · walk in with bad omen and the spawners go ominous · drink an ominous bottle before you go in for the hard mode · the heavy core comes from ominous vaults · mace = heavy core plus a breeze rod · breezes drop breeze rods · breeze rods make wind charges · a wind charge under you launches you up · the mace hits harder the further you fall · wind charge up then smash with the mace · breezes jump around a lot, corner them · bring a shield, skeletons and strays spawn in there · bogged spawn in trial chambers too, poison arrows · slime spawners in there get messy fast · cave spiders and baby zombies can spawn too · break the decorated pots, theres loot inside · vaults spit out loot when you use a key · vaults can give enchanted books and diamonds · the flow and bolt armor trims come from vaults · cartographers sell trial explorer maps · ominous spawners drop potions and stuff on you from above · bring milk for the poison · bring lots of food, its a long fight · heavy cores are rare, keep trying ominous vaults · clear a spawner's mobs and it drops a key or loot · sometimes the spawner gives food or emeralds instead of a key · wind charges flip doors and buttons too · wind charges barely hurt but the knockback is real · trial chambers are huge, mark your way back · fight near walls so the breeze cant knock you off · trial chambers have copper bulbs, its not dark in there · dont use up all your keys at once, you can come back · your friends each get their own vault loot too · the guster sherd comes from the vaults · trial keys come from the spawners, clear them all · breeze rods brew wind charging potions too |
+| what_is_this_portal | wondering what the purple portal is (any) | what is this purple thing · is it safe to walk in?? · whats this portal do · the purple stuff is swirling · uh. what is that · why is it making that whooshing noise · the frame is all obsidian · stood half in it and my screen went all wobbly · does it go somewhere? · someone built this on purpose right · purple and humming. cool cool cool · i can hear it from over here · if i step in do i come back · black blocks, purple middle. what · its like a window but swirly · little purple specks keep floating out · hmm i dont trust it · im gonna just look at it for a bit · who lit this thing · ok that sound is kinda creepy · what happens if i throw an item in · i bet theres something on the other side · nobody go in there yet · does it hurt · i swear something moved in there · portal to where tho · this was not here yesterday... was it · its sooo purple · should i poke it · dare me to walk in · the air feels weird around it · i think its a door. a weird door · how do you even turn it off · its glowing in the dark too · mysterious purple rectangle · my gut says dont · one step in and right back out, thats the plan · not touching that · what if something comes out of it |
+| what_is_this_table | wondering what the table with the book is (any) | what does this table do · it has a floating book?? · fancy table · the book is moving by itself · what language is that · the book keeps turning to look at me · it has diamond corners?? · why is the writing all symbols · little letters floating off the bookshelves into it · red cloth on top, very fancy · does it want something from me · feels like a wizard desk · can i read it if i stare long enough · i dont speak table · obsidian base? someone was serious · wonder if it eats books · looks expensive · kinda magic looking ngl · the pages flip when i get close · is it like a library thing · hey book, whats your deal · i want one · who put a book on a table and walked off · maybe it makes stuff shiny · i think its alive. a little · the glyphs are so weird · is it reading me?? · dont touch the magic book. noted · someone said you need lapis for this? · book just snapped shut when i walked away · its like it knows im here · floating book table. sure. why not · table of mysteries · what would happen if i put my sword on it · nerdy table · the little runes are kinda pretty · it looks like it costs a lot of levels or something · i swear the book just waved at me |
+| what_is_this_stand | wondering what the brewing stand is for (any) | what is this thing · some kind of potion maker? · what do the bottles go in · is this for science · three little slots on the bottom · is that a blaze rod in the middle · it bubbles?? · looks like a tiny chemistry set · where does the water go · someone left bottles in it · do you drink what comes out · is it like a cauldron but fancier · i think you put the weird stuff on top · hmm, needs fuel maybe · three arms, one stick · looks breakable · potions get made here right? · what happens if i put sugar in it · is it a witch thing · spooky little stand · dont knock it over · do i need a recipe for this · someone told me nether wart goes in these · it makes a bubbly sound when its working · i bet this makes speed potions · is it hot? looks hot · wizard kitchen · looks like a candle holder ngl · cool but confusing · three bottles at once i guess? · could it make me fly · i kinda wanna try it · science stand · what if i mix the wrong stuff and it explodes · looks like witches would love this |
+| what_are_these_frames | wondering what the strange frames are (any) | weird green blocks · what are these frames for · some have eyes in them?? · this place is creepy · theres lava under them · looks like a big square with a hole in it · what goes in the empty ones · the eyes kinda look like ender pearls · why is there a whole room for this · old stones, old frames, old vibes · im hearing silverfish · something about this room is off · 12 frames. i counted · who built this down here · some kind of door to somewhere · what happens if they all have eyes · i dont like how quiet it is · the stairs up to it are kinda dramatic · stronghold vibes · feels like i shouldnt be here · the eyes are staring · is it broken? some are empty · this has to do something big · dont fall in the lava lol · i bet this is important · frames for... what exactly · ancient tech · goosebumps · i feel watched · is this the end of something · not touching anything in here · its like a puzzle with missing pieces · the void in the middle is just lava? |
+| watch_the_runes | watching the runes drift into the enchanting table (any) | love the little letters · the book flapping :) · standard galactic alphabet goes hard · one day ill read it · the runes are so pretty · look at them float · little glyphs · wish i could read this · what does it say · magic letters · they fly right into the book · the bookshelves are talking lol · spooky letters · so mysterious · i swear that one said cookie · i could watch this all day · all those bookshelves were worth it · the book opens when i'm close :) · the runes like me · floaty letters · is it saying my name? · need more lapis · magic is cool · wonder what it's whispering · all those runes just for an unbreaking book · 15 shelves of magic · the letters dance · eerie but pretty · hm, nonsense words · i think it's mad at me · enchanting is so cozy · hello little runes · so many letters · it's like the book is breathing · glow · wiggly letters · the shelves are sending them · is that a spell? · the alphabet of the void lol · beautiful nonsense · pretty magic · ill learn the runes someday · spinning book :D · wow look at it spin · the sparkles |
+| stand_in_the_beacon | looking up the beacon's beam (any) | beacon vibes · the beam goes all the way up · worth the wither tbh · so pretty · wow · look how high it goes · to the sky · pretty light · the beam!! · it touches the clouds · you can see it from miles away · never getting lost now · a pyramid of iron for this · so many blocks of iron · light show · glows so nice at night · haste ii here we go · feel the speed · it's like a lighthouse · worth every nether star · we did this · shine on · i can see the whole beam from here · how high does it go · blinding, in a good way · look up · this is the coolest thing i own · the beam never stops · pew · light pillar · i'm standing in a laser lol · a wither died for this · home is wherever the beam is · everyone can see where we live now · staring up · should stain it with glass · the beam goes forever · best thing on the base · so bright · feels powerful · the sky beam · gorgeous · ooh · i love this thing · white beam, maybe dye it blue |
 | oops_dropped_a_stack | dropped a stack by mistake (any) | oops |
-| eats_a_spider_eye | eating a spider eye (not a good idea) (any) | ew · why did i eat that · that was a mistake · blegh · poison. great · note to self: dont eat that |
-| brag_about_bow | showing off its unique bow (any) | found a unique bow · this bow is something else · look at this bow · wait till you see what this bow does · this bow is op · bow diff · new bow, who dis |
-| brag_about_shield | showing off its shield (any) | new shield · this shield takes a beating · reinforced, finally · cant touch this · shield up · blocked lol |
-| tallest_mountain | climbing the tallest mountain in sight (day) | made it to the top · top of the world · summit reached · W climb · king of the hill · worth it |
-| hop_about | hopping about for no reason (any) | wheee · :) · boing · hop hop · bunny hopping · cant stop wont stop |
-| go_for_a_swim | going for a swim (day) | water's nice · swim time · come in, waters warm · cannonball · just keep swimming |
-| watch_sunset | watching the sunset (sunset) | sunset :) · pretty · look at that sunset · golden hour · nice sky tonight · mobs soon tho |
-| watch_storm | watching the storm (thunder) | big storm · thunder!! · charged creeper weather · stay inside lol · look at that lightning · storms are cool ngl |
-| small_talk | making small talk (any) | hows it going · nice day · anyone got food · found some iron earlier · this place is nice · what are you up to · hows everyone doing · anyone wanna go mining · whats everyone building · any1 need anything · nice weather · just vibing · chat is this real · productive day ngl · how long have you been on · what day is it · lowkey love this spot · whats the plan today |
-| brag | bragging a bit (any) | got diamonds btw · my base is better · ez · not even hard · full stack of dias, no big deal · cant relate to being poor · my farm is goated · built that in a day · skill issue tbh · i dont lose · W me · aura +1000 |
-| say_bored | saying it's bored (any) | bored · nothing to do · so bored rn · anyone wanna do something · bored out of my mind · someone entertain me · what now · ive done everything lol |
-| warm_hands_by_the_fire | warming its hands by the fire (night) | ahh, that's better · nice and warm · cozy · warm finally · campfire vibes · dont let it go out |
-| wave_to_a_friend | waving to a friend (any) | hey! · o/ · hiya · yo! · o/ hey · heyy · sup! |
+| eats_a_spider_eye | eating a spider eye (not a good idea) (any) | ew · why did i eat that · that was a mistake · blegh · poison. great · note to self: dont eat that · my stomach · why are my hearts going green · i thought it was a berry · tasted like regret · ok that was gross · crunchy. bad crunchy · never again · worst snack ever · dont tell anyone i did that · i am a genius (i am not) · poisoned by my own lunch · hunger said yes, brain said no · worth it? no · yuck yuck yuck · that was a dare right? no? ok · wait spider eyes are for potions not eating · guess ill sit here and suffer a sec · at least it filled me up a bit · mmm. no · i was hungry ok · learned something today · spiders keep their eyes for a reason · cool, poison, love that · still squishy · dumbest thing ive done today · the aftertaste · should have eaten bread · whyyy · my hp bar is so sad rn · 10/10 would not recommend · hungry enough to eat that. sad · nobody saw that · anyone got milk? asking for me · it was looking at me from the inventory, so i ate it |
+| into_the_berry_bush | walking into a berry bush (ow) (any) | ow · ow ow ow · OW · why is this bush spiky · the bush attacked me · ouch · spikes!! · ah! · owie · ow why · that hurt · thorns!! · OW OW · bad bush · stupid bush · i got stabbed by a bush · berries are not worth this · oops · argh · itchy · my legs!! · who put that there · rude bush · ow my shins · AAAA · pokey · dumb berries · lost half a heart to a bush lol · i'm stuck in it · ok bush 1 me 0 · ugh · eek · ow ow ok ok · this is how i die · watch out for the berry bush, trust · hurts so bad · prickly · the bush wins · never again · why do i keep walking into these · wow ok |
+| first_diamond_oops | celebrating its first diamond (any) | DIAMOND!! · first diamond lets gooo · DIAMONDS · im rich · DIAMOND DIAMOND DIAMOND · a diamond!! · my first diamond!! · no way · WE GOT ONE · LETS GOOO · YES YES YES · finally!! · i'm gonna cry · look at it!! · it's real!! · omg diamond · i did it · no way no way no way · OMG · after all that digging!! · diamond acquired · DIAS · WOOO · i'm a real miner now · it's so blue · the hours paid off · hey everyone i found a diamond · shiny!! · no shot · big day!! · screaming rn · first one!! · i can't believe it · best day ever · IM SHAKING · diamond gang · W · pog · its beautiful · WAIT is that a diamond · ok ok stay calm. DIAMOND · they said y -59 and they were right · jackpot · i'm never selling this · wait... a pickaxe takes three · oh. i need three for a pick · ok one diamond isnt much · ...need two more · wait. i need more than one · hmm. that's not a pick · oh no, picks take 3 · ...it's only one · well. a shovel then? · one diamond makes a shovel. great · hmm, that's not much actually · ok back to mining · two more. cool. cool cool · got excited too early · i guess i'll keep digging · one. just one · hm. a sword needs two · ...and i need a lot more · oh. not enough for anything good · wait how many does armor take · a chestplate takes eight?? oh · back to the caves i guess · not rich. not even close · uh. now what · oh. right · so... a diamond shovel · the celebration was premature · one down, a lot to go · hmm i got hyped for nothing · need a whole vein, not one · shoulda kept mining before yelling · hm, where's the rest of the vein · two more for a pick, eight for a chest, ugh · i still have an iron pick lol · ...ok it's still cool · guess i'm not rich · math is hard · enchanting table needs two. hm · this is a start i guess · cool. one · back down i go · dang, just one · i was gonna make a whole set... · humble beginnings |
+| jump_at_a_noise | jumping at a noise (night) | what was that · did u hear that · nope nope nope · who's there · ...hello? · huh? · who goes there · who's out there · was that a creeper · uhh · i heard something · eek · what the · zombie? where · is someone there · dont like that · just the wind... right? · skeleton? show yourself · nope · um · hiss? did something hiss · creepy · ok who's there · that wasnt me · something's moving · heart attack · jumpscare · AH · bats. it's just bats. right? · ...anyone? · i'm not scared. i'm not · cave noises · ok i'm going inside · who said that · did a spider just · footsteps? · WHAT · dont do that to me · probably a cat. probably · oh no · show yourself · i dont like the night · that came from behind me · nervous rn · spooked · uh oh · something's out there · rattling bones? skeleton · i think i'm being watched · hold up |
+| what_was_i_doing | forgetting what it came over for (any) | ...what was i doing · why did i come here · forgot what i came for lol · wait what did i need · uh · hm. · what was it again · i forgot · brain empty · huh. why am i here · what did i open this for · forgot already · it'll come to me · um. · i had a reason · what was i looking for · blanked · was it coal? iron? · lost my train of thought · aaaand it's gone · i swear i needed something · wait · ok what now · i came here for... something · oops, forgot · brain lag · nope, gone · this happens too much · lol i forgot · what was the thing · was it torches? · hmm. sticks maybe? · my memory is trash · think think think · why did i walk over here · i literally just knew · chest, why did i want you · ugh what was it · eh, whatever · brain fog · ...nevermind · i'll remember later · goldfish brain · classic me · forgot mid walk |
+| brag_about_bow | showing off its unique bow (any) | found a unique bow · this bow is something else · look at this bow · wait till you see what this bow does · this bow is op · bow diff · new bow, who dis · check the draw on this · this bow hits different · pulled this bow out of a chest and im obsessed · my old bow is crying · dont even ask where i got it · look at the shine on it · arrows go zoom now · one shot and theyre gone · i might name this bow · this bow and i are a team now · skeletons should be scared of me now · longest range ive ever had · nobody has a bow like this · the string sounds so nice · rate my bow 1 to 10 · yes its rare, yes im proud · best loot ive ever pulled · bow upgrade unlocked · this bow is my whole personality now · gonna snipe from so far away · watch me hit that from here · ok i might be a little in love with this bow · not trading this. ever · your bow could never · built different. the bow i mean · i feel like a ranger now · ranged diff · this thing pulls back so smooth · had to show someone · someone tell me this isnt cool · arrows fly so straight with it · this bow has a story i bet · i got carried by a bow and im fine with it · mobs wont know what hit them · no more missing shots. probably · picked this up and it just felt right · dont touch the bow · shiny bow, happy me · gonna be the best archer here · thats not a bow, thats art · my aim got better overnight lol · im keeping this one forever · bow so good i stopped using my sword · the weight on this is perfect · legendary find right here |
+| brag_about_shield | showing off its shield (any) | new shield · this shield takes a beating · reinforced, finally · cant touch this · shield up · blocked lol · this shield is so sturdy · arrows just bounce off · my new best friend is a shield · look at the pattern on it · tanked a whole skeleton with this · crouch and nothing gets through · not even a scratch · heavy but worth it · defense is the best offense · try me · holding this makes me feel brave · this thing has saved me like five times · i could stand here all day · axes are its only weakness tbh · shield game strong · turtle mode activated · nothing gets past this · blocked it, blocked that, blocked everything · shields are underrated · check out my new wall · portable wall lol · watch me block this · solid. like really solid · my shield is better than yours · this one feels tougher than the old one · getting a banner on it next · dents? what dents · zombie tried it. zombie failed · i love this thing · swing at me, i dare you · impenetrable. probably · tank build · skeletons hate this one trick · good shield, good day · the clang it makes is so satisfying · feels like holding a door · shield check · creeper blew up right in front of me and i barely felt it · blocked an arrow without even looking · shield in the offhand, sword in the main · they shoot, i block, they cry · this shield has seen things · raise it and relax |
+| tallest_mountain | climbing the tallest mountain in sight (day) | made it to the top · top of the world · summit reached · W climb · king of the hill · worth it · i can see so far from here · the view up here is crazy · legs hurt but look at this · snow all the way up here · careful, theres powder snow up here · you can see the whole land from up here · almost touching the clouds · that was a lot of jumping · goats live up here, watch out · i see a village way down there · the wind up here sounds cool · dont look down · ok i looked down · best spot to watch the sunrise · conquered · i climbed all of this on foot · i feel tiny and huge at the same time · cant believe i made it · highest point around, i think · whole world below me · peak acquired · worth every jump · stone, snow, and a view · im the tallest thing here · someone should build a house up here · that was a climb and a half · i can see the ocean from here · feels quiet up here · getting down is gonna be fun · taking a break up here · mountain: 0, me: 1 · ice everywhere up here · if anyone needs me im on the peak · saw some emerald ore on the way up · the air feels thinner. not really but still · the sky is huge from up here · breathtaking. literally, im out of breath · view of the century · this is why i explore · top of the mountain, bottom of my hunger bar · wish i had a map to fill in from here · i see forever · dont fall dont fall dont fall · i could stay up here all day · the trees look like moss from up here · every biome at once from this spot |
+| full_moon_gazing | gazing at the full moon (full_moon) | big moon tonight · full moon!! · look at the moon rn · the moon is huge · full moon. spooky · the moon is so round tonight · look up, its full · moon looking extra big · someone look at the moon with me · that moon is perfect · full moon vibes · its like a big square lamp · moon is square and i love it · the moon is out and so are the mobs · staring at the moon instead of working · gorgeous moon · nice moon tonight · you can see the craters tonight · moon check: full · i could look at that all night · if only zombies would let me enjoy this · big glowy square in the sky · i love when its full like this · pretty moon, scary night · the moon is so pale tonight · look how clear the sky is · stars and a full moon, nice · moon peeking over the trees · making a wish on the moon · you dont get moons like this every night · the moon is staring back · howl? should i howl · i wonder whats up there · moonlight on the water looks so nice · ok one more minute of moon then bed · the whole moon, no bites taken out of it · moon is showing off tonight · moon so bright tonight · the night sky is unreal · moon is perfectly lined up over the hill |
+| full_moon_warning | warning about the full moon (full_moon) | full moon, mobs are gonna be rough tonight · more slimes on a full moon btw · full moon = spiders with effects. careful · stay in tonight, full moon · zombies hit harder on a full moon i swear · full moon tonight, mobs come better geared · careful, skeletons might have enchanted bows tonight · zombies in armor are more likely on a full moon · watch your drops, zombies pick stuff up more on full moons · swamp slimes come out the most on a full moon · if you need slimeballs, swamp tonight · on hard, spiders can spawn with buffs. worse on a full moon · invisible spiders are a thing on hard, careful out there · full moon. light up your base · sleep early, full moon tonight · moons full. bring a shield · heads up: full moon · full moon. if youre out, stay near light · dont leave your door open tonight · its a full moon, maybe just skip the night with a bed · mobs are tougher on a full moon, its a real thing · tonight is not the night for a trip without iron · full moon. wear your best armor · that moon means trouble · regional difficulty goes up on a full moon btw · full moon. id stay inside · careful tonight, the moons full · check your armor before going out, full moon · fighting tonight? at least armored mobs sometimes drop it · tell everyone, full moon tonight · light everything up, full moon · be safe tonight, mobs gear up on full moons · full moon. bring extra food and a bed · dont wander far tonight · full moon. fight near your base if you must · just saying, full moon. plan accordingly · good night for a swamp slime hunt, full moon · zombie with a sword and armor? full moon things · go to bed before the full moon gets you · fast spiders on hard are no joke, and a full moon makes them likelier · slime night in the swamps · full moon. maybe leave the caving for tomorrow · lock the doors, full moon · keep a bed handy tonight, the moon is full · full moon means better gear on mobs, worse odds for you · warn the others, the moon is full |
+| no_moon_tonight | noticing there's no moon tonight (new_moon) | no moon tonight · cant see a thing · so dark rn · where'd the moon go · pitch black out here · new moon · dark night · no moon · it's so dark · where's the moon · the moon's hiding · can't see my hands · spooky dark · black sky · need more torches · moon took the night off · darkest night ever · stars only tonight · well the stars look nice at least · moon's gone · zero moon · scary dark · mobs love nights like this · torch time · dark dark dark · lots of stars tonight · careful out there tonight · moonless · creepy no moon · where'd it go? · not a sliver · i miss the moon · very dark out · new moon, stay sharp · the moon is shy tonight · phew, dark · everything's black · pitch dark · moon's asleep · inky sky · i keep bumping into things lol · good night to stay in · where'd all the light go |
+| watch_the_snow_fall | watching the snow fall (snow) | snow!! · its snowing · pretty · snow day · love the snow · snowing!! · look, snow · snowy · it's so white · snow snow snow · pretty snow · winter vibes · flakes!! · it's coming down · so peaceful · fresh snow · everything's white · brr · chilly · i love this · so quiet out · snowfall · winter's here · beautiful · snowman time? · cozy weather · look at it fall · big flakes · magical · snow on the roof · white everywhere · aw it's so pretty · it's sticking · time for hot stew · wow look · first snow · the trees look nice · soft snow · snowing again · my favorite weather · watch your step, it's slippy · so calm · ahh snow · piling up nicely · wish it snowed more |
+| catch_snowflakes | trying to catch snowflakes (snow) | catching snowflakes lol · got one · nom · snowflake on my tongue · missed · almost! · yum snow · gotcha · so cold lol · caught one! · brr cold · on my nose · mmm snow · tastes like nothing · another one · missed again · so close · cold!! · hehe · snowflake get · ahh it melted · got two! · come here snowflake · jump jump · nearly · they keep dodging me · one more · tongue out · snowflakes are fast · got you |
+| snow_angel | making a snow angel (sort of) (any) | snow angel · minecraft snow angels are just crouching ok · made a snow angel. trust · angel · look, a snow angel · pretend it's an angel · it's an angel, use your imagination · ta-da · perfect snow angel · best one yet · snow angel complete · my art · it looks like a hole lol · art · tried my best · that counts right · i'm in the snow! · snowy · brr cold back · flap flap flap · masterpiece · a block shaped angel · my legs dont move like that · cold but worth it · it's beautiful, trust · angel status: made · snow in my hood · ok it's a square but still |
+| home_before_the_storm | heading home as the storm rolls in (thunder) | storm's coming, heading in · nope, going home · not getting struck today · inside time · storm! · heading home · thunder, i'm out · going in · home time · nope nope · storm's here, bye · time to hide · lightning? not today · back to base · running home · inside, now · too loud, going home · storm incoming · dont wanna be a charged creeper's friend · i'm going in before it gets bad · rain and thunder, i'm done · skeleton horses out tonight, going home · mobs spawn in storms, nope · this is a bed night · time to sleep it off · taking cover · heading back · home before the lightning · thunder means bed · lightning rods better work · running for the door · nope, inside · storm's rolling in · dont wanna get zapped · loud!! going in · home sweet shelter · back inside, too dark · wet and done · calling it a day · it's pouring, home · not out in this · storm. i'm off · storm means mobs, bye · booming out here · see ya, i'm going home · lightning gets the trees, not me · shelter first · gonna sleep through this · back to the house |
+| lightning_from_the_doorway | watching the lightning from its doorway (thunder) | that was close · lightning!! · one mississippi two mississippi · i felt that one · the thunder is so loud · right on the hill · the flash lit up everything · counting till the boom · staying right here in the doorway · that hit a tree i think · hope nothing catches fire · i saw it hit the ground · loud loud loud · whoa that was bright · perfect view from the door · not going out in that · my ears · the sky just cracked · careful, lightning sets grass on fire · if it hits a creeper were in trouble · if it hits a pig we get a zombified piglin · do we have a lightning rod on the roof? · i love storms from inside · cozy in here, scary out there · another one! · cant stop watching · rain and thunder together, perfect · jumped a little ngl · boom · i saw the bolt this time · please dont hit the house · standing in the doorway like a cat · yeah im staying put · one hit the water · thunder rolling in · flash, then boom, every time · riptide weather lol · hope the animals are ok out there · wow, did you see that one · the whole sky went white for a sec · the rumble goes on forever · one foot inside, just in case · glad im not out in that · smells like rain · that bolt was so close the door rattled · wish it would hit the creeper out there. wait no |
+| hop_about | hopping about for no reason (any) | wheee · :) · boing · hop hop · bunny hopping · cant stop wont stop · hoppity · bounce bounce · spring in my step · jumping is free · cant catch me · jump jump jump · im a rabbit now · feeling bouncy today · my legs have too much energy · yippee · boingy boing · sproing · just jumping around, dont mind me · happy hops · i cant stop jumping lol · im so light rn · bunny mode · one more jump · jumpy day · woo · legs go up legs go down · this is fun actually · bouncing for no reason · jumping makes me hungry but worth it · up, down, up, down · if i jump high enough maybe i fly · the ground is lava. jk |
+| go_for_a_swim | going for a swim (day) | water's nice · swim time · come in, waters warm · cannonball · just keep swimming · the water is so clear · swimming laps · sprint swimming is the best · look at the fish · anyone wanna race across · dont mind me, just floating · splash · a dolphin would be nice right now · watch out for drowned · nice and cool in here · hold your breath challenge · bubbles running low, brb surfacing · i could swim all day · water feels great after mining · turtles over there! · swimming is so relaxing · a little swim never hurt anyone · pretend im a dolphin · dive dive dive · found some kelp down here · underwater is so pretty · the sand at the bottom is so nice · the squid are judging me · im a fish now · laps done, one more · the sun on the water looks nice · belly flop · cooling off · swimming beats walking honestly · hey come swim · splashing around · that was refreshing · salmon swam right past me · careful, its deep here · the ocean is huge from down here · touched the bottom! · my hair is gonna be wet all day lol · the coral down there is so colorful · seagrass everywhere · gonna swim to that island · water breathing would be so good rn · swim near dolphins and you get a speed boost · floating like a log |
+| watch_sunset | watching the sunset (sunset) | sunset :) · pretty · look at that sunset · golden hour · nice sky tonight · mobs soon tho · the sky is orange · suns going down · look west · days almost done · i love this time of day · sky looks painted · watching the sun go · bye sun · thats a good one tonight · pink and orange, nice · beds work soon · one last look then inside · what a view · golden everything · sunsets on the water are the best · ok thats beautiful · the clouds are glowing · end of a good day · sun is sinking fast · i never get tired of these · the trees look gold right now · stop and look for a sec · calm before the zombies · the sun is so big right now · sun says gn · warm colors everywhere · sunset > sunrise, fight me · should get home before dark · time to wrap up · even the water is orange · i could watch this forever · dusk · day well spent · all the colors · the sky is on fire. pretty fire · goodbye day, hello mobs · sunsets here are so good · red sky tonight · someone screenshot this · best part of the day · slow sunset tonight · torches out, its getting dark · the moon is already coming up the other side · the sun just touched the edge · sky going purple now · last light, gotta hurry · evening already? · farm work done right before sundown, nice |
+| watch_storm | watching the storm (thunder) | big storm · thunder!! · charged creeper weather · stay inside lol · look at that lightning · storms are cool ngl · the whole sky is grey · its dark enough for mobs out there · mobs can spawn even in the day in this · lightning keeps hitting the hills · skeleton horses show up in storms, be careful · you can sleep through a thunderstorm btw · free charged creepers if youre brave · the rain is so loud · this storm is no joke · wow the clouds · lightning rod time · channeling works now if anyone has a trident · im staying dry · what a storm · the rain wont stop · loud night · storms getting worse · lightning turns villagers into witches btw · huge flash just now · i love the sound of rain · is it gonna stop soon · dramatic weather · storm vibes · its pouring · lightning near the trees, fire watch · that one was right over us · cozy storm · free light show · wild weather today · the thunder is rolling · dont stand on the hill · storm watching is the best · look at it come down · everything is soaked · big boom · dark as night out there · that storm is massive · epic storm · the sky keeps flashing · lightning turns red mooshrooms brown, fun fact · its so moody out · good day to stay in and craft · pigs better hide, lightning makes them zombie piglins · glad i built a roof · stuck inside till it passes · lightning just lit a fire over there · the rain is drumming on the roof |
+| check_the_clock | checking its clock (sunset) | getting late · almost night · time to head in soon · sun's going down · clock says sunset · getting dark out · night soon, better wrap up · ok sun's almost down · mobs come out soon · dusk already? · where did the day go · ok need to find a bed soon · clock's nearly all dark lol · night incoming · half the clock is dark · should head back before the zombies · time flies · already sunset huh · gotta be quick then · not much daylight left · one more thing then bed · time to light some torches · clock's saying go home · nearly bedtime · moon's coming up · day's over already? · better get inside · need to sleep tonight or phantoms · im losing the light · the clock never lies · skip the night or tough it out · creepers soon. nope |
+| look_through_the_spyglass | looking through its spyglass (day) | can see for miles · ooh whats that over there · spyglass goes hard · i spy · whoa thats far · is that a village out there · i see a mountain way back · is that a shipwreck on the beach · zoom zoom · everything looks so tiny · spotted a cow lol · nothing out there but trees · i see smoke over there · is that someones house · lots of sheep that way · that hill looks good for a base · thats a long walk · creeper on the ridge. nope · wish it could see underground lol · birds eye view · ocean out that way · desert past those hills · tiny little villagers lol · someone's walking way out there · theres a cave opening in that cliff · ok i know where im going now · is that a pillager tower out there. yikes · the horizon goes forever · copper and amethyst well spent · all clear · no mobs close by · ooh flowers over there · lava pool on that hill · the far mountains look all blue · cherry trees over there! · pretty view · big oak over there, nice · noted, noted · i can see the next town from here |
+| blow_the_horn | blowing its goat horn (any) | AWOOOO · did u hear that · horn time · the horn goes hard · BWAAAAH · hear ye hear ye · sorry if that woke anyone · everyone hear that? · that echoed lol · whoops, loud · thanks goat · toot toot · rally! · that one went far · my ears · ok that was loud · calling everyone over · sounds like a raid lol, its just me · dont panic its just me · i love this horn · loudest thing i own · the mobs are gonna hate me · pretty sure the whole biome heard that · best thing i ever got off a goat · answer the horn! · did it echo back? · one more? nah · HOOOOOO · thats my signal, come find me |
+| watch_an_axolotl | watching an axolotl (any) | axolotl!! · its smiling at me · so cute · the little gills · i want one · look at its little face · hi buddy · pink one! · its so wiggly · the way it swims · it plays dead lol · hey little guy · wait is that a blue one · need a bucket of tropical fish · they hunt drowned right · axolotl best mob · baby axolotl!! · i need a bucket · dont be shy · my new best friend · im naming it bubbles · they fight with you underwater · blub blub · look at it go · its waving at me i swear · too cute to leave · i could watch it all day · cave friend · tiny frills · must protect · you live down here alone? · found it in the lush cave · i love these things · hello sir · it looks so happy · just vibing in the water · adorable · a gold one, cute · the pink ones are my fav · wanna come home with me? |
+| watch_a_frog | watching a frog (any) | ribbit · froggy · hes just a little guy · frog. · the tongue!! · croak · look at him sit · hes thinking about something · big frog energy · he eats magma cubes. legend · orange one, nice · a green one, from the cold · white frog! warm swamp guy · tiny frog big jump · hop hop · hi mr frog · look at his eyes · he's judging me · frog on a lily pad · just sitting there · swamp king · respect the frog · boing · the throat thing lol · frogs are underrated · hello frog · dont eat me · anyone got a slimeball for him · froglight maker · what a guy · staring contest · he blinked first · small green friend · can i pet you · he wants a little slime to snack on |
+| watch_glow_squid | watching a glow squid shine in the water (night) | glowy squid! · look its glowing · glow squid my beloved · nightlight squid · its lighting up the water · so pretty · tiny underwater lamp · the glow is so soft · look how it shines · glow squid spotted · glowing friend · dont hurt it, its pretty · it sparkles · their ink makes signs glow btw · glow item frames come from these · swimming lantern · i love these guys · little glow buddy · so calm watching it · a squid but cooler · glowing in the dark water · it lights up the whole pool · hi glowy · watching it swim around, so chill · squid with a glow up · best squid · teal and glowing · shine on little squid · i could watch this for hours · regular squid wish they were this cool · wow its bright · how does it even glow · blue glow in the deep · it glows more in the dark i swear |
+| eye_a_goat | keeping an eye on a goat (any) | that goat's looking at me funny · dont ram me · i see you goat · goats are menaces · ok goat, back off · that goat is plotting something · head down, here it comes · goats jump so high · dont you dare goat · if it rams me off this cliff im done · did that goat just scream · staring contest with a goat · the horns on that one · goat horns drop if they ram a tree · you can milk goats btw · it keeps lowering its head · not today goat · goat stare is intense · goats are cute until they arent · keeping my distance · tiny horns, big attitude · dont let it near the edge · that goat has beef with me · hey goat. truce? · goats are wild · careful, that thing rams hard · the bleat on that one · nope, not turning my back on it · goat looks so smug · staying out of ramming range · goat vibes: hostile · why is it climbing that · if it charges im running · cute but dangerous · goats knock you so far back · that goat respects no one · goat just bonked a tree · its doing the head thing again · bonk incoming · goats have zero respect for personal space |
+| watch_a_sniffer | watching a sniffer sniff about (any) | big sniffy guy · what are you digging for · sniffer!! · the nose on that thing · its sniffing everything · look at it go · such a big boi · the sniff sounds are the best · torchflower seeds come from these guys · pitcher pods too · that thing is ancient right · slow and happy · gentle giant · sniff sniff sniff · what did you find buddy · the nose wiggle · its back looks all mossy · i want ten of them · good sniffer · sniffer eggs come from warm ocean ruins, crazy · it waddles · happy little sniffs · it found something! · go on, dig · its so big and so chill · what a creature · dont mind me, just watching the sniffer · hes on a mission · watching it dig is so relaxing · best mob ever made · ok i love it · snout first, always · the cutest dinosaur · such a good nose · sniffing for flowers from forever ago · it keeps sticking its nose in the dirt · such a big nose for such a big guy |
+| watch_a_camel | watching a camel (any) | camel! · hes so tall · desert horse · look at him just standing there · camels are so chill · look at that hump · two people can ride one · hes chewing on something · tall boy · can i ride him · camels can dash, did you know · he sat down lol · the walk is so goofy · big sleepy camel · desert buddy · they like cactus · he looks bored · camel just standing in the sand · long legs, long face · such a good boy · want one so bad · he looks at me like im the weird one · the eyelashes tho · slow and happy, just like me · you can see over everything from up there · so lumpy · he blinked at me · thats one fancy horse · camel spotted · floppy lips · hes just walking in circles · the sound he makes lol · cutest desert mob · camels are so underrated · id put a saddle on him in a heartbeat · hes taller than the house · imagine a camel caravan across the desert · the way he folds his legs to sit · desert taxi |
+| small_talk | making small talk (any) | hows it going · nice day · anyone got food · found some iron earlier · this place is nice · what are you up to · hows everyone doing · anyone wanna go mining · whats everyone building · any1 need anything · nice weather · just vibing · chat is this real · productive day ngl · how long have you been on · what day is it · lowkey love this spot · whats the plan today · anyone find anything cool today · hows your base coming along · what are you guys eating rn · hows the farm doing · anyone see that cave earlier · whats new · got any plans for tonight · hows the mining going · anyone else just wandering · nice to see people around · im almost out of torches lol · the crops are coming in nice · anyone been to the nether lately · whats the best food, opinions · saw a fox earlier, so cute · just got back from a trip · anyone need a hand · what are you working on rn · whats your favorite biome · the village looks busy today · sup · i think i heard a creeper earlier · lots of cows around here · found a nice spot by the river · hows life · whos up for an adventure later · whats everyone mining for · long day · i could use some more wood · havent seen a skeleton all day, weird · whats the coolest thing youve found · any good loot lately · quiet day huh · anyone got spare string · anyone elses armor falling apart · fishing later, anyone in · so whats everyone been up to · i like it here · wish i had a horse · gonna build something soon, not sure what · hows your hunger bar holding up · the sky is so clear today · any1 seen a pig around · hows your day going · think itll rain later · my chests are a mess lol · whats good · anyone got spare seeds |
+| brag | bragging a bit (any) | got diamonds btw · my base is better · ez · not even hard · full stack of dias, no big deal · cant relate to being poor · my farm is goated · built that in a day · skill issue tbh · i dont lose · W me · aura +1000 · my pickaxe has efficiency 5 btw · just found a whole vein of dias · my armor is fully enchanted, just saying · killed three creepers before they even hissed · first try · im too good at this · built a whole house before dark · never died once today · my wheat farm is twice the size of yours · ive got more iron than i know what to do with · didnt even need armor · my sword hits so hard · im basically a pro · flawless day · three stacks of iron, casual · my house has two floors, try and keep up · found an enchanted golden apple, yeah · full iron on day one · my base has a moat btw · my chest room is legendary · i have a mending book, bow down · maxed out · survived a raid solo, no big deal · my aim is cracked · killed a witch without taking a single hit · have you seen my farm? exactly · all my tools are diamond · my horse is the fastest one around · cleared a whole cave alone · i dont miss · emeralds? ive got plenty · my villagers love me · mending on everything · best builder around · im him · nobody does it like me · my enchanting setup has all 15 shelves · totem in the offhand, cant die · my stack of golden carrots is huge · im kinda goated ngl · every chest in my storage room has a label · easy work · walked out of a dungeon with all the loot · got a netherite hoe for no reason · carried the whole team · the creepers fear me · nobody gets loot like me · made that look easy · cleared a trial chamber, vault loot was nuts · full diamond armor, no big deal |
+| say_bored | saying it's bored (any) | bored · nothing to do · so bored rn · anyone wanna do something · bored out of my mind · someone entertain me · what now · ive done everything lol · im so bored i counted my cobblestone · nothing happening · dead quiet today · anyone got ideas · give me something to do · been staring at the sky for ten minutes · boredom level: max · i need an adventure · sooo boring · what do people even do for fun · maybe ill go dig a hole · wanna race to the hill · organized my chests twice already · even the cows look bored · im about to fight a zombie for fun · entertain me pls · watching grass grow, literally · is anything happening anywhere · i reread every sign in town · day is so slow · how is it only noon · anyone up for spleef · tell me something interesting · i could fall asleep standing here · lets go explore something · what does everyone do when theyre bored · out of things to build · bored enough to go mining · walked around the base like 5 times · no mobs, no fun · running out of things to do · anyone? anyone at all? · should i build a tower? eh · just sitting here · can something happen pls · im gonna start talking to the chickens · dying of boredom over here · so... now what · idk what to do · this is the most bored ive ever been · wanna go look for trouble · even fishing sounds fun right now · im so bored i might go to the nether · hide and seek? anyone? · i built a dirt hut just to break it again · my pickaxe is bored too · sat on the roof for an hour, nothing |
+| warm_hands_by_the_fire | warming its hands by the fire (night) | ahh, that's better · nice and warm · cozy · warm finally · campfire vibes · dont let it go out · fingers are thawing · ok i can feel my hands again · so cold out tonight · fire's the best · crackle crackle · dont step in it · careful not to burn myself · just five more minutes here · warmest spot in the world · this is the life · smells like wood smoke · long night, warm fire · should cook something on this · toss a porkchop on · mobs dont like the light · glad i built this · hands were freezing · powder snow got me earlier. brr · brr · ok warming up · campfire beats a bed · hope nobody puts it out · dont let the rain hit it · the sparks are pretty · toasty · staying right here · this is my spot now · someone grab more logs · quiet night. warm fire · needed this · one more minute · dont let the smoke in my eyes |
+| wave_to_a_friend | waving to a friend (any) | hey! · o/ · hiya · yo! · o/ hey · heyy · sup! · hey you! · oi! · hellooo · howdy · there you are · yo whats up · hi!! · oh hey · long time no see · sup dude · good to see ya · wassup · hey buddy · hey stranger · fancy seeing you here · heya! · ayy · what's good · oh hi there · hey friend · greetings · look who it is · over here! · there's my favorite person |
 
 ## 5. Encounters (it's talking to you)
 
@@ -362,7 +645,17 @@ Always said, no rate limits.
 
 You answer an escort or a race with something unclear (maybe, idk, hmm, why...): it asks again.
 
-- **everyone:** is that a yes or a no · so... yes? · yes or no lol · ill take that as a maybe. yes? · uh, is that a yes? · need a yes or a no {player}
+- **everyone:** is that a yes or a no · so... yes? · yes or no lol · ill take that as a maybe. yes? · uh, is that a yes? · need a yes or a no {player} · 'maybe' isnt an answer lol · i need a real answer, yes or no · hm? in or out · thats not a yes. or is it · ok but yes or no tho · you lost me. yes? · just say yes or no {player} · idk what that means. yes? · so are you in or not · ...was that a yes · simple question, yes or no? · not sure if thats a yes lol · i'll wait. yes or no? · speak up {player}, yes or no · is hmm a no? or a yes · ok, asking again: yes or no · dont leave me hanging · one word. yes or no · pick one lol
+- **miner:** yes or no, i wanna get moving before dark
+- **builder:** hmm. clear answer pls
+- **hoarder:** so is it yes? need to know before i pack up
+- **hermit:** ... yes or no · yes. or no. which
+- **helper:** no rush, but is that a yes or a no? · take your time, just tell me yes or no :)
+- **nomad:** the road wont wait forever. yes or no?
+- **PvP sweat:** scared? yes or no · thats a lot of words for no. or yes?
+- **speedrunner:** yes/no. quick · clock's ticking. yes or no · dont have all day {player}
+- **newbie:** wait so is that yes?? im confused · sorry i dont get it, yes or no? · um ok?? so yes??
+- **casual:** bro just say yes or no lol · lol ok but are you in · ngl i cant read that. yes?
 
 ### Hungry traveller
 
@@ -370,20 +663,50 @@ You answer an escort or a race with something unclear (maybe, idk, hmm, why...):
 
 It walks up to you.
 
-- **everyone:** excuse me, {player}... I haven't eaten in days. could you spare some food? · hey {player}, sorry to bother you... got any food? im starving · pls {player}, anything to eat? havent eaten in days · {player}... could you spare some food? even bread · hey, any food? im so hungry i could eat a raw potato
-- **newbie:** {player} can i have food pls im starving · pls food :( · hiii do u have food im so hungry
+- **everyone:** excuse me, {player}... I haven't eaten in days. could you spare some food? · hey {player}, sorry to bother you... got any food? im starving · pls {player}, anything to eat? havent eaten in days · {player}... could you spare some food? even bread · hey, any food? im so hungry i could eat a raw potato · hey {player}... got any food to spare? anything at all · sorry to ask, but do you have any food? my hunger bar is empty · {player}, could you toss me something to eat? please · ive been living on berries for days. any food? · excuse me... any bread? or a carrot? anything · hi. i hate asking, but im starving. got food? · pls, any food? i cant even sprint anymore · {player}... my stomach is growling louder than a zombie. food? · could you spare a bite? havent eaten since yesterday · hey, do you have food? i lost everything to a creeper · sorry... im so hungry. any food you can spare? · {player} wait, pls. any food? even rotten flesh would do · got anything to eat? my last steak was days ago · hey stranger. spare some food? im running on empty · {player}, food? anything. im begging · i died and lost my whole pack. could you spare some food? · excuse me {player}, any food for a hungry traveller? · havent found a single animal in days. got any food? · sorry to bug you... got an apple or something? · my hunger is at zero and its eating my hearts. food pls? · please, just a little food. ill pay you back somehow · {player}, hi... could you throw me some food? im fading · anything to eat? ive been chewing on kelp for two days · hey, do you have food? i cant heal like this · {player}... do you have any food? im seeing double · got any cooked fish? or raw. i dont care anymore · hey, sorry, food? havent had a full bar in days
+- **newbie:** {player} can i have food pls im starving · pls food :( · hiii do u have food im so hungry · hi!! do u have food?? i dont know how to farm yet · {player} pls food?? my hearts keep going down · omg im so hungry, can u give me bread pls · sorry im new, where do u get food? can i have some?
+- **builder:** forgot to eat while building. got any food {player}?
+- **speedrunner:** skipped every meal. hungry now. food?
+- **hoarder:** chests full of stuff at home, nothing to eat on me. spare some?
+- **helper:** i gave all my food away and now im starving lol. got any?
+- **hermit:** ...food. please · dont like asking. but... food?
+- **miner:** been down at y -50 for days, ran out of food. got any? · came up from the caves starving. spare some food {player}?
+- **homebody:** my farm got trampled and im starving. any food, {player}? · i miss home cooking so much... got anything to eat?
+- **nomad:** been on the road too long, ate my last bread a week ago. spare some? · {player}, a traveller asks: any food? the road was long
+- **casual:** yo {player}, got any food? im lowkey starving · ngl im so hungry rn. spare some food? · hey lol this is embarrassing but got food?
 
 #### `encounter.hungry.thanks`
 
 You threw it food; it gives you something.
 
-- **everyone:** bless you. here, for your kindness. · ty ty, here, take this · you saved me fr, here · omg ty. take this, its all i have · thank you!! here, for you
+- **everyone:** bless you. here, for your kindness. · ty ty, here, take this · you saved me fr, here · omg ty. take this, its all i have · thank you!! here, for you · thank you. here, take this · oh that hits the spot. here, for you · ty so much. this is for you · finally, food. thank you. take this · you didnt have to do that. here · i can feel my hearts coming back. thank you, here · ty, really. take this, please · best meal ive had in days. heres something · thats so kind. here, its yours · mm, thank you. take this as thanks · you saved my life. this is yours · ty!! here, i insist · i wont forget this. here, take it · full bar again. thank you, this is for you · thanks a lot. here, for the food · that was amazing. take this, please · kindness like that is rare out here. here · ty stranger. here, you earned it · oh man, i needed that. take this · ty, i can sprint again. here · im not much, but take this. thank you · small thing, but its yours. ty for the food · ty ty. here, for your trouble · that was the best bread of my life. here, take this · ok i can think again. ty, this is yours · i was about to eat a spider eye. ty, here · you're a good one. here, take it
+- **builder:** ty. here, use it for your next build
+- **PvP sweat:** ok ty, respect. take this
+- **speedrunner:** ty. here. gtg
+- **miner:** ty, i can mine again. here, take this · found this underground. its yours, ty
+- **nomad:** ty friend. something for the road, take it · safe travels, and take this. ty for the food
+- **hoarder:** ty. here... dont tell anyone i gave this away · fine, you earned it. take this
+- **hermit:** ...thanks. here · ty. take it
+- **helper:** you're so kind. take this, and pass it on someday · ty! if you ever need help, find me. here · ty, people like you make this world better. here
+- **homebody:** that tasted like home. here, take this · ty, that warmed me right up. here, for you
+- **newbie:** omg ty!! my hunger bar is full again!! here!! · yay food!! here u can have this · ty ty!! i didnt know how to get food lol, here
+- **casual:** ngl that was clutch. here, take this · lol ty, i was cooked. heres something · fr ty. take this · you're goated fr. take this
 
 #### `encounter.hungry.giveup`
 
 Nobody fed it.
 
-- **everyone:** never mind... thanks anyway. · ok... nvm · its fine. ill find something · nvm, ty anyway
+- **everyone:** never mind... thanks anyway. · ok... nvm · its fine. ill find something · nvm, ty anyway · ok... ill keep looking · nvm then. sorry to bother you · guess not. ill manage · ok. ill go find some berries · fine... maybe ill catch a fish · alright. ill try the next village · oh well. sorry for asking · nvm. ill go hunt something · ok, forget it · its ok. i get it · guess ill eat kelp again · alright... bye · ok, ill find a cow somewhere · i think i saw carrots in a village. bye · thats ok. ill figure it out · fine. hungry it is · no worries. ill keep walking · understood. ill leave you be · ok... maybe someone else will help
+- **PvP sweat:** ok, L. ill find my own
+- **hoarder:** fine. back to my chests, maybe theres a potato
+- **speedrunner:** k. moving on
+- **miner:** ill check the mineshaft chests. bye
+- **helper:** no worries, maybe you need it more. take care
+- **nomad:** ill find something down the road. safe travels
+- **homebody:** ok. ill head home, maybe the crops grew
+- **hermit:** ...fine · figures
+- **newbie:** oh ok :( ill try to find food · ok... how do i get food tho. nvm
+- **casual:** lol ok. ill just starve then. jk · all good, ill go punch a pig
 
 ### Injured traveller
 
@@ -391,19 +714,50 @@ Nobody fed it.
 
 Running from zombies, before it sees you.
 
-- **everyone:** help! anyone! zombies! · HELP · somebody help!! zombies! · anyone?? zombies on me · HELP ME pls
+- **everyone:** help! anyone! zombies! · HELP · somebody help!! zombies! · anyone?? zombies on me · HELP ME pls · HELP!! zombies! · is anyone out there?? help! · help me! theyre right behind me · zombies!! somebody!! · anyone nearby?? im hurt! · HELP. im low · help pls, im almost dead · someone!! theres too many · cant fight them all, HELP · help! i have no sword! · anybody!! zombies chasing me · HELP, im on 3 hearts · please, anyone! help! · i need help over here!! · theyre gonna get me, HELP · zombies everywhere, help!! · can anyone hear me?? help · SOMEONE HELP · im getting chased, help!! · help!!! my armor broke
+- **helper:** HELP! for once i need it!
+- **speedrunner:** help. no food no sword
+- **hermit:** ...help. HELP
+- **builder:** help!! they came out of nowhere
+- **homebody:** help!! i just wanted to get home
+- **nomad:** help! got jumped on the road!
+- **miner:** help! got chased out of my cave!
+- **newbie:** HELP HELP how do i kill zombies · omg zombies!! help pls!! · somebody help me im gonna die!!
+- **casual:** uhh help?? this is bad · ok im actually cooked, HELP
 
 #### `encounter.injured.help`
 
 Running from zombies, once it sees you.
 
-- **everyone:** help! please, help me! · zombies! {player}, help! · {player} HELP · pls help {player} im low · {player}!! zombies!! help · im on 2 hearts help
+- **everyone:** help! please, help me! · zombies! {player}, help! · {player} HELP · pls help {player} im low · {player}!! zombies!! help · im on 2 hearts help · {player}! over here! help! · you! pls help, zombies! · {player} pls, theyre on me · help me {player}, im almost dead · {player}!! kill them pls! · hey! you with the sword! help! · {player} save me!! · pls {player}, i cant outrun them · over here!! zombies!! {player}!! · {player}, help! i have no weapon · HELP {player} HELP · {player} im on one heart pls · please help, theyre right behind me! · {player}!! take them off me! · oh thank goodness, a person! help! · you there! zombies! help! · {player} pls i cant fight back · help!! {player}, theyre gonna kill me · {player}, pls, im running out of hearts · i see you! help me!! · {player}!! behind me!! zombies!! · {player} hit them pls i cant · come quick {player}!! · you! yes you! help!! · {player}!! theres three of them!! · help!! they hit so hard, {player}! · {player} pls, my shield broke! · zombies!! {player} over here, quick! · {player}, pls! cant shake them off
+- **hoarder:** {player} help! theyll get my stuff! · save me {player}, i'll pay!
+- **PvP sweat:** {player} help, im not losing to zombies · ok i need a 2v3 here {player}, help
+- **speedrunner:** {player} help. fast
+- **helper:** {player}! i always help people, pls help me!
+- **hermit:** ...{player}. help. now · dont like asking. {player}, help
+- **builder:** {player} they wrecked my build and now theyre after me, help!
+- **homebody:** {player} pls, i just want to get home alive!
+- **nomad:** {player}! traveller in trouble! help!
+- **miner:** {player}! my pick broke, cant fight, help! · help {player}, these things chased me out of the cave
+- **newbie:** {player} pls help!! idk how to fight!! · omg a person!! {player} help me pls!! · {player} HELP they keep hitting me!! · how do i fight these {player}?? help!!
+- **casual:** {player} bro help im actually dying · ok {player} pls dont just watch, help lol · {player} ok this is not a drill, help
 
 #### `encounter.injured.thanks`
 
 You killed the zombies and it lived.
 
-- **everyone:** thank you... I'd be dead without you. Here, take this. · ty ty ty. i was cooked. here · you saved me {player}. take this · omg ty, i was on half a heart. here · W {player}. take this, you earned it
+- **everyone:** thank you... I'd be dead without you. Here, take this. · ty ty ty. i was cooked. here · you saved me {player}. take this · omg ty, i was on half a heart. here · W {player}. take this, you earned it · you saved my life. here, take this · ty {player}. i was done for. this is yours · thank you so much. take this, please · phew. ty. here, you earned it · i owe you one {player}. here · that was close. thank you, take this · i thought i was dead. here, for you · ty for saving me. take it, its the best i have · wow, you cleared them all. here, take this · thanks {player}. heres something for your trouble · i couldnt have done that alone. here · my hearts... ty. take this · you came just in time. take this · thank you, really. its yours · you didnt have to help, but you did. here · ty, i was one hit from respawning. here · {player}, you're a lifesaver. take this · ok im alive. ty. heres something · thank you, stranger. this is for you · i can finally breathe. ty, here · nice fighting. take this as thanks · id have lost everything. here, take it · ty, im gonna go eat and heal. here first · those zombies didnt stand a chance. ty, here · ok, my heart's still pounding. ty, take this · you fought them off like nothing. here · ty {player}, they had me cornered. here · i was ready to respawn. ty, this is yours
+- **builder:** ty, i'll build you a statue. jk, take this
+- **speedrunner:** ty. take this. gotta go
+- **PvP sweat:** ok you're actually good. ty, here · respect {player}. take this
+- **hoarder:** ty. this is from my stash, so it means a lot · here... my best one. ty for saving me
+- **nomad:** ty friend. take this, and may your road be safe · o7 {player}. take this
+- **miner:** ty, take this. found it deep down · you saved me {player}. here, straight from the mines
+- **hermit:** ...ty. take it · thanks. here. dont tell anyone
+- **helper:** usually im the one helping lol. ty, take this · ty {player}. if you ever need help, i got you. here
+- **homebody:** ty, now i can go home. here, take this
+- **newbie:** omg ty ty ty!! i thought i was gonna die!! here!! · {player} ur so good at fighting!! take this!!
+- **casual:** ok that was insane. ty, take this · fr you clutched that. here · lol i almost died. ty {player}, here · W save fr. here
 
 ### Lost dog
 
@@ -411,31 +765,73 @@ You killed the zombies and it lived.
 
 It asks you, handing you a lead.
 
-- **everyone:** excuse me... have you seen my dog? {dog}, red collar. he ran off {way} a while ago and won't come back. here, take this lead, in case you find him. · hey {player}, have you seen a dog? {dog}, red collar. ran off {way}. here, take a lead in case · {player} pls, my dog {dog} ran off {way}... red collar. heres a lead if you find him
+- **everyone:** excuse me... have you seen my dog? {dog}, red collar. he ran off {way} a while ago and won't come back. here, take this lead, in case you find him. · hey {player}, have you seen a dog? {dog}, red collar. ran off {way}. here, take a lead in case · {player} pls, my dog {dog} ran off {way}... red collar. heres a lead if you find him · have you seen my dog? {dog}, red collar. ran off {way}. take this lead, just in case · {player}, my dog {dog} ran {way} and wont come back. red collar. heres a lead · sorry to bother you, my dog {dog} ran off {way}. red collar. take this lead pls · hey, if you go {way}, look out for {dog}? red collar. heres a lead for him · my dog {dog} chased a rabbit {way} and never came back. red collar. take a lead? · {player}, seen a dog with a red collar? {dog}. he went {way}. heres a lead · lost my dog. {dog}, red collar, last seen heading {way}. please take this lead · {dog} ran off {way} an hour ago. red collar. could you look? heres a lead · excuse me, a dog called {dog}? red collar? ran {way}. take this lead if you find him · {player}! my {dog} is gone, ran {way}. red collar. heres a lead, pls bring him back · have you seen {dog}? my dog. red collar. he bolted {way}. take this lead · my dog {dog} got scared by a creeper and ran {way}. red collar. heres a lead · pls help, {dog} ran {way} and i cant find him. red collar. take a lead · {dog} wandered off {way} while i was mining. red collar. heres a lead, just in case · if you see a dog with a red collar {way} of here, thats {dog}. take this lead · {player}, could you keep an eye out {way}? my dog {dog}, red collar. heres a lead · {dog}'s been gone since morning. went {way}. red collar. take a lead pls · i think {dog} went {way}. red collar, answers to his name. heres a lead for him · lost my best friend. a dog, {dog}, red collar. ran {way}. take this lead? · hey, dog lost. {dog}. red collar. last seen {way}. lead's yours if you look · {dog} heard a wolf howl and ran {way}. red collar. heres a spare lead · sorry, have you seen a dog? red collar, name's {dog}. he ran {way}. take a lead · my {dog} slipped his lead and ran {way}. red collar. heres a new lead · {player} pls, {dog} is out there somewhere {way}. red collar. take this lead · {dog} ran {way} chasing a sheep. red collar. heres a lead in case you see him · {player}, quick question, seen {dog}? red collar. ran {way}. heres a lead if you look · pls keep an eye out for my dog {dog}. red collar. went {way}. take this lead · {dog} ran {way} after a fox. red collar. heres a lead, he likes treats · my dog's missing. {dog}, red collar. went {way} at dawn. heres a lead
+- **speedrunner:** dog lost. {dog}. red collar. went {way}. lead, here. pls
+- **builder:** {dog} knocked over my scaffolding and ran {way}. red collar. heres a lead
+- **hoarder:** {dog} is the one thing i cant replace. ran {way}. red collar. take this lead
+- **miner:** {dog} got spooked by a cave noise and ran {way}. red collar. heres a lead · was at y -40 and {dog} ran off {way}. red collar. heres a lead pls
+- **hermit:** ...my dog. {dog}. red collar. went {way}. lead. here · dont talk much. but {dog} ran {way}. red collar. take the lead
+- **helper:** id look myself but im lost. {dog}, red collar, went {way}. heres a lead · could you help? {dog} ran {way}. red collar. heres a lead, thank you so much
+- **nomad:** my travel buddy {dog} ran off {way}. red collar. take this lead, friend · {dog} walked every road with me. now hes gone {way}. red collar. heres a lead
+- **homebody:** {dog} never leaves home. but he ran off {way}. red collar. heres a lead, pls · the house is so quiet without {dog}. he ran {way}. red collar. take this lead
+- **newbie:** {player} pls help!! my dog {dog} ran {way}!! red collar!! heres a lead · omg i lost my dog {dog}, he went {way}?? red collar. heres a lead i think · hiii have u seen {dog}?? my dog, red collar, ran {way}. take this lead pls
+- **casual:** yo {player}, my dog {dog} dipped {way}. red collar. heres a lead, ty · ngl im panicking a bit. {dog} ran {way}. red collar. lead's yours · lol my dog {dog} just yeeted off {way}. red collar. take a lead? · ok so {dog} ran off {way} again. red collar. take this lead pls
 
 #### `encounter.lostdog.call`
 
 Calling for its dog.
 
-- **everyone:** {dog}! here, boy! {dog}! · {dog}!! come here! · {dog}? where are you boy · HERE {dog}! · {dog}!! treats!
+- **everyone:** {dog}! here, boy! {dog}! · {dog}!! come here! · {dog}? where are you boy · HERE {dog}! · {dog}!! treats! · {dog}! come back! · {dog}!! where did you go · here {dog}! here boy! · {dog}? {dog}!! · come on {dog}, come home! · {dog}! dinner time! · {dog}, pls come back · {dog}!! i got a bone for you! · where are you {dog}?? · {dog}! heel! · {dog}!! come on buddy · {dog}? you out there? · *whistles* {dog}! come! · {dog}, im not mad, just come back · {dog}!! its getting dark, come home! · {dog}!! dont make me look all night · psst {dog}! come here · {dog}!!! ...come on · {dog}, im right here, follow my voice · {dog}! sit! stay! ...come? · {dog} pls, theres creepers out here · {dog}!! ive got cooked chicken! · {dog}! over here! · {dog}? bark if you hear me! · {dog}!! i miss you buddy · {dog}! i have a steak for you!
+- **miner:** {dog}! dont go in the cave, come here!
+- **hoarder:** {dog}!! come back, youre mine!
+- **nomad:** {dog}! the road's this way, buddy!
+- **homebody:** {dog}! come home, its warm inside
+- **hermit:** {dog}. come
+- **casual:** {dog} lol come back buddy
+- **newbie:** {dog}!! pls come back!! i dont know where u went
 
 #### `encounter.lostdog.found`
 
 The dog came back.
 
-- **everyone:** {dog}! there you are! oh, you silly dog. · {dog}!!! there you are · {dog}!! good boy, dont run off like that · omg {dog}!!
+- **everyone:** {dog}! there you are! oh, you silly dog. · {dog}!!! there you are · {dog}!! good boy, dont run off like that · omg {dog}!! · {dog}! oh im so glad · {dog}!! you came back! · there you are {dog}! i was so worried · {dog}! dont scare me like that · {dog}!! oh buddy · {dog}! where have you been? · you silly dog, {dog}! come here · {dog}!! i missed you! · {dog}! never do that again · finally! {dog}! · {dog}, you goof. come here · oh {dog}, look at you, all muddy · {dog}!!! yes!! good boy!! · {dog}! youre safe! · hey {dog}! who's a good boy · {dog}!! oh thank goodness · {dog}! im never letting go of this lead again · {dog}, you scared me half to death · there he is! {dog}! · {dog}! oh you're ok, you're ok · {dog}!! we're going home buddy · {dog}, did you chase rabbits again? · yes!! {dog} is back!
+- **miner:** {dog}! better than finding dias
+- **hoarder:** {dog}! my best treasure, back
+- **hermit:** ...{dog}. good. good boy
+- **nomad:** {dog}! ready to hit the road again, buddy?
+- **homebody:** {dog}! lets go home, i'll make you dinner
+- **casual:** {dog} lol you absolute goober. come here
+- **newbie:** OMG {dog}!!! ur back!!! · {dog}!! i thought u were gone forever!!
 
 #### `encounter.lostdog.thanks`
 
 You brought the dog back.
 
-- **everyone:** thank you so much. here, it's not much, but take it. · ty {player}!! here, take this · you found him!! here, its yours · W human. take this
+- **everyone:** thank you so much. here, it's not much, but take it. · ty {player}!! here, take this · you found him!! here, its yours · W human. take this · you found him! thank you so much. take this · ty {player}! here, for bringing him back · i cant thank you enough. please, take this · he's back! here, this is for you · you brought my dog home. take this · ty, really. heres something for your trouble · thank you {player}! i was so worried. here · my dog is home. its not much, but take it · thank you, thank you. here, its yours · ill never forget this. here, take it · he's safe because of you. take this · you're a hero to us both. here · ty for finding him. please take this · oh ty. here, you earned this · ty {player}, he means everything to me. take this · you got him back! heres a little something · thanks so much. here, a reward · i was about to give up. ty, take this · here, for you. ty for finding my boy · thank you, stranger. take this, please · ty! he even likes you. here, take this · he must have run so far. ty for finding him. here · ty for not giving up. this is yours · ty, his tail hasnt stopped wagging. here, for you · ty {player}. you've got a good heart. take this · he's home safe. thank you, take this · ty for bringing my buddy back. here · {player}, ty. he's all i have. take this · you found my dog! here, its the least i can do · ty, we'll both sleep well tonight. here
+- **builder:** ty, ill build him a doghouse now. take this
+- **speedrunner:** ty. here. we're off
+- **PvP sweat:** ok W {player}, take this
+- **miner:** ty, take this. its from deep down
+- **hoarder:** ty. here, and i dont give stuff away lightly
+- **nomad:** ty friend. we can hit the road again. take this · o7 {player}. take this for your trouble
+- **hermit:** ...ty. here · thanks. take it
+- **helper:** ty so much. if you ever need help, find me. here
+- **homebody:** now home will feel like home again. ty, take this · ty {player}, come visit us sometime. here
+- **newbie:** omg ty ty ty!! u found him!! take this!! · {player} ur the best!! here!!
+- **casual:** yooo you found him! ty, take this · ngl i thought he was gone. ty {player}, here · lol he wont stop jumping on me. ty, here
 
 #### `encounter.lostdog.dead`
 
 The dog died.
 
-- **everyone:** ...no. {dog}? no... · {dog}... no... · no no no. {dog}... · not {dog}...
+- **everyone:** ...no. {dog}? no... · {dog}... no... · no no no. {dog}... · not {dog}... · {dog}... how · no... not {dog} · {dog}? wake up... pls · please... {dog}, get up · {dog}... buddy... · why {dog}... why · i was so close {dog}... · {dog}... im so sorry · i found you too late {dog}... · {dog}... i should've been there · who did this to {dog}... · {dog}... my good boy... · all that searching... {dog}... · not like this {dog}... · {dog}... rest easy buddy · ...{dog}? · {dog}, no... i just wanted you home
+- **miner:** {dog}... i'd trade every dia for you back
+- **hoarder:** {dog}... the only thing i ever really cared about
+- **nomad:** {dog}... we had so many roads left
+- **homebody:** {dog}... the house will be so empty
+- **hermit:** ... {dog}
+- **newbie:** {dog}?? no no no pls no
+- **casual:** {dog}... bro no...
 
 ### Escort
 
@@ -443,49 +839,123 @@ The dog died.
 
 It asks you to walk it to a village.
 
-- **everyone:** excuse me, {player}! I'm going to the village {way} of here, about {far} blocks. the roads aren't safe... would you walk with me? {pay} emeralds when we get there. (say yes) · hey {player}, heading to the village {way} of here, ~{far} blocks. walk with me? {pay} emeralds when we get there (say yes) · {player}! could you escort me to the village {way}? its about {far} blocks, roads are sketchy. {pay} emeralds in it for you (say yes)
+- **everyone:** excuse me, {player}! I'm going to the village {way} of here, about {far} blocks. the roads aren't safe... would you walk with me? {pay} emeralds when we get there. (say yes) · hey {player}, heading to the village {way} of here, ~{far} blocks. walk with me? {pay} emeralds when we get there (say yes) · {player}! could you escort me to the village {way}? its about {far} blocks, roads are sketchy. {pay} emeralds in it for you (say yes) · hey {player}, walk me to the village {way}? ~{far} blocks. {pay} emeralds. say yes? · {player}, i need an escort to the village {way}, {far} blocks. {pay} emeralds, yes or no? · roads are bad lately. village {way}, {far} blocks. {pay} emeralds if you come. say yes · could you walk me {far} blocks {way} to the village? {pay} emeralds. (say yes) · {player}! paying {pay} emeralds for an escort. village {way}, {far} blocks. yes? · need a bodyguard: village {way}, about {far} blocks, {pay} emeralds. you in? say yes · its {far} blocks {way} to the village and i dont have a sword. {pay} emeralds? (say yes) · hey, got a minute? village {way}, {far} blocks. {pay} emeralds if you walk me. say yes · would you escort me {way}? {far} blocks to the village, {pay} emeralds. yes? · last time i went {way} alone i almost died. {far} blocks, {pay} emeralds? (say yes) · {pay} emeralds for a walk. village {way} of here, {far} blocks. say yes if you're in · the village {way} is {far} blocks off and its getting dark. {pay} emeralds? (say yes) · {player}, could use some company {way}. {far} blocks to the village, {pay} emeralds. yes? · excuse me, i need someone to walk me {far} blocks {way}. {pay} emeralds. say yes? · village {way}, ~{far} blocks. i'll pay {pay} emeralds when we get there. (say yes) · bandits on the road {way}. walk me {far} blocks to the village? {pay} emeralds, say yes · i'd feel safer with you along. village {way}, {far} blocks, {pay} emeralds. yes or no? · can you get me to the village {way}? {far} blocks. {pay} emeralds. just say yes · hi {player}. escort job: {far} blocks {way} to a village. {pay} emeralds. say yes? · i know the way, i just need a guard. village {way}, {far} blocks, {pay} ems. (say yes) · please, im not a fighter. village {way}, {far} blocks. {pay} emeralds if you come. yes? · want {pay} emeralds? walk me {far} blocks {way} to the village. say yes · {player}, walk with me? village {way}, {far} blocks. {pay} emeralds, paid on arrival. yes? · village {way} of here, {far} blocks out. {pay} emeralds for company. say yes · my last escort bailed. {far} blocks {way} to the village. {pay} emeralds? say yes · hey! got a sword? walk me {far} blocks {way} to a village, {pay} emeralds. yes? · safer in pairs. village {way}, {far} blocks. {pay} emeralds when we arrive. say yes · {player}, {far} blocks of road {way}, then a village. walk me? {pay} emeralds. yes or no · {pay} emeralds says you'll keep me alive {far} blocks {way}, to the village. say yes
+- **PvP sweat:** you look like you can fight. village {way}, {far} blocks, {pay} ems. say yes
+- **hermit:** ...village {way}. {far} blocks. {pay} emeralds. walk with me? say yes
+- **speedrunner:** escort. village {way}. {far} blocks. {pay} emeralds. yes/no
+- **builder:** got a build job in the village {way}, {far} blocks. walk me? {pay} emeralds. say yes
+- **miner:** hauling ore to the village {way}, {far} blocks. guard me? {pay} emeralds (say yes)
+- **helper:** usually i help others, but i need you now. village {way}, {far} blocks, {pay} ems. yes? · id really appreciate it: village {way}, {far} blocks, {pay} emeralds. yes?
+- **hoarder:** carrying my whole stash to the village {way}. {far} blocks. {pay} emeralds. say yes · i've got a lot to lose. village {way}, {far} blocks, {pay} emeralds for a guard. yes?
+- **homebody:** i want to get home to the village {way}. {far} blocks. {pay} emeralds? say yes · my family's in the village {way}, {far} blocks. walk me? {pay} emeralds (say yes)
+- **nomad:** {player}, the road {way} runs {far} blocks to a village. walk it with me? {pay} ems. say yes · travellers stick together. village {way}, {far} blocks, {pay} emeralds. (say yes)
+- **newbie:** {player} pls walk me to the village {way}?? its {far} blocks!! {pay} emeralds!! say yes · hi!! im scared to go {way} alone, {far} blocks to the village. {pay} emeralds? say yes pls
+- **casual:** yo {player}, wanna walk me {far} blocks {way}? village. {pay} ems. say yes lol · ngl the roads scare me. village {way}, {far} blocks, {pay} emeralds. yes? · lol im too scared to go {way} alone. village, {far} blocks, {pay} ems. say yes?
 
 #### `encounter.escort.yes`
 
 You said yes (section 10).
 
-- **everyone:** great! stay close, and keep your eyes open. · ty!! stay close · W. lets go, stay near me · perfect. eyes open, mobs are everywhere · lets go. ill follow you
+- **everyone:** great! stay close, and keep your eyes open. · ty!! stay close · W. lets go, stay near me · perfect. eyes open, mobs are everywhere · lets go. ill follow you · ty! follow me, i know the way · great. stay close · awesome, lets move · ok! keep up and watch for mobs · thank you. this way · yes! stay near, the roads are rough · perfect. follow me · lets go then. eyes on the trees · ty, i feel safer already · alright, off we go · great, i'll lead. you watch my back · nice. stick close, ok? · ok lets go before it gets dark · good. keep your sword out · lets move. shout if you see anything · you're a lifesaver. come on · ok, stay behind me and keep watch · ty. i'll set the pace, you guard · great, lets not waste daylight · ok. if something jumps us, its on you lol · alright, together then. this way · perfect. watch out for creepers · alright! i know a shortcut, follow me · deal. lets go · thanks. ill go first · oh good. lets get going · thank you! follow me, and mind the ravines · ok! torches out if it gets dark
+- **builder:** ty. this way, past the oak trees
+- **miner:** ty, lets go. watch the cave mouths
+- **PvP sweat:** ok, anything shows up, you fight it
+- **helper:** ty so much! you're kind. this way
+- **hermit:** ...good. follow · fine. i dont talk much
+- **speedrunner:** k. fast pace. keep up · go go. this way
+- **hoarder:** ok. watch my stuff as much as me · good. keep an eye on my pack
+- **homebody:** ty! i cant wait to be home. this way
+- **nomad:** good. the road awaits. this way · o7, lets roll · good company makes short roads. lets go
+- **newbie:** yay!! ty!! follow me ok? · omg ty!! pls dont let me die lol
+- **casual:** W. lets go · lol ty, ok follow me
 
 #### `encounter.escort.no`
 
 You said no.
 
-- **everyone:** oh... alright. I'll take my chances. · oh ok. ill go alone then · fair. cya · ok... wish me luck · nw, ill manage
+- **everyone:** oh... alright. I'll take my chances. · oh ok. ill go alone then · fair. cya · ok... wish me luck · nw, ill manage · oh. ok, no worries · alright, maybe next time · ok, ill go by myself · understood. take care · thats fine. ill be careful · oh well. ill risk it · ok... i'll stick to the road · no problem. safe travels · fair enough. bye · ah ok. hope i make it lol · ok. ill wait for daylight then · alright, ill find someone else · shame. ok, cya · ok... ill walk fast · guess its just me then · no hard feelings · ok. if you hear screaming, thats me lol · thats ok. thanks anyway · right. ill keep my sword close · sure, i get it. busy day · oh... ok then · ok. if i dont make it, tell the village i tried · alright then. stay safe out here · oh ok. i'll go the long way, its safer · thats alright. ill travel by day · oh, ok. ill keep my eyes open then · ok. i'll sneak the whole way lol
+- **miner:** ok, ill cut through the caves instead
+- **PvP sweat:** whatever, ill solo it. ez
+- **speedrunner:** k. solo it is
+- **hermit:** ...fine · better alone anyway
+- **helper:** totally ok! take care of yourself
+- **hoarder:** fine. more emeralds for me · ok. guess ill hide my stuff better
+- **homebody:** ok. ill just hurry home
+- **nomad:** the road and i, then. safe travels · o7. ill go on
+- **newbie:** oh ok :( ill try not to die · aw ok... bye!!
+- **casual:** lol ok fair. cya · np, ill wing it
 
 #### `encounter.escort.noanswer`
 
 No answer within a minute.
 
-- **everyone:** never mind, then. · nvm then · ok... guess not · ill go alone i guess
+- **everyone:** never mind, then. · nvm then · ok... guess not · ill go alone i guess · cool cool. ill walk then · hello? ...ok then · no answer. alright · ill take that as a no · forget it then · fine, i'll ask someone else · you there? no? ok · silence it is. bye · nvm, ill head out · alright, im off · guess you're busy. bye · ok... i'll manage alone · no? ok. cya · waited long enough. bye · alright, i get the hint
+- **homebody:** ok, ill just hurry home alone
+- **PvP sweat:** too scared to answer? ok
+- **hoarder:** ok. keeping my emeralds then
+- **helper:** no worries, maybe another time. bye
+- **nomad:** road's calling. bye
+- **speedrunner:** no answer. leaving
+- **hermit:** ...figures · fine
+- **newbie:** um hello?? ok bye i guess :(
+- **casual:** lol ok, ghosted. cya · k, ill just go
 
 #### `encounter.escort.bandit`
 
 A bandit, when bandits jump you on the way.
 
-- **everyone:** well, well. a traveller with a bodyguard. · look at this, brought a bodyguard · cute, a bodyguard · pay up, both of you
+- **everyone:** well, well. a traveller with a bodyguard. · look at this, brought a bodyguard · cute, a bodyguard · pay up, both of you · well look at this. two for the price of one · a bodyguard? thats adorable · hand over the emeralds. both of you · you picked the wrong road · nice escort. shame about it · your bodyguard cant save you · drop your stuff and walk away · empty your pockets, the pair of you · toll road. pay up · whats this, a little parade? · hired help, huh? didnt help · two travellers, one road, zero chance · you shouldve stayed in town · emeralds. now · step away from him and nobody gets hurt · the traveller's ours. you can leave · this road belongs to us · going somewhere? not today · thought a bodyguard would stop us? lol · give us the emeralds and you can keep walking · surrounded. now what · stop right there, both of you · weapons down and nobody respawns · ooh, protection. how sweet · did he pay you enough to die for him? · this is where your trip ends · nice day for a robbery
+- **hoarder:** everything you carry. into my chests · gonna count every emerald you have
+- **hermit:** ...pay up
+- **PvP sweat:** a bodyguard? 1v1 me then · your escort's about to get clapped · skill issue incoming
+- **bandit:** nothing personal, but your pack is mine · hand it over or you're both respawning · a bodyguard. great, more loot · i'll take the emeralds you were gonna get paid · you two look rich. lets see · end of the road for you two · run or pay. your choice · i was hoping you'd bring a friend · two packs to loot. good day · he's paying you in emeralds? perfect, those are mine now · we take the emeralds, you take a walk · should've hired a better bodyguard
 
 #### `encounter.escort.waitup`
 
 You got too far ahead.
 
-- **everyone:** wait up! don't leave me out here. · wait for me! · slow down pls · {player} wait up · dont leave me!!
+- **everyone:** wait up! don't leave me out here. · wait for me! · slow down pls · {player} wait up · dont leave me!! · hey, slow down! · wait! dont go so far ahead · {player}! not so fast · hold up!! · you're too fast, wait up · hey {player}, stay with me! · wait, i cant keep up · dont get too far ahead pls · {player}! come back a bit · hey! you're supposed to guard me · wait up {player}, mobs around · slow down, my legs are tired · {player}?? where'd you go · im still here, wait! · dont run off {player} · easy, easy. wait up · {player}, hold on a sec · too far {player}, come back · you're supposed to be next to me lol · i cant see you anymore, wait! · {player}!! back here! · wait, which way did you go? · uh, {player}? little help back here?
+- **PvP sweat:** bodyguard's running away? wait up
+- **nomad:** easy on the pace, friend. wait up
+- **helper:** hey, no rush! wait for me pls
+- **hoarder:** wait! im carrying a lot
+- **homebody:** {player}, wait, im scared out here
+- **hermit:** ...wait
+- **speedrunner:** ...ok youre faster than me. wait
+- **newbie:** {player} wait!! im slow!! · hey wait pls!! dont leave me behind!!
+- **casual:** bro wait up lol · {player} chill, slow down
 
 #### `encounter.escort.alone`
 
 You left it behind.
 
-- **everyone:** fine, I'll go on alone. · guess im on my own · ok bye then · thanks for nothing
+- **everyone:** fine, I'll go on alone. · guess im on my own · ok bye then · thanks for nothing · ok, bye then. ill go alone · wow. ok, on my own then · great, my bodyguard left · fine. ill make it myself · some escort you are · left me here. nice · guess you had better things to do · ok... alone again · so much for the deal · you're not getting paid for that lol · alright, ill risk it alone · i'll find my own way. bye · well, that was short · cool. just me and the zombies now · no emeralds for you then · ok, if i die thats on you · thanks a lot... not · figured. ok, im going
+- **homebody:** ill just hurry home on my own
+- **speedrunner:** k. faster without you anyway
+- **PvP sweat:** coward. ok
+- **helper:** its ok. hope you're alright, wherever you went
+- **nomad:** the road's mine then. bye
+- **hoarder:** ok. keeping the emeralds
+- **hermit:** ...better this way
+- **newbie:** noooo dont leave me :( ok...
+- **casual:** lol ok bye i guess · ngl kinda rude. bye
 
 #### `encounter.escort.arrived`
 
 You got there; it pays.
 
-- **everyone:** we made it! thank you, really. as promised. · we made it!! ty, here you go · W, we're here. as promised · made it. ty {player}, heres your emeralds
+- **everyone:** we made it! thank you, really. as promised. · we made it!! ty, here you go · W, we're here. as promised · made it. ty {player}, heres your emeralds · we're here! ty, here's your pay · made it in one piece. here you go · thank you {player}. your emeralds, as promised · finally. here, you earned these · village! ty, heres the emeralds · we did it. as agreed, take these · safe and sound. thank you, here · thanks for walking with me. here's the pay · couldnt have done it without you. your emeralds · here we are. a deal's a deal · ty {player}. take these, you earned every one · phew, we made it. here's what i owe you · here's your emeralds. ty for keeping me safe · the village at last. thank you, take these · ty, really. here's the payment · arrived! here, as promised · you did great. here's your cut · we made it alive lol. here · ty for the company. emeralds, as promised · {player}, best bodyguard ever. here's your pay · that went well. here you go, ty · here, count them. all there · see? told you i knew the way. here, ty · made it before dark. ty, here you go · hear the bells? we made it. here's your pay · not a scratch on me. thank you, here · you kept your word, i'll keep mine. here · ty for getting me here. emeralds, all yours
+- **builder:** ty. here, now i can start my build
+- **miner:** ty, now i can sell my ore. here's yours
+- **PvP sweat:** ez escort. here's your pay
+- **speedrunner:** made it. pay. done
+- **hermit:** ...here. ty · made it. emeralds. bye
+- **helper:** ty so much {player}! here's your emeralds, and a big thanks
+- **hoarder:** here. all of it, as promised. count em · ok... here. a deal is a deal, even for me
+- **nomad:** another road walked. ty friend, here's your pay · o7 {player}. emeralds as promised. safe travels
+- **homebody:** home at last. ty, here's your emeralds
+- **newbie:** we made it!!! ty {player}!! here's ur emeralds!! · omg we didnt die!! here!!
+- **casual:** ayy we made it. ty, here · ngl that was fun. here's the ems · that wasnt so bad lol. here you go
 
 ### Trapped miner
 
@@ -493,31 +963,72 @@ You got there; it pays.
 
 Calling from underground (first call).
 
-- **everyone:** help! the tunnel caved in and my pickaxe broke. I'm stuck down here at {coords} · HELP. cave-in, pick broke, stuck at {coords} · anyone?? stuck underground at {coords}, pick broke
+- **everyone:** help! the tunnel caved in and my pickaxe broke. I'm stuck down here at {coords} · HELP. cave-in, pick broke, stuck at {coords} · anyone?? stuck underground at {coords}, pick broke · cave-in!! im trapped at {coords} and my pick just snapped · can someone dig me out? {coords}, rock fell in behind me · uh. ceiling came down. stuck at {coords}, no pickaxe · HELP pls, trapped underground at {coords} · tunnel collapsed on me at {coords}. pick broke trying to dig out · anyone near {coords}? im boxed in down here · stuck in a little pocket of stone at {coords}. could use a hand · so my tunnel caved and my pick broke. {coords} if anyone can dig · help, walled in at {coords}. got no pick left · need someone with a pickaxe at {coords}, i'm stuck · sos. {coords}. cave-in, no tools · rocks everywhere. cant get out. {coords} · is anyone online near {coords}? i'm stuck in the rock · broke my last pick and the roof came down. {coords} · pls dig down to {coords}, im trapped · stuck below ground at {coords}. i can knock if you get close · listen for knocking at {coords}, thats me · collapsed tunnel at {coords}, i'm inside it. help · hello?? dug myself into a mess. trapped at {coords} · help!! no pick, no way out. {coords} · trapped at {coords}, been banging on the stone · can anyone hear me? cave-in at {coords} · got sealed in at {coords}. pick's gone. someone pls · stuck. {coords}. just bring a pickaxe pls
+- **hoarder:** trapped at {coords} with a full inventory of ore. help me get it out · stuck at {coords}. not leaving my iron behind either
+- **speedrunner:** cave-in, no pick, {coords}. quick pls · trapped at {coords}. need a pick, fast
+- **homebody:** just wanted iron for a new fence... stuck at {coords} now · i want to go home. trapped at {coords}, pick broke
+- **hermit:** ...need help. stuck at {coords} · cave-in. {coords}. dig · hate asking. trapped at {coords}, no pick
+- **casual:** ngl i'm kinda stuck. cave-in at {coords}, no pick · lol so my tunnel caved. {coords}. anyone got a pick · welp. trapped at {coords}, pick broke. help a guy out? · not my best moment fr. stuck at {coords}
+- **newbie:** omg help the cave fell on me!! im at {coords} · pls help my pickaxe broke and i cant get out!! {coords} · how do i get out of here?? stuck at {coords} with no pick · HELP im stuck in the ground at {coords} and its dark · i didnt know picks could break :( trapped at {coords} · im so stuck!! {coords} someone pls dig to me
+- **miner:** strip mine caved on me. {coords}, pick is toast · was chasing iron and the roof dropped. stuck at {coords} · pick broke mid vein and now im sealed in. {coords} · branch mining gone wrong. trapped at {coords}, no pick · gravel came down behind me, pick snapped. {coords} · found a nice vein then the tunnel caved. {coords}, help · my pick broke on the last block lol. walled in at {coords} · i always carry a spare pick. not today. stuck at {coords}
 
 #### `encounter.miner.call2`
 
 Second call.
 
-- **everyone:** anyone? still stuck at {coords}. about {depth} blocks down · still stuck at {coords}, ~{depth} blocks down · pls someone, {coords}, {depth} down
+- **everyone:** anyone? still stuck at {coords}. about {depth} blocks down · still stuck at {coords}, ~{depth} blocks down · pls someone, {coords}, {depth} down · still trapped at {coords}, {depth} blocks under · hello? {coords}. im about {depth} down · nobody yet... {coords}, {depth} blocks of rock above me · still here. {coords}. maybe {depth} blocks deep · pls, {coords}, dig {depth} down and youll hit me · {coords} still. roughly {depth} blocks under the grass · anyone coming? {coords}, {depth} blocks down · getting dark down here. {coords}, ~{depth} deep · its been a while. still at {coords}, {depth} down · if you dig at {coords} im {depth} blocks under the top · still trapped. {depth} blocks of stone. {coords} · please, anyone. {coords}. {depth} blocks down, no pick · haven't moved. {coords}, {depth} blocks down · can hear my own echo down here. {coords}, {depth} deep · i'm {depth} blocks under at {coords}. still waiting · hello up there? {coords}, {depth} below the surface · {depth} blocks down at {coords}. getting hungry · still stuck at {coords}. not far, only {depth} down · just {depth} blocks of dirt and stone between us. {coords} · {coords} again. about {depth} down, knocking on the wall · no one yet? {coords}, {depth} blocks underground · still in the hole. {coords}. {depth} down · pls hurry, {coords}, {depth} blocks deep · {coords}, {depth} under. ill keep knocking · {coords}. {depth} down. i've got a torch, look for light · nobody? {coords}, {depth} under the surface. pls · {depth} down at {coords}. a stone pick would do it · still knocking at {coords}. {depth} blocks under · help still needed. {coords}, about {depth} deep
+- **helper:** {coords}, {depth} blocks down. bring torches, its dark
+- **hoarder:** still stuck at {coords}, {depth} down. ore's still safe at least
+- **speedrunner:** {coords}, {depth} down. dig fast pls · wasting time here. {coords}, {depth} under
+- **homebody:** miss my bed. {coords}, {depth} blocks under · still at {coords}, {depth} down. the farm needs me
+- **hermit:** {coords}. {depth} down. still here · ...{depth} blocks. {coords}
+- **casual:** still vibing in the rock lol. {coords}, {depth} down · ok actually help pls. {coords}, ~{depth} under · no rush. jk rush. {coords}, {depth} blocks down
+- **newbie:** still stuck!! {coords} and like {depth} blocks down i think · is {depth} blocks a lot?? im at {coords} pls help · hellooo?? {coords}, {depth} down, its scary here · i counted, its {depth} blocks down. {coords}
+- **miner:** {coords}, ~{depth} down. bring any pick, even stone works · sealed in {depth} blocks deep at {coords}. dig carefully, gravel up there · {depth} blocks of stone, ez with an iron pick. {coords} · still at {coords}. {depth} down. watch for lava on the way · {coords}, {depth} below. staircase down so you can get back up · {coords}, {depth} under. its mostly stone, quick dig
 
 #### `encounter.miner.call3`
 
 Third call.
 
-- **everyone:** please... {coords}. I can hear something up there · {coords}... anyone? · still here. {coords}. pls
+- **everyone:** please... {coords}. I can hear something up there · {coords}... anyone? · still here. {coords}. pls · {coords}... is someone digging? · i hear footsteps. {coords}. please · getting weak... {coords} · still at {coords}. dont give up on me · please. {coords}. i'm still alive · {coords}. knock knock. anyone · thought i heard a pick. {coords}? · hunger bar's low... {coords} · {coords}. please dont leave · so quiet down here. {coords} · if anyone's up there... {coords} · heard something. was that you? {coords} · cant tell day from night anymore. {coords} · last torch is burning. {coords} · {coords}... hello? · is that a zombie up there or a person? {coords} · {coords}. i hear scraping. is that you? · still waiting at {coords}... · something's moving above me. {coords}. hello? · dont know how long ive been here. {coords} · {coords}. one more time. anyone · hearing things now. {coords} · my knuckles hurt from knocking. {coords} · {coords}... running out of bread · keep digging, whoever you are. {coords} · is anyone still reading this? {coords} · {coords}. so tired · {coords}. i can hear you, keep going
+- **helper:** {coords}... dont rush into lava for me. but pls come
+- **hoarder:** {coords}. ill share the ore. just get me out
+- **speedrunner:** {coords}. any time now · {coords}. this is costing me a whole day
+- **homebody:** {coords}... just want to see the sun again · thinking about my garden. {coords}
+- **hermit:** ...still breathing. {coords} · {coords}. fine. help · {coords}. still alive. barely
+- **casual:** ok this stopped being funny. {coords} · ngl kinda losing it. {coords} · {coords}... any day now lol
+- **newbie:** pls dont forget me :( {coords} · {coords}... is anyone even coming? · im scared now. {coords} · {coords} pls pls pls · {coords}... i dont want to die down here
+- **miner:** {coords}. i know that sound, thats a pick. over here · {coords}... hearing gravel shift. careful · sat here counting stone blocks. {coords} · {coords}. dig toward the knocking
 
 #### `encounter.miner.freed`
 
 You dug through to it.
 
-- **everyone:** light! someone's there! oh, thank goodness. · LIGHT. omg ty · you found me!! ty · finally, air
+- **everyone:** light! someone's there! oh, thank goodness. · LIGHT. omg ty · you found me!! ty · finally, air · oh! a face! hi!! · someone actually came · you dug all that way for me? · finally. i can breathe again · YES. you made it · oh wow. thank you thank you · i was starting to give up · there you are!! · hi. you have no idea how glad i am · out! i'm out! · that sound was you! knew it · FREEDOM · my hero honestly · never been so happy to see a hole in a wall · oh thank goodness, a pickaxe · that took forever. thank you · i could hug you · fresh air! well, cave air. still · that was the longest wait of my life · careful, ceiling's still loose. but HI · thought i'd be stuck forever · i heard you coming the whole way · oh man. oh man. ty · i'm out! legs are numb lol · you're a lifesaver · WOO. ok. i'm good. ty · never leaving without two picks again · you broke the wall! perfect · oh that's a beautiful hole
+- **PvP sweat:** ok you saved me. dont tell anyone
+- **helper:** thank you for coming. not everyone would
+- **hoarder:** out, and i didnt drop a single ore
+- **speedrunner:** finally. lost so much time · out. lets go
+- **homebody:** i get to go home! · can't wait to sleep in my own bed
+- **hermit:** ...thanks · took you long enough. thanks
+- **casual:** lol finally. ty · ok that was rough. ty fr · ayy you made it
+- **newbie:** OMG YOU FOUND ME · yaaay!! im free!! · i thought i was gonna live there forever · wait how did you find me?? ty!!
+- **miner:** nice tunnel. clean work · what pick you using? that was fast · first time i've been the ore lol · you mine like a pro. ty
 
 #### `encounter.miner.thanks`
 
 It pays you.
 
-- **everyone:** I owe you one. here, take what I dug up. · i owe you. take what i mined · ty fr. heres my haul · you saved me, take the ores
+- **everyone:** I owe you one. here, take what I dug up. · i owe you. take what i mined · ty fr. heres my haul · you saved me, take the ores · here, have the iron i dug. its the least i can do · take my haul. you earned it · these are yours. thanks for digging me out · not much, but take what i mined · here's some ore. ty again · take it all, i'm just glad to be out · i was saving these. now theyre yours · dug these before the cave-in. for you · please take the ore. i insist · heres what i found down there · one good turn. heres my ore · you dug me out, you get the loot · dont argue, take the ores · my whole haul. yours · take these, smelt em into something nice · thank you. i wont forget this. here · paying you back in ore. fair? · this is everything i mined today. its yours · i'd be stuck forever without you. take this · might be a diamond in there. take it all · take the ore. ill dig more once i craft a new pick · thanks, stranger. here's my haul · here, some iron for your trouble · all the ore i've got. fair trade for my life · take it. i'd rather have air than ore · for the rescue. it's raw, so smelt it
+- **PvP sweat:** respect. take the ore
+- **helper:** take these, and if you ever get stuck, call me
+- **hoarder:** ...ok. take it. all of it. ty · it hurts but you earned every piece · counted it twice. its yours. ty
+- **speedrunner:** here. ty. gotta go · take the ore, im off
+- **homebody:** take these. i'd rather be home than rich · ore for you. im going home to my cats
+- **hermit:** take it. thanks · here. we're even
+- **casual:** here, ty fr. take the ore · my bad for the trouble. take these · yo take my loot, you earned it
+- **newbie:** here!! you can have all my shiny rocks · take my stuff!! is that enough?? · ty ty here's everything i found!!
+- **miner:** raw iron, some gold, maybe a dia. all yours · best stuff from the vein. take it · mined these at the bottom. yours now · good ore, came off a fat vein. take it · i can always mine more. take these · fresh off the vein. take it
 
 ### Hostage
 
@@ -525,37 +1036,94 @@ It pays you.
 
 Calling out from the bandit camp.
 
-- **everyone:** help! bandits have got me, at their camp at {coords}! please! · HELP. bandits got me, camp at {coords} · anyone, bandits took me. {coords}
+- **everyone:** help! bandits have got me, at their camp at {coords}! please! · HELP. bandits got me, camp at {coords} · anyone, bandits took me. {coords} · help!! bandits grabbed me, theyre camped at {coords} · anyone?? im a prisoner at {coords} · bandits caught me. camp at {coords}. pls help · they've got me tied up at {coords}. somebody · HELP. bandit camp, {coords}. im their prisoner · if anyone can hear me, bandits have me at {coords} · got jumped on the road. theyve got me at {coords} · look for the smoke at {coords}. thats their camp. help · bandits holding me at {coords}, pls send help · this isnt a joke, bandits took me. {coords} · stuck at a bandit camp, {coords}. come quick · they took my stuff and me. camp at {coords} · see the campfire smoke? {coords}. im there. help · somebody please, bandits at {coords} got me · captured. {coords}. they have swords · bandits wont let me go. {coords} · typing while they arent looking. {coords}. help · help me, theyre keeping me at {coords} · im being held at {coords}. bring armor · bandits!! they got me!! {coords} · stuck by their fire at {coords}. cant run · caught by bandits near {coords}. anyone around? · help a stranger? bandits have me at {coords} · hey, anyone? bandits jumped me, camp is at {coords} · please, help. tied up by a fire at {coords} · if you can fight, come to {coords}. bandits have me
+- **PvP sweat:** they jumped me 5 on 1. {coords}. help · not my fault, they ganged up. {coords}
+- **builder:** they grabbed me mid build. camp at {coords}
+- **miner:** grabbed me outside my mine. {coords}
+- **speedrunner:** bandits. {coords}. fast pls · captured at {coords}. no time, come now
+- **hoarder:** bandits at {coords} took me and all my stuff. help · they emptied my bags. now im stuck at {coords}
+- **nomad:** ambushed on the trail. bandits have me at {coords} · travelling alone was a mistake. {coords}, bandit camp
+- **hermit:** bandits. {coords}. help · hate this. bandits have me at {coords}
+- **homebody:** i just want to go home. bandits at {coords} · they took me from my farm. {coords}. help
+- **helper:** i stopped to help them and they grabbed me. {coords} · dont come alone. bandits at {coords} have me
+- **casual:** ok this is bad. bandits got me. {coords} · ngl kinda need a rescue. {coords}, bandit camp · bandits got me lol. not lol. {coords}
+- **newbie:** omg help bandits took me!! {coords} · what do i do?? bandits got me at {coords} · pls pls help theyre mean!! {coords} · i just wanted to explore and now bandits have me. {coords}
 
 #### `encounter.hostage.call2`
 
 Calling out again.
 
-- **everyone:** anyone out there? {coords}. there's {n} of them... · still here at {coords}, {n} of them · pls... {coords}. {n} bandits
+- **everyone:** anyone out there? {coords}. there's {n} of them... · still here at {coords}, {n} of them · pls... {coords}. {n} bandits · still here at {coords}. {n} of them guarding me · {n} bandits, {coords}. please hurry · there are {n} of them. camp at {coords} · anyone? {coords}. i count {n} guards · {n} of them around the fire at {coords} · still caught. {coords}. {n} bandits, maybe more · {coords}... {n} guards. bring help · its {n} bandits at {coords}. dont come alone · please. {coords}. {n} of them, all armed · counted {n} of them. {coords} · help still needed. {coords}, {n} bandits · they're {n} strong. {coords}. hurry · {n} guards, one fire, me. {coords} · {coords}. {n} bandits, all awake · anyone coming? {n} of them at {coords} · {coords}, {n} bandits. i'll try to stay alive · {n} of em at {coords}. they keep looking at me · still a prisoner at {coords}. {n} bandits · {coords}. {n}. please · no one yet... {coords}, {n} guards · heads up, {n} bandits at {coords} · {n} with swords at {coords}. help · watch out, {n} at {coords}. but please come · {coords}. {n} bandits. they're sharpening swords · {n} of them, all around me. {coords} · pls, still at {coords}. {n} guards at least · {coords}, {n} bandits, and theyre getting bored · they havent left. {n} at {coords} · bring a shield, {n} bandits at {coords}
+- **miner:** {n} bandits at {coords}. they took my pick
+- **hoarder:** {n} at {coords}. theyre splitting my stuff
+- **PvP sweat:** {n} of them at {coords}. i could take em with gear · {coords}. {n} bandits, all bad at pvp. come
+- **speedrunner:** {coords}. {n}. hurry · {n} bandits, {coords}. go go
+- **nomad:** {n} of them at {coords}. look for the smoke
+- **homebody:** {coords}... {n} of them. i miss home
+- **hermit:** {n}. {coords} · ...{coords}. {n} of them
+- **helper:** {coords}. {n} of them. bring friends, stay safe · dont get hurt for me. but {n} at {coords}
+- **casual:** update: still captured. {n} guys. {coords} · {n} bandits at {coords} ngl thats a lot · still stuck lol. {n} of em at {coords} · {n} dudes with swords at {coords}. send help lol
+- **newbie:** theres {n} of them!! {coords}!! help · {n} bad guys at {coords}. is that a lot?? · pls hurry, {n} bandits at {coords} :( · is {n} too many for you? {coords} pls
 
 #### `encounter.hostage.seen`
 
 It sees you.
 
-- **everyone:** {player}! over here! help me! · {player}!! here!! help · OVER HERE {player} · {player} pls get me out
+- **everyone:** {player}! over here! help me! · {player}!! here!! help · OVER HERE {player} · {player} pls get me out · {player}!! please, over here! · here!! im here! · {player}, by the fire! help! · someone's coming! over here! · {player}! thank goodness. help! · HERE. by the campfire · please dont leave me {player} · over here!! watch the guards · {player}! they're right behind you! · help! im the one kneeling! · {player} its me! over here! · you came! {player}, over here! · {player}!! watch out, theyre armed · hey! hey! here! · {player} please, im here · over here, by the smoke! · {player}! i knew someone would come · ME. HERE. {player} · {player} quick before they see you · please, {player}, get me out · {player}! careful, theres a bunch of them · {player} thank you for coming, help! · {player}, i'm by the hay bale! · look down {player}, here! · {player}!! they took my sword, help · {player}!! here, by the smoke and the hay · {player} youre here! watch your back · over here!! by the fire, quick · {player}! dont get hit, i need you · {player}, theyre between us, careful · help! over here!! {player}! · {player}!! knew you saw the smoke
+- **builder:** {player}! over here by their ugly camp
+- **hoarder:** {player}! they've got my stuff too!
+- **PvP sweat:** {player}! go get em · {player}, theyre bad, just swing
+- **speedrunner:** {player} here, quick · {player}. fast
+- **nomad:** {player}! knew a traveller would pass by
+- **homebody:** {player}! please, i want to go home
+- **hermit:** {player}. here · ...here. by the fire
+- **helper:** {player}! be careful, dont get hurt · {player}, watch your health, theyre strong
+- **casual:** {player}! ayy over here · yo {player}, little help?
+- **newbie:** {player}!!! omg help me!! · yay someones here!! {player}!! · {player} pls im scared!!
 
 #### `encounter.hostage.bandit`
 
 A bandit, when you turn up.
 
-- **everyone:** we've got company! · someones here! · INCOMING · we got a visitor · inc!!
+- **everyone:** we've got company! · someones here! · INCOMING · we got a visitor · inc!! · someone's coming! · heads up! · we got trouble · eyes up, stranger incoming · intruder! · somebody's at the fire · up! up! someone's here · to arms! · got a hero coming · look alive · company!! · who's that? · we're being raided · grab your swords · hey! someone's sneaking up · on your feet · stranger! · watch the prisoner · alert!! intruder · they found the camp · guard the captive · heads up boys · someone followed the smoke · weapons out · trouble at the fire · who goes there · stranger at the edge of camp · eyes on the hill, someone's coming · spread out
+- **speedrunner:** inc, now
+- **hermit:** ...someone's here
+- **casual:** uh oh guys
+- **PvP sweat:** finally someone to fight · 1v1 me, hero · ez loot incoming
+- **bandit:** fresh loot just walked in · another one for the pile · look who wants to be a hero · oh good, more loot · they came for the captive. get em · nothing personal, stranger · you shouldnt have come here · wrong camp, friend · should have stayed home · you picked the wrong fire · hero wants to play. lets play · this ones mine · dont let them reach the prisoner · another hero. how cute
 
 #### `encounter.hostage.freed`
 
 You beat the bandits.
 
-- **everyone:** they're gone? they're gone! oh, thank you! · theyre gone!! ty ty · omg youre a legend · free!! ty
+- **everyone:** they're gone? they're gone! oh, thank you! · theyre gone!! ty ty · omg youre a legend · free!! ty · is it over? it's over! · you did it!! theyre all down · thank you, thank you! · i can move again! · free at last · they're all gone. wow · you took them all on? amazing · i thought i'd never leave this camp · you saved me!! · that was incredible · finally. thank you so much · i owe you my life · are there any more? no? oh good · you're my hero · never been so glad to see bandits fall · thanks for coming for me · ok i can breathe now · you actually beat them all · i'm free! i'm actually free! · wow. just wow. ty · that was close. thank you · phew. ty stranger · let's get away from this fire · no more ropes. ty!! · they're done! you're amazing · oh thank you, i was so scared · is that all of them? wow · you fought like a beast · my legs are shaking. thank you
+- **builder:** free! and their camp was ugly anyway
+- **hoarder:** free! now where did they put my stuff
+- **PvP sweat:** nice combo. ty · you cleaned them up. respect
+- **speedrunner:** free. ty. moving · finally, lost so much time
+- **nomad:** back to the road. ty friend · the road's mine again. thank you
+- **homebody:** i get to go home! · home. finally i can go home
+- **hermit:** ...thanks · good. thanks
+- **helper:** are you hurt? thank you so much · thank you. let me know if you need anything
+- **casual:** ayy we did it. well, you did. ty · lol they got wrecked. ty fr · W rescue
+- **newbie:** OMG you beat them all!! so cool · yay!!! free!! · how did you do that?? ty!!
 
 #### `encounter.hostage.thanks`
 
 It pays you.
 
-- **everyone:** I hid these from them. they're yours. · hid these from them, theyre yours · here, kept these hidden. for you · take these, you earned them
+- **everyone:** I hid these from them. they're yours. · hid these from them, theyre yours · here, kept these hidden. for you · take these, you earned them · they never found these. take them · kept these tucked away. yours · here, i hid this stuff when they grabbed me · they took most of it, but not this. here · this is what i managed to hide. yours · take these. least i can do · saved these from them. they're yours now · here. thank you for coming for me · i stashed these. take them, please · they missed these. your reward · not much, but they never got it. here · you earned this more than they did · here, a little thank you · please take these. i insist · kept these safe the whole time. for you · the bandits didnt get these. you do · take it. you saved my life · all i've got left. its yours · here's my hidden stash. thank you · they searched me but missed these. here · ty again. take these · for my rescuer. take it · here, you deserve every bit · here. i was saving these for a day like this · they had me, but not these. take them · kept these out of sight the whole time. for you · they took my sword but not these. yours · here. a small thanks for a big rescue · i hid these in the hay. take them · this is all i saved. please take it
+- **builder:** hid these. use them on something pretty
+- **miner:** hid some ore from them. take it
+- **PvP sweat:** respect. take these
+- **hoarder:** my secret stash... ok. its yours. ty · counted every one while i hid them. take them · hurts to give, but you earned it
+- **speedrunner:** here. ty. bye
+- **nomad:** here, for the road. ty · travel safe. take these
+- **homebody:** take these. i just want to get home
+- **hermit:** here. thanks · hid these. yours
+- **helper:** take these. and stay safe out there · please, take it. you need it more
+- **casual:** here, ty fr. kept these hidden · they were bad at searching lol. take these
+- **newbie:** here!! i hid these!! take them!! · is this enough?? ty so much
 
 ### Chased by a horde
 
@@ -563,7 +1131,18 @@ It pays you.
 
 Someone runs past with a pack of zombies behind them.
 
-- **everyone:** RUN! there's loads of them! · zombies! run, {player}, RUN! · RUNNN · RUN THEYRE BEHIND ME · horde!! run!! · {player} RUN
+- **everyone:** RUN! there's loads of them! · zombies! run, {player}, RUN! · RUNNN · RUN THEYRE BEHIND ME · horde!! run!! · {player} RUN · ZOMBIES! RUN! · RUN RUN RUN · dont just stand there, RUN · {player} MOVE · they're right behind me!! · GO GO GO zombies!! · horde incoming!! · TURN AROUND AND RUN · {player} theres a whole horde, run!! · so many zombies, RUN · coming through!! RUN · RUN!! dont fight them · {player} get out of here!! · MOVE MOVE · zombies everywhere, GO · they wont stop!! run!! · RUN. like, now · sorry {player}!! RUN · outta the way!! zombies!! · RUNNING. you should too · {player} zombies! dont stay! · AAAA ZOMBIES · RUN FOR IT · DONT. STOP. RUNNING · theyre gaining!! run!! · too many to fight, RUN · {player} i brought friends! RUN · baby zombies too!! RUN · get to a door or something!! RUN
+- **hoarder:** RUN!! not dropping my stuff for them
+- **miner:** RUN!! dig in if you have to
+- **nomad:** off the road!! RUN!!
+- **homebody:** RUN, get inside!!
+- **bandit:** have fun with them {player}! · theyre yours now. bye · sorry not sorry. RUN
+- **PvP sweat:** i could take em but RUN · not worth the fight, RUN
+- **speedrunner:** sprint jump. now · RUN, no time
+- **hermit:** ...run. now
+- **helper:** {player} run!! dont let them get you! · get somewhere high {player}!!
+- **casual:** lol RUN theres like a hundred · yeah uh. run · nope nope nope RUN
+- **newbie:** why are there so many!! RUN · {player} HELP no actually RUN · omg omg omg RUN
 
 ### Duel
 
@@ -571,46 +1150,106 @@ Someone runs past with a pack of zombies behind them.
 
 It challenges you (hit it to accept).
 
-- **everyone:** {player}! you look like you can handle yourself. 1v1? {stake} diamonds says I win. hit me if you're in. · 1v1 {player}? {stake} dias says i win. hit me if youre in · yo {player}, duel? {stake} dias on it. hit me to start
-- **PvP sweat:** 1v1 me {player}. {stake} dias. hit me if you're not scared · {player} 1v1? {stake} dias, first to fold loses. hit me · nice gear {player}. 1v1 for {stake} dias? hit me
+- **everyone:** {player}! you look like you can handle yourself. 1v1? {stake} diamonds says I win. hit me if you're in. · 1v1 {player}? {stake} dias says i win. hit me if youre in · yo {player}, duel? {stake} dias on it. hit me to start · {player}, fancy a duel? {stake} dias on the line. hit me to accept · 1v1 for {stake} diamonds? swing at me if you're in · bet you {stake} dias i win a duel. hit me to start · {player}! duel me. {stake} diamonds to the winner. hit me if yes · friendly fight? {stake} dias. hit me to say yes · you look tough. {stake} diamonds says im tougher. hit me to start · duel for {stake} dias, {player}? one hit and its on · {stake} diamonds, you and me, right here. hit me if youre game · lets settle who's better. {stake} dias. hit me to accept · {player}, quick duel? {stake} dias. punch me to start · got {stake} dias says you cant beat me. hit me if you want them · wanna fight for {stake} dias? hit me and we go · hey {player}, {stake} diamonds on a 1v1. you in? hit me · first to give up pays {stake} dias. hit me to start · duel? winner takes {stake} diamonds. hit me if youre brave · {stake} dias on a fair fight. hit me when youre ready · {player}, care to spar? {stake} diamonds. hit me if so · not to the death, just a duel. {stake} dias. hit me · i got {stake} diamonds. you want em? hit me and win · {stake} dias, no tricks. hit me to begin · {player}! pvp? {stake} dias. smack me if youre down · little wager: duel, {stake} diamonds. hit me to agree · 1v1 for {stake} dias, till someone yields. hit me to start · {player}, {stake} diamonds says im better with a sword. hit me · bored. duel for {stake} dias? hit me · {player}, {stake} dias says you blink first. hit me if you want it · duel for {stake} diamonds, first to yield loses. hit me to start
+- **PvP sweat:** 1v1 me {player}. {stake} dias. hit me if you're not scared · {player} 1v1? {stake} dias, first to fold loses. hit me · nice gear {player}. 1v1 for {stake} dias? hit me · {player} 1v1 rn. {stake} dias. hit me or walk away · {stake} dias says youre all gear no skill. hit me · easy {stake} dias for me. hit me if you disagree · {player}, ranked 1v1. {stake} dias. hit to queue · your armor's nice. lets see if you are. {stake} dias, hit me · {stake} dias, 1v1, no running. hit me · think you can take me? {stake} dias. prove it, hit me · {player} im bored and youre here. {stake} dias, hit me · free {stake} dias if you win. you wont. hit me · 1v1 for {stake}. dias obviously. hit me if you got the guts · {stake} dias on the line {player}. hit me, scared? · crits or quits. {stake} dias. hit me
+- **hermit:** duel. {stake} dias. hit me
+- **helper:** practice duel? {stake} dias, no hard feelings. hit me
+- **speedrunner:** quick duel, {stake} dias. hit me, no wasting time
+- **nomad:** long road, little fun. duel for {stake} dias? hit me
+- **bandit:** {stake} dias, a fair fight. hit me. or run, your choice · {player}. {stake} diamonds, one fight. hit me if you dare
+- **newbie:** can we duel?? {stake} diamonds!! hit me to start!! · i wanna practice pvp, {stake} dias? hit me if ok
+- **casual:** yo wanna 1v1? {stake} dias to make it fun lol. hit me · {player} duel? {stake} dias, chill fight. hit me if so
 
 #### `encounter.duel.accept`
 
 You hit it: the duel is on.
 
-- **everyone:** let's go! · LETS GO · bet. lets go · its on · lock in · gl
-- **PvP sweat:** you'll regret that · lets go · ok its on · gl, youll need it
+- **everyone:** let's go! · LETS GO · bet. lets go · its on · lock in · gl · alright, here we go · game on · bring it · fight! · ok ok here i come · good luck, have fun · lets dance · youre on · there it is. fight · may the best win · no holding back · fair fight, go · ready or not · swords up · fight me then · ha! lets do it · alright, show me what you got · oh its ON · 3 2 1 fight · hope you ate · nice. dont cry after · finally, a fighter · respect. lets fight · hah, brave · eyes on me · dont blink
+- **PvP sweat:** you'll regret that · lets go · ok its on · gl, youll need it · time to farm dias · big mistake · clip this · sit · cya in 10 seconds · ez money · you just paid me · watch the combo · shield up, youll need it · this wont take long
+- **speedrunner:** go. fast
+- **nomad:** a good fight before the road
+- **helper:** good luck! friendly fight
+- **hermit:** fine. fight
+- **bandit:** nothing personal · your dias are mine
+- **newbie:** ok!! here i go!! · wait wait ok GO
+- **casual:** ayy lets go lol · ok bet
 
 #### `encounter.duel.coward`
 
 You didn't hit it in time, or walked off.
 
-- **everyone:** coward. · scared? · L · figured · ok coward
+- **everyone:** coward. · scared? · L · figured · ok coward · yeah, thought so · chicken · no guts · walked away. figures · wow ok · all that gear for nothing · scared of a little duel? · guess not then · booo · sad · run along then · next time maybe · lame · pfft · typical · thought you looked tougher · ok then. bye · fine, ill keep my dias · no fight? boring · mm. cowardly · scaredy cat · that's a no then · couldnt even swing once
+- **speedrunner:** wasted my time
+- **homebody:** fair, fighting's not for everyone
+- **helper:** thats ok! maybe another time
+- **nomad:** your call. safe travels
+- **hermit:** ...fine · whatever
+- **newbie:** aww :( ok · oh. ok nevermind
+- **casual:** lol ok · aw come on
+- **bandit:** smart. you'd have lost · run, little one · keep running
+- **PvP sweat:** free L · knew youd run · scared of the 1v1, L · skill issue before it even started · all armor no heart · log off · yeah walk away. ez · imagine running · next time bring courage · ill tell everyone you ran
 
 #### `encounter.duel.yield`
 
 It's low on health and gives up.
 
-- **everyone:** alright, alright! you win. · ok ok gg you win · i yield!! gg · stop stop, gg · gg you got me
+- **everyone:** alright, alright! you win. · ok ok gg you win · i yield!! gg · stop stop, gg · gg you got me · ok ok i give up! · enough! you win · mercy! gg · i'm out, i'm out. gg · uncle! you got it · three hearts left, im done. gg · stop! i yield · alright you're better. gg · no more, gg · fine, youre the winner · i surrender! gg · hold up hold up, gg · white flag! gg · ok you got me fair · done done done. gg · ow. ok. you win · i give, i give · youre too good. gg · truce! you won · thats it, gg wp · alright, call it. you win · pls stop, i lost · low hp, i'm calling it. gg · i can't take another hit. gg · you're too strong. i'm out · fine! you win! stop swinging · i'm done, gg, heal up · yield, yield! · nope, that's enough. you win
+- **homebody:** ok i'd like to live. gg
+- **speedrunner:** gg. done
+- **nomad:** you win. good fight, traveller
+- **bandit:** fine. you win this time · alright, you got me. this once
+- **hermit:** enough. gg
+- **helper:** good fight, you win! gg
+- **casual:** lol ok you got me. gg · ok ok im cooked. gg
+- **newbie:** ahh ok ok you win!! gg · i give up!! youre so good · stop pls!! gg!!
+- **PvP sweat:** lag. but fine, gg · ok you got lucky. gg · my combo dropped. gg i guess · rematch later. gg · whatever, you win this one · i'll get you next time. gg
 
 #### `encounter.duel.paid`
 
 You won; it pays.
 
-- **everyone:** fair's fair. good fight. · gg wp. heres your dias · ggs. as promised · fair. take the dias
+- **everyone:** fair's fair. good fight. · gg wp. heres your dias · ggs. as promised · fair. take the dias · gg. here's what i owe · a deal's a deal. take the dias · you earned these. gg · as promised. good fight · here. you fought well · paid in full. gg · take your winnings · well fought. dias are yours · fair win. here · i keep my word. take them · gg wp, heres the stake · here you go, champ · good duel. enjoy the dias · your diamonds, as agreed · you won fair. take it · here. dont spend em all at once · that hurt. here's the dias · respect. heres your prize · take em. i'll win them back someday · the stake is yours. gg · alright. here. well played · fair and square. take them · honor says pay up. here · take it before i change my mind. jk, gg · one good fight, one empty pocket. here · gg. here, every diamond · a promise is a promise. here · you hit hard. here's your dias · earned, not given. take it
+- **speedrunner:** here. gg. gotta go
+- **homebody:** here. i'm going home to heal
+- **nomad:** take them for the road. gg
+- **bandit:** a bandit pays his debts. here
+- **hermit:** here. done
+- **helper:** good fight! here, you earned it
+- **hoarder:** ...ok. take them. painful. gg · counted them out. all yours. ouch
+- **casual:** lol fair. here · gg fr, take em
+- **newbie:** here!! you won fair!! gg · aww ok here's the dias, you're good
+- **PvP sweat:** ugh. take them. rematch soon · here. dont get used to it · fine. lucky win. take it · take the dias. next time im ready · gg. you earned it, i guess · here. i was lagging but whatever
 
 #### `encounter.duel.spare`
 
 You're low on health: it stops and lets you off.
 
-- **everyone:** ha! good fight. keep your stuff, it was for fun. · gg, keep your stuff · gg wp, it was just for fun · ggs, no hard feelings
-- **PvP sweat:** gg ez. keep your stuff · too easy. keep it · gg, practice more
+- **everyone:** ha! good fight. keep your stuff, it was for fun. · gg, keep your stuff · gg wp, it was just for fun · ggs, no hard feelings · whoa, you're low. lets stop. keep your stuff · ok thats enough. no need to pay · stop, stop, you're almost dead. we're good · call it there. keep it all · good fight! dont worry about the stake · not gonna finish you. keep your dias · you're on four hearts, lets end it. no payment · hey, it was just a spar. keep it · heal up. you don't owe me anything · nah, keep your dias. that was fun · enough for today. keep everything · i win, but keep it. gg · go eat something. no stake needed · didn't want your stuff anyway. gg · that's the fight. keep your gear · ill let you off. keep your stuff · respect for lasting that long. keep it · stop there. we're square · lets not get anyone killed. keep it · good effort. you owe nothing · ok ok, you're done. keep your diamonds · gg. keep it, buy yourself a shield · fun fight. no need to pay up · dont die on me. keep your stuff · hold up, you're nearly out. keep your stuff · no, i won't take your stuff. gg · close fight! keep your dias · eat something, keep your gear. gg · we'll call that one mine. keep it · you lasted longer than most. keep your stuff
+- **PvP sweat:** gg ez. keep your stuff · too easy. keep it · gg, practice more · not even worth taking. keep it · sit. keep your dias, you need em · gg go next. keep it · keep it, spend it on practice · ez. i dont need your dias · outplayed. keep your stuff, L
+- **speedrunner:** gg. keep it. bye
+- **homebody:** lets stop. go home and rest, keep your stuff
+- **nomad:** keep it, you'll need it on the road
+- **hermit:** enough. keep it
+- **bandit:** lucky for you im feeling generous. keep it · this time, keep it. next time i won't be nice
+- **newbie:** i won?? omg. keep your stuff its ok!!
+- **casual:** lol ok youre done. keep it · gg, no worries, keep the dias
+- **helper:** you okay? keep your stuff, eat something · here, rest up. no stake, it was for fun
 
 #### `encounter.duel.after_yield`
 
 You kept hitting it after it gave up.
 
-- **everyone:** hey! I gave up! it's over! · i SAID gg!! · its over!! stop · dude i yielded · STOP i gave up
+- **everyone:** hey! I gave up! it's over! · i SAID gg!! · its over!! stop · dude i yielded · STOP i gave up · HEY. i said i give up! · stop!! i already yielded · what are you doing? i gave up! · its over! cut it out · i surrendered!! stop hitting me · thats not fair, i yielded! · WHOA. i gave up! · stop it! the fight's done · are you trying to kill me?? · i said gg!! quit it · not cool, i yielded · dude STOP · hey hey hey, its over! · stop! that's murder! · its done!! put the sword down! · why are you still hitting me?! · hey!! i'm on three hearts, stop! · i yielded!! what's wrong with you · please stop, i give up! · thats a dirty move · you won already! stop! · hello?? i SURRENDERED · fight's over, chill! · help! they wont stop hitting me! · ow! i said im done! · whoa, the duel ended! · OW. i yielded, quit it! · you already won! why?? · hey! we were done! · not fair!! i'm not even fighting back
+- **hoarder:** stop! you're not getting more dias!
+- **speedrunner:** stop. gg was final
+- **nomad:** no honor on this road. stop!
+- **homebody:** please!! i just want to go home!
+- **bandit:** you hit a man who yielded? you're worse than me · now thats cold. even for me
+- **hermit:** ...stop · enough!
+- **helper:** please stop, i already gave up
+- **casual:** yo chill!! its over · dude what. i gave up
+- **newbie:** STOP!! i said i give up!! · why?? i said gg!!
+- **PvP sweat:** bro i yielded, have some honor · thats so cheap. i gave up · low. really low · everyone will hear about this. stop
 
 ### Race
 
@@ -618,51 +1257,115 @@ You kept hitting it after it gave up.
 
 It challenges you (say go).
 
-- **everyone:** hey {player}, race you! first one to the top of that hill {way} of here ({coords}) wins. {bet} emeralds says I beat you. say go when you're ready! · race {player}? top of the hill {way} of here ({coords}). {bet} emeralds. say go! · {player}, race to that hill {way} ({coords})? {bet} emeralds on it. say go when ready
-- **speedrunner:** race? hill {way}, {coords}. {bet} emeralds. say go · {player} race me to {coords} ({way}). {bet} emeralds. say go
+- **everyone:** hey {player}, race you! first one to the top of that hill {way} of here ({coords}) wins. {bet} emeralds says I beat you. say go when you're ready! · race {player}? top of the hill {way} of here ({coords}). {bet} emeralds. say go! · {player}, race to that hill {way} ({coords})? {bet} emeralds on it. say go when ready · race to that hilltop {way} of here? {coords}. {bet} emeralds. say go! · {player}, bet {bet} emeralds i reach {coords} first. hill's {way}. say go · see that hill {way}? top is {coords}. race for {bet} emeralds. type go · first to the top at {coords} ({way}) gets {bet} emeralds. say go when ready · race me {way} to {coords}? {bet} emeralds on it. just say go · {player}! foot race, hill {way} at {coords}, {bet} emeralds. say go · {bet} emeralds says im faster to {coords}. its {way}. say go · quick race? that hill {way}, {coords}. loser pays {bet} emeralds. say go · hey, race to the peak {way}? {coords}. {bet} emeralds. say go to start · top of the hill {way}, {coords}. {bet} emeralds for the winner. say go · {player}, i challenge you to a race! {coords}, {way}. {bet} emeralds. say go · bet {bet} emeralds you cant beat me to {coords}. head {way}. say go · how fast are you? race to {coords} ({way}), {bet} emeralds. say go · to that hilltop {way} ({coords})! {bet} emeralds. you say go · {player} lets race. {coords}, thats {way}. {bet} emeralds. say go · {bet} emeralds, one race, hill {way} at {coords}. say go if you're in · who gets to {coords} first? hill {way}. {bet} emeralds. say go · race you up the hill {way}! {coords}. {bet} emeralds. we start when you say go · got {bet} emeralds burning a hole. race to {coords} {way}? say go · {player}, sprint race {way} to {coords}? {bet} emeralds. say go · whoever stands on {coords} first wins {bet} emeralds. hill's {way}. say go · {bet} emeralds for a race {way}. finish at {coords}. say go! · fancy a run? {coords}, {way} of us. {bet} emeralds. say go · lets see who's quicker. hill {way}, {coords}. {bet} emeralds. say go · race? {way}, top at {coords}. winner gets {bet} emeralds. say go · {player}, think you're fast? hill {way}, {coords}. {bet} emeralds. say go · race? the peak at {coords}, {way}. {bet} emeralds. go when you say go · {bet} emeralds to whoever touches {coords} first. hill {way}. say go · up for a race? hill {way} ({coords}). {bet} emeralds. say go · {player}, hilltop race {way}, {coords}, {bet} emeralds. say go and we're off
+- **speedrunner:** race? hill {way}, {coords}. {bet} emeralds. say go · {player} race me to {coords} ({way}). {bet} emeralds. say go · {coords}, {way}. {bet} emeralds. you say go, we sprint · {player}. hilltop {way}, {coords}. {bet} emeralds. type go · pb attempt. {coords} {way}. {bet} emeralds. say go · race to {coords}, {way}. {bet} emeralds. sprint jump only. say go · {bet} emeralds, {coords} ({way}). no pearls. say go
+- **miner:** race to {coords} ({way})? {bet} emeralds. say go, i need a break from caves
+- **hoarder:** {bet} emeralds... i wont lose them. race to {coords}, {way}. say go
+- **helper:** fun race? {coords}, {way}. {bet} emeralds, no pressure. say go
+- **bandit:** {bet} emeralds, {coords} {way}. say go. no cheating, i'd know
+- **nomad:** race to the hill {way} ({coords})? {bet} emeralds. say go, then the road · i race every hill i see. {coords}, {way}. {bet} emeralds. say go
+- **casual:** yo race to that hill {way}? {coords}. {bet} emeralds lol. say go · bored. race? {coords}, {way}. {bet} emeralds. say go
+- **newbie:** can we race?? to {coords}, its {way}!! {bet} emeralds!! say go! · race me pls!! {bet} emeralds, hill {way} at {coords}. say go!!
+- **PvP sweat:** {player} race me, {coords} {way}. {bet} emeralds. youll lose. say go · {bet} emeralds says youre slow. {coords}, {way}. say go
 
 #### `encounter.race.no`
 
 You said no.
 
-- **everyone:** suit yourself. · ok fair · your loss · chicken · boring
+- **everyone:** suit yourself. · ok fair · your loss · chicken · boring · ok, maybe later · fine by me · aw, no fun · your call · alright then · no worries · too bad · lame · maybe next time · ok, ill race myself · guess youre slow anyway · thats fine · booo · pfft, ok · ill find someone else · sure, sure · coward lol · not even a little race? · fair enough · whatever you say · aww · wise. i'd have won · ok, keep your emeralds · no? ok · boring, but ok · aw. ok, another day · fine, ill just stand here · not today? ok
+- **hoarder:** good, my emeralds stay with me
+- **homebody:** fair, i'm tired too
+- **bandit:** smart, you'd have lost the emeralds
+- **nomad:** ok, safe travels then o7
+- **helper:** no problem! have a good one
+- **hermit:** fine · ...ok
+- **PvP sweat:** scared of losing, got it · L · knew youre slow
+- **newbie:** oh ok :( maybe later? · aww i wanted to race
+- **casual:** lol ok no worries · fair lol
+- **speedrunner:** wasted 10 seconds. bye · fine. solo run · k
 
 #### `encounter.race.noanswer`
 
 No answer within a minute.
 
-- **everyone:** chicken. · ok, chicken · guess not · scared lol
+- **everyone:** chicken. · ok, chicken · guess not · scared lol · hello? race or not? · guess thats a no · ok, silence. got it · nobody? fine · ill take that as a no · buk buk · you there? · ok never mind · too slow to even answer lol · guess youre afk · hello?? · wow ignored · alright, forget it · quiet one huh · fine, no race · no answer, no race · chickening out quietly, huh · thought so · cat got your tongue? · ill just go then · ok bye · nothing? ok · tick tock... nope · ok, you win at ignoring · hey! race? no? ok · hello, anyone home? · i'll take silence as scared · ok, guess i'm racing nobody
+- **hoarder:** more emeralds for me then
+- **bandit:** ignoring me? bold
+- **helper:** maybe you're busy. another time!
+- **nomad:** road calls anyway. o7
+- **hermit:** ...right
+- **PvP sweat:** afk or scared, both L · silent L
+- **newbie:** hello?? did you see my message? · um... ok :(
+- **casual:** lol ok ghosted · uh ok
+- **speedrunner:** timed out. bye · a minute wasted
 
 #### `encounter.race.count`
 
 The countdown (3, 2, 1).
 
-- **everyone:** {count}... · {count} · {count}!
+- **everyone:** {count}... · {count} · {count}! · {count}, ready · {count}... get set · on your marks... {count} · {count}... dont jump early · {count} - eyes on the hill · {count}, feet ready · {count}... almost · {count}... steady · counting! {count} · {count}... no cheating · {count}... here we go · {count}, hold · {count}... wait for it · {count}... sprint key ready · {count}... breathe · {count}... hands off the keys · {count}, no head starts · {count}... aaand · {count}... set · {count}... legs ready · {count}... not yet · {count}! nearly
+- **PvP sweat:** {count}... youre done
+- **newbie:** {count}!! omg im nervous
+- **speedrunner:** {count}. timer ready
 
 #### `encounter.race.go`
 
 Go!
 
-- **everyone:** go! · GO · GOOO · go go go
+- **everyone:** go! · GO · GOOO · go go go · now! · RUN · sprint! · go go, move! · GOOOO lets go · and we're off! · off we go · GO! no looking back · NOW GO · race on! · MOVE · go, go, hill! · GOOO first one there! · bye!! go! · gogogo · ready set GO · go!! dont trip · GO, catch me if you can · now!! hill!! · aaand GO · HUP · GO. eat my dust · go! up the hill! · hit it! go · go! last one up is a zombie
+- **PvP sweat:** go, not that it matters
+- **newbie:** GO!! wait what was i doing GO
+- **casual:** ayy go lol
+- **speedrunner:** go. sprint jump · GO, timer started
 
 #### `encounter.race.player_won`
 
 You got there first.
 
-- **everyone:** no way! you win. fair and square. · no way. gg you win · ok you're fast. gg · how?? gg
+- **everyone:** no way! you win. fair and square. · no way. gg you win · ok you're fast. gg · how?? gg · what?! you beat me · ok youre quicker than you look. gg · dang, you got there first · fair win. gg · wow. you're fast · nooo. gg · you won it fair · i got stuck on a bush! gg though · you took the better path. gg · how did you climb that so fast · ugh, close one. you win · outran me fair and square. gg · you win this one · wow, you flew up that hill · gg, you earned it · i tripped! jk you're just faster · never seen anyone climb like that · you win! rematch someday? · impressive. gg · beaten. gg wp · you beat me to the top. nice · no fair, you jumped better. gg · huff... you win · that was close! you got it · you got me there. gg · that hill hates me. gg · ah, so close. you win
+- **builder:** got distracted by the view. gg
+- **bandit:** you're faster than you look. noted
+- **homebody:** ok i'm out of breath. gg
+- **hoarder:** ...my emeralds. gg
+- **helper:** great run! well done
+- **nomad:** you know your hills. gg
+- **hermit:** fine. you win
+- **newbie:** omg ur so fast!! gg · how?? teach me!!
+- **casual:** lol you smoked me. gg · ok that was fast ngl
+- **PvP sweat:** lag. but gg · whatever, you got lucky · ok you win, dont let it go to your head
+- **speedrunner:** bad route. gg · lost time on the climb. gg · gg. need better pathing · i got caught on a block. gg
 
 #### `encounter.race.paid`
 
 It pays you.
 
-- **everyone:** a bet's a bet. you're quick! · bets a bet, here · ggs, take the emeralds · fair. heres your emeralds
+- **everyone:** a bet's a bet. you're quick! · bets a bet, here · ggs, take the emeralds · fair. heres your emeralds · here, your emeralds. well raced · fair's fair. take em · you won, they're yours · a deal is a deal. here · here you go, speedy · gg. emeralds as promised · take the winnings · paid up. good race · you earned these · emeralds for the fast one · here. dont spend it all on villagers · go buy something nice. gg · take them. i keep my word · alright, your emeralds · here. that was a good race · pay day for you · lost fair. here you go · a bet's honored. take them · here, trade them for something good · well run. here · take em, champ · there. all yours · count em, all there · thats what i bet, thats what you get · here, you won it fair · fine, fine. here · ok fast legs, here · here you go. good run · promised emeralds, here · bet lost, emeralds paid
+- **homebody:** here. buy some seeds or something
+- **bandit:** here. dont tell anyone i paid
+- **helper:** here! spend it well
+- **nomad:** emeralds for the road. o7
+- **hoarder:** ...fine. here. every one of them · it hurts. take them
+- **hermit:** here. done
+- **newbie:** here!! you're really fast!! · ok here's the emeralds!! gg
+- **casual:** lol here, ty for the race · fair, take em
+- **PvP sweat:** take it. rematch soon · here. dont get cocky
+- **speedrunner:** here. gg. moving on · emeralds. go
 
 #### `encounter.race.won`
 
 It got there first.
 
-- **everyone:** ha! I win! better luck next time, {player}. · W. gg {player} · ez. better luck next time · first! gg {player}
-- **speedrunner:** ez · too slow {player} · gg, work on your routing
+- **everyone:** ha! I win! better luck next time, {player}. · W. gg {player} · ez. better luck next time · first! gg {player} · made it! gg {player} · top of the hill! i win · first to the top! nice try · win! good try {player} · got there first. gg · ha! too slow · what a view from the winner's spot · hah, i beat you {player} · victory! gg · close one, but i win · you almost had me {player} · i'm king of the hill! · gg {player}, i got it this time · yes! first! · W for me · that was fun, i win though · down there, {player}? i'm up here · won! you were close · ha, beat you up the hill · i win! rematch? · made it first, gg wp · and the winner is me · at the top waiting for you, {player} · first! by a mile · first! better luck next race · i made it! you okay down there {player}? · beat you! good effort {player} · phew, first. gg · i win, but that was close {player} · ha, i'm up here first
+- **speedrunner:** ez · too slow {player} · gg, work on your routing · sub one minute. gg · routing diff · clean run. gg {player} · optimal path wins
+- **homebody:** i win! now i need a nap
+- **hoarder:** my emeralds stay with me
+- **helper:** good race {player}! you were close
+- **bandit:** easy. you should practice, {player}
+- **hermit:** won. done
+- **nomad:** i know these hills. gg {player}
+- **newbie:** i won?? i WON!! · yay first!!
+- **casual:** lol i win. gg tho
+- **PvP sweat:** light work {player} · not even close · too easy. L
 
 ### Travelling merchant
 
@@ -670,19 +1373,48 @@ It got there first.
 
 It walks up to you (right-click to trade).
 
-- **everyone:** hello there! I've a few rare things, if you've got emeralds. Have a look. · hey! got some rare stuff, emeralds only. have a look · wts rare stuff, emeralds only. take a look · o/ traveller, got rare goods if you've got emeralds
+- **everyone:** hello there! I've a few rare things, if you've got emeralds. Have a look. · hey! got some rare stuff, emeralds only. have a look · wts rare stuff, emeralds only. take a look · o/ traveller, got rare goods if you've got emeralds · evening traveller. rare goods here, paid in emeralds. take a look · psst. got stuff you wont find in any village. emeralds only · hey you! wanna see some rare stuff? emeralds, no gold · fresh off the road with rare goods. got emeralds? have a browse · trader here o/ rare items for emeralds, come look · got a pack full of rare finds. emeralds and theyre yours · hi! rare stuff for sale, emeralds please. no haggling lol · you look like someone with emeralds. got rare things to show you · selling rare goods, only taking emeralds. peek inside · wanna trade? rare loot for emeralds, have a look · came a long way with these. rare stuff, emeralds only · hey friend, got a few rare things left. emeralds? · rare goods! emeralds! step right up lol · o/ rare stuff on me today. bring emeralds and look · dont see many folks out here. got rare goods for emeralds if you want a look · hello! carrying some rare bits. emeralds only, take a gander · shop's open, its just me. rare stuff for emeralds · got things you cant craft. emeralds and you can have a look · selling rare finds from all over. emeralds only, browse away · evening. rare items, fair prices, in emeralds. look if you like · hey there, wanna see something rare? emeralds only · rare goods here, mate. emeralds. go on, have a look · trades open. rare stuff only, and only for emeralds · spare a minute? rare things, emeralds, look through em · hi hi. rare items in the pack. got emeralds on you?
+- **builder:** rare stuff, nicely sorted. emeralds only, have a look
+- **miner:** rare finds from deep down. emeralds only, have a look · dug up some rare stuff. emeralds, take a peek
+- **speedrunner:** rare items. emeralds. look quick, im moving soon · wts rare loot 4 emeralds. browse fast
+- **bandit:** rare goods. totally not stolen. emeralds only, have a look · got rare stuff. dont ask how. emeralds, have a look
+- **newbie:** hi!! i have rare stuff to sell!! for emeralds! pls look · omg a customer. um rare items for emeralds? have a look!
+- **casual:** yo, got some rare stuff ngl. emeralds only, have a look · sup. rare things for emeralds, lmk if you want anything · ayy customer. rare stuff, emeralds. look around fr
+- **helper:** hi! got some rare things that might help you. emeralds, have a look · hey! if youve got emeralds i might have just what you need. rare stuff, look · hello friend, rare goods for emeralds, take your time looking
+- **hoarder:** got rare stuff. counted every piece. emeralds only, look dont touch · rare goods, all mine till you pay emeralds. have a look · ok fine ill part with a few rare things. emeralds only · rare stock, emeralds only. i know exactly how many i have
+- **nomad:** o7 fellow traveller. rare stuff from the road, emeralds only. have a look · picked these up from far off lands. rare stuff, emeralds · been walking for days with rare goods. emeralds? take a look · wandering trader, minus the llamas lol. rare stuff for emeralds · from the badlands to the jungle, rare finds. emeralds please, look
 
 #### `encounter.merchant.soldout`
 
 It has nothing left.
 
-- **everyone:** sold out, I'm afraid. · sold out sorry · nothing left, ty for shopping · all gone
+- **everyone:** sold out, I'm afraid. · sold out sorry · nothing left, ty for shopping · all gone · thats everything, nothing left · cleaned me out lol · out of stock sorry · nothing else to sell, sorry friend · you bought it all. wow · pack's empty · sorry, last one went already · no more stock, maybe next time · all sold. come find me next trip · bags empty, sorry · you took the lot, ty · nothing left to trade · out. completely out · thats the last of it · sold every last thing, ha · empty handed now, sorry · nope, nothing left · gone, all of it. ty · no stock left, gotta restock somewhere · sorry mate, shelves are bare · that was my last item · fresh out, sorry · nothing left but lint lol · out of goods. good haul for me tho · sold out! best day of trading in ages · thats all i had · nothing more, sorry pal · you've bought me out
+- **builder:** sold out, even the display pieces
+- **miner:** no more ores to sell, gotta go dig
+- **bandit:** nothing left. even robbing me would get you nothing
+- **hermit:** nothing left. go · empty...
+- **speedrunner:** oos. bye · 0 stock left. later
+- **helper:** sorry! nothing left, hope what you got helps · all out, sorry. hope you found what you needed
+- **nomad:** pack's light now. nothing left, time to wander and restock · all sold. road's calling, gotta find more
+- **newbie:** omg i sold everything!! nothing left · wait thats all of it?? i have nothing left lol
+- **casual:** sold out lol, ty tho · nothin left fr · yeah im tapped out ngl
+- **hoarder:** you took everything. my chests are crying · nothing left. well, nothing im selling · all gone. i already miss it · sold out. now i have to go collect it all again
 
 #### `encounter.merchant.bye`
 
 It moves on.
 
-- **everyone:** safe travels, {player}. · o7 {player} · cya {player}, safe travels · take care o/
+- **everyone:** safe travels, {player}. · o7 {player} · cya {player}, safe travels · take care o/ · ty for the trades {player}, safe travels · off i go. stay safe out there · later {player}! watch for creepers · bye o/ might see you around · nice doing business {player} · until next time {player} · gotta keep moving. bye! · safe roads {player} · see ya, dont get blown up · take care {player}, stay out of the dark · farewell traveller · bye {player}! spend those trades well · heading off now. o/ · catch you on the next trip {player} · cya around, mind the phantoms · time to go. good luck out there {player} · byee {player} · good trading with you, bye · im off, safe travels all · later! dont fall in lava · take it easy {player} · bye now. hope we cross paths again · ok im heading out. stay safe {player} · o/ gotta reach the next town before dark · peace {player}
+- **miner:** off to the caves. later {player}
+- **bandit:** pleasure. watch your back out there {player}
+- **homebody:** heading home finally. bye {player} · bye! gotta get home before my crops miss me
+- **hermit:** ...later · leaving. dont follow
+- **speedrunner:** gtg. o/ · moving. cya
+- **hoarder:** bye {player}. look after my stuff · off to refill my chests. bye
+- **newbie:** bye {player}!! that was fun!! · byeee ty for buying stuff!
+- **casual:** aight im out, later {player} · cya {player} ngl good trades · peace out lol
+- **helper:** take care {player}! eat before you head out · stay safe {player}, sleep before the night gets bad · bye {player}! holler if you need anything next time
+- **nomad:** o7 {player}. the road calls · back on the road. may your paths be lit {player} · safe travels, maybe ill see you at the far lands lol · off to the next biome. o7 · roads are long, gotta go. bye {player}
 
 ### Campfire party
 
@@ -690,19 +1422,54 @@ It moves on.
 
 Evening: they call you over.
 
-- **everyone:** hey, {player}! come join us! · {player}! come hang · yo {player} come party · {player} theres cake, come join!
+- **everyone:** hey, {player}! come join us! · {player}! come hang · yo {player} come party · {player} theres cake, come join! · {player}! we're having a party, come over! · hey {player}, party over here! · come join us {player}, theres food · {player} over here!! party time · party's starting, come on {player} · we got a fire going, come hang {player} · {player}! get over here, its a party · come celebrate with us {player}! · theres room for one more {player} · yo come join, we got fireworks · {player} youre invited! come over · hey you! come party with us · party by the campfire, come {player} · {player}! dont just stand there, come join · night party, come chill {player} · {player} we saved you some cake · come on {player}, its more fun with more people · were celebrating, come over {player}! · {player}!! the party needs you · over here {player}, bring a friend · {player}, come by, we got a jukebox going · hey {player} wanna party? come over · {player} come eat with us, theres plenty · evening {player}! join the fun · come over {player}, nobody bites · party at our place {player}, come on · psst {player}, party. you in? · {player} come dance with us lol · come on over {player}, the night is young · you there! party over here, come join · dont be shy {player}, come party
+- **miner:** {player} come party, we're celebrating a dia find
+- **hermit:** ...{player}. they said invite you. come
+- **speedrunner:** {player} party. 5 min. come
+- **hoarder:** {player} come, we brought snacks. just dont touch my chest
+- **PvP sweat:** {player} come party, truce for tonight
+- **builder:** {player} come see the party hall we built · come over {player}, check out the decorations
+- **nomad:** {player}! travellers welcome, come join · come rest a bit {player}, the road can wait
+- **helper:** {player} come join, everyones welcome · hey {player}, come warm up by the fire with us
+- **homebody:** {player}! come in, theres cookies and a warm fire · come sit with us {player}, we made pie
+- **newbie:** {player}!! come to our party pls!! · omg {player} come join we have CAKE
+- **casual:** yo {player} pull up lol · {player} come vibe with us fr · ayy {player} come hang, its chill
 
 #### `encounter.party.cheer`
 
 Cheering during the party.
 
-- **everyone:** woo! · best night ever · ha! nice one · who brought the cake? · another one! · lets gooo · W night · cake time · this is the best · fireworks!! · WOOO
+- **everyone:** woo! · best night ever · ha! nice one · who brought the cake? · another one! · lets gooo · W night · cake time · this is the best · fireworks!! · WOOO · this is amazing · who lit the fireworks lol · pass the cake! · best party in ages · yeahhh · someone change the disc · hahaha · more cake pls · i love you guys · dance off! · W party · nobody go to bed yet · cheers! · this slaps · to good friends! · whoo hoo · play pigstep! · best crew ever · who made this cake its so good · one more firework! · haha look at the sky · yay! · everyone jump! · this beats mining all day · ok who invited the chicken lol
+- **bandit:** a toast! to loot and good company
+- **hermit:** ...ok this is nice
+- **helper:** everyone got cake? theres more! · glad you all made it!
+- **PvP sweat:** ez party, 10/10 · gg everyone gg
+- **nomad:** best stop on the whole road · to the road and friends on it!
+- **speedrunner:** ok ok one more cheer then sleep
+- **hoarder:** free cake! taking two · dont eat all of it, saving a slice
+- **miner:** this beats the deep dark · better than finding dias honestly
+- **builder:** the lights look so good tonight · love the lanterns, who placed these
+- **homebody:** nothing better than good friends and warm cake · the fire's so cozy
+- **newbie:** omg this is my first party!! · how do you make fireworks i want one! · yippee!!
+- **casual:** lmaooo this is fun · ngl this is a vibe · W W W
 
 #### `encounter.party.end`
 
 The party's over.
 
-- **everyone:** goodnight, everyone! · gn all! · gn o/ · that was fun, gn · night everyone
+- **everyone:** goodnight, everyone! · gn all! · gn o/ · that was fun, gn · night everyone · night all, that was great · ok bed time, gn everyone · great party, see you all tomorrow · thats a wrap, gn · night night · off to bed, thanks for coming · best night, sleep well all · time to sleep before the phantoms come lol · gn gn · see you all in the morning · thanks everyone, goodnight · party's over, get some sleep · ok im beat, goodnight · what a night. gn · lets do this again sometime, gn · sleep tight everyone · nighty night · gn! dont let the creepers bite · ok im off to my bed, gn · fun night, bye all · that was awesome, goodnight all · laters everyone, gn · alright folks, nights · bed time. thanks for the cake · night everyone, safe walk home · night all, ty for having me · ok thats enough fun for one night, gn · phew. goodnight everyone
+- **bandit:** gn. sleep with one eye open lol
+- **PvP sweat:** gg party. gn
+- **miner:** gn, mining at sunrise
+- **hoarder:** gn. taking the leftover cake
+- **builder:** gn, ill clean up the decorations tomorrow
+- **hermit:** ...gn · finally quiet. gn
+- **nomad:** gn all, back on the road at dawn · o7 night. good party
+- **speedrunner:** gn. skipping night · sleep now. gn
+- **helper:** gn everyone, get home safe · night all! light your way home
+- **homebody:** home to bed, gn all · time to head home and sleep, night
+- **newbie:** best night ever!! gn everyone!! · gn!! can we do this again pls
+- **casual:** gn yall lol · aight im out gn · that was a vibe, gn
 
 ### Mugging
 
@@ -710,19 +1477,39 @@ The party's over.
 
 A bandit stops you (throw it the money).
 
-- **everyone:** stop right there, {player}. {demand} emeralds (or gold, or diamonds), or your life. throw it here. · {player}. {demand} emeralds, or gold, or dias. throw it here or else · hold up {player}. {demand} emeralds (or gold, or dias). throw it here. now
+- **everyone:** stop right there, {player}. {demand} emeralds (or gold, or diamonds), or your life. throw it here. · {player}. {demand} emeralds, or gold, or dias. throw it here or else · hold up {player}. {demand} emeralds (or gold, or dias). throw it here. now · {player}, stop. {demand} emeralds, or gold, or dias. toss it over · hands where i can see em. {demand} emeralds or the same in gold or dias. throw it · not so fast {player}. {demand} emeralds, gold or diamonds. drop it here · {demand} emeralds. gold or dias work too. throw it my way and walk · this road has a toll, {player}. {demand} emeralds, or gold, or dias. toss it · easy now. {demand} emeralds, gold or diamonds, thrown right here · {player}! pay up. {demand} emeralds (gold or dias fine). throw it over · stop walking. {demand} emeralds, or gold, or dias. throw em here · you want to keep breathing? {demand} emeralds, gold or dias. toss it · toll time {player}. {demand} emeralds, gold, or dias. throw it to me · freeze. {demand} emeralds or gold or diamonds. drop it at my feet · {demand} emeralds, {player}. or gold. or dias. on the ground, now · money first. {demand} emeralds, gold or dias. throw it and nobody gets hurt · hey {player}. {demand} emeralds, or gold or diamonds. throw it here, nice and slow · {player}, {demand} emeralds. no emeralds? gold or dias then. toss it · nobody passes free. {demand} emeralds or gold or dias. throw it over · stand still {player}. {demand} emeralds, gold, or diamonds. throw it, quick · {demand} emeralds or the gold or dias to match. toss it and keep walking · dont reach for that sword. {demand} emeralds, gold or dias. throw it · look at all that gear {player}. {demand} emeralds, gold or dias, thrown here. now · {player}, this is a robbery. {demand} emeralds, or gold, or dias. throw it · pay the toll: {demand} emeralds. gold or dias if youre short. toss it here · {demand} emeralds, gold or diamonds. throw it, or you respawn · you're gonna throw me {demand} emeralds. or gold. or dias. your pick · hold it right there. {demand} emeralds (or gold, or dias). drop it here · {player}. {demand} emeralds, or the gold or dias for it. throw it here · road's closed {player}. {demand} emeralds, gold or dias to pass. throw it
+- **hoarder:** {demand} emeralds, gold or dias. i keep count, so throw it all here
+- **casual:** ngl {player} this is a robbery lol. {demand} emeralds, gold or dias. throw it
+- **speedrunner:** {demand} emeralds/gold/dias. throw. now
+- **hermit:** {demand} emeralds. or gold. or dias. throw it. go
+- **PvP sweat:** {player} you dont wanna 1v1 me. {demand} emeralds, gold or dias. throw it · skill issue if you fight. {demand} emeralds, gold or dias, toss it
+- **bandit:** nothing personal {player}. {demand} emeralds, gold or dias. throw it · {demand} emeralds, or gold, or dias. throw it over or start running · ez money. {demand} emeralds, gold or dias. toss it here {player} · my blade says {demand} emeralds, gold or diamonds. throw it here · wrong road, {player}. {demand} emeralds or gold or dias. throw it or else · {player}. i count to ten. {demand} emeralds, gold or dias, thrown here · you look rich. {demand} emeralds, gold or diamonds. throw em · {demand} emeralds. gold or dias if you must. throw it, i wont ask twice · make it easy on yourself. {demand} emeralds, gold or dias, toss it · your stuff or your respawn, {player}. {demand} emeralds, gold or dias. throw it · lets keep this friendly. {demand} emeralds, or gold or dias. throw it here · {player}, dont try anything. {demand} emeralds, gold or dias. throw it · pockets look heavy {player}. {demand} emeralds, gold or dias. throw it here · i can do this nice or not nice. {demand} emeralds, gold or dias. throw it · {demand} emeralds or gold or dias {player}. thrown, not handed. now
 
 #### `encounter.mugging.paid`
 
 You threw it enough.
 
-- **everyone:** pleasure doing business. move along. · smart. move along · good choice. bye · nice doing business
+- **everyone:** pleasure doing business. move along. · smart. move along · good choice. bye · nice doing business · good. now get lost · see, that wasnt hard · thanks. keep walking · wise choice. off you go · smart one. go on · thats what i like to see. bye · much obliged. move it · good. nobody got hurt · ty. now walk away slowly · easy money. go · there we go. scram · nice. you can live · good doing business with you · right. on your way · thats the spirit. bye now · appreciated. dont look back · deal's done. beat it · you can go. and dont tell anyone · pleasure. stay on the road · ok we're square. walk · lovely. now run along · good choice, very good choice · and thats why you still have your gear · you paid the toll. go on through · thats enough. get going · fine. you're free to go · a fair trade: your money for your life. go · good, now forget my face
+- **newbie:** omg it worked. um. bye!
+- **hermit:** ...go · good. leave
+- **speedrunner:** ok. go
+- **PvP sweat:** ez. no fight needed · gg, smart move
+- **hoarder:** counted. its all there. go · mine now. move along · all mine. ok leave
+- **casual:** ty lol. bye · W. ok go
+- **bandit:** nothing personal. off you go · pleasure robbing you lol. move · ka-ching. now walk · come back when youre richer · smart. the last guy wasnt · you saved your gear today. go · see you next time on this road. bring more · good. tell your friends the road costs · keep the change. oh wait
 
 #### `encounter.mugging.refused`
 
 You hit it, left or waited too long.
 
-- **everyone:** your choice. · wrong answer · ok then · bad call
+- **everyone:** your choice. · wrong answer · ok then · bad call · big mistake · you shouldve paid · fine. the hard way · have it your way · too slow · thats a no then · alright, swords out · you'll regret that · time's up · should have thrown it · suit yourself · oh you're gonna pay now · hard way it is · not smart · dont say i didnt warn you · then we fight · wrong move · you chose this · last chance gone · ok. get them · no deal? no mercy · terrible choice · you asked for it · i gave you a chance · now its personal · silence means no. ok · fine, i'll take it myself
+- **newbie:** wait you didnt pay?? uh. attack!
+- **hoarder:** i'll take ALL of it now · now i want everything you have
+- **casual:** lmao alright then · aight bet
+- **speedrunner:** no time. attack · waste of time. fight
+- **hermit:** ...fine · so be it
+- **PvP sweat:** 1v1 then. ez · oh you wanna fight? L · skill issue incoming · bet. you're done
+- **bandit:** nothing personal. ok maybe a little · i'll take it off your body then · your stuff drops either way · running wont help · hope you set your spawn · loot's better this way anyway · wrong road to be brave on · brave. and dumb
 
 ### Ambush
 
@@ -730,7 +1517,14 @@ You hit it, left or waited too long.
 
 Bandits lying in wait spring the trap.
 
-- **everyone:** now! get them! · your money or your life, {player}! · NOW · get them!! · surprise · nobody move
+- **everyone:** now! get them! · your money or your life, {player}! · NOW · get them!! · surprise · nobody move · TAKE THEM DOWN · now now now! · theres {player}! go! · out of the bushes, go! · surround them! · {player}! nowhere to run · dont let {player} escape · AMBUSH · close in! · you walked right into it {player} · cut them off! · on my mark... NOW · hit them hard! · drop the loot {player}, you're surrounded · took you long enough {player} · trap's sprung! go! · they're here, move! · hello {player}. bad road to take · block the path! · {player} is ours! · dont let them run! · everyone out! · gotcha {player} · right where we want you {player} · boo · {player}, you're not leaving with that gear · hold the line, nobody gets past · they fell for it! go!
+- **newbie:** is it now?? NOW! go!
+- **hoarder:** their loot is mine! · dibs on {player}s stuff!
+- **casual:** lmao get em · yo {player} hi lol. get em
+- **speedrunner:** engage. now
+- **hermit:** ...go
+- **PvP sweat:** ez kill, go! · {player} you're so done · get rekt {player} · 3v1 lol go
+- **bandit:** nothing personal {player}. well. a bit · your gear, {player}. all of it · been waiting all day for you {player} · toll road, {player}. you didnt pay · rich traveller spotted. take them · loot them! · {player}, empty your pockets! · sorry {player}, wrong path · this is a stick up!
 
 ### Burglar
 
@@ -738,7 +1532,17 @@ Bandits lying in wait spring the trap.
 
 A thief in your base is caught after taking something.
 
-- **everyone:** uh oh. · oh no · uhh · this isnt what it looks like · bye
+- **everyone:** uh oh. · oh no · uhh · this isnt what it looks like · bye · uh. hi · i was just leaving · oops · wrong house, sorry · you didnt see me · i can explain · gotta go! · run! · this is awkward · oh. you're home · i thought nobody lived here · nope nope nope · uh, nice base? · i was just looking · um. finders keepers? · eek · ok bye!! · this chest was open, i swear · the door was unlocked · dont hit me! · i'm out of here · busted · well this is bad · ahh · i was gonna put it back · is it too late to say sorry? · not my fault you left it out · uh oh, the owner
+- **nomad:** just passing through. with your stuff
+- **builder:** nice build btw. anyway bye
+- **miner:** i thought this was a cave
+- **PvP sweat:** you wanna fight for it? nah. bye
+- **hermit:** ...
+- **speedrunner:** leaving. bye
+- **casual:** lol my bad · uh. hey. lol. bye
+- **newbie:** omg sorry sorry!! i thought it was free · wait is this your house?? oops
+- **hoarder:** but it was so shiny · it looked lonely in your chest · you had like 40 of these, you wont miss one
+- **bandit:** nothing personal, just business. bye · you saw nothing · too late, its mine · catch me if you can · so long, sucker · dont chase me, trust me
 
 ### Thief
 
@@ -746,13 +1550,37 @@ A thief in your base is caught after taking something.
 
 A Drifter chasing someone who robbed it.
 
-- **everyone:** stop, thief! · somebody stop {thief}! · STOP {thief} · THIEF · {thief} stole my stuff!! stop them · get back here {thief}
+- **everyone:** stop, thief! · somebody stop {thief}! · STOP {thief} · THIEF · {thief} stole my stuff!! stop them · get back here {thief} · {thief}! give it back! · catch {thief}! · thief! stop them! · {thief} robbed me!! · hey! thats mine {thief}! · someone grab {thief}! · come back here! · {thief}! drop it! · after them! {thief} took my stuff · {thief} you rat! · HELP, THIEF · dont let {thief} get away! · robber! robber! · {thief} took my loot, stop them! · stop that guy! · {thief}!! i saw that · you wont get far {thief} · somebody help! {thief} robbed me · my stuff!! {thief} has it · stop {thief}, theyre getting away! · {thief}! you better run · i'll get you {thief}! · stop right there {thief}! · anyone! {thief} just robbed me · {thief} broke into my chest! · {thief} stop!! thats my stuff · hey, hey! {thief} took my things! · get back here with my stuff!
+- **nomad:** {thief} took my travel pack! stop them!
+- **bandit:** nobody steals from me, {thief}! · {thief}, you picked the wrong mark
+- **hermit:** {thief}. drop my stuff
+- **speedrunner:** {thief}. stop. now
+- **helper:** help me stop {thief}, please!
+- **PvP sweat:** {thief} you're so dead · run all you want {thief}, i'll catch you
+- **homebody:** {thief} robbed my house! stop them!
+- **builder:** {thief} took my blocks!! i needed those
+- **miner:** {thief} took my dias!! stop them! · {thief}! those ores were mine!
+- **casual:** bruh {thief} just robbed me lol stop them · yo stop {thief} fr
+- **newbie:** omg {thief} took my stuff!! help!! · hey!! thats not nice {thief}!
+- **hoarder:** {thief} took my stuff!! I COUNTED IT · THAT WAS MINE {thief} · {thief} give back every last one! · my chest! {thief} emptied my chest!
 
 #### `encounter.thief.thanks`
 
 You stopped the thief; it pays you.
 
-- **everyone:** you stopped them! here, a share for your trouble. · you got them!! here, a share · W. heres a cut · ty {player}, take half
+- **everyone:** you stopped them! here, a share for your trouble. · you got them!! here, a share · W. heres a cut · ty {player}, take half · you caught them! take this, you earned it · thanks {player}! heres a share · my hero! take a cut · ty ty! half is yours · you got my stuff back! here, some for you · nice one {player}, take a share · thank you! here, split it with me · couldnt have done it without you. take some · {player} you legend. heres your cut · phew, got it back. this is for you · thanks for the help, take a share · owe you one {player}. here · well done! here's a reward · that thief wont try that again. take this · thanks, really. here, half · {player}! you saved my loot. take some · ty so much, heres a share for you · you deserve this, take it · here, for catching them · split it fifty fifty, {player} · W {player}. take a share · fair is fair, heres your half · thank you {player}! a little something for you · nice catch! some of this is yours · got it all back. take your cut {player}
+- **builder:** ty, those blocks were for my build. take a cut
+- **bandit:** never thought i'd thank someone for stopping a thief. here
+- **PvP sweat:** nice hits {player}. take a share
+- **miner:** you saved my dias! take some {player}
+- **nomad:** ty traveller. take a share for the road · o7 {player}. heres your share
+- **hermit:** ...thanks. take it · here. thanks
+- **speedrunner:** ty. cut. bye · thx {player}. take it, gotta go
+- **homebody:** thank you {player}! come by for dinner sometime. here, take this · ty {player}, that was for my home. take a share
+- **newbie:** omg thank you!! here have some!! · you got them!! youre so cool, here
+- **casual:** ayy W {player}, here take some · ty fr, heres your cut lol
+- **helper:** thank you so much {player}! please take this · you're so kind! take a share, i insist · {player} you're a good one. here, take some
+- **hoarder:** ok... fine. take a share. a SMALL share · its all here. you can have some. some · ty. i hate giving stuff away but you earned it
 
 ### Bounty hunters
 
@@ -760,13 +1588,31 @@ You stopped the thief; it pays you.
 
 Hunters come for the price on your head.
 
-- **everyone:** {player}! there's a price on your head, from {who}. we've come to collect. · {player}. {who} put a bounty on you. nothing personal · there you are {player}. {who} wants you gone
+- **everyone:** {player}! there's a price on your head, from {who}. we've come to collect. · {player}. {who} put a bounty on you. nothing personal · there you are {player}. {who} wants you gone · {player}. {who} is paying good money for you · found you {player}. {who} sends regards · {who} put a price on you, {player}. time to pay · {player}! {who} wants your head · so you're the one {who} is after · {who} paid us well, {player}. it's just work · hey {player}. {who} says hi. and goodbye · bounty from {who}. you're it, {player} · {player}, you made an enemy of {who} · {who} wants you gone and we want the reward · there's a bounty on you from {who}. we're collecting · you crossed {who}, {player}. now you pay · {player}, {who} hired us. sorry, not sorry · finally tracked you down {player}. {who} will be happy · {who} put good money on your head {player} · orders from {who}: take out {player} · the price {who} set on you is too good to pass up · {player}! {who} wants you dead. we're here to help with that · dont run {player}, {who} paid for this · {who}'s bounty ends today, {player} · you should have stayed away from {who} · {player}. we work for {who} now · we've been hunting you for days {player}. {who} is waiting · remember {who}? they remember you, {player} · {who} pays, we hunt. you're the target {player} · {player}, the bounty from {who} is ours · {who} named a price. we came to collect it
+- **helper:** sorry {player}, i really am. {who} put a price on you
+- **hoarder:** {who}'s bounty on you will fill a lot of chests, {player}
+- **nomad:** followed your trail for miles {player}. {who} wants you · crossed half the world for {who}'s bounty on you
+- **miner:** tracked you through every tunnel {player}. {who} pays well
+- **casual:** yo {player}, {who} put a bounty on you lol. sorry · ngl {player} {who} really wants you gone
+- **hermit:** {who} sent us. nothing more to say · {player}. {who}. thats all
+- **speedrunner:** {player}. {who}'s bounty. lets be quick · {who} bounty. target found. go
+- **PvP sweat:** {who} put a bounty on you lol. ez money, {player} · {player} 1v3? {who} paid, so yes · {who} wants you gone. skill issue for you {player} · {player}, {who} hired the best. thats us
+- **bandit:** nothing personal {player}, {who} just pays better · {who}'s emeralds, your head. fair trade · {player}, {who} made it worth our while · big bounty from {who} on you. easy money · {who} is paying. you're the payday, {player} · say goodbye {player}. {who} sent us
 
 #### `encounter.bounty.done`
 
 They killed you.
 
-- **everyone:** job's done · bounty claimed · gg, just business · thats that
+- **everyone:** job's done · bounty claimed · gg, just business · thats that · and thats the bounty · collected · contract complete · target down · easy payday · time to get paid · done. lets go collect · that was quick · bounty's ours · nothing personal, really · another job done · they wont be a problem anymore · lets go get our reward · work's done here · good hunt · well, thats over · back to the client, we're done · we got them · deal's done · and that's how its done · clean job · paid in full · should have run faster · rest easy, it was just work · bounty closed · and they said you were hard to catch · job complete, see you never
+- **miner:** back to mining with full pockets
+- **helper:** sorry. it was just a job
+- **nomad:** job done. back on the road · o7. respawn well
+- **hoarder:** grab their drops. and the reward. all of it · more for the chests
+- **casual:** welp that was easy lol · gg ngl
+- **hermit:** done · ...finished
+- **speedrunner:** done. next target · fast. paid. out
+- **PvP sweat:** ez · ez bounty, gg no re · L + bounty claimed · too easy. next
+- **bandit:** payday! · easiest emeralds all week · nothing personal. just profit · loot it and lets go · they had a good run. our pockets thank them
 
 ### Revenge squad
 
@@ -774,25 +1620,71 @@ They killed you.
 
 The friends of a Drifter you killed come for you.
 
-- **everyone:** {player}! you killed {victim}. they were our friend. · {player}. you killed {victim} · remember {victim}, {player}? we do
+- **everyone:** {player}! you killed {victim}. they were our friend. · {player}. you killed {victim} · remember {victim}, {player}? we do · {player}! {victim} was one of us · you killed {victim}, {player}. now its your turn · remember {victim}? we never forgot · {player}, {victim} had friends. we're them · you thought nobody cared about {victim}? · {victim} is gone because of you, {player} · we've been looking for you {player}. for {victim} · {player}. {victim}. say the name · you took {victim} from us. now we take from you · {victim} trusted people like you, {player} · {player}! you owe us for {victim} · there you are. {victim}'s killer · {victim} was our friend, {player}. you'll answer for it · we buried {victim}'s things. now we come for you · {player}, this is about {victim} · did you think we'd forget {victim}, {player}? · {victim} had a home, {player}. had · we came a long way for {victim}, {player} · you hurt {victim}. you hurt all of us · {player}, {victim} still had so much to build · we found you {player}. {victim} would want this · {player}! time to pay for {victim} · {victim} isnt coming back {player}. you dont get to walk away · you killed {victim} and just walked off, {player}? · we know what you did to {victim} · {victim}'s friends are here, {player} · we heard what happened to {victim}, {player} · you shouldnt have touched {victim}
+- **newbie:** {player} you killed {victim}!! why would you do that
+- **hoarder:** {victim} owed me 12 iron. now you owe me {victim}
+- **speedrunner:** {player}. {victim}. lets end this
+- **bandit:** {victim} was one of our crew, {player}. big mistake · nobody touches {victim} and walks, {player}
+- **casual:** yo {player}, {victim} was our boy. not cool · ngl {player} killing {victim} was a bad move
+- **hermit:** {victim}. you. now · ...{victim} was my only friend
+- **PvP sweat:** {player}, you got lucky on {victim}. not on us · {victim} was a 1v1. this is a 3v1 {player} · {player}. {victim}. run it back
+- **helper:** {victim} would have helped you, {player}. and you killed them · {victim} was the kindest of us, {player}
+- **nomad:** {victim} and i walked a thousand blocks together. you ended that
+- **miner:** {victim} and i mined together for weeks, {player}
+- **builder:** {victim} helped build our town, {player}. you took that · {player}, {victim}'s house is still half finished because of you
+- **homebody:** {victim} was my neighbor, {player}. we shared a farm · {player}, {victim} had cats waiting at home
 
 #### `encounter.revenge.found_murder`
 
 The same, if it had given up.
 
-- **everyone:** {player}! {victim} gave up, and you killed them anyway. · {victim} SURRENDERED {player} · {victim} gave up and you still did it
+- **everyone:** {player}! {victim} gave up, and you killed them anyway. · {victim} SURRENDERED {player} · {victim} gave up and you still did it · {player}! {victim} put their sword down and you still swung · {victim} begged, {player}. you didnt care · {victim} surrendered. and you killed them, {player} · they gave up, {player}! {victim} gave up! · {player}, {victim} wasnt even fighting back · you killed {victim} after they gave up? coward · {victim} said they were done. you weren't, {player} · {victim} dropped their weapon, {player}. we know · a surrendered {victim}, and you finished them · {player}, {victim} yielded. there's no excuse · {victim} raised the white flag and you ignored it · {victim} was walking away, {player}. walking away · we heard {victim} gave up first. coward, {player} · {player}, you dont kill someone who's given up. you killed {victim} · {victim} was done fighting. you weren't. now we're not · {player}. {victim} surrendered and you hit them anyway · {victim} said stop. you didnt, {player} · only a coward kills a surrendered {victim} · everyone knows {victim} gave up, {player}. everyone · {player}! {victim} was unarmed and done · {victim} trusted you to stop, {player} · you had {victim} beat and you killed them anyway · {victim} yielded to you, {player}. remember that? · no mercy for {victim}? then none for you, {player} · {player}, {victim} was already beaten. you didnt have to · {victim} wanted to live, {player}. they gave up for it · {player}! {victim} asked for mercy · you killed {victim} on their knees, {player} · word spread, {player}. {victim} surrendered and you killed them · {victim} stopped fighting. you should have too, {player}
+- **miner:** {victim} dropped their pick and gave up, {player}. you swung anyway
+- **speedrunner:** {victim} gave up. you didnt. bad call {player}
+- **nomad:** {victim} surrendered on the road, and you cut them down
+- **newbie:** {victim} gave up!! why did you still hit them {player}
+- **casual:** {player} bro {victim} literally gave up. not cool · {victim} put their hands up and you swung anyway? nah
+- **homebody:** {victim} just wanted to go home, {player}. they gave up
+- **bandit:** even we dont kill the ones who give up. {victim} did, {player} · {player}, bandits have rules. {victim} gave up
+- **hermit:** {victim} gave up. you didnt stop. neither will we · {victim} yielded. you didnt care. we do
+- **PvP sweat:** killing {victim} after they gave up? thats not skill {player}, thats sad · {victim} forfeit and you still went for it. L {player}
+- **helper:** {victim} gave up, {player}. you could have just walked away · {player}, mercy for {victim} would have cost you nothing
 
 #### `encounter.revenge.join`
 
 Joining the fight.
 
-- **everyone:** this is for {victim}! · for {victim}!! · {victim} o7 · for {victim}
+- **everyone:** this is for {victim}! · for {victim}!! · {victim} o7 · for {victim} · {victim}! this ones for you · remember {victim}! · do it for {victim}! · {victim} wont be forgotten! · get them, for {victim}! · {victim} deserved better! · avenge {victim}! · for {victim}, charge! · {victim} watch this · in {victim}'s name! · you killed {victim}! take this! · {victim}, we got you · everyone, for {victim}! · {victim} would want this · RIP {victim}. now fight · {victim} lives on! · make them pay for {victim}! · justice for {victim}! · this hit is for {victim} · {victim}!! i'm with you · they took {victim}! dont hold back! · never forget {victim}! · for {victim} and for us! · {victim} was my friend! · here's one for {victim}! · {victim}, look, we found them · {victim} fought for us, now we fight for {victim} · all in, for {victim}! · {victim}, this is for every block you placed · no mercy! {victim} got none
+- **hoarder:** {victim} owed me iron! now i collect from YOU
+- **builder:** {victim}'s house still stands! fight!
+- **miner:** {victim} dug with me! get them!
+- **speedrunner:** {victim}. together, go
+- **homebody:** {victim} should be home right now!
+- **nomad:** {victim} o7, see you at the end of the road
+- **helper:** {victim}, we'll make this right
+- **newbie:** for {victim}!! i'll try my best!
+- **casual:** {victim} this ones for u bro · lets go, for {victim} fr
+- **hermit:** {victim}. · {victim}. now
+- **bandit:** {victim} was crew! cut them down! · nobody kills {victim} and lives!
+- **PvP sweat:** {victim} we're running it back · {victim}'s killer gets no gg · this 1v1 is for {victim}
 
 #### `encounter.revenge.done`
 
 They killed you.
 
-- **everyone:** that was for {victim}. · rest easy {victim} · for {victim}. o7 · done. {victim} can rest
+- **everyone:** that was for {victim}. · rest easy {victim} · for {victim}. o7 · done. {victim} can rest · {victim} can sleep now · we got them, {victim} · it's done, {victim}. rest · {victim}, we did it · {victim} is avenged · for you, {victim}. always · its over. {victim} would be proud · sleep well {victim} · that one's for {victim}. never forget · {victim}, we kept our promise · justice for {victim}. done · {victim}'s debt is paid · and that settles it for {victim} · {victim}, its finished · nobody hurts {victim} and gets away with it · we'll tell {victim}'s friends it's done · o7 {victim}. its over · remember that, next time you think of {victim} · {victim}. that was for you · now we're even for {victim} · this ends it. for {victim} · {victim} would have laughed at that · let that be a lesson. {victim} had friends · rest now, {victim}. we're done here · {victim} wasnt alone. never was · {victim}, we miss you. but its done
+- **hoarder:** {victim}'s stuff stays with us now. done
+- **speedrunner:** done. {victim} avenged. moving
+- **newbie:** we did it {victim}!! we got them!
+- **miner:** {victim}, ill finish that tunnel for you
+- **builder:** i'll finish {victim}'s house now
+- **nomad:** {victim} o7. the road is quiet again · safe travels, {victim}
+- **helper:** its over {victim}. i hope you're at peace · {victim}, we couldnt save you, but we finished it
+- **homebody:** lets go home. {victim} can rest now · {victim}, i'll keep your farm going
+- **casual:** W for {victim} fr · {victim} we got em bro
+- **hermit:** {victim}. done · ...rest, {victim}
+- **bandit:** crew settles its own. {victim}, its done · thats what happens when you touch {victim}
+- **PvP sweat:** ez. that was for {victim} · {victim}'s team wins. gg · L for you, W for {victim}
 
 ### Village raid
 
@@ -800,13 +1692,32 @@ They killed you.
 
 Raiders reaching the village you're in.
 
-- **everyone:** take everything! · burn it down! · loot it all! · go go go · grab what you can! · leave nothing!
+- **everyone:** take everything! · burn it down! · loot it all! · go go go · grab what you can! · leave nothing! · charge! · hit the chests first! · grab the emeralds! · into the houses! · take the iron golem down! · torch the fields! · spread out, search every house! · go for the farms! · dont let them ring the bell! · smash the doors! · empty every chest! · this village is ours! · RAID · move move move! · get the loot and get out! · nobody stops us! · check the smithy chests! · take their food! · kick the doors in! · they're running! after them! · steal the crops! · grab the hay bales! · fill your pockets! · everything goes! · hit them before they hide! · ATTACK
+- **nomad:** loot and ride on!
+- **builder:** leave the nice houses standing!
+- **miner:** hit the toolsmith, i want picks!
+- **hermit:** ...take it
+- **newbie:** where do i go?? oh, CHARGE!
+- **casual:** lets gooo raid time · yo grab the good stuff lol
+- **speedrunner:** in, loot, out. go · fast! two minutes!
+- **hoarder:** every chest is mine! · count it later, grab it now! · dibs on the blacksmith chest!
+- **PvP sweat:** ez raid, go! · they cant stop us, skill issue · take out their fighters first!
+- **bandit:** nothing personal, village · all of it! every emerald! · loot first, ask never · payday boys, go! · burn it down and take the rest · this town's paying our debts tonight · nobody keeps a thing!
 
 #### `encounter.raid.retreat`
 
 The raiders lost.
 
-- **everyone:** fall back! fall back! · RETREAT · pull out! · fall back!!
+- **everyone:** fall back! fall back! · RETREAT · pull out! · fall back!! · back! back! · everyone out! · run for it! · abort! abort! · get out of here! · fall back to the woods! · we lost, go! · its over, run! · back off! · leave the loot, RUN · too many of them, fall back! · regroup at camp! · out out out! · scatter! · they're winning, go! · pull back now! · this isnt worth it, run! · we're done here, retreat! · the golem! run! · everyone for themselves! · back to the hills! · run, run! · drop it and go! · fall back, we'll be back · we'll get them next time! · call it off! · sound the retreat! · we're losing! back! · no more! back to camp! · cut your losses, go! · move it, back the way we came!
+- **helper:** help the hurt ones, fall back!
+- **nomad:** to the road, go!
+- **hoarder:** at least keep what you grabbed!
+- **hermit:** ...leaving
+- **newbie:** AAAH run!!
+- **casual:** nope nope, we out · yeah no, run lol
+- **speedrunner:** reset! out!
+- **PvP sweat:** tactical retreat! · lag! fall back!
+- **bandit:** not worth dying for, scram! · grab what you got and scatter · this village fights back. go! · next time, village. next time
 
 ### Feud
 
@@ -814,13 +1725,37 @@ The raiders lost.
 
 Two Drifters fighting each other.
 
-- **everyone:** you'll pay for what you did to my farm! · that was MY diamond! · liar! cheat! · you burned my house down! · come on then! · I'll teach you! · you griefed my base! · give back my elytra! · you killed my cat!! · 1v1 me then! · you stole from me!
+- **everyone:** you'll pay for what you did to my farm! · that was MY diamond! · liar! cheat! · you burned my house down! · come on then! · I'll teach you! · you griefed my base! · give back my elytra! · you killed my cat!! · 1v1 me then! · you stole from me! · you took my sheep! · that was my spot! · you led a creeper to my farm! · stay off my land! · you trampled my crops! · you killed my dog! · you broke my door! · you owe me iron! · thief! · my horse! you stole my horse! · you lied to me! · I trusted you! · you broke my beacon! · that chest was mine! · you pushed me in lava! · you set my wheat on fire! · you took my villager! · you cheated me on that trade! · you left me in the nether! · get out of my town! · you broke my bed! · you ruined everything! · say sorry! · admit it! · you took my netherite! · you blocked my tunnel! · you ate my cake! · fight me!
+- **helper:** i helped you and this is how you repay me?!
+- **speedrunner:** you wasted my time!
+- **newbie:** you killed me last time!! not fair!
+- **casual:** bro you griefed me, not cool · nah youre done
+- **nomad:** you ruined my road!
+- **hermit:** leave me alone! · i told you to stay away!
+- **bandit:** you robbed the wrong person! · you'll regret crossing me
+- **PvP sweat:** you got lucky last time! · rematch, now! · L bozo, come on!
+- **hoarder:** you took from my chests! i counted! · give back my 64 iron! · every last block! give it back!
+- **homebody:** you trampled my garden! · you scared my cats away! · you stole my cows!
+- **miner:** you took my dias! · that was my mine! · you claimed my ore vein!
+- **builder:** you broke my roof! · you put dirt on my build! · that's MY wall you tore down!
 
 #### `encounter.feud.thanks`
 
 You helped one side and it won.
 
-- **everyone:** thanks for the help. here, you earned it. · ty for the backup, here · W assist. take this · appreciate it, heres something
+- **everyone:** thanks for the help. here, you earned it. · ty for the backup, here · W assist. take this · appreciate it, heres something · you had my back. take this · couldnt have won without you, here · thanks friend, this is yours · ty for jumping in. here · you picked the right side. take this · good fighting. here, a reward · thanks! they had it coming. take this · you're alright. here · much appreciated. take it · thanks for stepping in, have this · we showed them! here, for you · that was close. ty, take this · owe you one. here's something · you didnt have to help. thank you. here · nice hits! take this as thanks · ty, really. this is for you · glad you were here. take it · your help made the difference. take this · here, take this. you earned every bit · two against one, ha. thanks, take this · ty for siding with me, heres a gift · you saw who was right. heres your reward · they wont bother me again, thanks to you. here · thanks stranger, here's a little something · much thanks. take this, please · W teamwork. here you go · they started it, you ended it. ty, here · you're a real one. take this
+- **miner:** ty, my mine's safe now. here
+- **builder:** thanks, now i can fix my build. take this
+- **nomad:** thanks traveller, take this for the road
+- **speedrunner:** ty. here. gotta go
+- **hermit:** ...thanks. here
+- **bandit:** nice work. heres your cut · you fight dirty. i like it. take this
+- **hoarder:** ok. you helped. take this. just this · fine, you earned one thing. here
+- **PvP sweat:** ez with you on my side. here · gg, nice assist. take this
+- **homebody:** thanks! now i can go home in peace. take this
+- **helper:** thank you so much! please take this · you're a good one. here, for your trouble
+- **newbie:** omg ty!! here take this!! · we won!! you helped so much, here!
+- **casual:** ayy ty for the help, here lol · W backup fr, take this · ngl you saved me. here
 
 ### Warbands
 
@@ -828,43 +1763,119 @@ You helped one side and it won.
 
 Captains rallying their side.
 
-- **everyone:** for {army}! · hold the line! · {army}, with me! · charge! · stand fast, {army}! · {army}! lock in! · together {army}!
+- **everyone:** for {army}! · hold the line! · {army}, with me! · charge! · stand fast, {army}! · {army}! lock in! · together {army}! · {army}, form up! · shields up, {army}! · for {army}, and for the loot! · nobody runs today, {army} · eyes front! here they come · push! push! · {army} never breaks! · swords out, everyone · bows to the back, swords to the front! · keep together, dont chase · FOLLOW ME · hold... hold... now CHARGE · {army} on three. one, two, GO · drink your potions, its starting · they bleed same as us. forward! · no retreat, {army}! · close the gap! stay tight! · {army} fights as one! · remember why we came, {army} · today we win, {army} · first one to their banner gets a double share · tighten up, they're flanking · heal up and get back in! · {army}!! make some noise! · they want our land? come and take it! · keep your shields high and your heads low · front rank, brace! · dont break formation for loot · chase them back where they came from, {army}! · for every bed we've slept in, {army}! · {army} till the end! · steady... steady... · lets go {army}, LETS GO · eat now, we fight in ten seconds · nobody dies alone today, stick together · hit hard, hit first! · ATTACK · the hill is ours, {army}. hold it
+- **newbie:** omg ok {army} lets do this!!
+- **hoarder:** every helmet you take is ours to keep, {army}!
+- **miner:** swing like you're mining obby, {army}!
+- **homebody:** for home, {army}! for our farms!
+- **hermit:** ... {army}. forward
+- **speedrunner:** fast and clean, {army}. go
+- **nomad:** we didnt ride this far to lose, {army}
+- **builder:** for the walls we built, {army}!
+- **helper:** watch each others backs, {army}! · shout if you're low, i've got food
+- **bandit:** the loot's on the other side, {army}. go get it · no mercy, {army}. empty their pockets
+- **PvP sweat:** easy fight, {army}. lets farm them · crit, sprint reset, win. go! · they're bots, {army}. send it
 
 #### `encounter.war.regret`
 
 You attacked one side.
 
-- **everyone:** you'll regret picking a side, {player}! · wrong side {player} · big mistake {player}
+- **everyone:** you'll regret picking a side, {player}! · wrong side {player} · big mistake {player} · you just made an enemy, {player} · should've stayed out of it, {player} · oh you picked the wrong team · {player} chose violence. ok then · get {player} too! · {player} is with them! hit them! · bad call {player} · you'll pay for that, {player} · now you're in it, {player} · nobody asked you, {player} · you're on our list now {player} · {player} wants a war? fine · that was a mistake · someone deal with {player} · oh you're gonna wish you hadn't · turn around {player}, you're next · and who asked for your help, {player} · {player} joined the losing side lol · traitor! get {player}! · big regret incoming, {player} · wrong fight to walk into, {player} · you hit one of ours, {player}. now we hit you · should've kept walking · that's how you want it {player}? ok · remember this when you respawn, {player} · we'll remember your face, {player} · {player} took a side. take them down · alright {player}, you asked for it · add {player} to the pile · picked a side huh. bold · you'll be sorry, {player} · oh you're done now
+- **speedrunner:** {player} is wasting our time. kill them
+- **hoarder:** you'll pay for every scratch, {player}
+- **nomad:** should've stayed on the road, {player}
+- **casual:** bro really jumped in. ok {player}
+- **newbie:** wait {player} why did u hit us!!
+- **helper:** why would you do that {player}? we could've been friends · i didnt want to fight you, {player}
+- **hermit:** ... bad choice · {player}... you'll regret it
+- **bandit:** nothing personal {player}, but you're dead now · your gear's ours after this, {player} · thanks for the free loot, {player}
+- **PvP sweat:** lol {player} wants smoke too · 1v1 me then {player} · {player} about to get ratioed by a whole army · skill issue choosing them, {player}
 
 #### `encounter.war.stay_out`
 
 A soldier, when you get in the middle.
 
-- **everyone:** stay out of this, stranger! · not your fight! · back off stranger · this isnt about you
+- **everyone:** stay out of this, stranger! · not your fight! · back off stranger · this isnt about you · this is between us and them · move, stranger! · get out of the way! · walk away, this isnt your war · nobody invited you · off the field, now! · careful, arrows dont care who they hit · step aside, stranger · go around, we're busy · keep your sword in, this isnt yours · stranger! get clear! · you'll get hurt standing there · MOVE · not now, stranger · leave, before you get caught in it · find another road, this one's a battlefield · dont make me hit you too · this fight's taken · outta the way! · you're in the line of fire, move! · keep walking, traveller · watch it! you're in the middle · clear off, this is a war · stranger, step back. now · go home, this doesnt concern you · stay back unless you want trouble · dont get involved · mind your business! · whoever you are, stay out of it · you dont want this, trust me · dont you dare jump in · hey! clear out! · this is a war, not a show · back away slowly
+- **miner:** go dig somewhere else, this is a fight
+- **speedrunner:** move. no time
+- **homebody:** go home friend, this is no place to be
+- **nomad:** road's closed, traveller. go round
+- **casual:** ngl you picked a bad time to walk by
+- **newbie:** omg get out of the way!!
+- **helper:** please get back, i dont want you hurt! · stranger, go somewhere safe!
+- **hermit:** ... go · not yours. leave
+- **bandit:** leave now and keep your stuff · walk away while you've still got your pockets
+- **PvP sweat:** move, you're in my crit · get out the way, noob · spectators stay off the field
 
 #### `encounter.war.victory`
 
 One side won.
 
-- **everyone:** victory! the field is ours! · WE WON · victory!! · gg, the field is ours
+- **everyone:** victory! the field is ours! · WE WON · victory!! · gg, the field is ours · they're running! we won! · VICTORY IS OURS · we did it!! · gg! they broke! · look at them run! · and stay out! · thats a win, everyone · W W W · who's laughing now · we held! we held! · ours! all of it, ours! · they're done! we win! · huge W · victory! patch up, everyone · and that's how its done · nobody beats us · ggs, the day is ours · they wont come back after that · win! grab their banners · cheer! we won! · WE DID IT, THEY'RE GONE · the battle is won! · told you we'd win · they've broken! hold position, its over · it's over. we won · never doubted us · lets gooo we won · over! the day is won! · good fight everyone, we won · remember this day! · and dont come back! · sound the horns, we won
+- **builder:** we won! now someone rebuild that wall
+- **speedrunner:** won. fast one
+- **casual:** lol we won fr
+- **hermit:** ... won. good
+- **nomad:** victory! on to the next road
+- **hoarder:** we won. nobody touches the loot til i count it
+- **homebody:** we won! finally we can go home
+- **newbie:** omg we actually won!! · WE WON?? no way!!
+- **helper:** we won! anyone hurt? i've got food · victory! help the wounded up
+- **bandit:** victory, and all their loot with it · now we empty their pockets
+- **PvP sweat:** ez · gg ez, sit down · too easy. next army · L them, W us
 
 #### `encounter.war.retreat`
 
 The other side lost.
 
-- **everyone:** fall back! fall back! · RETREAT · pull back!! · gg, fall back
+- **everyone:** fall back! fall back! · RETREAT · pull back!! · gg, fall back · back! back to camp! · everyone out, we're done! · they've got us, run! · fall back to the trees! · we lost... pull out · retreat! regroup at the camp! · its over, go go go · save yourselves! · grab who you can and run! · we cant hold! fall back! · back off, we lost this one · RUN · pull out! we'll get them next time · they broke us, retreat! · everybody back! · gg... we're done, go · drop it, just run · this ones lost, get out · fall back and heal! · too many of them! back! · leave the field! now! · sound the retreat! · we're done here, move! · out out out! · back to the horses! · retreat! dont look back · ok we lost. run · live to fight another day, go! · nobody stay behind, fall back! · scatter! · we've lost the field, back! · this isnt over! fall back! · back to the walls!
+- **miner:** into the caves! fall back!
+- **casual:** welp. we lost. run lol
+- **speedrunner:** lost. reset. go
+- **nomad:** ride! ride out now!
+- **hoarder:** save the chests! fall back!
+- **homebody:** back home, everyone! go!
+- **hermit:** ... leave. now
+- **newbie:** omg run!! we're losing!! · wait we lost?? run!!
+- **helper:** everyone back, help the hurt ones! · dont leave anyone, fall back together
+- **bandit:** grab what you can and scatter! · forget the fight, save the loot!
+- **PvP sweat:** ugh. lag. fall back · they got lucky. retreat · skill issue on all of us. back
 
 #### `encounter.war.thanks_chest`
 
 You fought for the winners (a war chest).
 
-- **everyone:** you fought well, friend. the war chest is yours. · gg friend, the war chest is yours · ggs. take the war chest, you earned it
+- **everyone:** you fought well, friend. the war chest is yours. · gg friend, the war chest is yours · ggs. take the war chest, you earned it · couldn't have won without you. the war chest's yours · thanks friend. that war chest is yours now · you earned this. take the war chest · here, stranger. the war chest, as thanks · the war chest is yours. we owe you · for your help: the war chest. take it · you turned it for us. war chest's yours · we're grateful. help yourself to the war chest · take the war chest, friend. you bled for it · you fought like one of us. the war chest is yours · we won because of you. open the war chest, its yours · here's your share. the whole war chest · the captain says the war chest goes to you · W ally. war chest is yours · gg ally, take the war chest · you didnt have to help. take the war chest, please · that war chest? yours. dont argue · thank you, truly. the war chest is yours · stranger, you saved us. the war chest is yours to keep · everything in that war chest is yours · best fighter on the field. the war chest's yours · you've got our thanks, and the war chest · that was huge. take the war chest with our thanks · ty for the help, war chest is all yours · we'd be dead without you. take the war chest · loot's yours, friend. the whole war chest · the war chest, as promised to whoever helped · you fight for us, you get paid. war chest's yours · here. the war chest. dont spend it all at once · nice work out there. the war chest is yours · we pooled it all in the war chest. yours now · no one deserves the war chest more. take it · our thanks, and our war chest
+- **miner:** theres a few dias in that war chest. all yours
+- **builder:** you fought clean. war chest's yours
+- **speedrunner:** gg. war chest. yours. go
+- **casual:** ngl you saved us. war chest is yours
+- **nomad:** take the war chest for the road, friend. o7
+- **hermit:** ... war chest. yours. thanks
+- **homebody:** thank you, friend. take the war chest home with you
+- **newbie:** omg ty!! the war chest is yours!!
+- **hoarder:** it hurts me, but the war chest is yours
+- **helper:** thank you so much! please take the war chest · you were amazing. the war chest is yours, and our thanks
+- **bandit:** you fight dirty, i like it. war chest's yours · take the war chest. dont let anyone rob you on the way
+- **PvP sweat:** you actually carried. war chest is yours · not bad. you earned the war chest
 
 #### `encounter.war.thanks_field`
 
 You fought for the winners (no chest).
 
-- **everyone:** you fought well, friend. take what you like from the field. · gg, take what you want from the field · W fight. loot the field
+- **everyone:** you fought well, friend. take what you like from the field. · gg, take what you want from the field · W fight. loot the field · thanks friend. help yourself to whatever's on the field · you helped us win. the field's loot is yours · take anything you want out there · gg! grab whatever they dropped · loot's on the ground. go wild · we owe you. take your pick of the field · whatever they dropped is yours · good fighting. pick the field clean if you want · thank you. their gear's yours, grab it · you earned first pick of the loot · go on, take what they left behind · the spoils are yours, friend · help yourself, friend. plenty lying around · all that loot? take it, you earned it · grab the drops before they despawn · everything on the ground is fair game for you · you fought for us. take what you like · pick up whatever looks good, friend · their armor's just lying there. take it · no war chest, sorry. but the field's yours · we cant pay you, but the loot out there is yours · thanks. dig through the drops, keep what you find · take your fill from the field · their swords, their bows, their food. yours · anything they dropped, it's yours to keep · W ally. grab what you want · gg ally, go loot · the field's full of gear. help yourself · dont be shy, take whatever's down there · you go through the loot before any of us · your reward's out there on the ground · whatever's lying out there, keep it · you helped, now help yourself
+- **builder:** take what you like, just leave the banners
+- **miner:** check the drops, somebody had iron on
+- **speedrunner:** gg. loot. go
+- **casual:** lol thanks. loot's all over, go nuts
+- **nomad:** grab what you need for the road. o7
+- **hermit:** ... thanks. take what you want
+- **homebody:** thank you. take some food from the field for the trip home
+- **newbie:** ty!! grab whatever u want from the ground!!
+- **hoarder:** take some. not all. ok fine, take what you like
+- **helper:** thank you so much! take anything you need out there · please, take whatever helps you
+- **bandit:** strip them clean, friend. we wont tell · take it all. they wont be needing boots
+- **PvP sweat:** you actually did work. loot whatever · not bad. grab their gear, they wont need it
 
 ### Wanted poster and reward
 
@@ -872,25 +1883,65 @@ You fought for the winners (no chest).
 
 A Drifter tells you about a wanted Drifter...
 
-- **everyone:** Wanted: {target}, for {crime}. {reward} diamonds to whoever brings them down. · wanted: {target}, for {crime}. {reward} dias to whoever gets them · theres a bounty on {target}, for {crime}. {reward} dias
+- **everyone:** Wanted: {target}, for {crime}. {reward} diamonds to whoever brings them down. · wanted: {target}, for {crime}. {reward} dias to whoever gets them · theres a bounty on {target}, for {crime}. {reward} dias · {target} is wanted for {crime}. {reward} dias on their head · heads up: {target}, wanted for {crime}. reward is {reward} diamonds · {reward} diamonds for {target}. they're wanted for {crime} · word from the board: {target}, {crime}, {reward} dias · anyone seen {target}? wanted for {crime}, {reward} dias reward · theres a price on {target}: {reward} dias, for {crime} · WANTED: {target}. crime: {crime}. reward: {reward} diamonds · bounty out on {target} for {crime}. pays {reward} dias · {target} got caught {crime}. {reward} dias if you bring them down · know {target}? they're wanted. {crime}. {reward} diamonds says someone stops them · got a job for you. {target}, wanted for {crime}, {reward} dias · {target} has to answer for {crime}. {reward} diamonds to whoever makes it happen · they're paying {reward} dias for {target}. something about {crime} · message for you: {target} is wanted. {crime}. {reward} dias reward · {reward} dias on the table for {target}, for {crime} · folks are angry at {target} for {crime}. {reward} diamonds to end it · {target}. wanted. {crime}. {reward} dias. interested? · you look like you can fight. {target} is wanted for {crime}, pays {reward} dias · bounty: {target}, for {crime}. {reward} diamonds, no questions asked · {target} has a bounty now. {reward} dias, for {crime} · someone put {reward} dias on {target} for {crime} · this one's for you: {target}, wanted for {crime}. {reward} diamonds to whoever gets them · {crime}, thats what {target} did. {reward} dias to whoever brings them down · easy money: {target}, {reward} dias, wanted for {crime} · {target} needs stopping. {crime}. reward's {reward} diamonds · i'm handing these out. {target}, {crime}, {reward} dias · {reward} diamonds. thats the price on {target}, for {crime} · notice for you: {target}, wanted for {crime}. {reward} dias when it's done · bring down {target} and get {reward} dias. they've been {crime} · watch out for {target}, they've been {crime}. {reward} dias bounty · {target} is on the board for {crime}. {reward} dias · i'm posting a bounty: {target}, for {crime}, worth {reward} diamonds · {target} went too far. {crime}. theres {reward} dias in it for you · {reward} dias if {target} stops {crime} for good · hunter needed. target: {target}. crime: {crime}. pay: {reward} dias · {target} keeps {crime}. somebody's offering {reward} dias to stop them
+- **homebody:** {target} has folks scared to sleep. {crime}. {reward} dias to whoever stops it
+- **hermit:** ... {target}. {crime}. {reward} dias. not my problem anymore
+- **speedrunner:** {target}. {crime}. {reward} dias. go
+- **casual:** ngl {reward} dias for {target} is a steal. wanted for {crime}
+- **miner:** {reward} dias, no mining needed. just get {target}, wanted for {crime}
+- **hoarder:** {reward} diamonds for {target}... i'd go myself. they're wanted for {crime}
+- **nomad:** heard it on the road: {target}, wanted for {crime}, {reward} dias
+- **newbie:** omg theres a bounty on {target}!! {crime}!! {reward} dias!!
+- **helper:** be careful, {target} is dangerous. wanted for {crime}, {reward} dias reward · if you can stop {target}, people will thank you. {crime}. {reward} diamonds
+- **PvP sweat:** {target} is a free {reward} dias. wanted for {crime}. go farm them
+- **bandit:** {target} stepped on the wrong toes. {crime}. {reward} dias, easy job · even i think {target} went too far with {crime}. {reward} dias
 
 #### `encounter.wanted.map_home`
 
 ...and hands you a map to where it lives.
 
-- **everyone:** Here, this map shows where they live. · heres a map to their base · map to where they live, here
+- **everyone:** Here, this map shows where they live. · heres a map to their base · map to where they live, here · take this map, their base is marked on it · this map has their house on it · here. their place is marked · marked their house for you · map's yours. x marks their base · here's where they sleep · this'll take you right to their door · they live here, see the mark? · found their base. its on this map · follow the map to their house · map to their front door · their base, marked. good luck · this map shows their home. go get them · see the marker? thats their house · here's the map. they live right there · we found where they live. map's yours · they've got a house. this map shows it · their place is on the map. careful going in · you'll want this. their home's marked · here. map to their base, they'll be home at night · this map leads to their base · their hideout's on this map · keep this map, it shows their house · they built a house out there. map's marked · map with their base, all yours · use this map, it goes straight to their home
+- **casual:** here's the map, they live there lol
+- **hermit:** ... map. their house
+- **speedrunner:** map. base marked. go
+- **newbie:** here!! this map shows their house!!
+- **miner:** map to their base. watch for holes, they dig a lot
+- **builder:** map to their house. ugly build, you cant miss it
+- **hoarder:** here's the map. if their chests are full... just saying
+- **nomad:** took me a while to find their base. here, the map
+- **bandit:** map to their base. dont forget to check their chests
+- **helper:** here's a map to their home. stay safe out there
 
 #### `encounter.wanted.map_seen`
 
 ...or to where it was last seen.
 
-- **everyone:** Here, this map shows where they were last seen. · map to where they were last seen · last seen here, take the map
+- **everyone:** Here, this map shows where they were last seen. · map to where they were last seen · last seen here, take the map · nobody knows where they live. this map shows where they were last seen · last sighting's on this map · they were seen here last. take the map · no home that we know of. last seen at the mark · this map marks the last place anyone saw them · here, the spot someone saw them last · start looking here, its where they were seen · they move around. map shows the last sighting · here's a map. thats the last place they showed up · they were last spotted around here · no base, just a last sighting. here's the map · map's marked where someone saw them · they could be anywhere by now, but start at the mark · the trail starts here. take the map · this is where they were seen. go from there · map to their last known spot · someone saw them here. map's yours · last we heard they were around this spot · they dont stay put. map shows where they were last · here. the x is the last place they were seen · they were here a few days back. here's the map · no house to find. this is where they were seen · check around the mark, they were seen there · it's not their home, just where they were last seen · follow this to where they were seen last
+- **miner:** might be in a cave by now. last seen at the mark
+- **casual:** no clue where they live lol. last seen here
+- **bandit:** they're hiding. last seen here. smoke them out
+- **speedrunner:** last seen. marked. go
+- **newbie:** here!! someone saw them right there!!
+- **hermit:** ... last seen there. map
+- **helper:** this map shows where they were seen. be careful
+- **nomad:** they wander, like me. last seen at the mark
 
 #### `encounter.wanted.reward`
 
 You killed the wanted Drifter; it pays.
 
-- **everyone:** Heard you brought down {target}. As promised. · heard you got {target}. as promised · {target} is down? W. here you go
+- **everyone:** Heard you brought down {target}. As promised. · heard you got {target}. as promised · {target} is down? W. here you go · word is {target} is down. here's your reward · {target} got what was coming. your dias, as promised · you got {target}! here's the bounty · {target} wont bother anyone now. your reward · the bounty on {target}? yours. here · heard about {target}. good work. as promised · {target} is gone, so here's what we owe you · nice job on {target}. reward's yours · they say you took {target} down. here's the dias · {target} down for good. as promised · as promised, for {target} · a deal's a deal. {target} is done, here are your diamonds · you actually did it. {target}'s gone. take this · bounty for {target}, paid in full · folks can sleep again with {target} gone. thank you · {target}? taken care of? then this is yours · came to pay up. {target} is dead, the dias are yours · {target} had it coming. here's the reward · good riddance to {target}. here, your pay · for bringing down {target}. as we said · everyone's talking about you getting {target}. here · heard the news about {target}. your diamonds · {target} is out of the picture. bounty paid · sent to pay you for {target}. here · {target} wont be causing trouble again. take your reward · thanks for dealing with {target}. here's the bounty · you're the one who got {target}? this is for you · promised dias for {target}, here they are · {target}'s bounty is yours. well earned · they told me you got {target}. here, like we said · {target} is done. we keep our word. here · {target} fell to you? impressive. reward's here · pay day. you got {target} · {target} finally got caught. thanks to you. here · with {target} gone, this is yours
+- **miner:** {target} gone? here, fresh dias straight from the mine
+- **hermit:** ... {target}. done. here
+- **speedrunner:** {target} down. paid. bye
+- **casual:** lol you actually got {target}. here
+- **homebody:** with {target} gone we can rest easy. thank you, here
+- **nomad:** news travels the road fast. {target}'s gone. here's your pay
+- **newbie:** omg you got {target}!! here's ur dias!!
+- **hoarder:** here's the bounty for {target}. count it, its all there
+- **PvP sweat:** {target} got clapped? gg. here's the dias · you sent {target} back to spawn. W. here
+- **bandit:** heard you got {target}. remind me not to cross you. here · {target} was sloppy. you weren't. here's the pay
+- **helper:** thank you for stopping {target}. here, you earned it · you made everyone safer by getting {target}. here's your reward
 
 ### Convoy
 
@@ -898,13 +1949,35 @@ You killed the wanted Drifter; it pays.
 
 Riders passing through greet you (before noon).
 
-- **everyone:** morning, stranger! bound for {place}, {way} of here. safe travels! · o/ morning! heading to {place}, {way}. safe travels
+- **everyone:** morning, stranger! bound for {place}, {way} of here. safe travels! · o/ morning! heading to {place}, {way}. safe travels · morning! riding to {place}, {way} from here. take care · gm stranger! we're off to {place}, out {way} · morning o7 heading {way} to {place} · early start for us! {place}, {way} of here. bye! · good morning! on the road to {place}, {way} · mornin! long ride to {place}, {way} of here · gm! {place} bound, {way}. safe travels · morning traveller! going {way}, to {place} · o/ gm. {place} is {way} of here, that's where we're going · rise and shine! we ride for {place}, {way} · morning! cant stop, {place}'s a long way {way} · hey, gm! taking the road {way} to {place} · good morning! making for {place}, {way} of here. stay safe · morning! sun's up and we're off to {place}, {way} · gm gm! {place}, {way}. see you around · morning, friend. we're bound {way} for {place} · nice morning for a ride! {place}, {way} of here · mornin stranger, off {way} to {place}. o7 · morning! if anyone asks, we went {way} to {place} · gm! hope to reach {place} by night. its {way} of here · morning! heading {way}, {place}'s the stop · good morning! we left at sunrise for {place}, {way} · morning o/ {place} or bust, {way} of here · gm traveller. riding {way} to {place}, wish us luck · morning! the horses are fresh, {place} is {way} · hey stranger, morning! we're for {place}, {way} of here · morning! {place} is {way}, if you're ever headed there · gm! off to {place}, {way}. glad the phantoms left us alone · morning, stranger! keep to the roads. we're for {place}, {way} · top of the morning! {place}, out {way} · morning all! {place} awaits, {way} of here · good morning! {way} to {place}, safe roads to you · morning! you're up early too. we're off to {place}, {way} · gm! last night was rough. heading {way} to {place} now · morning! hope you slept well. we're off {way} to {place} · gm o7 {place}, {way}, see ya
+- **miner:** morning! heading {way} to {place} to trade our iron
+- **PvP sweat:** gm. riding {way} to {place}. 1v1 when we're back
+- **hoarder:** morning. got a full load for {place}, {way}. dont get ideas
+- **builder:** morning! off {way} to {place}, heard they've got nice builds
+- **casual:** gm lol, heading {way} to {place}, cya
+- **hermit:** ... morning. {place}. {way}
+- **newbie:** good morning!! we're going to {place}!! its {way} i think
+- **speedrunner:** gm. {place}. {way}. bye
+- **homebody:** morning! going {way} to {place}, cant wait to be home
+- **helper:** good morning! need anything? no? we're off to {place}, {way}. take care · morning! if you're lost, {place} is {way} of here. safe travels
+- **nomad:** morning o7 the road calls. {place}, {way} · gm traveller, another day on the road. {place}, {way}
 
 #### `encounter.convoy.hello`
 
 The same, after noon.
 
-- **everyone:** good day, stranger! bound for {place}, {way} of here. safe travels! · o7 stranger, heading to {place} ({way}). safe travels · hey! off to {place}, {way} of here. stay safe
+- **everyone:** good day, stranger! bound for {place}, {way} of here. safe travels! · o7 stranger, heading to {place} ({way}). safe travels · hey! off to {place}, {way} of here. stay safe · afternoon! riding to {place}, {way} of here · hey stranger! {place} bound, {way} · o/ heading {way} to {place}. take care · hi there! on the road to {place}, {way} · hello traveller! going {way}, to {place} · yo! off to {place}, {way}. safe travels · greetings! we ride for {place}, {way} of here · hey! cant stop, {place}'s a long way {way} · o7 traveller. {place}, {way}. stay safe · afternoon, friend. we're bound {way} for {place} · hey there! making for {place}, {way} of here · hello! need to make {place} before dark, its {way} · hiya! {place} is {way} of here, thats us · getting late. gotta reach {place}, {way}. bye! · hey stranger! we're going to {place}. it's {way}, if you ever need it · o/ the road {way} to {place}, thats our ride · good afternoon! off to {place}, {way}. o7 · hey! long road to {place}, {way} of here. see ya · hello there! just passing, {place}'s {way} · afternoon o/ {place} or bust, {way} · hey hey! riding {way} to {place}, wish us luck · greetings, stranger. {place}, {way}. keep safe · hey! we're for {place}, {way}, before the mobs come out · howdy! bound {way} for {place} · hi! hope the roads are clear {way} to {place} · afternoon traveller! {place} is {way}, if you're ever headed there · hey o/ off {way} to {place}, cya around · hello! taking the long road {way} to {place} · yo stranger! {place}, {way} of here. dont get lost · afternoon! keep your torches lit. we're off to {place}, {way} · hey! sun's still up, so {place}, {way}. later · o7 stranger, we ride {way}, {place} by nightfall · hey! seen any trouble out {way}? we're heading to {place} · hello friend! off to {place}, {way}. wave if you see us again · hey there, traveller! {place}, {way}. good luck out here · afternoon all! {place} awaits, {way}
+- **miner:** hey! hauling ore {way} to {place}
+- **PvP sweat:** yo. {place}, {way}. dont try anything
+- **hoarder:** hey. cargo for {place}, {way}. eyes off the saddlebags
+- **builder:** hello! off {way} to {place}, they're building a new wall there
+- **casual:** yo lol, {place}, {way}, cya
+- **hermit:** ... {place}. {way}. move along
+- **newbie:** hi!! we're going to {place}!! its {way} of here!!
+- **speedrunner:** {place}. {way}. bye
+- **homebody:** hey! heading {way} to {place}, home by dark i hope
+- **helper:** hello! if you need a place to rest, {place} is {way} of here. that's where we're going · hi! stay safe out there. we're off to {place}, {way}
+- **nomad:** o7 the road calls. {place}, {way}. safe travels, wanderer · another road, another town. {place}, {way}. o/
 
 ### Mourner
 
@@ -912,19 +1985,48 @@ The same, after noon.
 
 At a grave by the road, first.
 
-- **everyone:** {friend} was a good friend... · {friend} was the best... · rip {friend}...
+- **everyone:** {friend} was a good friend... · {friend} was the best... · rip {friend}... · {friend}... gone too soon · this was {friend}. my best friend · here lies {friend}. i still cant believe it · {friend} and me, we did everything together · i put this sign up for {friend} · {friend} deserved better than this · {friend} was the first friend i made out here · {friend} taught me how to make a bed · we were gonna build a house, me and {friend} · miss you {friend} · i keep thinking {friend} will walk up any second · {friend} would've liked the view here · {friend}... i'm so sorry · this is where {friend} rests now · {friend} always shared their food with me · nobody mined like {friend} · o7 {friend}. o7 · {friend} was braver than me · i brought a poppy for {friend} · {friend} never left anyone behind · we spent so many nights by the fire, {friend} and me · {friend} always knew the way home · my friend {friend} is buried here · hey {friend}. i came back like i said · {friend} laughed at everything · {friend} saved my life once. i couldn't save theirs · you'd have liked {friend} · {friend} was family to me · the world's quieter without {friend} · {friend}... it should've been me · {friend} had the best base on the river · i still have {friend}'s pickaxe · sorry, i just... {friend} was here yesterday · {friend} never got to see the end · i made {friend} a sign. it's all i could do
+- **bandit:** {friend} rode with my crew. best of us
+- **PvP sweat:** {friend} was the only one who could beat me
+- **speedrunner:** {friend}. we were gonna beat the dragon together
+- **hoarder:** i'd give every chest i own to have {friend} back
+- **casual:** man. {friend}. i miss them fr
+- **newbie:** {friend} showed me everything... i dont know what to do now
+- **nomad:** {friend} rode every road with me. this is the last stop
+- **miner:** {friend} found their first dias with me
+- **builder:** {friend} built the nicest houses. now just this sign
+- **homebody:** {friend} and i shared a farm. i cant look at it now
+- **helper:** {friend} helped everyone. now look
+- **hermit:** {friend}. only one i talked to · {friend} was the only one who got me
 
 #### `encounter.mourner.2`
 
 Then.
 
-- **everyone:** creepers. never saw it coming. · creeper got them. didnt even hear it · one creeper. thats all it took
+- **everyone:** creepers. never saw it coming. · creeper got them. didnt even hear it · one creeper. thats all it took · a creeper. came out of nowhere · it was a creeper. one hiss and they were gone · creeper behind them in the dark. i heard the hiss too late · just a creeper. we'd fought a hundred of them · they turned around and there it was. a creeper · a creeper got them while they were mining · creeper. i was right there. couldnt do anything · one hiss. thats all i heard · boom. then nothing · the creeper didnt make a sound til it was too late · a creeper, at night, right by the door · they forgot a torch. one creeper was all it took · creeper blew a hole right where they stood · they were fixing their roof. creeper · it snuck up on them. creepers always do · i still hear the hiss sometimes · a creeper. in broad daylight, under a tree · they didnt have armor on. one creeper · the creeper got them before i could shout · we were laughing, then the hiss · creepers. i hate creepers · a charged creeper, in a thunderstorm · creeper. they were just picking flowers · it was dark and we had no torches. a creeper found them · a creeper at the cave mouth. they never even turned around · creeper. they were watching the sunset · they were in the middle of a sentence. creeper · i looked away for a second. one creeper
+- **helper:** i should've been watching their back. creeper
+- **newbie:** i didnt know creepers could do that much...
+- **builder:** they were building. a creeper took the wall and them with it
+- **homebody:** creeper in our garden. our own garden
+- **miner:** creeper in the mine. no warning
+- **hermit:** ... creeper
 
 #### `encounter.mourner.3`
 
 Last.
 
-- **everyone:** did you know them? ...no. no one really did. · you didnt know them huh. nobody did · ...o7 {friend}
+- **everyone:** did you know them? ...no. no one really did. · you didnt know them huh. nobody did · ...o7 {friend} · did you ever meet them? ...no, i guess not · you didnt know {friend}, did you. most people didnt · you never met them huh. your loss · anyway. thanks for stopping · thanks for listening. nobody else did · ...sorry. i'll be fine. go on · you didnt know them. nobody took the time · nobody ever really knew {friend}. maybe not even me · thanks for standing here with me a bit · you're the first one to stop. thanks · rest easy, {friend} · did anyone know them? not really. just me · if you pass this way again, say hi to {friend} · leave a poppy if you come back, ok? · anyway... dont go out without torches · you didnt know them. thats ok. i'll remember · ...you never met {friend}. wish you had · they kept to themselves. nobody knew them like i did · you probably never heard of {friend}. nobody did · sorry for unloading on you, stranger · i'll stay a while longer. go on ahead · watch your back out there. please · goodbye {friend} · no one will remember them but me · you didnt know them. somehow that makes it worse · i'll come back every day, {friend} · listen for the hiss out there, ok? · nobody asked about them before you. thanks · {friend} would've liked you, i think
+- **hoarder:** i'm keeping their stuff. all of it. its all i have left
+- **PvP sweat:** i'll get stronger for you, {friend}
+- **speedrunner:** gotta keep moving. bye {friend}
+- **miner:** light up your tunnels, ok? for {friend}
+- **builder:** i'll build {friend} a proper grave someday. not just a sign
+- **newbie:** pls be careful out there ok? :(
+- **casual:** anyway yeah. thanks for listening fr
+- **nomad:** safe travels. keep your eyes open. o7
+- **homebody:** go home safe, stranger. hug your dog
+- **helper:** take care of yourself, ok? dont end up like {friend} · thanks for stopping. it helps, a little
+- **hermit:** ... go. i want to be alone with them · ...leave me be
 
 ### Builders
 
@@ -932,17 +2034,37 @@ Last.
 
 A crew turns up to build a waystation.
 
-- **everyone:** hello! putting up a waystation for travellers. you're welcome to it. · o/ building a waystation for travellers, feel free to use it · hey! making a rest stop here, all welcome
+- **everyone:** hello! putting up a waystation for travellers. you're welcome to it. · o/ building a waystation for travellers, feel free to use it · hey! making a rest stop here, all welcome · hey! building a little shelter for travellers. use it anytime · o/ waystation going up, free for anyone · hi! putting a roof up here for passersby · hello stranger! rest stop coming right up · we're building a waystation. stop by when it's done · hey there, making a place for travellers to rest · o7! quick build, a shelter for the road · hi! crafting table and a torch, for anyone passing · hey! give us a sec, building a waystation · we're putting up a shelter here. you can use it too · hello! public shelter going up. free to use · hey stranger! building a rest stop, everyone welcome · hiya! just a small waystation for folks on the road · hi! this'll be a waystation soon. stop in anytime · o/ dont mind us, building a shelter for travellers · hey! waystation coming up. you're welcome to it · hello! posts, roof, crafting table. a stop for travellers · hey friend! building somewhere to get out of the rain · o/ a place to craft and rest. for anyone · hi there! putting up a rest spot, feel free to use it · hey! this spot needs a waystation, so here we are · hello traveller! shelter going up, help yourself after · quick waystation build. all welcome o/ · hey! roads need rest stops. building one now · hi! a little shelter for anyone passing through · hello! dont worry, we're just building a rest stop · o7 putting a roof over this spot for travellers · hey! somewhere to sit out a storm, coming up · hi! shelter for the road. use it whenever · hello! building a stop with a crafting table. come use it · hey! thought this road needed a shelter. all yours when its done · hi stranger! building a rest stop. dont mind the noise
+- **hoarder:** waystation going up. free to use. the crafting table stays here
+- **miner:** hey! rest stop for miners and travellers, all welcome
+- **hermit:** ... building a shelter. use it if you want
+- **speedrunner:** building waystation. free. 30 sec
+- **casual:** yo, building a lil rest stop. its for everyone
+- **newbie:** hi!! we're building a waystation!! you can use it too!!
+- **homebody:** hey! making a cozy little stop for travellers
+- **nomad:** o7 traveller. building a waystation for folks like us
+- **helper:** hi! building a shelter so travellers have somewhere safe. use it anytime! · hello! a waystation for anyone who needs it, you included
+- **builder:** hello! waystation going up. four posts, plank roof, simple but clean · hey! building a rest stop. dont judge til its done
 
 #### `encounter.builders.done`
 
 They finished it.
 
-- **everyone:** there. that'll keep the rain off. · done! all yours · finished o/ enjoy · there we go
+- **everyone:** there. that'll keep the rain off. · done! all yours · finished o/ enjoy · there we go · all done! enjoy · finished! its yours to use · and done. not bad · done o/ rest up whenever you need · there, a roof over your head · finished. crafting table's inside · thats it! waystation's open · complete! safe travels · done and done · there. that'll do · all finished, use it anytime · built! see you around · there, now you've got somewhere to craft · done! the torch keeps it lit at night · and that's the waystation. o7 · finished! not bad for under a minute · done. you're welcome to it · there we are, all set · thats done. off we go · waystation's up! · done. come rest whenever · finished! keep the torch lit · there. somewhere to wait out the rain · all yours, traveller · and we're done here. bye! · done! took no time at all · built and ready · finished. dont break it · there, a proper rest stop · done! the road's a bit friendlier now · and the last plank... done · complete. o/ · finished up, its all yours · done. somewhere to craft, somewhere dry · roof's on. done
+- **miner:** done! should've used stone though
+- **hoarder:** done. dont take the crafting table
+- **hermit:** ... done
+- **speedrunner:** done. next
+- **casual:** ez. done lol
+- **newbie:** we did it!! its done!!
+- **homebody:** there! cozy enough for a night
+- **nomad:** done o7 one more stop for the road
+- **helper:** all done! i hope it helps someone · finished! use it whenever you need a break
+- **builder:** done. could use stairs on the roof but its fine · there. clean posts, flat roof. i like it
 
 ## 6. Conversations between Drifters
 
-Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (10710 topics, 305039 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
+Two Drifters near each other with nothing pressing, and a player near enough to overhear, now and then strike up a conversation (10725 topics, 305197 lines). They walk up to each other and face each other, and take turns, a moment between each as it is typed. **a** brings it up, **b** answers. A topic comes up only when its conditions hold: what each has done lately (their diary: ore mined, a death, a close call, mobs killed, a build, a trade, a place found), their gear, mood, home and town, how they feel about each other, news one has that the other does not, players they like or distrust, and the time and weather. A question carries its own answers. Lines are in `data/drifter/drifter_talk/`; `/drifter talk [topic]` makes the nearest two talk, `/drifter diary` shows what one has done.
 
 #### found ore
 
@@ -3751,6 +4873,161 @@ Two Drifters near each other with nothing pressing, and a player near enough to 
 1. **a**: golden apples are op · saving my golden apple · ate my golden apple too early · gapples for fights
 2. **b**: always carry one · nice · rip · too expensive · save it for the dragon
 3. **a** (50%): yeah · true · lol
+
+#### gear warn explosive
+
+*Needs:* a:has_gear_tip, a:gear_tip_explosive, !rivals  ·  *Effects:* teach_power
+
+*About:* gear, powers, advice  ·  *Leads to:* gear, powers, fighting
+
+1. **a**: careful with that {a.gear_tip_item}, it {a.gear_tip_power} · heads up, the {a.gear_tip_item} {a.gear_tip_power} · if you ever get a {a.gear_tip_item}, don't use it up close. it {a.gear_tip_power}
+2. **b**: wait what · explodes?? · how do you know · oh no · seriously?
+3. **a**: keep it for when nobody's near the target · never shoot it at something right next to you · and not near your base either, trust me · if a friend's standing by the mob, switch weapons
+4. **b** (80%): noted · good to know · i'll keep my distance · thanks for the warning
+
+#### gear warn fire
+
+*Needs:* a:has_gear_tip, a:gear_tip_fire, !rivals  ·  *Effects:* teach_power
+
+*About:* gear, powers, advice  ·  *Leads to:* gear, powers, home
+
+1. **a**: fyi the {a.gear_tip_item} {a.gear_tip_power} · don't swing a {a.gear_tip_item} around your house, it {a.gear_tip_power} · watch out, that {a.gear_tip_item} {a.gear_tip_power}
+2. **b**: huh · like actual fire? · good thing my place is stone · yikes
+3. **a** (80%): keep it away from anything wooden · great on mobs, terrible near friends · wooden walls don't stand a chance
+
+#### gear tip share
+
+*Needs:* a:has_gear_tip, !rivals  ·  *Effects:* teach_power
+
+*About:* gear, powers, weapons  ·  *Leads to:* gear, powers, fighting
+
+1. **a**: did you know the {a.gear_tip_item} {a.gear_tip_power}? · found something out: the {a.gear_tip_item} {a.gear_tip_power} · tip for you, the {a.gear_tip_item} {a.gear_tip_power}
+2. **b**: no way · really? · huh, never knew · since when · cool
+3. **a**:
+   - *a:gear_tip_seen:* yep, saw it myself · found that out the first time i used one · worth knowing before a fight
+   - *otherwise:* worth knowing before a fight · trust me on that one · good to know before you swing one
+4. **b** (70%): i'll remember that · good tip · ok that's handy
+
+#### gear tip ask
+
+*Needs:* b:has_gear_tip, !rivals  ·  *Effects:* learn_power
+
+*About:* gear, powers, questions  ·  *Leads to:* gear, powers, weapons
+
+1. **a**: is the {b.gear_tip_item} any good? · what's the deal with the {b.gear_tip_item}? · you've used a {b.gear_tip_item} right? what does it do?
+2. **b**: it {b.gear_tip_power} · honestly? it {b.gear_tip_power} · from what i know it {b.gear_tip_power}
+3. **a**: oh nice · huh · glad i asked · ok good to know
+
+#### gear tip heal
+
+*Needs:* a:has_gear_tip, a:gear_tip_heal, !rivals  ·  *Effects:* teach_power
+
+*About:* gear, powers, health  ·  *Leads to:* gear, powers, fighting
+
+1. **a**: the {a.gear_tip_item} {a.gear_tip_power}, save it for when you're low · if you're losing a fight, the {a.gear_tip_item} {a.gear_tip_power}
+2. **b**: that's huge · better than eating mid-fight · ok i want one
+3. **a** (70%): don't waste it at full health · keep it for the bad moments
+
+#### gear tip crowd
+
+*Needs:* a:has_gear_tip, a:gear_tip_area, !rivals  ·  *Effects:* teach_power
+
+*About:* gear, powers, fighting  ·  *Leads to:* gear, powers, mobs
+
+1. **a**: the {a.gear_tip_item} {a.gear_tip_power}, perfect for a horde · when you get swarmed, the {a.gear_tip_item} is the one. it {a.gear_tip_power}
+2. **b**: wish i had that last night · nice, crowds are the worst · sounds broken
+3. **a** (70%): wasted on a single zombie though · save it for when there's a bunch
+
+#### gear tip hard way
+
+*Needs:* a:has_gear_tip, a:gear_tip_explosive, a:gear_tip_seen, !rivals  ·  *Effects:* teach_power
+
+*About:* gear, powers, stories  ·  *Leads to:* gear, powers, death
+
+1. **a**: found out the hard way that the {a.gear_tip_item} {a.gear_tip_power} · story time: me, a {a.gear_tip_item}, a mob right in my face
+2. **b**: oh no · lol what happened · you ok? · rip
+3. **a**: half my hearts, gone · blew myself across the field · never again up close
+4. **b** (80%): lmao · at least you know now · that's a lesson
+
+#### gear new brag
+
+*Needs:* a:has_new_gear, a:gear_style_flashy  ·  *Effects:* teach_gear
+
+*About:* gear, brag, weapons  ·  *Leads to:* gear, brag, powers
+
+1. **a**: look at this {a.new_gear} · check it out, a {a.new_gear} · rate my {a.new_gear}
+2. **b**: ooh shiny · ok that's sick · show off · where'd you get that · 10/10
+3. **a**: rarest thing i own · had to have it · it even looks better in the dark · matches my armor too
+
+#### gear new found
+
+*Needs:* a:has_new_gear  ·  *Effects:* teach_gear
+
+*About:* gear, weapons, loot  ·  *Leads to:* gear, weapons, loot
+
+1. **a**: came across a {a.new_gear} today · ever seen a {a.new_gear}? got one today · new one for me: {a.new_gear}
+2. **b**: never heard of it · what's that do? · lucky · huh, new to me
+3. **a** (80%): no idea yet, still figuring it out · gonna try it on something · we'll see
+
+#### gear new ask
+
+*Needs:* b:has_new_gear, !strangers  ·  *Effects:* learn_gear
+
+*About:* gear, questions, loot  ·  *Leads to:* gear, loot, brag
+
+1. **a**: is that a {b.new_gear}? · where'd you get the {b.new_gear}? · ok what is that {b.new_gear}
+2. **b**: found it · lucky find · long story · it's mine now
+3. **a**: jealous · i want one · nice
+
+#### gear loyal kind
+
+*Needs:* a:has_loyal_kind, a:gear_style_loyal
+
+*About:* gear, weapons, opinions  ·  *Leads to:* weapons, gear, argument
+
+1. **a**: {a.loyal_kind} or nothing · i'm a {a.loyal_kind} person, always will be · you can keep your fancy stuff, i'll stick to my {a.loyal_kind}
+2. **b**: respect · you've never tried anything else · loyal to a fault · fair
+3. **a**: it just feels right · we've been through a lot · why fix what works
+
+#### gear follower ask
+
+*Needs:* a:gear_style_follower, !strangers, !rivals
+
+*About:* gear, weapons, questions  ·  *Leads to:* weapons, gear, friends
+
+1. **a**: what are you fighting with these days? · what's everyone using now? i'll get the same · should i switch to what you use?
+2. **b**: whatever hits hardest · {b.held} for now · same as always · depends on the mob
+3. **a**: ok i'll try that · might copy you · if it works for you
+
+#### gear practical shrug
+
+*Needs:* a:gear_style_practical
+
+*About:* gear, weapons, opinions  ·  *Leads to:* weapons, gear, tools
+
+1. **a**: i don't care how it looks, i care how hard it hits · a weapon's a weapon, i use the best one i've got · fancy names don't kill mobs
+2. **b**: fair enough · boring but true · some of us like style · can't argue
+
+#### gear flashy vs practical
+
+*Needs:* a:gear_style_flashy, b:gear_style_practical
+
+*About:* gear, argument, brag  ·  *Leads to:* gear, argument, weapons
+
+1. **a**: looks matter, admit it · i'd rather die in style · the rare stuff is just cooler
+2. **b** *(marks disagree)*: damage matters · style doesn't block arrows · you'd die in style alright
+3. **a**: whatever · we'll see who wins a duel · you're no fun
+
+#### gear tip doubt
+
+*Needs:* a:has_gear_tip, !rivals, b:voice_newbie  ·  *Effects:* teach_power
+
+*About:* gear, powers, jokes  ·  *Leads to:* gear, powers, argument
+
+1. **a**: the {a.gear_tip_item} {a.gear_tip_power}, no joke · swear on my bed, the {a.gear_tip_item} {a.gear_tip_power}
+2. **b**: you're making that up · no way · prove it
+3. **a**: fine, don't believe me · you'll see · try it yourself then
+4. **b** (80%): ok ok i believe you · maybe · i'll be careful anyway
 
 #### hungry now
 
@@ -9700,7 +10977,7 @@ A conversation can go on from topic to topic. Each topic says what it is **about
 - **Town life:** topics needing `a:in_town` only come up between Drifters living in a Drifter: Civilizations town (`{a.town}` its name, `{a.leader}` its leader).
 - **Debates:** a says something b may agree with or not. The yes turn by b has a chance and marks `agree`, the no turn needs `!t:agree` and marks `disagree`, and a answers each by the mark (trust +1 or -1.5 when the topic ends).
 
-**Tags in use** (topics about each): argument (1455), opinion (1363), complaints (1342), story_part (1330), venting (1329), philosophy (1218), building (1103), mobs (936), animals (877), jokes (874), feelings (803), biomes (715), advice (679), home (555), stories (539), food (519), trolls (511), friends (505), exploring (484), danger (469), town (464), ocean (448), roasts (444), mining (438), death (424), caves (419), farming (374), night (367), structures (367), villagers (345), nether (338), crafting (333), fighting (327), tools (322), trees (320), plants (297), rivals (293), decor (285), weather (277), memories (261), brag (255), gear (253), storage (232), small_talk (223), sky (218), trade (218), armor (185), pets (175), players (164), weapons (164), would_you_rather (158), end (154), sleep (153), boredom (141), hypothetical (140), morals (132), favourites (122), diamonds (107), ore (104), day (95), random (94), fishing (93), gossip (89), plans (89), travel (88), silly (86), world (86), enchanting (85), riddles (83), music (79), politics (75), health (73), help (67), places (56), wonder (56), cooking (55), meaning (55), trust (52), time (51), dreams (50), loneliness (46), legacy (42), happiness (37), freedom (36), fear (35), potions (34), redstone (30), doing (29), horse (25), pillager (25), greeting (22), villager (21), deep_dark (19), ender_dragon (18), jungle (17), piglin (17), wolf (17), iron_golem (16), warden (16), wither (16), skeleton (15), zombie (15), cat (14), enderman (14), llama (14), lush_caves (14), parrot (14), spider (14), swamp (14), wandering_trader (14), badlands (13), axolotl (12), bee (12), fox (12), ghast (12), goat (12), panda (12), slime (12), sniffer (12), turtle (12), witch (12), camel (11), creeper (11), desert (11), mushroom_fields (11), nation (11), plains (11), savanna (11), cherry_grove (10), dark_forest (10), taiga (10), allay (9), ancient_city (9), armadillo (9), bamboo_jungle (9), basalt_deltas (9), bastion (9), bat (9), beach (9), birch_forest (9), blaze (9), bogged (9), breeze (9), buried_treasure (9), cave_spider (9), chicken (9), cow (9), crimson_forest (9), daytime (9), deep_ocean (9), desert_pyramid (9), dolphin (9), donkey (9), dripstone_caves (9), drowned (9), dungeon (9), elder_guardian (9), end_city (9), endermite (9), evoker (9), flower_forest (9), forest (9), fortress (9), frog (9), frozen_ocean (9), full_moon (9), glow_squid (9), grove (9), guardian (9), hoglin (9), husk (9), ice_spikes (9), igloo (9), jagged_peaks (9), jungle_temple (9), magma_cube (9), mangrove_swamp (9), meadow (9), mineshaft (9), moon (9), mooshroom (9), nether_wastes (9), nighttime (9), ocean_monument (9), ocean_ruins (9), ocelot (9), old_growth_taiga (9), outer_end (9), phantom (9), pig (9), piglin_brute (9), pillager_outpost (9), polar_bear (9), pufferfish (9), rabbit (9), rain (9), ravager (9), river (9), ruined_portal (9), sheep (9), shipwreck (9), shulker (9), silverfish (9), snow_golem (9), snowfall (9), snowy_plains (9), snowy_slopes (9), snowy_taiga (9), soul_sand_valley (9), squid (9), stars (9), stony_peaks (9), stray (9), strider (9), stronghold (9), sunrise (9), sunset (9), swamp_hut (9), the_end (9), thunderstorm (9), trail_ruins (9), trial_chambers (9), vex (9), village (9), vindicator (9), warm_ocean (9), warped_forest (9), windswept_hills (9), wither_skeleton (9), woodland_mansion (9), zombie_villager (9), zombified_piglin (9), cod (8), mule (8), tropical_fish (8), zoglin (8), salmon (7), news (6), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), strangers (1), submitted (1), tribute (1), word (1)
+**Tags in use** (topics about each): argument (1456), opinion (1363), complaints (1342), story_part (1330), venting (1329), philosophy (1218), building (1103), mobs (936), animals (877), jokes (875), feelings (803), biomes (715), advice (681), home (555), stories (540), food (519), trolls (511), friends (505), exploring (484), danger (469), town (464), ocean (448), roasts (444), mining (438), death (424), caves (419), farming (374), night (367), structures (367), villagers (345), nether (338), crafting (333), fighting (328), tools (322), trees (320), plants (297), rivals (293), decor (285), weather (277), gear (268), memories (261), brag (257), storage (232), small_talk (223), sky (218), trade (218), armor (185), pets (175), weapons (170), players (164), would_you_rather (158), end (154), sleep (153), boredom (141), hypothetical (140), morals (132), favourites (122), diamonds (107), ore (104), day (95), random (94), fishing (93), gossip (89), plans (89), travel (88), silly (86), world (86), enchanting (85), riddles (83), music (79), politics (75), health (74), help (67), places (56), wonder (56), cooking (55), meaning (55), trust (52), time (51), dreams (50), loneliness (46), legacy (42), happiness (37), freedom (36), fear (35), potions (34), redstone (30), doing (29), horse (25), pillager (25), greeting (22), villager (21), deep_dark (19), ender_dragon (18), jungle (17), piglin (17), wolf (17), iron_golem (16), warden (16), wither (16), skeleton (15), zombie (15), cat (14), enderman (14), llama (14), lush_caves (14), parrot (14), spider (14), swamp (14), wandering_trader (14), badlands (13), axolotl (12), bee (12), fox (12), ghast (12), goat (12), panda (12), slime (12), sniffer (12), turtle (12), witch (12), camel (11), creeper (11), desert (11), mushroom_fields (11), nation (11), plains (11), savanna (11), cherry_grove (10), dark_forest (10), taiga (10), allay (9), ancient_city (9), armadillo (9), bamboo_jungle (9), basalt_deltas (9), bastion (9), bat (9), beach (9), birch_forest (9), blaze (9), bogged (9), breeze (9), buried_treasure (9), cave_spider (9), chicken (9), cow (9), crimson_forest (9), daytime (9), deep_ocean (9), desert_pyramid (9), dolphin (9), donkey (9), dripstone_caves (9), drowned (9), dungeon (9), elder_guardian (9), end_city (9), endermite (9), evoker (9), flower_forest (9), forest (9), fortress (9), frog (9), frozen_ocean (9), full_moon (9), glow_squid (9), grove (9), guardian (9), hoglin (9), husk (9), ice_spikes (9), igloo (9), jagged_peaks (9), jungle_temple (9), magma_cube (9), mangrove_swamp (9), meadow (9), mineshaft (9), moon (9), mooshroom (9), nether_wastes (9), nighttime (9), ocean_monument (9), ocean_ruins (9), ocelot (9), old_growth_taiga (9), outer_end (9), phantom (9), pig (9), piglin_brute (9), pillager_outpost (9), polar_bear (9), pufferfish (9), rabbit (9), rain (9), ravager (9), river (9), ruined_portal (9), sheep (9), shipwreck (9), shulker (9), silverfish (9), snow_golem (9), snowfall (9), snowy_plains (9), snowy_slopes (9), snowy_taiga (9), soul_sand_valley (9), squid (9), stars (9), stony_peaks (9), stray (9), strider (9), stronghold (9), sunrise (9), sunset (9), swamp_hut (9), the_end (9), thunderstorm (9), trail_ruins (9), trial_chambers (9), vex (9), village (9), vindicator (9), warm_ocean (9), warped_forest (9), windswept_hills (9), wither_skeleton (9), woodland_mansion (9), zombie_villager (9), zombified_piglin (9), cod (8), mule (8), powers (8), tropical_fish (8), zoglin (8), salmon (7), news (6), questions (3), loot (2), opinions (2), peace (2), war (2), alliance (1), ally (1), at (1), banner (1), broken (1), capital (1), conquered (1), dead (1), down (1), enchanter (1), fell (1), fisher (1), fletcher (1), formed (1), free (1), insult (1), joined (1), kept (1), killing (1), let (1), life (1), made (1), past (1), rebelled (1), refused (1), rival (1), smith (1), strangers (1), submitted (1), tribute (1), word (1)
 
 #### `talk.segue.linked`
 
@@ -10132,73 +11409,181 @@ A Drifter near you (8 blocks, seeing you) with nothing pressing now and then bri
 
 A round, or a bystander's bit.
 
-- **everyone:** we're all bots lol · beep boop · aren't we all · sus
+- **everyone:** we're all bots lol · beep boop · aren't we all · sus · bots dont mine this badly · lol bot · i'm not a bot, you're a bot · bot? rude · if they're a bot then i'm a creeper · nah, bots dont lag like that · they type too slow to be a bot · bot? they fell in lava yesterday · sure, and i'm a villager · hmm · accusing people of being bots now · lol says you · prove you're not a bot · i've wondered the same tbh · everyone's a bot to someone · no way, bots dont do dumb stuff like that · it's always the bot accusations · what even is a bot · bot or not, they can mine · they missed a sheep three times. not a bot · relax, they're just weird · takes one to know one · lol thats what a bot would say · who isnt · ok and? · big accusation · nah thats just how they play · bots dont get lost this often · they live in a dirt hut. no bot does that
+- **hoarder:** if they're a bot can i have their chests
+- **nomad:** met stranger folk on the road
+- **homebody:** they're sweet, not a bot
+- **speedrunner:** who cares. move
+- **bandit:** bot or not, they still have loot
+- **miner:** a bot would've found dias by now
+- **builder:** a bot couldnt place blocks that crooked
+- **helper:** be nice, they're a person · dont call people bots
+- **hermit:** ... whatever · leave them be
+- **PvP sweat:** they play like a bot, thats true · bot aim, i've seen it
+- **newbie:** wait what's a bot?? · omg is everyone bots??
+- **casual:** lol fair · ngl kinda sus
 
 #### `chime.compliment`
 
 A round, or a bystander's bit.
 
-- **everyone:** true · fr · facts · real · W
+- **everyone:** true · fr · facts · real · W · you're not wrong · agreed · spitting · cant argue with that · 100% · well said · they deserve it · yep · exactly · they're right · W take · say it louder · +1 · couldnt agree more · absolutely · honestly yeah · aw that's nice · wholesome · this is the truth · you said it · for real for real · best one here, no doubt · deserved · spot on · W words · nice of you to say · accurate · no lies detected · they really are · yeah they're great
+- **speedrunner:** true. moving on
+- **bandit:** sure, sure. sweet talk
+- **nomad:** true. met them on the road once, good folk
+- **hoarder:** agreed. they never touch my chests
+- **homebody:** aw, they really are lovely
+- **miner:** true, they find dias like nobody else
+- **builder:** true, their builds are clean
+- **PvP sweat:** not as good as me, but sure · ok but i'm better
+- **hermit:** ... yeah · mm. true enough
+- **helper:** aww thats sweet · so kind of you
+- **newbie:** yes!! they're so cool!! · omg agreed!!
+- **casual:** ngl yeah · lol yeah true
 
 #### `chime.duel`
 
 A round, or a bystander's bit.
 
-- **everyone:** ooh fight · get him {name} · fight fight fight · my money's on {name} · popcorn time · this'll be good
+- **everyone:** ooh fight · get him {name} · fight fight fight · my money's on {name} · popcorn time · this'll be good · {name} is gonna win this · fight! · ooh this is gonna be good · everybody back up · make some room! · bets? i got {name} · go {name}! · i'll hold your stuff · 1v1, nice · loser buys bread · who's ref · 3, 2, 1, fight · dont hold back {name} · i'm getting a good seat · this is gonna be quick · shield up {name} · gl both · ooh, respect · dont lose to them {name} · spectating · best of three? · clean fight, no running · {name} is way too confident · this is the best part of the day · lol here we go · {name} you got this · i'll bet 2 emeralds on {name} · ding ding ding · careful, {name} sprint resets · place your bets! · gonna be close · i'll be over here eating
+- **miner:** {name}, use the pickaxe lol
+- **speedrunner:** make it quick
+- **nomad:** good fight to see on the road
+- **hoarder:** loser gives me their gear
+- **homebody:** no fighting in the garden!
+- **builder:** not near the house pls
+- **bandit:** whoever loses, i'm taking their loot
+- **hermit:** ... dont fight near my stuff
+- **helper:** be safe you two! · i've got food for the loser
+- **PvP sweat:** both of you are mid · winner fights me · watch the crit timing, {name}
+- **newbie:** omg a fight!! go {name}!! · wait how do duels work
+- **casual:** lmao fight time · ngl {name} might lose
 
 #### `chime.give`
 
 A round, or a bystander's bit.
 
-- **everyone:** me too pls · can i have some too? · generous · share with me next
+- **everyone:** me too pls · can i have some too? · generous · share with me next · hey what about me · i want one · where's mine? · so nice · lucky · can i get some? · wow, free stuff · you giving stuff out? i'm here · me next! · kind of you · dang, wish i had a friend like that · i'll take one if there's extra · any left? · nice gift · save some for me · i saw that. my turn? · share the love · i'm also very poor btw · hey i'm hungry too · lucky them · can you do that again but for me · that's really nice · W gift · gimme gimme · ooh what'd they get · not fair · i'll trade you for some · hey, im standing right here · you're too kind · spare one? · rich much? · and i get nothing? cool
+- **builder:** got spare blocks? asking for a build
+- **miner:** got any torches spare?
+- **speedrunner:** got extra? i'll take it
+- **nomad:** i could use some for the road
+- **hermit:** ... dont need anything
+- **PvP sweat:** give me some too, i deserve it
+- **homebody:** aw, thats sweet of you
+- **casual:** lol where's mine · ngl i want some too
+- **bandit:** nice. now give me some or else · noted. you've got spares
+- **helper:** that's kind of you! · so generous, love to see it
+- **hoarder:** if you're giving stuff away, my chests have room · i'll take whatever's left. all of it
+- **newbie:** omg can i have one too pls!! · i have nothing :( can i have some
 
 #### `chime.help`
 
 A round, or a bystander's bit.
 
-- **everyone:** coming too! · hold on! · omw too
+- **everyone:** coming too! · hold on! · omw too · on my way! · i'm coming! · be right there · hang in there! · where are you? · running! · hold on, i'm close · coming, coming! · i got you · stay alive! · two secs! · heading over · dont die! · almost there · wait for us! · help's coming! · sprinting over · i'm right behind you · keep fighting, i'm coming · back up, i'll be there · say where! · eat something, i'm coming · hold out a bit · on it! · dont move, i'll find you · us too! · ok ok i'm coming · need backup? coming · ill be there in a sec · wait up! · dont panic, coming
+- **bandit:** i'll help. for a price
+- **hoarder:** coming. you owe me
+- **speedrunner:** coming. fast
+- **homebody:** coming! i'll leave the farm
+- **builder:** dropping the build, coming
+- **miner:** coming up from the mine!
+- **nomad:** on my way o7
+- **hermit:** ... fine. coming
+- **casual:** lol ok coming · coming lol
+- **PvP sweat:** i'll carry, coming · they're dead when i get there
+- **newbie:** omg i'm coming!! wait!! · where?? i'm coming!!
+- **helper:** i'll be right there, stay safe! · bringing food, hang on!
 
 #### `chime.insult`
 
 A round, or a bystander's bit.
 
-- **everyone:** oof · ratio · rude · dang · ooooh · chill
-- **helper:** be nice
-- **PvP sweat:** lmao · ratio
+- **everyone:** oof · ratio · rude · dang · ooooh · chill · yikes · ouch · savage · uh oh · dang, harsh · thats cold · woah woah · calm down · no need for that · rip feelings · emotional damage · ok who hurt you · that was mean · oooh they went there · you gonna take that? · burnt · not cool · take a breath · not wrong tho · brutal · sheesh · big words from you · bro said that out loud · someone's salty · relax · aaand there it is · drama · lol what did they do to you · F
+- **helper:** be nice · hey, lets keep it friendly · words hurt, you know · come on, everyone's trying
+- **PvP sweat:** lmao · ratio · L + ratio · settle it in a 1v1
+- **miner:** i'll be in the mines
+- **speedrunner:** drama. skip
+- **hoarder:** say what you want, just dont touch my chests
+- **nomad:** and that's why i keep moving
+- **builder:** rude. and your house is ugly too
+- **homebody:** no fighting in front of the house
+- **newbie:** omg :( · wait why so mean
+- **bandit:** careful, people vanish for less · say that again, i dare you
+- **hermit:** ... dont drag me in · leave me out of this
+- **casual:** lmao rip · ngl that was harsh
 
 #### `chime.joke`
 
 A round, or a bystander's bit.
 
-- **everyone:** lmao · old one · bruh · lol · boo · lmaooo · i'm stealing that · terrible. 10/10
+- **everyone:** lmao · old one · bruh · lol · boo · lmaooo · i'm stealing that · terrible. 10/10 · haha · i heard that one before · not funny. ok a bit funny · lol good one · ok that got me · i laughed out loud · groan · that was bad. i loved it · XD · oof that one hurt · booo get off the stage · lmao what · dying · i snorted · ok who taught you that · that's so old the villagers know it · who laughed? i laughed · tell another one · lol stop · ha. ha. · the creepers are laughing too · even the wither would laugh at that · comedy gold · my ribs · please never say that again · lol im crying · pfft · that's cursed · i'm telling that one to the villagers · that was actually funny · wheeze
+- **bandit:** i'll steal that, like i steal everything
+- **hoarder:** i'm keeping that one
+- **nomad:** heard that one three towns back
+- **speedrunner:** lol. next
+- **homebody:** hehe, i'll tell that one at dinner
+- **miner:** that joke's older than bedrock
+- **builder:** that joke needs a rebuild
+- **helper:** haha cute one
+- **PvP sweat:** mid joke · L joke
+- **hermit:** ... heh · not funny
+- **newbie:** i dont get it... OH lol · hahaha!! good one!!
+- **casual:** lmao fr · ngl that was good · lol ok
 
 #### `chime.team`
 
 A round, or a bystander's bit.
 
-- **everyone:** can i come too? · trio? · dont leave me out · W
+- **everyone:** can i come too? · trio? · dont leave me out · W · take me too · squad up! · room for one more? · i'm in · invite me · i'll tag along · make it three · hey, i wanna team · what about me · can i join? · group? · three's better than two · dont forget me · count me in · i'll bring food · i've got a sword, take me · teaming? i'm coming · party of three · wait for me! · i'm joining whether you like it or not · us three, lets go · i can carry stuff · team? i'm good at this · let me come · i'll watch your backs · full squad · oh i'm coming with · you need a third · i'll be useful, promise · save me a spot · dont go without me
+- **homebody:** i'll come, but home by dark
+- **bandit:** team? sure. i'll take the biggest share
+- **hoarder:** i'll join. i get first pick of loot
+- **speedrunner:** team? only if we're fast
+- **builder:** if you're building, count me in
+- **miner:** if you're going mining, i'm in
+- **nomad:** i'll ride with you o7
+- **hermit:** ... not me. have fun
+- **casual:** lol add me · ngl i'd join
+- **PvP sweat:** you need me, trust · i'll carry you both
+- **helper:** i'll come along and help! · need a healer? i've got food
+- **newbie:** can i come too pls!! i'll be good!! · omg a team!! me too!!
 
 #### `round.gm`
 
 A round, or a bystander's bit.
 
-- **everyone:** gm · gm {player} · morning · mornin · gm o/ · good morning · gm gm · morning {player} · o/ gm
-- **newbie:** good morning!! · gm {player}!!
-- **hermit:** mm. morning · gm.
-- **homebody:** morning! sleep well? · gm {player} :)
-- **builder:** gm, big build day today · morning o/
-- **PvP sweat:** gm · morning. 1v1 later?
-- **helper:** good morning {player}! · gm! need anything today?
+- **everyone:** gm · gm {player} · morning · mornin · gm o/ · good morning · gm gm · morning {player} · o/ gm · morning all · gm everyone · gm, sun's up · good morning everyone · morning, made it through the night · gm, no creepers at the door today · gm {player}, sleep ok? · morning, anyone got bread · rise and shine · gm, new day · morning! lets get some stuff done · yo gm · gm all o/ · hey gm · gm {player} o7 · gm, the phantoms didnt get me · morning, the zombies are burning lol · gm, skeletons are hiding under trees again · early riser huh {player} · gm, what's the plan today · morning everyone, hope you slept · gm, slept like a log · wakey wakey · gm, that was a short night · good morning, nice sunrise · gm gang · gm, back to work · gm, beds are op · gm, rain's stopped · morning, its a nice one
+- **newbie:** good morning!! · gm {player}!! · good morning everyone!! what do we do today? · gm!! i didnt die last night!!
+- **hermit:** mm. morning · gm. · morning. quiet one hopefully
+- **homebody:** morning! sleep well? · gm {player} :) · gm! the crops grew overnight · morning! breakfast is on, come eat
+- **builder:** gm, big build day today · morning o/ · gm, gonna finish that roof today
+- **PvP sweat:** gm · morning. 1v1 later? · gm. who wants smoke today
+- **helper:** good morning {player}! · gm! need anything today? · gm all! shout if you need anything · morning {player}, need any food?
+- **bandit:** morning. good day for business
+- **casual:** gm lol, barely awake
+- **hoarder:** gm. counted my chests already
+- **nomad:** gm o7 road's waiting
+- **speedrunner:** gm. already up. move
+- **miner:** gm, back to the mines · morning. y -59 here i come
 
 #### `round.gn`
 
 A round, or a bystander's bit.
 
-- **everyone:** gn · gn {player} · night · sleep well · gn o/ · nn · gnight
-- **newbie:** gn {player}!! · good night!!
-- **hermit:** gn. · finally, quiet
-- **homebody:** sleep tight {player} · gn :)
-- **helper:** sleep well {player}! · gn, i'll keep watch
+- **everyone:** gn · gn {player} · night · sleep well · gn o/ · nn · gnight · night all · gn everyone · nini {player} · gn, dont let the phantoms bite · goodnight everyone · gn, hop in bed so the night skips · night night · gn o7 · gn, mobs are out · nighty night · gn all, see you at sunrise · gn, im beat · gn {player}, sweet dreams · off to bed, gn · night, lock your doors · gn, zombies at the door again · bed time. gn · gn gang · gn, long day · night everyone, stay safe · gn, place a torch before you sleep · gn, see you in the morning · night {player}, dont stay up mining · gn, i hear a spider · time to sleep, gn · gn yall · gn, its getting dark fast · rest well {player} · gn, the moon's out · night, see you tomorrow
+- **newbie:** gn {player}!! · good night!! · gn everyone!! see u tomorrow!! · wait is it night already?? gn!!
+- **hermit:** gn. · finally, quiet · night. dont knock · ...gn. dont wake me
+- **homebody:** sleep tight {player} · gn :) · gn, the bed's warm · night all, fed the animals already
+- **helper:** sleep well {player}! · gn, i'll keep watch · gn all, shout if you hear anything · night {player}, i'll light up the path
+- **bandit:** night. or is it
+- **casual:** gn lol, i'm done for today
+- **hoarder:** gn. counted everything. dont touch my chests
+- **nomad:** gn o7, camping under the stars
+- **speedrunner:** gn. skipping the night. bye
+- **PvP sweat:** gn. 1v1 tomorrow
+- **miner:** gn, back to the caves at sunrise
+- **builder:** gn, finishing the walls tomorrow
 
 - `joke.nick.cactus`: cactus hugger · the cactus guy
 - `joke.nick.cramming`: squish · pancake
@@ -11645,6 +13030,1916 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **bot** (15): are you a bot · r u a bot · are u a bot · you a bot · u a bot · are you real · r u real · are you human · are you ai · are you an ai · is this a bot · are you a robot · npc · are you an npc · ur an npc
 
 **Slang words:** 2day = today · 2moro = tomorrow · 2morrow = tomorrow · 2nite = tonight · aboot = about · abot = about · abt = about · abut = about · alot = a lot · any1 = anyone · ar = are · atm = right now · b4 = before · bc = because · bcos = because · bcuz = because · becoz = because · becuz = because · bout = about · brb = be right back · bse = base · btw = by the way · buildin = building · chu = you · cnt = cant · comin = coming · cos = because · coz = because · cus = because · cuz = because · da = the · dat = that · def = definitely · deffo = definitely · dem = them · dident = didnt · didint = didnt · dis = this · dno = dont know · dnt = dont · doesent = doesnt · doin = doing · doinn = doing · dosent = doesnt · dun = dont · dunno = dont know · every1 = everyone · fink = think · finna = going to · fr = for real · freind = friend · freinds = friends · fren = friend · frend = friend · frends = friends · frens = friends · frfr = for real · g2g = got to go · gettin = getting · gimme = give me · gimmie = give me · giv = give · givme = give me · gna = going to · goin = going · gona = going to · gonna = going to · gota = got to · gotta = got to · gr8 = great · gtg = got to go · gunna = going to · haf = have · hafta = have to · hav = have · hbu = how about you · headin = heading · hosue = house · hous = house · hru = how are you · hve = have · hw = how · hwo = how · hws = hows · hyd = how you doing · idc = i dont care · idek = i dont even know · idk = i dont know · iirc = if i remember right · ikr = i know right · ily = i love you · ima = im going to · imho = in my opinion · imma = im going to · imo = in my opinion · kinda = kind of · kk = ok · kno = know · knw = know · kow = know · l8er = later · l8r = later · lemme = let me · liek = like · lik = like · lmk = let me know · lookin = looking · lotta = lot of · ltr = later · lub = love · luv = love · lyk = like · makin = making · minin = mining · ngl = not going to lie · nothin = nothing · nun = nothing · nuthin = nothing · nvm = never mind · nvmd = never mind · okay = ok · okey = ok · oki = ok · okie = ok · okk = ok · omw = on my way · outta = out of · peeps = people · pleas = please · plez = please · plis = please · pls = please · plz = please · ppl = people · prob = probably · probs = probably · prolly = probably · pwease = please · r = are · realy = really · rlly = really · rly = really · rn = right now · smth = something · smthn = something · some1 = someone · somethin = something · sorta = sort of · srsly = seriously · sth = something · sum1 = someone · sumthin = something · sup = whats up · talkin = talking · tbh = to be honest · teh = the · teh's = the · thankz = thanks · thanx = thanks · thikn = think · thinkin = thinking · thinkk = think · thnk = think · thnks = thanks · thnx = thanks · tho = though · thru = through · thx = thanks · tmr = tomorrow · tmrow = tomorrow · tmrw = tomorrow · tnx = thanks · tomoz = tomorrow · tonite = tonight · tryin = trying · u = you · ur = your · ure = your · urs = yours · w8 = wait · wachu = what you · waht = what · wana = want to · wanna = want to · wantto = want to · wassup = whats up · wasup = whats up · wat = what · watcha = what you · watchu = what you · wats = whats · watsup = whats up · watz = whats · wazup = whats up · wbu = what about you · wdym = what do you mean · wen = when · wer = where · were's = wheres · wers = wheres · whatcha = what you · whatchu = what you · whatchu're = what you · whatsup = whats up · whatya = what you · whatyou = what you · whatz = whats · wher = where · whr = where · whre = where · whres = wheres · whrs = wheres · wht = what · whta = what · whut = what · wn = when · wot = what · wotcha = what you · wsg = whats good · wsp = whats up · wuchu = what you · wud = what you doing · wut = what · wuts = whats · wuz = whats · wy = why · wyd = what you doing · wym = what you mean · yor = your · youre = your · yu = you · yuo = you
+
+## 11. Towns, law, war, friends and alarms
+
+The rest of the canned lines: crimes and guards, unrest and envoys, war, town life (greetings, festivals, market day, notices, the enchanter and smith), what bell ringers shout, the alarm and the paper crier, and friendship with players (the town, friend and bell lines come with Drifter: Civilizations).
+
+#### `alarm.shout`
+
+A Drifter runs to a mine mouth and shouts down it to call everyone up to the alarm bell. {why} is what the alarm is about, a noun phrase like "the raiders", "the massacre", "the killing of Bob", "the war on Oakvale".
+
+- **everyone:** everyone up! {why}! · everybody up top! {why}! · come up, the bell's ringing! {why}! · get out of the mine! {why}! · up up up! {why}! · drop your picks! {why}! · hey down there! {why}! come up! · anyone down there? {why}! up now! · the bell's ringing for {why}, come up! · leave the ores, it's {why}! · climb up! {why}! · out of the tunnels! {why}! · {why}! everyone to the surface! · can you hear me down there? {why}! · {why}! get up here! · stop digging! {why}! · up to the bell! {why}! · {why}! we need everyone up top! · it's {why}! come up now! · hurry up the ladder! {why}! · OI! {why}! up! · miners, up! {why}! · no time for ores, {why}! · get to the bell, {why}! · everybody out of the hole! {why}! · the mines can wait! {why}! · {why}!! the town needs you up here!
+- **hoarder:** your chests are safe, just come up! {why}!
+- **nomad:** out of the dark, all of you! {why}!
+- **PvP sweat:** up top, {why}. time to fight
+- **homebody:** come up, everyone home! {why}!
+- **casual:** yo guys up top, {why} · ngl you should come up. {why}
+- **hermit:** ...{why}. come
+- **speedrunner:** up. {why}. now · {why}. surface. go
+- **helper:** come up carefully, but fast! {why}! · watch your step on the way up, {why}!
+- **newbie:** um everyone come up!! {why}!! · guys up pls!! {why}!
+- **miner:** leave the dias, {why}! up! · y -59 can wait, {why}! · pause the strip mine, {why}!
+
+#### `alarm.shout_plain`
+
+The same shout down the mine when nobody knows what the alarm is for.
+
+- **everyone:** everyone up! the alarm's ringing! · come up! the bell's going! · get up here, the alarm's going off! · the bell! everyone out of the mine! · drop your picks, the alarm's ringing! · up up up! alarm! · hey down there! the bell! · anyone down there? alarm! · out of the tunnels, the bell's ringing! · climb up! something's wrong in town! · everybody up, the bell won't stop! · can you hear me? the bell! come up! · stop digging! alarm! · no idea what's going on but the bell's ringing! · the bell's going crazy! · up to the plaza! alarm! · something's happening up top! come up! · miners! up! · everybody to the surface! · leave the ores! bell's ringing! · hurry, there's an alarm up top! · OI! bell! come up! · trouble in town! everyone up! · dunno what it is, just come up! · you hear that bell? up, now! · come on up, the town needs us! · put the pickaxe down and come up!
+- **hoarder:** leave the chests, the bell's ringing!
+- **PvP sweat:** bell's ringing, sounds like a fight. up!
+- **nomad:** out of the dark, the bell's calling!
+- **homebody:** the bell! everyone come home!
+- **casual:** yo the bell's going off, come up
+- **hermit:** ...bell. up
+- **speedrunner:** alarm. up. now
+- **helper:** come up carefully, the alarm's ringing!
+- **newbie:** guys the bell is ringing!! come up pls!! · is that the alarm?? everyone up!!
+- **miner:** dias can wait, the bell's ringing! · pause the mining, alarm's going!
+
+#### `crier.open`
+
+The town crier at the plaza reads the paper out: the first headline ({news}, e.g. "bandits seen near Oakvale" or "Steve built a castle").
+
+- **everyone:** extra extra! {news} · hear ye, hear ye! {news} · todays news! {news} · news from the plaza! {news} · fresh off the press: {news} · big news today! {news} · listen up everyone! {news} · the paper's in! {news} · read all about it! {news} · headline today: {news} · gather round for the news! {news} · you won't believe this one. {news} · news! news! {news} · todays top story: {news} · morning paper! {news} · hot off the press! {news} · {news}! read it in todays paper! · {news}! more inside, come grab a copy · {news}! get your paper here! · first up today: {news} · this just in: {news} · word around town: {news} · papers! papers! {news} · you heard it here first: {news} · the town's talking about it: {news} · front page today! {news} · {news}! that's the big one today · here's what's new: {news}
+- **hoarder:** one paper each! first story: {news}
+- **builder:** front page, laid out nice and neat: {news}
+- **bandit:** listen close, could be worth your while: {news}
+- **miner:** news from up top: {news}
+- **speedrunner:** news. {news}. papers here
+- **hermit:** ...news. {news}
+- **helper:** good morning everyone! todays news: {news}
+- **nomad:** news from the roads: {news}
+- **homebody:** news from around home: {news}
+- **newbie:** um news everyone!! {news}!! · i get to read the news!! {news}
+- **casual:** ok so today's news: {news} · ngl wild headline today. {news}
+
+#### `crier.paper`
+
+The crier hands a copy of the paper to a player who came to the plaza.
+
+- **everyone:** here, todays paper · here, have a paper · todays paper, for you · grab a copy · here's your copy · take one, it's free · fresh paper, here · here, read up · one for you · papers! here's yours · catch up on the news · a copy for you · here, all the news is in there · take a paper, it's a good one today · read it and pass it on · here, hot off the press · don't lose it · here, latest news · you'll want to read this one · copy for you, friend · take it, there's plenty · here, gossip and all · paper's in, here you go · page two's the good part · read it while it's fresh · here, the latest · take one home · fresh copy, still warm
+- **miner:** something to read down the mine
+- **builder:** here, try not to crease it
+- **bandit:** here. the paper's free, the rest isn't
+- **hoarder:** here. only one per person
+- **nomad:** take one for the road
+- **homebody:** here, read it by the fire
+- **speedrunner:** paper. take it
+- **hermit:** ...here
+- **helper:** here's a copy for you, enjoy
+- **newbie:** here!! i made sure you got one · paper for you!! read it pls
+- **casual:** here lol, todays news · yo, paper
+
+#### `shop.buy`
+
+
+
+- **everyone:** {what} pls · can i get some {what}? · {what}, how much · need {what} · one {what} order pls · {who}, got {what}? · hey, selling {what}? · id like some {what} · how much for {what}? · you got {what} in stock? · lemme get some {what} · looking for {what} · is the {what} still for sale? · can i buy your {what}? · here for the {what} · i'll take some {what} · {who}, can i buy {what}? · what's the price on {what}? · need some {what}, what do you want for it · trading for {what} · heard you had {what} · came for {what} · buying {what} · {what}. whats it cost · sell me some {what}? · morning {who}, got any {what} left? · any {what} for me? · wanna buy {what} · let me see the {what} · yo {who}, {what}? · hi, i'm after {what} · do you still do {what}? · what do you want for {what}? · after some {what} if you've got it · {who}! {what}, how many can i get? · ok {what} please, just a few
+- **newbie:** hi!! can i buy {what}? · omg you sell {what}?? i want some!! · um how do i buy {what}? pls
+- **hermit:** {what}. · just {what} · {what}...
+- **bandit:** {what}. and make it quick · {what}. dont make me ask twice · give me {what}. i'll even pay
+- **hoarder:** {what}. how cheap can you go · {what}. lots of it. whats the bulk price · how much {what} you got? i'll take all of it
+- **PvP sweat:** {what}, and dont rip me off
+- **helper:** hi! could i buy some {what}? no rush
+- **nomad:** stocking up for the road, {what} pls
+- **miner:** {what} before i go back down, pls
+- **builder:** need {what} for a build · got {what}? my house needs it
+- **homebody:** need {what} for the house, got any?
+- **speedrunner:** {what}, fast pls · {what}. go
+- **casual:** yo {what}? lol · ngl i need {what} rn
+
+#### `shop.sold`
+
+
+
+- **everyone:** here · ty for buying · enjoy · pleasure doing business · come again · there you go {who} · thanks {who} · nice, ty · all yours · hope it serves you well · done, thanks for stopping by · thanks, tell your friends · pleasure, {who} · anything else? · good choice · fresh stock, you got the good stuff · thanks for the business · see you next time · ty, come back soon · sold! · that'll do it · another happy customer · careful with that · thank you kindly · deal done, ty {who} · nice doing business with ya · ty, have a good one · all set {who} · here's your stuff · cheers {who} · good pick · thanks, stall's always open · it's all in your pack now · there, a fair deal · spend wisely next time lol
+- **hoarder:** no refunds · counted. it's all there · no returns, no exceptions · you paid full price. good
+- **helper:** here you go! come back anytime · thanks {who}! hope it helps · take care, come by whenever you need stuff
+- **PvP sweat:** ez money · ez sale · profit. gg
+- **nomad:** safe travels {who}
+- **miner:** ty, back to the mine for more
+- **builder:** ty, build something pretty with it
+- **speedrunner:** ty, next
+- **homebody:** thanks, stay cozy
+- **bandit:** pleasure. dont come back short · nice. watch your back out there
+- **hermit:** done · ...ty
+- **newbie:** yay my first sale!! ty · omg thank you for buying!!
+- **casual:** ty fam lol · ayy ty
+
+#### `shop.trader`
+
+
+
+- **everyone:** came all the way from home to trade · good doing business, {who} · pleasure, see you next run · got some good stuff here · fair prices in {town} · worth the trip to {town} · long walk, but worth it · ty {who}, see you next time i'm in {town} · good market here · {town} never disappoints · nice doing business, {town} · solid trade, {who} · back home with a full pack · that's the run done · {who} drives a hard bargain · my bags are full now, ty · always good trading in {town} · {town}'s got the good stuff · i'll tell folks back home about {town} · came a long way for this, glad i did · trade run done, heading back · ty {who}, you made the trip worth it · see ya next trip, {who} · {town} treats travellers right · best stall in {town}, {who} · decent prices, decent people · good haul from {town} · nice place, {town}. i'll be back · back on the road soon · worth every step · {who}, pleasure as always
+- **hoarder:** could've been cheaper · {town} prices are steep · got a good deal for once · {who}, you charge too much. still bought it
+- **nomad:** love a good trade run · {town} done, next stop who knows · o7 {town}, til next time · another town, another trade. love it
+- **bandit:** you got lucky on that one · nice town, {town}. real nice · {who}, keep that stall stocked. i'll be back · lots of loot in {town}... i mean goods
+- **hermit:** done. leaving · too many people in {town}
+- **PvP sweat:** outhaggled {who} ez
+- **homebody:** nice place, but i miss home already
+- **builder:** love the builds in {town} · {town} has nice houses ngl
+- **miner:** traded my ores, worth it
+- **speedrunner:** in and out of {town}. ez · fast trade, ty
+- **helper:** thanks {who}! anything you need from back home? · {town} is lovely, ty for having me
+- **newbie:** omg my first trade run!! ty {who} · is {town} always this nice??
+- **casual:** ngl {town} is goated · W trade run lol
+
+#### `crime.theft`
+
+
+
+- **everyone:** THIEF! · hey! {player}'s stealing! · {player} took stuff from our chest! · stop, thief! · guards! {player}'s a thief · {player} just robbed us! · hey, put that back! · someone's in our chest! · {player}, drop it! · catch {player}! they stole from us · stop right there {player}! · we got a thief! · thief in town! · {player}'s got their hands in our chest · i saw that, {player}! · hey! give that back! · robbery! {player}! · everyone, {player} is stealing! · those chests are ours, {player}! · caught you, {player} · {player} is a thief, watch them! · you can't just take stuff! · {player}, what do you think you're doing? · lock the chests, {player}'s stealing · somebody stop {player}! · {player} just looted our stuff! · not cool {player}, that was ours · hands off our chest! · thieves get fined here, {player} · {player} is robbing the place! · that's town property, {player}! · we saw you, {player}. everyone did · oi! that chest isn't yours! · guards, {player} has our stuff! · {player} is emptying our chest!
+- **helper:** {player}, that's not yours! · please put it back {player}, we need that · {player}, just ask next time!
+- **bandit:** heh. bold · amateur. saw that from across town · {player}, you're bad at this · stealing from my town? that's my job
+- **PvP sweat:** you're done, {player} · stealing's how you get a fight, {player} · L thief, {player}
+- **nomad:** {player}, thieves aren't welcome here
+- **speedrunner:** thief, {player}, get them
+- **builder:** {player}, i need those blocks!
+- **homebody:** {player}, that's someone's home!
+- **hermit:** {player}. stealing. stop · ...{player}. put it back
+- **hoarder:** MY STUFF! {player}! · {player} touched my chest!! · i counted those! {player} took some!
+- **newbie:** is {player} stealing?? HELP · omg {player} took our stuff!!
+- **casual:** bro did {player} just steal from us?? · nah {player} not cool
+
+#### `crime.farms`
+
+
+
+- **everyone:** hey, that's our farm! · {player}, those animals are ours! · keep off the fields! · outsiders don't touch the farms · get off the crops! · {player}, you're trampling our crops! · stop wrecking the fields! · hey, those crops took days! · {player}! not the farm! · watch where you're walking! · those crops feed the whole town, {player} · quit stomping the farmland! · that's our harvest, {player}! · who's ruining the fields? {player}! · {player}, leave the farm alone · no jumping on farmland! · you're breaking our crops! · {player} is wrecking our farm! · {player}, hands off the wheat · we need that food, {player}! · the fields are off limits · hey! that wasn't ready yet! · {player}, those aren't yours to pick · stay on the path, {player}! · someone's messing with the crops! · you'll pay for those crops, {player} · our farm! {player}, stop! · that's our food you're stepping on · {player}! we just replanted that! · keep away from the farmland · hey, the crops! careful! · that's the town field, {player}! · {player}, you're ruining the harvest · the farmland, {player}! watch it!
+- **speedrunner:** crops. stop. {player}
+- **nomad:** outsiders, respect the fields
+- **builder:** {player}, i just laid out those rows!
+- **PvP sweat:** touch the crops again and we fight, {player}
+- **bandit:** trampling crops, {player}? petty · even i leave the farms alone, {player}
+- **hermit:** off the crops · ...{player}. the field
+- **hoarder:** i counted every row, {player}. i'll know · MY wheat! {player}!
+- **helper:** {player}, if you need food just ask! · careful {player}, you're on the farmland
+- **homebody:** {player}, i planted those by hand! · my poor carrots! {player}! · please, that's our food for the winter · i tend those every day, {player}!
+- **newbie:** {player} is breaking the farm!! is that allowed?? · noo the crops!!
+- **casual:** bro not the crops lol, stop · nah {player}, leave the farm be
+
+#### `crime.horse`
+
+
+
+- **everyone:** hey! that's our horse! · {player}'s stealing a horse! · horse thief! · get off that horse, {player}! · {player} took our horse! · get back here with that horse! · stop that rider! · {player}, bring the horse back! · that horse isn't yours, {player}! · someone's riding off on our horse! · hey! that saddle's ours too! · horse stolen! after {player}! · {player}, that's the town horse! · who said you could ride that? · we raised that horse, {player}! · after {player}, they took a horse! · {player}, dismount! now! · you can't just ride off with our horse · that horse belongs to the town! · {player}! put that horse back in the stable · somebody stop {player}, they're on our horse · stealing horses, {player}? really? · our horse! come back! · {player} just rode off with our horse · that's not a rental, {player}! · bring back our horse or pay for it · {player}, that took ages to tame! · watch it, {player} is on our horse · that one's ours, {player}. off · nobody rides town horses without asking · hey, that's the town's ride! · {player} rode off on our horse! · that horse is ours, get down {player}! · someone grab the reins, {player} took a horse · we saddled that horse ourselves
+- **builder:** that's the stable horse, {player}!
+- **speedrunner:** {player} took the fast horse, chase!
+- **hermit:** horse. back. {player}
+- **PvP sweat:** you can't outrun me, {player}
+- **bandit:** nice horse, {player}. shame you'll be caught · {player} stole a horse. respect, honestly
+- **hoarder:** MY horse! {player}! · i paid for that saddle, {player}!
+- **helper:** {player}, i'll help you tame a wild one, just give ours back
+- **nomad:** get your own horse, {player}. that one's ours · {player}, real travellers tame their own
+- **homebody:** that's our horse, {player}! we fed her every day · {player}, she's family! bring her back
+- **newbie:** wait {player} took a horse?? can you do that?? · noo our horsey!!
+- **casual:** lol {player} really yoinked a horse · bro that's our horse · ngl stealing a horse is wild, {player}
+
+#### `crime.livestock`
+
+
+
+- **everyone:** {player}, those animals are ours! · hey! you killed our animal! · stop killing our animals! · that was ours, {player}! · {player}, that's our livestock! · hey! leave the pen alone! · who's killing our animals? {player}! · {player} is slaughtering our herd! · we raised that one, {player}! · weapon down, {player}! · the pen is off limits! · you'll pay for that, {player} · that was our dinner, {player}! · stop hurting our animals! · {player}, those belong to the town! · murderer! that was our animal! · animal killer! {player}! · get away from our pen, {player} · those animals feed the whole town · {player}! that one had a name! · no hunting in our pens! · hunt wild ones, {player}, not ours · {player} is killing the animals! · how could you, {player}? · we'll be short on food because of you, {player} · that's town livestock you're killing! · {player}, out of the pen, now · grab {player}, they're killing the animals · not the animals! stop! · leave our herd alone, {player} · those are town animals, {player} · you just cost the town an animal, {player} · {player}, we need those animals for food
+- **speedrunner:** {player} hitting the pen, get them
+- **builder:** {player}, i built that pen for them!
+- **nomad:** {player}, plenty of wild herds out there. leave ours
+- **hermit:** ...the animals. {player} · leave them be
+- **PvP sweat:** fight me, not the animals, {player} · picking on animals? L, {player}
+- **bandit:** killing farm animals, {player}? low · {player}, that's just sad. go fight something real
+- **hoarder:** i counted them! one's missing, {player}! · that was MY animal, {player}!
+- **helper:** {player}, if you're hungry, just ask us · please stop, {player}, we need them
+- **homebody:** i fed that one every morning, {player}! · {player}! we just bred those! · my poor animals!
+- **newbie:** noo!! {player} killed it!! · is {player} allowed to do that?? those are ours
+- **casual:** bro {player}, not our animals · nah {player} that was ours fr
+
+#### `crime.peace`
+
+
+
+- **everyone:** {player}, stop ringing the bell! · there's nothing wrong! quit it, {player} · you scared everyone for nothing! · is this a joke to you, {player}? · who rang the bell? oh. {player}. figures · false alarm everyone. it was just {player} · {player} there's no raid. put the bell down · i ran in from the fields for THIS? · i dropped my whole wheat harvest for nothing · the bell is for raids, {player}. not for fun · nobody's attacking us, calm down · {player} cried wolf. noted · next time you ring that bell there better be pillagers · ok who's ringing the bell for no reason · i hid in my house for nothing, {player} · bro there's not a single zombie out here · {player} pls. there's no raid · i grabbed my sword and everything. for nothing · that bell isn't a toy, {player} · you know the guards come running when that rings right? · false alarm, back to work everyone · ring it again and you're paying for my lost sleep, {player} · all clear. it was {player} being weird · do that again and nobody comes when it's real · i counted zero pillagers, {player}. zero · the bell means raid. where's the raid, {player}? · half the town is hiding in their basements because of you · some of us were asleep, {player} · if that was a prank it wasn't funny
+- **bandit:** even i don't ring bells for fun, {player}
+- **nomad:** every town has one bell ringer. here it's you, {player}
+- **hoarder:** i locked every chest i own for nothing, {player}
+- **PvP sweat:** geared up for nothing. lame · bell rings and no fight? L
+- **miner:** i climbed up from y -50 for this?? · came all the way up from the mine for nothing, {player}
+- **builder:** i fell off my scaffolding because of you, {player} · placed a block in the wrong spot when that rang. thanks {player}
+- **helper:** {player}, if something's wrong just tell us, no need for the bell · are you ok {player}? or was that a mistake?
+- **speedrunner:** wasted 30 seconds on that, {player} · no time for fake alarms
+- **hermit:** ...quiet. · stop. no bell.
+- **homebody:** i left my soup on the furnace for this, {player} · you woke the whole house up, {player} · my cows panicked, {player}. cows
+- **newbie:** wait theres no raid?? i was so scared · omg i hid in a hole for nothing · is it a raid or not?? {player}??
+- **casual:** lol {player} is just ringing the bell · ngl i thought it was a raid. it was not · bro {player} found the bell and now we all suffer · fr {player} what was that for
+
+#### `crime.murder`
+
+
+
+- **everyone:** {player} killed {who}!! · MURDERER · {who}!! no! · {player} is a murderer! · get {player}! · {player} just killed {who}! · somebody help! {who} is down! · {player} murdered {who}! guards! · did you see that?? {player} killed {who} · {who} didn't do anything to you, {player}! · KILLER! {player} is a killer! · {who}'s gone... {player} did it · {player}! what did you do to {who}?! · guards! {player} killed someone! · stay away from {player}, they killed {who} · you'll pay for {who}, {player} · {player}'s sword is still out. {who} is dead · {who}!! get up! please get up · someone get the guards, {who} is dead · i saw it. {player} killed {who} · not {who}... not like this · everyone saw that, {player}. everyone · MURDER! in the middle of town! · {player} just cut down {who} for nothing · what did {who} ever do to you, {player}? · that was no accident, {player} · {player} killed {who} in broad daylight · {player} attacked {who} out of nowhere! · i can't believe it. {who}... · don't let {player} get away with {who}! · {player}! you'll answer for {who} · someone help {who}... it's too late · i'll tell the whole town what you did to {who}
+- **helper:** {who}... no · how could you, {player} · {who}! hold on! ...no · i should have been there for {who} · {player}, why?? {who} was kind to everyone
+- **hermit:** ...{who}. · ...{player}. i saw. · {who}. gone. · ...blood on your hands, {player}. · ...i won't forget {who}.
+- **speedrunner:** {player} killed {who}. guards. now
+- **hoarder:** you'll never have enough emeralds to pay for {who}, {player}
+- **builder:** {who} built half this street, {player}
+- **miner:** {who} was my mining buddy, {player}!
+- **nomad:** {who} was gonna hit the road with me tomorrow...
+- **bandit:** even i wouldn't have done {who} like that · bold move, {player}. the guards saw that
+- **casual:** bro {player} just killed {who}. not cool · ngl {player} is a murderer now
+- **newbie:** omg {player} killed {who}!! is that allowed?? · wait {who} is dead?? for real??
+- **homebody:** {who} had a farm to tend... · {who} was just walking home, {player}
+- **PvP sweat:** you just signed up for a fight, {player} · {who} was my friend. you're next, {player}
+
+#### `crime.massacre`
+
+
+
+- **everyone:** {player} is killing everyone!! · RUN! {player}'s killing us all · {who} too?! somebody stop {player} · guards!! it's a massacre · {player}, you monster · {player} has killed three of us already! · {player} won't stop!! everyone run! · {who} is down too! get away from {player}! · {player} is going house to house! · hide! {player} is killing anyone they see · they got {who}! RUN · somebody stop {player} before we're all gone · get the guards! all of them! · {player} has lost it! · who's next, {player}?! stop! · {who} too... how many more, {player}? · everyone into the houses! shut the doors! · {player} is wiping out the whole town! · we can't fight {player} alone, get help · {player} just took out {who} too · don't go near the plaza, {player}'s there · this isn't a fight, it's a massacre · {player}! enough! ENOUGH! · grab a sword, anyone! we have to stop {player} · they're going through the whole town! · {player} killed {who} and just kept going · GUARDS! GUARDS! it's {player}! · stay together! {player} can't take us all · nobody's safe, {player} is still swinging · {who} didn't stand a chance! run! · everyone out the back way, {player}'s at the front! · it's {player}! they're killing everybody! · {player}'s still going! bar the doors! · nobody fight {player} alone! group up! · the town's under attack and it's {player}!
+- **helper:** why are you doing this, {player} · please, {player}, stop · {player}, put the sword down, please · i'll stay with {who}. someone run for help · everyone behind me, i'll hold the door
+- **PvP sweat:** you're not walking out of here, {player} · all of us. right now. on {player} · you're not killing anyone else, {player} · come fight someone who hits back, {player}
+- **hermit:** ... · ...run. · not my fight. leaving.
+- **builder:** barricade the doors! use anything!
+- **hoarder:** i'm not losing all my stuff to {player}, run!
+- **miner:** everyone into the mine, they won't find us down there
+- **speedrunner:** no time. run. now
+- **nomad:** i'm leaving this town and never coming back
+- **bandit:** and they call ME the bad guy · {player}'s worse than any bandit i know
+- **homebody:** my house... i have to get to my house · not here, not in our town
+- **casual:** bro this is insane. RUN · nope nope nope, i'm out
+- **newbie:** what do we do what do we do · omg {player} is killing everyone!!
+
+#### `crime.wanted`
+
+
+
+- **everyone:** it's {player}! get them! · {player}'s back! guards! · that's the one, {player}! · {player}! you've got some nerve · {player}! you're wanted here! · look who came back. {player} · guards! {player} is in town! · {player}, there's a price on your head · that's {player}. the one from the poster · everyone watch out, {player} is back · {player}, the guards are looking for you · oh no. not {player} again · don't let {player} near the market · {player} thinks we forgot. we didn't · you were told to stay out, {player} · heads up! {player} at the edge of town · someone fetch the guards, it's {player} · {player}! turn around and walk away · we remember you, {player} · lock up your chests, {player}'s here · wanted and still strolling in. bold, {player} · {player} back again? get them! · i know that face. {player}! · {player} is here, keep your eyes open · stop right there, {player} · the guards will want to know you're here, {player} · {player}! you're not allowed in here! · you've got some guts coming back, {player} · everyone, that's {player}. the wanted one · {player}'s back in town! someone tell a guard! · of all people. {player} · the guards are gonna love this, {player}
+- **helper:** {player}... you shouldn't be here · {player}, turn back before the guards see you · please just go, {player}, i don't want a fight
+- **hermit:** you. · ...{player}. leave. · not you again.
+- **builder:** {player} better not touch my builds this time
+- **miner:** {player}'s back. i'm going back underground
+- **speedrunner:** {player}. spotted. guards
+- **nomad:** guess the road led you back here, {player}. bad road
+- **hoarder:** nobody leave a chest open, {player}'s here · {player} is back. counting my emeralds twice tonight
+- **homebody:** {player} stay away from my house · {player}'s back... i'm locking my door
+- **bandit:** heh. {player}'s got a bounty too. respect · {player}. wanted, just like me
+- **PvP sweat:** {player}. back for round two? · you came back? big mistake, {player} · {player}'s back. bounty's mine
+- **newbie:** is that {player}?? the wanted one?? · omg {player} is here!! guards!!
+- **casual:** lol {player} really walked back in · bro {player} is back, someone call the guards · ngl didn't think you'd show your face, {player}
+
+#### `guard.force`
+
+
+
+- **everyone:** you had your chance, {player} · by order of {town}: you're done · stop right there, {player}! · {player}! drop your weapon! · that's it, {player}. you're going down · {town} warned you, {player} · no more talking, {player} · {player}! you were told to leave {town} · you refused to pay. now you deal with me · in the name of {town}, stand down! · this ends now, {player} · you should have paid, {player} · {town}'s guards don't ask twice · weapons up. {player} won't go quietly · your last warning was your last warning, {player} · you're not welcome in {town}. i'm making sure you leave · for {town}! get {player}! · running won't help, {player} · you made your choice, {player} · the law of {town} says you leave. now · you're under arrest, {player}. resist and you respawn · {town} is done being patient with you · move along or get moved along, {player} · guards! with me! it's {player} · {player}, out of {town}. NOW · exiled means gone, {player}. you're still here · {town} gave you a chance. you threw it away · {player}! you've been exiled from {town}! · this is {town}'s law, {player}. leave or fall · fine. we do it the hard way, {player} · swords out. {player}'s not leaving · too late to pay now, {player} · you're coming with me, {player}. one way or another · {town} doesn't forget, {player}
+- **PvP sweat:** the hard way then · finally, something to hit · you wanted it rough, {player}. ok · been waiting for this, {player}
+- **hoarder:** you kept your emeralds. now you lose everything else
+- **miner:** {player}, you're going back to spawn
+- **nomad:** seen your kind in every town, {player}. out
+- **builder:** you're not trashing {town} on my watch
+- **homebody:** you're not hurting my town, {player} · {town} is my home. get out, {player}
+- **newbie:** um. i have to fight you now {player}. sorry!! · stop!! by order of... {town}!!
+- **casual:** ok you asked for it {player} · bro just pay next time
+- **speedrunner:** no more time on you, {player}. out
+- **bandit:** heh. fighting with the law on my side for once · should've paid, {player}. now it costs more
+- **hermit:** out. · done talking.
+- **helper:** i didn't want this, {player}. you gave me no choice · please just leave {town}, {player}. i don't want to hurt you
+
+#### `alarm.heard`
+
+
+
+- **everyone:** the alarm! get inside! · that's the alarm bell! · the bell! something's wrong · ALARM! everyone in! · you hear that? the alarm! · trouble! the bell's going! · the bell! everyone inside! · that's the alarm! grab your gear! · bell's ringing! something's up! · trouble at the plaza! · the alarm's going! raid? · inside! now! the bell! · doors shut, the bell's ringing! · who rang the bell? what happened? · alarm! weapons out! · the bell! is it pillagers? · something's wrong, they're ringing the bell · that bell means trouble. move! · get off the streets, the alarm! · the alarm bell! stay close! · bell! bell! everyone hear that? · they're ringing the alarm! come on! · uh oh. that's the bell · the bell's ringing, get your sword · alarm! don't go out alone · someone's in trouble, the bell! · TO ARMS! the bell! · did you hear the bell?? come on! · bell! raiders? zombies? anyone know? · everybody hear that? alarm! · the bell's going nuts! · something's at the town, the bell! · quick, inside, it's the alarm! · alarm bell! everyone to the plaza! · grab your bows, the alarm!
+- **hermit:** the bell. trouble. · ...bell. · alarm. inside.
+- **bandit:** the bell? wasn't me this time
+- **nomad:** bell's ringing. bad sign, every town i've been in
+- **hoarder:** the alarm! lock the chests! · bell's ringing, nobody's taking my stuff
+- **builder:** the bell! i'm getting off this roof
+- **miner:** heard the bell all the way down the mine · the alarm? i'm coming up
+- **speedrunner:** alarm. moving · bell. go
+- **homebody:** the bell! i need to get home · shutting my door, the bell's going
+- **PvP sweat:** alarm. finally some action · bell's ringing. time to fight
+- **helper:** everyone ok? the bell's ringing! · come on, i'll walk you inside, the bell! · alarm! anyone need help getting inside?
+- **newbie:** what does the bell mean?? is it bad?? · omg the bell!! where do i go
+- **casual:** uh oh. bell's going · bro the alarm, what now
+
+#### `guard.demand`
+
+
+
+- **everyone:** {player}, you owe {fine} emeralds for {crime}. pay up · that's {fine} emeralds for {crime}. throw them over · {crime}? {fine} emeralds, now · pay {fine} emeralds or leave · {player}. {crime}. that's {fine} emeralds · you're fined {fine} emeralds for {crime}, {player} · hand over {fine} emeralds and we're done · {fine} emeralds for {crime}. toss them here · the fine for {crime} is {fine} emeralds, {player} · {player}, {fine} emeralds. drop them at my feet · town law: {crime} costs {fine} emeralds · pay the {fine} emeralds, {player}, then you can go · {fine} emeralds, {player}. you know what for · {crime} isn't free. {fine} emeralds · {player}, {fine} emeralds or you're out of town · i need {fine} emeralds from you for {crime} · drop {fine} emeralds on the ground. right here · that'll be {fine} emeralds, {player}. {crime} · {fine} emeralds and we forget about the {crime} · you can pay {fine} emeralds or you can leave town · caught you. {crime}. {fine} emeralds · {player}, the town wants {fine} emeralds for that {crime} · stop. {fine} emeralds for {crime}, right now · {fine} emeralds, {player}. i'm waiting · {crime}, huh? that's {fine} emeralds, friend · drop {fine} emeralds and walk away clean · {player}! {fine} emeralds. toss em over · {fine} emeralds, {player}. that's the price of {crime} · for {crime}, the town wants {fine} emeralds · {player}. the fine is {fine} emeralds. pay or go · you know the rules. {crime} is {fine} emeralds · toss {fine} emeralds my way and we're good · {fine} emeralds, then you're free to go, {player}
+- **PvP sweat:** {fine} emeralds. or we do this the hard way · {fine} emeralds or a fight. your pick · pay {fine} or get wrecked, {player} · {fine} emeralds. don't make it a fight. you'll lose
+- **helper:** sorry, rules are rules: {fine} emeralds for {crime} · i'm sorry, {player}, it's {fine} emeralds for {crime} · just pay the {fine} emeralds and it's all forgiven · {fine} emeralds, {player}. i know, i know. it's the rules
+- **bandit:** {fine} emeralds. don't make me ask twice · {fine} emeralds. cheaper than respawning · i'd pay the {fine} emeralds if i were you, {player}
+- **builder:** {fine} emeralds for {crime}. and stay off my builds
+- **miner:** {fine} emeralds. you probably dug that many up this week
+- **nomad:** every town has rules, {player}. here {crime} costs {fine} emeralds
+- **homebody:** {fine} emeralds, {player}, then go home and think about it
+- **hoarder:** {fine} emeralds. i'll count every one · all {fine} emeralds, {player}. i'll know if one's missing
+- **speedrunner:** {fine} emeralds. quick · {fine}. emeralds. go
+- **newbie:** um {player}? you have to pay {fine} emeralds for {crime}! · {fine} emeralds pls!! its the law
+- **casual:** yo {player}, {fine} emeralds for {crime}. sorry not sorry · ngl {crime} was dumb. {fine} emeralds pls
+- **hermit:** don't talk. just drop {fine} emeralds. · {crime}. {fine}. pay.
+
+#### `guard.paid`
+
+
+
+- **everyone:** good. behave from now on · fine paid. don't do it again · ok, we're square · thank you. stay out of trouble · alright. you're free to go · that settles it · paid in full. off you go · good. we're done here · ok. don't make me come find you again · noted. you're clear · thanks. keep your nose clean · debt's paid. move along · right, all square now · fine received. behave · smart choice · that's what i like to see. go on · the town thanks you. now go · clean slate. don't waste it · appreciated. we're done · see? that wasn't so hard · alright. no hard feelings · good. i'll be watching though · paid. next time it's double · counted. all there. bye · that's that then · done. carry on · ok, your name's off the list · good. the town's square with you · ok. that's the end of it · good. now go enjoy the town · thanks. let's not do this again · all paid. you can stay
+- **miner:** noted. now go mine some more emeralds lol
+- **nomad:** square. safe travels · settled. the road's open again
+- **builder:** good. now go spend the rest on a nice build
+- **homebody:** good. now go home and get some rest
+- **hoarder:** all counted. into the town chest they go · every emerald's here. good
+- **speedrunner:** paid. next · ok. go
+- **newbie:** yay you paid!! ok you can go · omg thank you, i didnt want to fight
+- **casual:** ez. we're cool now · all good, no worries · sweet, we're good
+- **bandit:** pleasure doing business · easy money
+- **hermit:** ...fine. go. · done.
+- **helper:** thank you! everyone makes mistakes · glad we sorted that out peacefully · thanks. hope the rest of your day's better
+- **PvP sweat:** shame. i wanted the fight · smart. you'd have lost · paid up. boring, but ok
+
+#### `guard.refused`
+
+
+
+- **everyone:** then get out of {town}! · you're not welcome in {town} anymore · fine. leave and don't come back · that's it, you're exiled · no pay, no stay. get out of {town} · you're done in {town} · walk away then. and keep walking · {town} doesn't want you anymore · don't show your face in {town} again · you just got yourself exiled · ok. you're banned from {town} · {town}'s closed to you now · out. and if we see you again, it's swords · you had your chance. now leave {town} · no emeralds? then no {town} · leave. the guards will remember you · {town} is off limits for you now · we'll be watching the roads for you · you're wanted in {town} from now on · go on then. don't come back · consider yourself exiled · you won't pay? fine. you won't stay either · next time we see you in {town}, we fight · clear out of {town}. now · that's your choice. {town} made its own · get lost, and stay lost · the whole town's gonna hear about this · {town} has a long memory · you'd rather lose {town} than a few emeralds? ok · fine. the guards will see you out of {town} · we don't want people like you in {town} · keep walking. {town} is behind you now · your time in {town} is over · should've paid. now you're out of {town} · go. the guards have your name now
+- **miner:** go dig a hole somewhere else
+- **nomad:** off you go. the road's all yours
+- **builder:** {town} looks better without you in it
+- **homebody:** {town} is home for good people. go
+- **hoarder:** keep your emeralds then. lose {town}
+- **speedrunner:** no pay. exiled. next
+- **newbie:** wait you're just leaving?? ok... you're exiled i guess!! · you didn't pay!! you can't come back!!
+- **casual:** bro it was a few emeralds. ok, bye · lol ok, enjoy being exiled
+- **bandit:** heh. welcome to the outlaw life · now you're one of us · heh. smart. keep the emeralds, lose the town
+- **hermit:** leave. · gone. good.
+- **helper:** i really wish you'd paid... please just leave {town} · i'm sorry it came to this. go
+- **PvP sweat:** walk away. good. next time i won't let you · running from a fine? L · come back and see what happens
+
+#### `unrest.revolt`
+
+
+
+- **everyone:** down with {leader}! · we've had enough of {leader}! · no more taxes! {leader} out! · {town} deserves better than {leader} · enough!! new vote tomorrow · {leader} has to go · not paying another emerald to {leader} · vote {leader} out tomorrow. spread the word · who even voted for {leader} · my chest is empty and {leader}'s is full. funny that · {town} is ours, not {leader}'s · nobody pays tax till the vote. nobody · i'm done paying {leader} for nothing · what has {leader} ever done for {town}? · taxes up, walls still half built. come on · everyone to the plaza! {leader} has some explaining to do · {leader} taxes us and we still sleep next to zombies · no tax tomorrow, no tax ever. vote! · new leader. new vote. tomorrow morning · {town} didn't sign up for this · i traded my last wheat for that tax. never again · we built {town}. {leader} just sits in it · hey {leader}, how about you pay OUR tax · i'm not mining all day so {leader} can sit on it · we're keeping our emeralds. come get them {leader} · {town} needs a leader who actually leaves the house · strike! no tax till the vote · {leader} goes at sunrise. we've decided · where did all the tax go {leader}? where?? · {leader} wouldn't last one night outside the walls
+- **bandit:** {leader}'s done. one way or another · {leader} should start packing. or running · tax this, {leader}
+- **helper:** sorry {leader}, but we need a change · i don't want a fight. just a fair vote tomorrow · we can do better than {leader}, together
+- **nomad:** i didn't settle in {town} to pay {leader} for the road
+- **hermit:** leave us alone {leader}. and our emeralds · ...no more tax. that's all
+- **PvP sweat:** {leader} couldn't win a 1v1 vs a chicken. vote them out · L leader. {leader} gone tomorrow
+- **hoarder:** every emerald i own stays in my chest. every one · {leader} wants my stuff? counted it. it's staying · 47 emeralds paid to {leader}. i want them back
+- **homebody:** i just want to tend my wheat without paying {leader} for it · my family's hungry and {leader} wants emeralds? · {town} was cozy before {leader}. let's get that back
+- **miner:** i mine iron all night and {leader} takes a cut? no · {leader} never went below y 0 in their life · keep your hands off my dias {leader}
+- **builder:** {leader} taxes us but the town hall still has a dirt roof · not one new build in {town} since {leader} took over. not one · my tax paid for that ugly cobble wall? no
+- **newbie:** wait we can vote them out?? ok i vote {leader} out!! · omg i had like 3 emeralds and {leader} took 2 · is this a revolt?? im in!!
+- **casual:** ngl {leader} kinda sucks at this · lol no. not paying that. vote tmrw · fr {leader} gotta go · tax again? nah i'm good. bye {leader}
+
+#### `unrest.coup`
+
+
+
+- **everyone:** {town} is mine now · {leader}'s out. i'm in charge · i'm running {town} now. any questions? · no more {leader}. i lead {town} now · {leader} is done. {town} answers to me now · new leader. you're looking at them · i took {town}. sorry not sorry {leader} · {leader} had their turn. now it's mine · listen up {town}. i make the calls now · {leader}'s chair is mine now · {town} has a new boss. get used to it · {leader}'s out of the hall. i'm in it · don't bother voting. i'm leading {town} now · from today, {town} does things my way · anyone who misses {leader} can go join them · {leader} lost {town}. i found it · i'm in charge here now. {leader} can go farm · all hail me i guess. {town}'s mine · {leader} can keep the bed. i'm keeping {town} · the old leader's gone. meet the new one · {town} needed someone with a spine. here i am · ok {town}, new rules. mine · {leader} who? i run {town} · {leader} talked. i act. that's the difference · quiet everyone. new leader speaking · someone tell {leader} they're fired · i took over {town}. it was easier than i thought · {leader} had a good run. it's over · this place belongs to me now. behave
+- **PvP sweat:** {leader} was weak. i'm in charge now · {leader} got outplayed. {town} is mine. ez · ez takeover. {leader} never stood a chance · skill issue {leader}. i lead now · gg {leader}. get good · 1v1 me for it {leader}. oh wait, you'd lose
+- **bandit:** new boss. {leader} can cry about it · nothing personal {leader}. {town} is mine · {town} pays me now. {leader} can pay too · the chests of {town} are under new management · {leader} had nice stuff. i have it now · keep your heads down, {town}. i'm watching
+- **helper:** {leader} was hurting {town}. i'll do better, promise
+- **newbie:** wait i'm the leader now?? omg {town} is mine!!
+- **casual:** lol {leader} got couped. i'm boss now · so uh. i run {town} now. that happened
+- **hermit:** i lead {town}. don't bother me about it · mine now. leave me be
+- **builder:** {town} gets a real town hall now. i'm in charge · {leader}'s builds were ugly. my town now, my style · first thing: tear down {leader}'s cobble boxes
+- **hoarder:** {town}'s storage is mine now. all of it · every chest in {town} answers to me · {leader} hoarded badly. i'll do it right
+- **speedrunner:** took {town} in one day. new record · {leader} too slow. i'm faster. i lead · {town} under me now. moving on
+
+#### `unrest.concede`
+
+
+
+- **everyone:** ok ok, no more tax · fine, i'm dropping the tax · the tax is gone. happy now? · alright, no tax for now · fine. tax is off · you win. no more tax · ok, i heard you. the tax is gone · tax cancelled. everyone calm down · no tax. there. can we stop yelling · alright alright, keep your emeralds · the tax is done. go home everyone · i give up on the tax. happy? · tax's off the books. for good, i guess · ok fine, you keep what you mine · you made your point. no tax · tax is over. please put down the pitchforks · nobody owes me anything now. ok? · forget the tax. it was a bad idea · tax repealed. don't make me regret it · you won this one. tax is gone · dropping the tax. let's just move on · i'll find another way to pay for the walls. no tax · consider the tax gone. all of it · no more paying in. got it · i hear the crowd. tax is done · fine, no tax. but don't complain when the walls fall down · tax gone, debts cleared. clean slate · maybe the tax was too much. it's gone · the tax chest is closed. for real
+- **helper:** i hear you all. no more tax · you're right. the tax is gone, i'm sorry · i should've listened sooner. no more tax · the people come first. tax is off
+- **hoarder:** ugh. fine. no tax · there goes my income. fine, no tax · tax is off. my chests weep · no tax. i'm counting this as a loss · i'll stop collecting. but i'm keeping what i have
+- **speedrunner:** tax off. moving on
+- **bandit:** fine. no tax. for now · tax is off. i'll get my cut some other way
+- **PvP sweat:** fine. tax off. not a loss tho · no tax. you got lucky this time
+- **homebody:** ok, no tax. let's all just get back to our farms · no more tax. i just want peace at home
+- **builder:** no tax. guess the new town hall waits · tax is off. enjoy your unfinished walls
+- **hermit:** fine. tax gone. now leave me alone · ...tax is off. go away · no tax. stop knocking
+- **newbie:** oh no ppl are mad. ok tax off!! sorry!! · i didnt know tax would make everyone mad lol. its gone
+- **casual:** ok ok lol chill. no tax · tax? what tax lol. gone · fine fr. no more tax
+
+#### `unrest.abdicate`
+
+
+
+- **everyone:** i'm stepping down. vote tomorrow · you don't want me? fine, i quit · i'm done leading {town} · someone else can lead {town} · fine. i'm not the leader anymore · i quit. pick someone else tomorrow · i'm out. {town} votes in the morning · you win. i step down · lead {town} yourselves then · i'm giving up the job. vote's tomorrow · {town} needs someone new. it's not me · i'm done. good luck finding better · leadership's open. vote at sunrise · consider the chair empty. vote in the morning · no more leader. sort it out tomorrow · i resign. {town} can choose again · i'll go back to mining. someone else can deal with this · nobody listens anyway. i'm out · it was fun while it lasted. stepping aside · {town} is all yours. i quit · i'm handing it back. vote in the morning · the job's yours, whoever wants it · i'm no longer leading {town}. pick well · clearly i'm not wanted. i'm gone · you can all vote tomorrow. i won't be running · leaving the post before it gets ugly · tomorrow morning. new vote. without me · i'm tired. let someone else lead · ok {town}, you got what you wanted
+- **helper:** i tried my best. someone else's turn · i only wanted {town} to do well. i'll step aside · i'm sorry i let you down. vote tomorrow · i'll still help {town}. just not as leader
+- **hermit:** i never wanted this anyway · finally. i quit · leave me out of it. i'm done · ...good. no more meetings
+- **bandit:** fine, i quit. you'll miss me when the raids come
+- **nomad:** the road's calling. {town} picks a new leader · i'm handing it over. might take a long walk o7
+- **speedrunner:** leading's too slow. i quit · done. next leader tomorrow
+- **PvP sweat:** whatever. i quit. good luck without me · i'm out. not because i lost, just bored
+- **builder:** i'll go back to building. someone else lead {town} · leading ate all my build time anyway. i quit
+- **hoarder:** i quit. and i'm taking my chests with me · step down? fine. my stuff stays mine
+- **homebody:** i'm going home to my farm. vote tomorrow · someone else can lead. i miss my garden · back to my cozy little house. bye leadership
+- **newbie:** i was bad at this huh. ok i quit!! vote tomorrow · sorry everyone, i give up being leader :(
+- **casual:** lol ok i quit. vote tmrw · not worth it fr. i'm out · yeah no. someone else lead
+
+#### `unrest.betray`
+
+
+
+- **everyone:** this is for {town}, {leader}! · {leader}!! you're done · nobody will miss you, {leader} · time's up, {leader} · you had it coming, {leader} · sorry {leader}. not sorry · {leader}, you should've listened · goodbye {leader} · {town} is done with you, {leader} · for everyone you taxed, {leader}! · {leader}! turn around · it ends here, {leader} · surprise, {leader} · i trusted you once, {leader}. once · {leader}, this is what you get · nobody's coming to help you, {leader} · {leader}! no more chances · this is how it goes, {leader} · i've waited a long time for this, {leader} · {leader}, you won't be leading anyone · say goodbye to {town}, {leader} · {leader}, you made too many enemies · did you really think we'd let it slide, {leader}? · you broke your word, {leader}. now i break mine · {leader}, should've locked your door · remember all those taxes, {leader}? · fight me, {leader} · {leader}, you're not fit to lead {town} · your last day in charge, {leader}
+- **bandit:** should've watched your back, {leader} · nothing personal, {leader}. ok maybe a little · {leader}, i'll take that crown off your hands · your stuff's mine after this, {leader} · never turn your back on me, {leader} · the knife was always there, {leader}
+- **miner:** i've got a diamond sword and a grudge, {leader}
+- **newbie:** omg im really doing this. sorry {leader}!!
+- **speedrunner:** quick and done. bye {leader} · no time to talk, {leader}
+- **hoarder:** {leader}, you taxed my chests. now i tax you · every emerald you took, {leader}. i'm taking it back
+- **casual:** lol bye {leader} · yeah {leader}, this is happening · ngl {leader}, you kinda earned this
+- **helper:** i'm sorry {leader}. {town} comes first · i tried talking to you, {leader}. you didn't listen · forgive me, {leader}. i had to
+- **hermit:** ...{leader}. enough · leave {town} alone, {leader} · no words, {leader}
+- **PvP sweat:** 1v1 right now, {leader} · {leader} about to get combo'd · ez. sit down {leader} · skill issue, {leader}. should've had armor on
+
+#### `crook.brawl`
+
+
+
+- **everyone:** what are you looking at, {who}? · you got a problem, {who}? · {who}. you and me. now · i've had it with you, {who} · outside, {who}. now · hey {who}. yeah you · {who}, you bumped into me · i don't like your face, {who} · you talking to me, {who}? · {who}, let's settle this · {who}! you owe me, remember? · keep walking, {who}. oh wait, too late · {who}, put your fists up · i've been looking for you, {who} · what did you just say, {who}? · you think you're tough, {who}? · {who}. time to pay up, in punches · you looked at me funny, {who} · step outside, {who} · {who}, you're done · nobody laughs at me, {who} · that's my spot, {who}. move · {who}, you're gonna regret that · {who}! fight me · this town's not big enough for us, {who} · {who}, i'm gonna knock you flat · remember me, {who}? i remember you · you stole my pickaxe, {who}. don't lie · {who}, i heard what you said about me · {who}! you've been asking for this · {who}, you're on my side of town · i'm tired of your face, {who} · {who}. fists. now
+- **bandit:** c'mere {who} · hold still, {who} · {who}. nothing personal · come here, {who}. this'll be quick · don't run, {who}, it's worse if you run · easy target, {who} · {who}. empty your pockets after this
+- **homebody:** {who}, you trampled my farmland
+- **nomad:** {who}, you've been on my road too long
+- **builder:** {who}, you broke my wall
+- **speedrunner:** {who}. you're in my way
+- **miner:** {who}, you took my vein. i saw · {who}, that was MY diamond
+- **hoarder:** {who}, you touched my chest. i saw · {who}. you took three of my iron. i counted
+- **newbie:** {who}! um. fight me i guess!!
+- **hermit:** {who}. move. · ...{who}. enough.
+- **casual:** yo {who}, square up · bro {who} you wanna go?
+- **PvP sweat:** 1v1 me, {who} · {who}. you're about to get combo'd · {who}, ez fight incoming · bet you can't land a hit, {who} · {who}, you won't even get a crit off
+
+#### `crime.fight`
+
+
+
+- **everyone:** hey! break it up! · {player} started it! · leave {who} alone! · stop it, {player}! · {player}'s fighting again! · stop hitting {who}! · {player}, back off! · whoa whoa whoa, break it up · someone get between them! · {player}'s beating up {who}! · leave them alone, {player}! · guards! a fight! · {player}, what's your problem? · not in the town square! · {who}, get away from {player}! · {player}! hands off {who}! · hey hey hey, cut it out · this is a town, not an arena, {player} · {player} just hit {who}! i saw it · quit it, both of you · {player} just swung at {who} for nothing · {who} didn't even do anything! · someone call a guard! · {player}, put your sword away · {player}, that's the third fight this week · go fight a zombie, {player}, leave {who} be · seriously, {player}? in front of everyone? · {player}! you'll get fined for that · {who} never even swung back, {player}! · somebody pull {player} off {who}! · {player}! the guards will hear about this · {who}! run! · {player}, stop swinging! · what is wrong with you, {player}?
+- **helper:** {who}, are you ok?? {player} stop! · {who}, come here, i'll help you · {player}, please, stop. talk it out · are you hurt, {who}?
+- **hermit:** ...not again · ...stop. · outside. not here.
+- **hoarder:** hey, not near my chests!
+- **miner:** {player}, save it for the creepers
+- **nomad:** every town i go, someone's fighting
+- **speedrunner:** {player}. stop. guards are coming
+- **builder:** watch my walls, {player}! · {player}, you're fighting on my nice path
+- **bandit:** amateur. {player}, you'll get caught · {player}, at least do it where no one's looking
+- **homebody:** not near my house, {player}! · you trampled my flowers, {player}!
+- **newbie:** omg why is {player} hitting {who}?? · stop!! you're hurting {who}!!
+- **casual:** bro what is {player} doing · lol {player} just started a fight
+- **PvP sweat:** hitting {who}? fight me instead, {player} · pick on someone who can fight, {player}
+
+#### `crook.thrown_out`
+
+
+
+- **everyone:** fine. this town's a dump anyway · you'll regret this, {town} · whatever. i'll be back · your loss · see you around... when you're not looking · fine. i didn't like {town} anyway · whatever. {town}'s boring · you'll miss me, {town} · i'll find a better town than {town} · {town}'s full of snitches · you haven't seen the last of me · this isn't over, {town} · ok ok, i'm going. geez · watch your chests at night, {town} · see ya never, {town} · one day you'll beg me to come back · who needs {town}. not me · kicked out? fine. more loot out there · your guards are weak, {town} · i was leaving anyway · remember my name, {town} · go on, shove me out. i'll remember this · {town} has the worst beds anyway · you call this justice? lol · lock your doors, {town} · fine, i'll go. but i'm taking my stuff · the bread here was stale anyway · next time you see me, i'll be watching from the hills · enjoy your boring little town · fine. {town} can rot · you'll see me again, {town}. at night · i'll be the one you see in the dark, {town} · {town}'s guards couldn't catch a chicken
+- **bandit:** finally. no more pretending · good. now i don't have to play nice · out here i make my own rules · {town} just made an enemy · heh. now the fun starts
+- **helper:** i only ever tried to help, {town}... fine
+- **newbie:** wait i'm really kicked out?? ok... bye {town}
+- **speedrunner:** whatever. wasted time here
+- **miner:** i'll be underground. try exiling me there
+- **builder:** {town}'s builds were ugly anyway
+- **homebody:** i'll build my own place. better than {town}
+- **hoarder:** keep your rules, i've got my chests · i'm taking every last thing i own, {town}
+- **nomad:** road's better than {town} anyway. o7 · the road always takes me back
+- **casual:** lol ok bye {town} · ngl {town} kinda mid anyway · lol whatever, {town} was lame
+- **hermit:** good. alone again. · quiet at last.
+- **PvP sweat:** none of your guards could take me 1v1 · exiled? cope, {town} · L town, L guards
+
+#### `grief.saw`
+
+
+
+- **everyone:** NO · {who}!! · nooo · bro · {who}?? · no no no · ... · wait no · {who}!! wake up · i was just talking to {who} · wait. {who}? · WHAT · not {who} · {who} get up · hey. hey {who} · that can't be right · no way · {who}?? answer me · ...{who}? · {who} just went down... · oh no · no no no no · {who}... come on · did {who} just... · {who} dont · ah. no · {who}!!! · please no · i saw that... {who} · that was {who}... · noo not like that · {who}?? stay with me · wait {who} what · that's {who}... that's {who} · how. {who}? · {who} was RIGHT there · i just saw {who}... it happened so fast · {who}... i was gonna help you · this isn't happening
+- **hermit:** ... · {who}. · ...gone.
+- **PvP sweat:** who did that · who got {who} · someone's paying for that
+- **builder:** {who}... we were building together
+- **miner:** {who}!! i was right behind you
+- **nomad:** {who}... no. o7
+- **speedrunner:** {who} down.
+- **bandit:** ...huh. {who}
+- **homebody:** {who}... no, not today
+- **helper:** {who}!! hang on!! · {who}, i'm coming!
+- **newbie:** omg {who}!! · is {who} ok?? {who}?? · wait did {who} die??
+- **casual:** bro {who} was right there · nah. nah that's not real · bruh no
+
+#### `grief.visit`
+
+
+
+- **everyone:** o7 · rip {who} · miss you {who} · ... · f · gg {who} · hey {who}. it's me · still miss you {who} · brought you a flower, {who} · came to sit with you a bit, {who} · rest easy {who} · it's quiet without you, {who} · wish you were still here, {who} · {who}. been a while · the town's not the same, {who} · the farm's doing well, {who} · gg {who}. you played well · thinking about you, {who} · i kept your spot, {who} · you'd laugh at me right now, {who} · miss ya · hi {who} · f for {who} · {who}... yeah · dropped by again, {who} · never forgot you {who} · the sun's nice today, {who} · we finished the wall you started, {who} · i still have your old sword, {who} · o/ {who} · you should've seen the sunset {who} · nobody tells jokes like you did, {who} · it's been rough without you · the bees came back to the hive, {who} · told the new folks about you, {who} · you'd hate how messy the storage room is, {who} · i still say good morning to your house, {who}
+- **helper:** sorry {who} · i'm looking after everyone for you, {who} · hope you're at peace, {who}
+- **speedrunner:** quick visit, {who}. miss you
+- **hoarder:** kept all your stuff safe, {who}. every item
+- **PvP sweat:** still undefeated, {who}. that one's for you
+- **nomad:** still on the roads, {who}. you'd love it · o7 old friend
+- **hermit:** ...{who}. · hm. {who}.
+- **builder:** made your grave nicer, {who}. you deserve it · fixed up your old house, {who}. it's waiting · added some lanterns for you, {who}
+- **miner:** found dias today, {who}. thought of you · went deep today. missed having you there, {who}
+- **homebody:** i planted flowers here for you, {who} · set a place for you at dinner again, {who}
+- **newbie:** hi {who}. i got my first diamond. you'd be proud
+- **casual:** sup {who}. miss you fr · ngl it's weird without you {who}
+
+#### `yield`
+
+
+
+- **everyone:** ok ok take it · STOP. take it · im done im done · pls · fine take it all · ok you win · ok ok ok! i give up · stop stop! here, take it · you win! please stop · alright, it's yours · take what you want, just stop · mercy! mercy! · i surrender! · enough! take it all · don't kill me, take the stuff · ok fine, i'm out. it's yours · no more! i yield · just take it and go · here. happy now? · i'm not dying for this, take it · ok you got me · alright alright. i'm done fighting · stop hitting me! take it! · half a heart left, take whatever · truce! truce! here · it's not worth it. take it · ok! ok! you're stronger · ugh. fine. it's all yours · STOP. i give · please, i've got nothing left to fight with · fine! fine! you can have it · ok i'm putting my sword away, take it · i give up, ok? please · you win. i'm not fighting anymore · here, take it, take everything
+- **hoarder:** ugh. take it · ...all of it? fine. take it · my stuff... ugh. go on · i spent days collecting that. fine
+- **PvP sweat:** fine. gg · ok. you got lucky · fine. rematch later · you win this one
+- **builder:** take it, just don't touch my build
+- **nomad:** take it. i travel light anyway
+- **miner:** take it. i'll just mine more
+- **speedrunner:** whatever. take it. i'll farm more
+- **homebody:** just let me go home. take it
+- **helper:** ok, take what you need. no more fighting · if you need it that bad, take it
+- **bandit:** heh. ok. you win this round · no hard feelings, right? take it
+- **hermit:** ...take it. go. · fine. leave me. · enough. take it.
+- **newbie:** ok ok pls dont kill me!! · i give up!! take my stuff!!
+- **casual:** lol ok ok you win · bro chill, take it
+
+#### `envoy.trade`
+
+
+
+- **everyone:** {leader} of {town} sent me. want to set up trade between us? · hey. {town} wants to trade with {them}. deal? · {leader} says we should trade. {town} has stuff you need · trade deal? {town} and {them}. {leader}'s idea · hi {them}. {town} would like to trade. interested? · {leader} sent me from {town}. we want a trade deal · trade between {town} and {them}? we'd both win · {town} has spare iron and wheat. what's {them} got? · {leader} wants open trade with {them}. {town} is ready · i'm here from {town}. we'd like to start trading · {town} wants to buy and sell with you. how about it? · quick offer from {town}: trade routes, both ways · {leader} thinks {town} and {them} could do business · hey {them}! {town} wants a trade pact · {town} is looking for trade partners. you're first on the list · our farms in {town} make too much food. want some? trade? · {leader} asked me to come. {town} wants to trade with {them} · let's make some emeralds. {town} and {them}, trading · {town} sends greetings. and a trade offer · open markets between {town} and {them}. that's the idea · {town} has wool, logs and bread. {leader} wants to swap · trade with {town}? {leader} promises fair prices · straight from {leader}: {town} wants to trade. yes or no? · {town} wants to deal with {them}. emeralds, goods, the works · {town}'s chests are full. let's move some into yours. for a price · i walked all the way from {town} to offer you trade · {leader} of {town} thinks we should be trading partners · it'd be good for both of us. trade with {town}? · {town} would love some of your goods. and you'd love ours
+- **hoarder:** {town} has goods. you have emeralds. let's talk · {town} has 3 double chests of extras. want to trade? · {town} sells, you buy. or the other way. emeralds either way · {town} counts every emerald. fair trades only · we've got stacks in {town}. stacks. let's deal
+- **bandit:** {town} trades. better than the alternative, right?
+- **speedrunner:** {town}. trade deal. yes or no
+- **nomad:** i walk the road between {town} and {them} anyway. let's make it a trade road · {town} sends me with a trade offer. roads go both ways o7
+- **homebody:** {town} grows more carrots than we can eat. trade? · fresh bread from {town}, every week. just trade with us
+- **miner:** {town} has iron and coal to spare. want to trade? · {town} mines a lot. you need ore? let's trade · we've got redstone in {town}. stacks of it. trade?
+- **builder:** {town} has tons of stone and glass. good for builds. trade? · {town} needs your wood for our builds. we'll trade well
+- **helper:** {town} would love to help {them} with supplies. trade? · if {them} needs anything, {town} can trade for it · {leader} and all of {town} hope we can trade. it'd help everyone
+- **newbie:** hi!! im from {town}, {leader} said to ask if u want to trade?? · um {town} wants to trade with you! is that ok?
+- **casual:** yo {them}. {town} wanna trade? lol · so {town} has stuff and you have stuff. trade? · {leader} said come ask. {town} wants to trade, ngl it'd be nice
+
+#### `envoy.peace`
+
+
+
+- **everyone:** {leader} sent me. {town} wants peace with {them} · no fighting between {town} and {them}. that's the offer · {leader} says let's keep the peace. you in? · peace between our towns? {leader} wants it · {town} doesn't want trouble with {them}. peace? · {leader} offers peace. no raids, no fights · can {town} and {them} agree to leave each other alone? · message from {leader}: let's not fight · peace between us. that's all {leader} wants · {town} wants a quiet border with {them} · i'm here for {town}. we'd like a peace pact · no swords between our towns. {leader}'s offer · {leader} wants {town} and {them} to get along · let's keep things calm. peace? · {town} offers peace. no strings · {leader} says there's enough zombies to fight. let's not fight each other · we'd rather trade than fight. peace with {town}? · no attacks from {town}, none from {them}. deal? · {leader} sent me to ask for peace · can we agree not to burn each other's farms? · peace pact. {town} keeps to itself, {them} keeps to itself · {town} wants peace. we mean it · nobody wins a war. {leader} wants peace instead · {leader} would like peace with {them}. what's your answer? · i come in peace. literally. {town} wants peace · our towns don't have to be enemies. peace? · {town} promises no trouble. will {them}? · peace, {them}? {leader} is asking nicely · the nights are dangerous enough. let's have peace between our towns · {leader} wants to shake hands. figuratively. peace? · {town} won't bother {them}. that's a promise from {leader} · let's not do this the hard way. peace?
+- **helper:** we'd like to be friends with {them}. truly · we'd hate for anyone to get hurt. peace? · {town} wants {them} safe too. let's agree to peace · {leader} hopes we can be good neighbors · peace is better for both of us. we'd really like that
+- **bandit:** peace? {leader}'s idea, not mine. but fine
+- **speedrunner:** peace offer. from {leader}. yes or no
+- **PvP sweat:** {leader} offers peace. take it, you don't want the 1v1
+- **builder:** we just finished our walls. no war please. peace? · {town} would rather build than fight. peace?
+- **nomad:** safe roads between {town} and {them}. that's what peace means · i'd like to walk here without a sword out. peace?
+- **hermit:** {town} wants peace. leave us be, we leave you be · peace. quiet. that's the offer
+- **homebody:** we just want to farm in peace. {town} offers it · {town} has families. so does {them}. peace? · no fighting near our fields. {leader} wants peace
+- **newbie:** hi! {leader} said to ask for peace. pls say yes!! · um we dont want to fight u. peace?
+- **casual:** no beef between {town} and {them} yeah? peace · {leader} says chill. peace? · we good? {town} wants peace lol
+
+#### `envoy.alliance`
+
+
+
+- **everyone:** {leader} wants {town} and {them} to stand together. allies? · an alliance. {town} and {them}. what do you say · {leader} sent me to ask: allies? · if anyone comes for you, {town} has your back. and you ours? · {town} wants {them} as an ally. stand with us? · {leader} says we're stronger together. alliance? · if raiders hit {them}, {town} comes running. and you? · an alliance between {town} and {them}. thoughts? · {leader} wants allies. {them} is the first ask · we fight together, we win together. alliance? · {town} and {them}, side by side. that's the offer · {leader} sent me with an alliance offer · allies help each other in war. {town} would help you · let's make it official. {town} and {them}, allies · {leader} wants a real alliance. not just peace · {town}'s swords for {them}, and yours for us. deal? · nobody messes with two towns at once. alliance? · want allies? {town} is offering · {leader} trusts {them}. enough to ask for an alliance · when war comes, {town} wants you on our side · allied towns last longer. {leader} wants that · your fight is our fight. if you say yes · {town} wants a friend it can count on. {them}? · alliance offer from {leader}. we'd stand by you · {town} and {them} against the world. what do you think · {leader} asked me to say it plain: be our ally · two towns, one side. {town} wants {them} in · we've been good neighbors. let's be allies · {leader} says {them} is worth having on our side
+- **homebody:** {town} wants {them} safe. allies keep homes safe
+- **hoarder:** allies share. well, some things. alliance? · {town} would guard your chests like our own. allies?
+- **speedrunner:** alliance. {town} and {them}. yes or no
+- **bandit:** allies with {town} means nobody raids you. not even us · join {town}. the other choice isn't fun
+- **nomad:** i've seen what's out there. {town} and {them} should stand together · allies across the road. {leader} wants it
+- **builder:** {town} has the walls, {them} has the people. allies? · our walls protect {town}. could protect you too. alliance?
+- **PvP sweat:** {town} plus {them}? nobody could touch us. allies? · you want the strongest team, right? ally with {town} · together we'd wipe anyone. {leader} wants in
+- **helper:** {town} would always help {them}. allies? · we'd be there for you, no matter what. alliance? · {leader} really believes in {them}. let's stand together
+- **newbie:** hi!! {leader} wants to be allies with u?? pls · so like, if someone attacks u we help u! allies?
+- **casual:** {town} and {them} teaming up? that'd be sick · allies? would be cool ngl · {leader} wants to squad up with {them} lol
+
+#### `envoy.insult`
+
+
+
+- **everyone:** {leader} says {them} is a joke of a town · message from {leader}: nobody likes you · {town} thinks {them} is a dump. just passing it on · {leader} says stay out of our way · {leader} says {them} smells like rotten flesh · message from {leader}: your walls are a joke · {town} laughed at {them} all week. just saying · {leader} says your leader couldn't lead a sheep · {them}? {leader} calls it the dirt hut town · {leader} wanted me to tell you {them} is ugly · {town} thinks {them} is a creeper crater with beds · {leader} says even zombies avoid {them} · {leader} says {them} is where villagers go to cry · message from {town}: you're all noobs · {leader} says {them} couldn't survive one raid · honestly {town} doesn't even think about {them}. that's the message · {leader} says your farm is the saddest thing they've seen · {leader} told me to say {them} is a waste of a biome · {town} named a pig after your leader · {leader} says your town looks like a cobblestone generator exploded · straight from {leader}: nobody respects {them} · {leader} says {them} still uses wooden tools · {town} wants you to know your bread is dry · {leader} says hi. and that you're all bozos · {leader} says {them} would lose a fight to a baby zombie · {town} thinks {them} is the worst town around. no offense. ok some offense · {leader} said {them} has the personality of gravel · {leader} says your town hall looks like a dog house · {them} is a laughing stock in {town}. thought you should know · {leader} says your iron golem is embarrassed to work for you · you're not even worth a raid. {leader}'s words · {town} says {them} should just give up and move
+- **bandit:** {leader} says watch yourselves · {leader} says your chests look easy to open · {town} has been watching {them}. sleep well · {leader} says {them} would make a nice target
+- **PvP sweat:** {town} would wipe {them} in a day. just saying · {town} would clap {them} in a 1v1. every one of you · {leader} says {them} is free kills · skill issue, {them}. message from {town} · {them} is all bark and leather armor
+- **speedrunner:** {leader} says {them} is slow. at everything
+- **miner:** {leader} says {them} has never seen a diamond · {town} heard you mine with stone picks
+- **hermit:** {leader} says keep away. that's it · {town} doesn't like you. message delivered
+- **newbie:** um {leader} said to say {them} is bad?? sorry · {leader} says ur town stinks! (their words not mine)
+- **hoarder:** {town} has more emeralds than all of {them}. just saying · {leader} says your chests are empty and sad
+- **casual:** lol {leader} says {them} is mid · ngl {town} thinks {them} is kinda trash · {leader} told me to say ur town is cringe. sorry lol
+- **builder:** {leader} says your builds are flat boxes with no roof detail · {town} saw your walls. dirt? really? · {leader} says {them} needs an architect. badly
+
+#### `envoy.yes`
+
+
+
+- **everyone:** deal. tell {leader} we agree · sure. {them} agrees · ok, you've got a deal · alright. tell {leader} yes · yeah, we're in · agreed. tell {leader} {them} says yes · sounds good to us · deal. go tell {leader} · {them} accepts. thanks for coming · fine by us. you've got your deal · yes. we'll hold up our end · tell {leader} it's done. we agree · sure, why not · ok. {them} is on board · that works. deal · we talked it over. yes · you can tell {leader} we said yes · alright, {them} accepts · yeah ok. shake on it · good offer. we'll take it · happy to. tell {leader} we're in · {them} says yes. safe trip home · consider it done · you've got a deal. don't make us regret it · yes from us. {leader} picked a good day to ask · agreed. let's see how it goes · sure thing. tell {leader} hi from {them} · it's a deal then · we like it. yes
+- **helper:** gladly! tell {leader} thanks · of course! we're glad you came · yes, happily. tell {leader} we look forward to it · we'd love that. it's a deal
+- **builder:** yes. we'll put up a sign by the gate
+- **bandit:** deal. but we'll be watching {leader}
+- **nomad:** deal. safe travels back o7 · yes. tell {leader} the road's open
+- **speedrunner:** yes. done · agreed. next
+- **PvP sweat:** deal. smart move by {leader} · yeah fine. {leader} knows who to ask
+- **homebody:** yes. good for our families · that'd make life easier around here. yes
+- **hermit:** fine. · ...ok. yes · yes. now go
+- **hoarder:** fine. but we're counting everything · deal. we'll keep a ledger
+- **newbie:** yes!! we agree!! tell {leader} ty!! · omg ok yes. is that how it works? yes
+- **casual:** yeah sure lol. deal · bet. tell {leader} we're down · ok ok we're in fr
+
+#### `envoy.no`
+
+
+
+- **everyone:** not interested. go home · no. tell {leader} no · we'll pass · maybe some other time · no thanks · we're not interested. sorry · tell {leader} we said no · not happening · nah. go back home · that's a no from us · we talked about it. no · nope · no deal. try again later · {leader} will have to live with a no · not this time · we don't need it. no · sorry, we're turning that down · we'll be fine on our own. no · no. and tell {leader} not to send you again · hard pass · you came all this way for a no. sorry · doesn't work for us · thanks but no thanks · go tell {leader}: no · we don't trust {leader} enough for that · no, we're good · not interested in anything {leader} wants · we'll think about it. ok we thought. no · nah, not today
+- **hermit:** no. · no. leave. · go. · ...not interested
+- **builder:** no. too busy with builds
+- **nomad:** not for us. safe travels though o7
+- **homebody:** we like things how they are. no · we'd rather keep to ourselves
+- **speedrunner:** no. next · no time for this. no
+- **helper:** i'm sorry, we can't. maybe someday · not right now, but thank you for asking
+- **bandit:** no. now walk away while you can · tell {leader} no. and to watch the roads
+- **PvP sweat:** no. {leader} can cope · nah. we don't need {leader}
+- **hoarder:** no. what's ours stays ours · not giving anything up. no
+- **newbie:** um no? sorry!! · i dont think so... sorry {leader}
+- **casual:** lol no · nah we're good fr · eh. pass
+
+#### `envoy.insulted`
+
+
+
+- **everyone:** get out of {them} · tell {leader} to say it to my face · wow. ok. go home · {town} will regret that · how dare {leader} · you walked all this way to say that? · tell {leader} {them} won't forget this · get lost before we change our minds · you've got some nerve · {town} sent you to say THAT? · go home and tell {leader} we heard · rude. very rude · {leader} will pay for those words · nobody talks to {them} like that · turn around and walk back to {town} · that's it? that's the message? pathetic · i'll remember your face · wow {town}. real classy · {them} has a long memory, {town} · leave. now · you can tell {leader} exactly where to go · out of my sight · we'll see who's laughing later, {town} · say that again and you're swimming home · {leader} couldn't come say it themselves? · bold words for someone so far from {town} · well that's one way to make enemies · noted. and remembered · {town} just made a big mistake
+- **PvP sweat:** tell {leader} we'll see about that · big words from {town}. 1v1 me then · tell {leader} to come say it. see what happens · {town} talking a lot for a town that can't fight
+- **helper:** ...that's not very nice · that really hurt. i hope {leader} didn't mean it · why would {town} say that? we've done nothing · i'll pretend i didn't hear that. please go
+- **speedrunner:** wasted my time. leave
+- **homebody:** we were having a nice day. thanks for ruining it · get away from our homes
+- **hoarder:** {town} is jealous of our chests. clearly · say that with more emeralds than us. you can't
+- **builder:** our builds are better than anything in {town} · coming from {town}? have you seen your own walls?
+- **bandit:** walk fast. the roads aren't safe at night · tell {leader} we know where {town} sleeps
+- **hermit:** ...leave · out. · not listening. go
+- **newbie:** hey thats mean!! · wow ok :( go away
+- **casual:** lol ok. bye · bro walked here just to say that. wild · whatever {town}. cope
+
+#### `envoy.war`
+
+
+
+- **everyone:** {leader} says this means war · {town} is done talking. it's war · message from {leader}: war. get ready · you had your chance. {town} declares war on {them} · {town} declares war. get your swords · {leader} has decided. {town} and {them} are at war · no more talking. {leader} wants war · this is war, {them}. {leader}'s orders · {town} is coming for {them}. that's the message · {leader} says sharpen your swords. war · we're at war now. nothing personal. ok it's personal · {leader} declares war on {them} · {town} gave you every chance · tell your people to get their armor on. war's here · message from {town}: war. starting now · {leader} says the peace is over · {them}, you're at war with {town} · {leader} has had enough. war · you'll see {town}'s banners soon · {leader} sent me to say it: war · it's war, {them}. {town} won't stop · war has been declared. {leader} says good luck · {town} marches on {them}. soon · we're done being patient. war · {town} and {them} are enemies now · start building walls, {them}. {town} is coming · {leader} wants your town · no more deals. no more envoys after me · consider this your warning. war
+- **PvP sweat:** {leader} says gg in advance. it's war · {town} vs {them}. war. ez · war. {leader} says get good · {town} is gonna farm {them} · {leader} says it's a 1v1 now. town vs town
+- **bandit:** war. {leader} says lock your doors · war. {leader} says hide your loot · {town} wants everything {them} has · {leader} declares war. nothing personal · war. {town} is coming for your chests
+- **hoarder:** {leader} wants your storage rooms. so it's war
+- **nomad:** the road between {town} and {them} is closed. war
+- **speedrunner:** war. {town} on {them}. go · {leader} says war. no time to talk
+- **hermit:** war. that's all · {leader} says war. i'm leaving
+- **helper:** i'm sorry. {leader} says it's war · i wish it weren't so. {town} declares war
+- **newbie:** um {leader} says war?? im just the messenger!! · {leader} said to say war! im scared lol
+- **casual:** so uh. {leader} says war. sorry lol · yeah it's war now. {leader}'s call · {town} vs {them}, war. its happening
+
+#### `envoy.war_reply`
+
+
+
+- **everyone:** then come and get us · bring it · you'll regret this · tell {leader} we'll be waiting · fine. war it is · we'll be ready · tell {leader} we're not scared · {leader} picked the wrong town · come at us then · we've got walls and swords. let's go · fine by us. see you on the field · we didn't want this. but we'll finish it · go home and tell {leader} we accept · war? ok. you'll lose · you'll be sorry, {leader} · we'll fight to the last bed · grab your gear everyone. we're at war · ok. war. don't cry when it goes badly · {leader} is making a big mistake · if {leader} wants war, {leader} gets war · we'll meet you at the border · you're going to regret coming here · run home before we start early · everyone to the walls! · you started it. we'll end it · tell {leader} to sleep with armor on · we won't go down easy · so be it · alright. may the best town win · we're ready for anything {leader} sends
+- **helper:** ...why. ok. tell {leader} we're ready · i hoped it wouldn't come to this. we'll defend ourselves · we'll protect our people. tell {leader} that
+- **hermit:** leave. · ...fine · go. now
+- **miner:** we've got diamond swords. come and try
+- **homebody:** you won't take our homes · not our farms. not our families. we'll fight
+- **speedrunner:** fine. let's get it over with
+- **builder:** good thing we finished the walls · our walls are ready. are yours?
+- **hoarder:** you're not touching one chest of ours · everything we have stays ours. come try
+- **bandit:** good. we'll take everything you have · war's good for business. tell {leader} thanks
+- **PvP sweat:** finally. been waiting for this · ez. tell {leader} gg · war? we'll farm you · {leader} just picked a fight they can't win
+- **newbie:** wait war?? ok um. we'll fight!! · omg ok. everyone get swords!!
+- **casual:** lol ok. war then · bet. see ya out there · really? war? ok fine
+
+#### `envoy.terms`
+
+
+
+- **everyone:** {leader} wants this over. {amount} emeralds and it's done · we're done fighting. {town} pays {amount} emeralds for peace · peace? {leader} offers {amount} emeralds · {leader} sent me with {amount} emeralds. take it and we stop · {amount} emeralds from {town}. call off your fighters · we'll pay {amount} emeralds. just end the war · {town} is tired of burying people. {amount} emeralds for peace · here's the deal: {amount} emeralds, and nobody swings another sword · {leader} put {amount} emeralds on the table. peace? · {amount} emeralds, paid in full, if this war ends today · we lost enough beds to this. {amount} emeralds and it's over · {leader} says call it peace and {amount} emeralds are yours · {amount} emeralds. that's what {town} can spare for a truce · call it reparations. {amount} emeralds and we go home · no more raids on our farms and you get {amount} emeralds · {town} offers {amount} emeralds. lay down your weapons · {amount} emeralds is a lot of villager trades. take the peace · i walked all the way here with {amount} emeralds on offer · {leader} wants to stop the fighting. we pay {amount} emeralds · {amount} emeralds for a quiet border. fair? · we pay you {amount} emeralds, you stop marching on {town}. done · {amount} emeralds and both sides sleep in their own beds tonight · stop the war and {town} hands over {amount} emeralds · {leader}'s offer stands: {amount} emeralds, peace, no more blood · enough graves. {amount} emeralds from us and we're square · {amount} emeralds to make this go away. what do you say · our smiths want to make tools, not swords. {amount} emeralds for peace · {amount} emeralds. we pay, the war ends, everyone wins · {town} will pay {amount} emeralds. tell your people to stand down
+- **bandit:** {amount} emeralds. take it before we change our minds
+- **hermit:** {amount} emeralds. leave us be · ...{amount} emeralds. then go away
+- **PvP sweat:** {amount} emeralds so you stop getting farmed. you're welcome
+- **nomad:** carried {amount} emeralds down the road for this. peace, friend
+- **speedrunner:** {amount} emeralds. peace. fast answer pls · offer: {amount} emeralds. accept and we skip the rest of this war
+- **miner:** {amount} emeralds. we'd rather be mining than fighting · that's {amount} emeralds of ore money. let us get back underground
+- **builder:** {amount} emeralds and you stop knocking holes in our walls · we'd rather spend {amount} emeralds than rebuild {town} again
+- **hoarder:** {leader} counted out {amount} emeralds. painful, but yours for peace · {amount} emeralds. do you know how many chests that empties
+- **homebody:** {amount} emeralds so we can get back to our wheat fields · i just want to go home. {amount} emeralds and it ends
+- **helper:** {amount} emeralds, freely given. nobody else has to get hurt · please take the {amount} emeralds. we want everyone safe
+- **newbie:** {leader} said to give u {amount} emeralds for peace pls!! · um hi, {town} wants to pay {amount} emeralds so the war stops?
+- **casual:** ok real talk, {amount} emeralds and we all chill · {amount} emeralds, no more war. ngl that's a good deal · fr we're over this. {amount} emeralds?
+
+#### `envoy.terms_white`
+
+
+
+- **everyone:** {leader} says let's end this. no payment either way · enough fighting. {town} wants peace · {leader} sent me: peace? · nobody's winning this. peace? · {leader} wants peace. nobody pays anybody · let's just stop. no emeralds, no tribute, just peace · {town} is done fighting. call it even? · white peace. both sides go home · we've both lost too many. {leader} says end it · no reparations, no terms. just stop the war · {leader}'s offer: peace, as things stand · call it a draw. {town} wants to stop · nobody owes anything. let's end this · we're both bleeding. peace, even trade · {leader} asked me to say it plain: peace, no strings · this war isn't worth the iron. truce? · walk away even. that's what {town} offers · both towns keep what they have. peace? · our farms are rotting and so are yours. let's stop · no winner, no loser. just peace · {town} offers a clean truce. no payment · i came to end it, not to haggle. peace? · {leader} says we're square if you are · let's put the swords back in the chests · enough raids. {town} wants quiet · nobody's paying. nobody's kneeling. just peace · how about we both stop dying. truce? · {leader} would shake on peace right now. would you? · same borders as before. no more fighting
+- **bandit:** we're calling it. for now
+- **hoarder:** nobody pays, nobody loses a chest. peace
+- **hermit:** peace. no payment. leave us alone · ...stop. both of us
+- **PvP sweat:** draw. we'd win but whatever. peace · call it a tie. rematch never
+- **nomad:** roads are no fun with arrows flying. peace? · {leader} wants the roads open again. no payment, just peace
+- **speedrunner:** peace. no terms. yes or no · skip the war. even peace
+- **miner:** the caves are calling. peace and we're gone · we're losing more iron than we dig. truce
+- **builder:** i'd rather build than wreck. truce? · half my walls are cracked. let's both stop
+- **homebody:** i miss my house. {town} wants peace · peace, and everyone goes home to their beds
+- **helper:** we just want everyone safe. peace, no payment needed · no one has to pay. let's just look after our own again
+- **newbie:** can we pls just stop fighting? {leader} said its ok · omg i'm so tired of respawning. peace?
+- **casual:** ok this war is kinda pointless. peace? · call it even and go back to vibing?
+
+#### `envoy.demand`
+
+
+
+- **everyone:** {leader} says pay {amount} emeralds and the war ends · {amount} emeralds. that's the price of peace · you're losing. {amount} emeralds and we stop · {leader} wants {amount} emeralds. then it's over · {amount} emeralds and we stop marching · {leader}'s price for peace: {amount} emeralds · pay {amount} emeralds or this keeps going · you want it over? {amount} emeralds · {amount} emeralds to {leader} and we pull back · we're winning and you know it. {amount} emeralds · the price is {amount} emeralds. not one less · {leader} says {amount} emeralds buys you peace · hand over {amount} emeralds and your town stays standing · {amount} emeralds, then we go home · peace costs {amount} emeralds. pay it · {leader} isn't asking nicely twice. {amount} emeralds · {amount} emeralds. that's cheaper than another raid · pay up, {amount} emeralds, and nobody else dies · {amount} emeralds or we're back at your walls tomorrow · you can't hold out much longer. {amount} emeralds ends it · {leader} set the price at {amount} emeralds · think of your farms. {amount} emeralds and they're safe · {amount} emeralds in {leader}'s chest and it's peace · that's {amount} emeralds for your surrender... i mean peace · we want {amount} emeralds. then this war is history · {amount} emeralds. take the deal while it's on the table · how many more beds do you want empty? {amount} emeralds · {amount} emeralds or we keep trampling your crops · you've lost too many fights. {amount} emeralds · {leader} wants {amount} emeralds by sundown · {amount} emeralds, and we never speak of this war again
+- **bandit:** {amount} emeralds or we keep coming · {amount} emeralds. nothing personal, just business · pay {amount} emeralds or we take it ourselves · {amount} emeralds and maybe we forget where you live
+- **homebody:** pay {amount} emeralds so we can all go home
+- **nomad:** {amount} emeralds and our army takes the road home
+- **miner:** {amount} emeralds. you've got a mine, dig it up
+- **builder:** {amount} emeralds or your nice walls come down
+- **helper:** i'd rather nobody else got hurt. {amount} emeralds and it stops
+- **hermit:** {amount} emeralds. then we leave · ...{amount} emeralds. that's all
+- **newbie:** {leader} says u have to pay {amount} emeralds now??
+- **casual:** ngl you're losing. {amount} emeralds and we're cool · just pay the {amount} emeralds lol
+- **speedrunner:** {amount} emeralds. pay or don't. fast · {amount} emeralds. we have places to be
+- **hoarder:** {amount} emeralds. {leader} counts every single one · {amount} emeralds, straight into our chests
+- **PvP sweat:** {amount} emeralds. you're getting clapped, pay up · ez war. {amount} emeralds and we stop farming you · skill issue. {amount} emeralds for peace
+
+#### `envoy.peace_yes`
+
+
+
+- **everyone:** fine. it's over · deal. no more fighting · ok. tell {leader} it's peace · finally. yes · alright. peace it is · yes. we're done · tell {leader} we accept · deal. put the swords away · good. nobody else has to die · agreed. go tell your people · peace. about time · we'll take it. war's over · yes. i'm sick of funerals · fine by us. shake on it · tell {leader} it's done · accepted. let the farms grow again · ok. both sides stand down · done. go home safe · yeah. we're tired too · peace. our beds miss us · we accept. tell {leader} no tricks · alright, alright. it's over · yes. no more raids · take that back to {leader}: yes · it's a deal. the war ends here · fine. we'll keep our side of it · finally someone said it. yes · good. let's never do this again · agreed. the gates open again tomorrow
+- **PvP sweat:** gg. peace · gg wp. peace · fine. you got lucky. peace
+- **bandit:** fine. peace. for now · deal. don't make us regret it
+- **hoarder:** deal. we keep what's ours · deal. our chests stay full
+- **hermit:** fine. peace. go · ...yes
+- **nomad:** peace. the roads are open again, o7
+- **speedrunner:** yes. moving on · accepted. next
+- **miner:** peace. back to the mines · yes. i've got ores waiting
+- **builder:** deal. now i can fix my walls · yes. time to rebuild
+- **homebody:** yes. i can finally go home · peace. back to the garden for me
+- **helper:** yes, thank you for coming. tell {leader} we're glad · peace. if anyone's hurt, send them to us
+- **newbie:** yay!! peace!! tell {leader} yes · omg finally. yes yes yes
+- **casual:** yeah ok, peace. that was a lot lol · bet. war's over
+
+#### `envoy.peace_no`
+
+
+
+- **everyone:** no. we fight on · not a chance · tell {leader} we're not done · never · no. tell {leader} the war goes on · not happening · we're not done with you · go home and get ready · no deal. sharpen your swords · tell {leader} we said no · we fight until we win · absolutely not · you walked all this way for a no · not today. maybe not ever · no. we've buried too many to quit now · we don't make peace with people like {leader} · no. you'll see us at your walls · the answer's no. run back home · nope. the war's still on · tell {leader} to try harder · no thanks. we're just getting started · no peace. not on those terms · refused. leave before i change my mind · we'd rather keep fighting · go. and tell them we're coming · that's a no from all of us · not while i'm still standing · no. this ends when we say it ends · you heard me. no · no. bring a better offer next time · we'll talk peace when {leader} talks sense · no. our archers are ready
+- **PvP sweat:** nah we're winning this · lol no. we're farming you · peace? you're the one losing. L · nah. 1v1 me instead
+- **nomad:** no. safe travels back, you'll need it
+- **helper:** i'm sorry. we can't, not yet
+- **homebody:** no. you trampled our fields. we remember
+- **miner:** no. we've got iron for a hundred more swords
+- **hoarder:** no. not after what you took from us
+- **builder:** no. you wrecked my tower, this isn't over
+- **speedrunner:** no. next · denied. back to the fight
+- **hermit:** no. leave · ...no
+- **newbie:** no?? we can totally win this · wait is this a trick? no!!
+- **casual:** nah, not feeling it · hard pass. tell {leader} gg go next
+- **bandit:** no. we like the loot too much · peace is bad for business. no
+
+#### `war.kill`
+
+
+
+- **everyone:** got one · one down · that's {who} · next · {who}'s done · that's for ours · down you go · stay down {who} · that's one for the tally · who else wants some · {who} won't be getting up · got em · one less sword pointed at us · should've stayed home {who} · that's two. or three? lost count · back to your spawn point {who} · keep em coming · that one's for our fallen · {who} picked the wrong fight · clean hit · dropped em · who's picking up {who}'s loot · {who} went down swinging at least · that was close, but got em · anyone else?? · {who}'s stuff is on the ground, grab it · one more down, keep pushing · phew. got {who} · that's how it's done · {who} should've brought a shield · nobody hits my people
+- **helper:** ...sorry {who} · i didn't want to do that · rest {who}. sorry it came to this · i hope you respawn somewhere safe
+- **PvP sweat:** ez · too easy · gg {who} · sit {who} · 1 tap · L {who} · skill issue · who taught you to fight lol · not even close · too slow {who}
+- **bandit:** who's next · nothing personal {who} · i'll take those boots · your loot's mine now · dibs on {who}'s stuff
+- **speedrunner:** moving on · 1 down. go
+- **miner:** {who} folded like sand
+- **hermit:** ...done · ...{who}. gone
+- **newbie:** omg i got one!! · wait did i get {who}?? i did!! · my first one omg omg
+- **casual:** lol got {who} · ngl that was clean · ok that one was kinda fun
+
+#### `war.kill_seen`
+
+
+
+- **everyone:** nice · one less · good · nice one · they had it coming · good hit · nice shot · clean · W · well done · keep it up · that's how we do it · another one down · great hit · they won't get up from that · good, keep pushing · nicely done · that's the spirit · one fewer to worry about · they asked for it · watch your back though, more coming · solid · huge · nice, now help me with this one · about time · that's for our side · wow · nice timing · saw that. great work · went down like a zombie at sunrise · that'll teach em
+- **helper:** ...ok · ...i hope that's the last one · are you hurt? good hit though · ok. stay safe
+- **hoarder:** dibs on the drops
+- **nomad:** nice. o7
+- **homebody:** good. let's finish and go home
+- **miner:** like a diamond on the first swing
+- **builder:** that was tidy
+- **speedrunner:** good. move · next one
+- **hermit:** ...fine · hm
+- **bandit:** loot's up for grabs · check their pockets · split the drops?
+- **PvP sweat:** free kill · they got clapped · diff · ez for us
+- **newbie:** whoa!! nice!! · how did you do that so fast · omg you got them
+- **casual:** lol nice · ngl that was sick · W hit fr
+
+#### `war.rally`
+
+
+
+- **everyone:** everyone to the plaza. we're hitting {enemy} · grab your swords, we're going to {enemy} · fighters, on me. {enemy} today · gear up. we move on {enemy} now · fighters, gather up. we leave soon · everyone with a sword, on me · time to go. {enemy} is waiting · form up, we're heading out · plaza, now. bring your best gear · anyone who can swing a sword, follow me · {enemy} has had this coming. let's go · ok team, gear check and then we move · armor on, swords out, we're going · bring food and a shield, we march now · everybody up. we've got a fight to win · we're hitting {enemy} today. on me · line up behind me, we move together · who's with me? we go now · sharpen up, we're marching · today we take the fight to {enemy} · no stragglers. everyone on me · fill your hotbars, we're heading out · let's move, we march on {enemy} · come on, all of you. this is it · {enemy} won't wait forever. move · eyes up, we march together · everyone fighting, to me! · drop what you're doing, we march · our turn now. on me · the road to {enemy} starts here. follow me
+- **PvP sweat:** on me. {enemy} won't know what hit them · lets run it. on me · time to farm {enemy} · warm up your swords, we're going
+- **helper:** everyone ready? we go together. stay close · check your armor first. then we go together · bring extra food, share if someone's low · stay by me, nobody gets left behind
+- **hoarder:** grab your gear but leave my chests alone. move
+- **hermit:** ...on me · come. now
+- **nomad:** on the road again. follow me · march with me, it's not far
+- **homebody:** for our homes. on me · let's do this and be back by supper
+- **miner:** put the picks away, swords out. we march
+- **builder:** nobody scuff the walls on the way out. move
+- **newbie:** um everyone follow me!! we're going to fight! · ok i think we go now?? on me!
+- **casual:** ok lets go do this · alright gang, we're going
+- **speedrunner:** move. no stops · on me. now
+- **bandit:** who wants loot? follow me · {enemy}'s chests won't empty themselves
+
+#### `war.charge`
+
+
+
+- **everyone:** CHARGE · GO GO GO · for us! get them! · NOW. GO · everyone in! · {enemy} is right there. GO · ATTACK! · IN! IN! IN! · hit them now! · push! push! · go now, all of you! · RUN AT THEM · dont stop, go! · swords up! GO · this is it! GO! · through the gate! go! · now! everyone at once! · get in there! · take the plaza! · {enemy}! NOW! · hit {enemy} hard! · TOGETHER! GO! · move move move · for home! charge! · they're scattering, GO · dont let them group up! · flank em! · charge with me! · into {enemy}! now! · break their line! · here we go! · rush them!
+- **PvP sweat:** send it · LETS GO · lets get this ez · full send · time to farm · dont miss your crits
+- **bandit:** take everything · grab the loot after! GO · nothing personal. CHARGE · empty their chests!
+- **builder:** dont wreck the nice houses! GO
+- **hoarder:** loot's mine! go!
+- **homebody:** for our homes!
+- **nomad:** o7 and GO · onward!
+- **miner:** dig in! GO
+- **hermit:** ...go · ...move
+- **helper:** together! watch each other! · stay close and GO
+- **speedrunner:** go. go. · rush
+- **newbie:** ahh ok GO GO!! · wait now?? NOW!!
+- **casual:** ok lets goooo · yolo lol GO
+
+#### `war.alarm`
+
+
+
+- **everyone:** THEY'RE HERE · {enemy} is attacking!! · to the store, they're raiding us! · {enemy}'s here, grab your swords · RAID! {enemy}! · WE'RE UNDER ATTACK · attack! everyone up! · {enemy} is at the walls! · they're coming in! grab weapons! · enemies in town!! · {enemy} is here!! fight! · ATTACK! to arms! · swords out, they're raiding! · they're at the gate! · raiders from {enemy}! · everyone fight! we're being raided! · it's {enemy}! they came! · INCOMING · they're in the plaza! · {enemy} is hitting us right now! · defend the town! · get your armor on, they're here! · protect the houses! · they're everywhere! fight back! · it's an attack! wake up! · {enemy} came for us. fight! · hold them off! · help! {enemy}'s in the streets! · they're breaking in! · everyone out, we're under attack! · {enemy}'s army is here!
+- **hermit:** ...they're here · ...company · ...{enemy}. great
+- **nomad:** should've left yesterday. they're here!
+- **bandit:** they think they can rob us? funny
+- **speedrunner:** attack. arm up. now
+- **miner:** everyone out of the mines! attack!
+- **helper:** everyone ok? get inside if you can't fight! · stay together, help whoever's hurt
+- **PvP sweat:** finally, they came to us. lets go · {enemy} wants a 1v1? fine
+- **builder:** they're wrecking the houses! · get them off my walls!
+- **hoarder:** they're going for the chests! · nobody touches my stuff! FIGHT
+- **homebody:** they're at our homes! fight! · not the farm! get them!
+- **newbie:** omg they're attacking!! what do i do · help help {enemy} is here!!
+- **casual:** uh guys {enemy} is here lol. not lol · ngl we're getting raided rn
+
+#### `war.fall_back`
+
+
+
+- **everyone:** fall back! · back home, now · we're done, pull back · retreat! go go · out, out, back home · back! back! · pull out, now! · everyone retreat! · we can't win this. go home · back off, regroup at home · get out of there! · it's lost, run! · fall back to the road! · too many of them, pull back · we're finished here, move out · everyone home, now! · back, before we lose everyone · run! regroup at the plaza · abort! abort! · dont be a hero, run! · grab who you can and go · leave it! retreat! · we lost this one · move back, we'll try again · dont stop running · it's over, get out · back to town, all of you · they're too strong · retreat, retreat! · nobody stays behind · we're getting wiped. out!
+- **PvP sweat:** ok we're cooked, back · they got lucky · we'll run it back another day · unlucky, pull out
+- **builder:** back behind our walls!
+- **miner:** back to the tunnels!
+- **hoarder:** keep your loot and run!
+- **nomad:** take the road back, go!
+- **homebody:** just get home safe, everyone · home. now. please
+- **bandit:** grab what you can and run! · not worth it, scatter
+- **speedrunner:** reset · bad run. out
+- **hermit:** ...leave · ...enough
+- **helper:** everyone go, i'll cover you · help the hurt ones, then run
+- **newbie:** run!! everyone run!! · wait we're losing?? go back!!
+- **casual:** ok yeah no, we're leaving · lol nope · this aint it
+
+#### `envoy.union`
+
+
+
+- **everyone:** {leader} wants {them} and {town} to be one. one banner, {town} at the head. what do you say? · we've been allies long enough. {leader} says join us. properly · {town} and {them}, together. {leader} would rule, you'd keep your own leader. deal? · join {town}. {leader}'s offer. stronger together · {leader} wants {them} to join {town}. one banner for both · {leader} asks: will {them} stand with {town} for good? · we're friends already. {leader} says make it official · {leader} offers {them} a place under {town}'s banner · join us. {leader} leads, you keep your own town and your own leader · {leader} thinks {town} and {them} are stronger as one. agree? · {leader}'s offer: a union. what does {them} say? · one nation, {town} and {them}. {leader} would lead it · {leader} sent me to ask if {them} will join us · raids hit smaller towns first. {leader} says join {town} · {leader} wants one flag over both our towns · two towns, one nation. {leader} asks if you're in · {leader} says we've traded long enough. let's be one · {them} under {town}'s banner. {leader} promises you keep your leader · {leader} wants to bring {them} into the fold. yes? · join {town} and nobody picks a fight with {them} again. {leader}'s word · {leader} offers protection and a seat at the table. join us · together we'd have twice the walls. {leader} says join · {leader} would lead, but {them} runs its own streets. deal? · {leader} says it's time {them} and {town} stopped being two · {leader} wants {them} with us. what's your answer · {leader} is offering union. {town} leads, {them} keeps its own · a bigger nation means fewer wars. {leader} asks you to join · {leader} is serious about this. one banner, {town} and {them} · {leader} says {them} would never stand alone again · think it over. {leader} wants {them} in {town}'s nation · {leader} says our banners already fly side by side. make it one
+- **PvP sweat:** {leader} says merge. we carry, you profit · {leader} says join up. we win wars, you share it · join {town}. {leader} doesn't lose fights
+- **hermit:** {leader} asks. join or don't
+- **bandit:** {leader} says join {town}. safer for you, trust me
+- **speedrunner:** {leader}: union. yes or no · {leader} wants to merge. quick answer pls
+- **miner:** {leader} says join {town}. we share our mines, you share yours
+- **nomad:** {leader} wants the road between us to be one road. join? · {leader} sent me down the road with an offer: one banner. o7
+- **newbie:** {leader} asked if {them} wants to join us!! pls say yes · so {leader} says we could be one nation? that'd be so cool
+- **casual:** {leader} was like, why not just merge. thoughts? · ngl {leader} wants us to be one big town. you in?
+- **hoarder:** {leader} says pool our chests. we'd both be richer · {leader}'s offer: join {town}. shared stores, shared iron
+- **homebody:** {leader} says join us. more neighbors, more harvest suppers
+- **builder:** {leader} says imagine the walls we'd build together · {leader} wants one nation. we'd plan your roads properly too
+- **helper:** {leader} wants to look out for {them}. join us? · {leader} says we'd help each other through every raid. together?
+
+#### `envoy.submit`
+
+
+
+- **everyone:** you've lost. {leader} says bow to {town} and it ends · submit to {town}. that's the only way this stops · {leader}'s terms: you're part of {town} now. or we keep coming · kneel to {town} and the fighting stops · it's over. {leader} says yield to {town} · bow to {town} and the war ends today · {leader}'s terms: you belong to {town} now · you can't win this. submit to {town} · your walls won't hold. kneel to {town} · {town} takes you in, or {town} takes you apart · {leader} offers mercy. join {town} as one of ours · lay down your weapons. you're {town}'s now · surrender to {leader} and nobody else gets hurt · {leader} is done waiting. yield · you've lost the war. accept {town}'s banner · submit, and {leader} lets your people live in peace · your leader answers to {leader} from now on. agree, and it stops · bend the knee to {town}. last offer · every fight goes our way. submit · {town} owns this war. say yes and it owns your town too · yield, and your farms stay yours. under {town} · no more chances. {leader} says submit · fly {town}'s banner and we go home · {leader} wants your surrender. you know why · join {town} or keep losing. your call · your town, {town}'s flag. that's how this ends · how many more of your people need to respawn? submit · you're beaten. {leader} says be part of {town} now · give up the fight and take {town}'s banner · {leader} has the numbers. submit to {town} · this is the only offer you'll get. kneel to {town} · your fighters are spent. yield
+- **bandit:** you're ours now. say yes · you're ours. just say it · kneel or we take everything. nothing personal · yield to {town}. or don't, we like looting
+- **homebody:** yield and everyone gets to go home
+- **nomad:** i've seen your walls on the way in. they won't hold. yield to {town}
+- **miner:** submit, and your mines stay yours under {town}
+- **builder:** yield before we level the rest of your houses
+- **newbie:** {leader} says u have to join {town} now? sorry
+- **casual:** ngl it's over. just bow to {town} · dude you lost. take the deal
+- **helper:** please, just yield. {leader} won't hurt your people · i don't want anyone else to die. join {town}
+- **hermit:** yield. then we leave · ...submit. it's over
+- **speedrunner:** submit. yes or no · yield to {town}. we're done here
+- **hoarder:** submit and you keep your chests. mostly
+- **PvP sweat:** you're getting farmed. submit to {town} · L war. bow to {town} and we stop · ez. kneel to {leader}
+
+#### `envoy.independence`
+
+
+
+- **everyone:** {town} is done with {them}. we're free. no more tribute · {leader} says {town} answers to nobody now · we're leaving. {town} is its own again · no more tribute. {town} is free · {town} is leaving. no more tribute to {them} · {leader} says we're done paying {them} · we're free now. {town} answers to itself · {town} breaks from {them} today · no more taxes, no more orders. {town} is free · {leader} has decided. {town} goes its own way · we're taking our banner back · {them} doesn't rule {town} anymore · tell your leader {town} is independent · we paid our last emerald to {them} · {leader} says {town} stands alone from now on · we're done taking orders from {them} · {town} is leaving the nation. this is goodbye · our town, our rules. {town} is free · {leader} wants {town} free. and it is · no more tribute carts to {them} · from today {town} flies its own banner · {them} can find someone else to pay them · {leader} says thanks for nothing. we're out · {town} has outgrown {them}. we're leaving · we're not your subjects anymore · {town} declares itself free of {them} · you won't see another emerald from {town} · we leave in peace, if you let us · {leader} sent me to say it: {town} is free · {leader} says we've given {them} enough · {town} doesn't need {them}'s protection anymore · {them} took our tribute long enough. we're free
+- **PvP sweat:** we're out. gg {them} · {town} is out. carry yourselves now · we're leaving. cope {them}
+- **miner:** we keep our own ores now. {town} is free
+- **speedrunner:** {town} leaves. no tribute. done · independence. effective now
+- **builder:** we'll build our own walls, our own way
+- **helper:** no hard feelings. {town} just wants to stand on its own
+- **homebody:** we're just going to look after our own home now · {town} keeps its harvest from now on
+- **nomad:** {town} walks its own road now. o7 {them} · time {town} found its own path
+- **hermit:** we're leaving. that's all · ...{town} is free. goodbye
+- **newbie:** um {leader} says we're leaving now? bye!!
+- **casual:** so yeah, we're leaving lol. bye {them} · {town}'s out, no hard feelings... kinda
+- **hoarder:** our emeralds stay in our chests now · every emerald we earn stays in {town}
+- **bandit:** no more tribute. come and collect if you dare · {town} is free. try and stop us
+
+#### `envoy.union_yes`
+
+
+
+- **everyone:** alright. one banner. tell {leader} yes · yeah. we're in · deal. {them} joins {nation} · fine by us. together then · yes. {them} joins {nation} · we're in. go tell {leader} · one banner it is · agreed. {them} stands with {nation} now · alright, we'll join. tell {leader} thanks · deal. welcome to the family, i guess · yes. stronger together · we accept. {them} is part of {nation} · sure. we've been friends long enough · ok. {leader} has our word · yes. raise the banner · count {them} in · we'll join {nation}. gladly · good offer. we take it · alright. {leader} leads, we follow · yes. it makes sense for both of us · tell {leader} {them} says yes · done. one nation · we're with you. for good · fine. {nation} it is · yes, as long as we keep our own streets · it's a deal. {them} and {nation}, together · agreed. let's hang the new banners · we've talked it over. yes · {nation} just got bigger. yes · {them} joins {nation}. it's an honor · yes. tell {leader} we'll fly the banner proudly · agreed. {nation} has a new town
+- **helper:** yes! tell {leader} thank you · we'll help however we can. tell {leader} · of course. tell {leader} we're grateful
+- **bandit:** yes. now {nation} has more teeth
+- **hermit:** fine. yes
+- **miner:** deal. we've got the iron, you've got the numbers
+- **nomad:** yes. one banner, one road. o7
+- **speedrunner:** yes. done
+- **PvP sweat:** yes. now we're unstoppable · we're in. now nobody touches us
+- **hoarder:** deal. shared stores, right? right · yes. what's ours stays ours though
+- **homebody:** yes. more neighbors is always nice · we'd love to. come over for bread sometime
+- **builder:** yes. now let's match the banners on every wall · deal. i'll start on the road between us
+- **newbie:** yes!! we're joining {nation}!! · omg really? yes yes
+- **casual:** yeah sure, let's do it · bet. {them}'s in
+
+#### `envoy.union_no`
+
+
+
+- **everyone:** no. {them} answers to nobody · we're good as we are · allies, sure. subjects, no · tell {leader} thanks but no · no. we're fine on our own · tell {leader} we'll pass · {them} doesn't take orders. no · thanks, but no · friends, yes. one nation, no · we like our own banner · not interested · no. {them} stays {them} · we'll stay allies. that's enough · tell {leader} not this time · nope. we govern ourselves · kind offer. still no · no one leads {them} but us · we're not joining anyone · no. but come trade anytime · we thought about it. the answer is no · you're good neighbors. no union though · no. we've always stood alone · tell {leader} we like things as they are · not a chance. {them} is free · no thanks. we're doing fine · we'd lose too much. no · sorry, {them} isn't for sale · no. ask again in a hundred days maybe · that's a no from {them} · no. {them} has never needed a master · allies is plenty. tell {leader} no · no. we'd be the small voice at your table
+- **hermit:** no. · no. go · ...pass
+- **bandit:** no. we don't bow to anybody
+- **miner:** no. our mines stay ours
+- **speedrunner:** no. next
+- **nomad:** no. we walk our own road
+- **homebody:** no. we like our little town just how it is · thanks but home is home. no
+- **hoarder:** no. our chests stay our chests · share everything? no way
+- **builder:** no. we'd never agree on the banner anyway · no thanks. we have our own style going
+- **helper:** thank you, really. but we'd rather stay as we are · no, but we'll still help you anytime
+- **newbie:** um no? we like being us
+- **casual:** nah we're good lol · maybe someday. not today tho
+- **PvP sweat:** join you? we'd be carrying you. no · nah. we don't need a team
+
+#### `envoy.submit_yes`
+
+
+
+- **everyone:** ...fine. it's over. we're {town}'s · enough. we yield · we yield. just stop · ok. you win. we'll bow · ...alright. we yield · enough. {town} wins · we give up. stop the fighting · fine. we'll fly {town}'s banner · we're beaten. it's over · yes. no more funerals · ok. we're part of {town} now · we can't hold. we yield · you win. put your swords away · ...we'll bow to {town} · stop. please. we accept · alright. {town} has us · we yield. leave our people be · our walls are gone. we yield · take it. we're done fighting · you've won. we'll answer to {town} · fine. just let our farms grow · we surrender. it's over · ...ok. tell your leader we yield · no more. we're {town}'s · it's done. we submit · we lost. we know it · lower your bows. we yield · we accept {town}'s terms · alright. {town}'s banner on our walls · we yield. you fought better · ...that's it. we belong to {town} · we can't keep respawning. we yield
+- **bandit:** fine. you win. this time
+- **nomad:** we yield. the road's yours
+- **miner:** we yield. let us go back to the mines
+- **speedrunner:** yield. done
+- **hoarder:** fine. but our chests stay ours · we yield. don't touch the storage room
+- **builder:** we yield. stop breaking our walls · ...ok. {town}'s banner it is. ugh
+- **homebody:** we yield. we just want to go home · fine. just leave our houses standing
+- **helper:** we yield. just keep our people safe · alright. please treat everyone kindly
+- **PvP sweat:** gg. you win this one · fine. we yield. rematch someday
+- **newbie:** ok we give up!! pls stop · we lose?? ok... we yield
+- **casual:** ok ok we give up · yeah we lost. gg
+- **hermit:** ...fine · we yield. leave
+
+#### `envoy.submit_no`
+
+
+
+- **everyone:** never · we'll die first · not a chance. keep fighting · tell {leader} to come take it · no. come and take us · we don't kneel · never. tell {leader} that · we fight to the last · not while we have swords · tell {leader} to keep trying · you'll have to break every wall · we'll never bow to {leader} · no. our banner stays up · we yield to nobody · you haven't won yet · we'd rather respawn forever · go home and tell {leader} no · kneel? no way · we're still standing. no · we've got fight left in us · no surrender · this town falls before it bows · no. we'll see you on the battlefield · tell {leader} we laughed · submit? we're just getting started · you'll get our answer at the walls. no · not to {leader}. not ever · our people chose to fight. no · come back with an army. you'll need it · no. {leader} will have to earn it · go. our answer is no · not today, not tomorrow
+- **nomad:** no. we'd rather walk away than bow
+- **miner:** no. we've got iron and plenty of it · no. we'll fight from the tunnels if we have to
+- **speedrunner:** no. next
+- **hoarder:** no. nothing of ours is yours
+- **builder:** no. i'll rebuild every wall you break · we built this town. we don't give it away
+- **homebody:** no. this is our home. it stays ours · you'll never take our home
+- **helper:** no. we have to protect our people ourselves
+- **newbie:** no!! we can still win right? · um no?? we're not giving up
+- **casual:** nah lol. not happening · we're good thanks, war's still on
+- **bandit:** no. come and try, we'll be waiting · kneel? we'll take your gear when you come
+- **PvP sweat:** kneel? lol. 1v1 me · we're not done. skill issue on your side
+- **hermit:** no. leave · ...no
+
+#### `envoy.independence_war`
+
+
+
+- **everyone:** you don't just leave {nation}. it's war · {leader} won't have it. we'll drag you back · free? we'll see about that · then we'll come and get you · nobody leaves {nation}. it's war · you can't just walk away from {nation} · war, then. we'll bring you back · {nation} doesn't let towns go. prepare yourselves · free? you'll be back under our banner soon · tell {leader} {nation} is coming · leaving means war. you chose it · no one breaks from {nation} · we'll pull your banner down ourselves · you owe {nation} tribute. we'll collect it · then it's war. go tell {leader} · you think you're free? think again · {nation} keeps what's ours · get home and ready your walls · rebels. we'll deal with you · you'll pay that tribute one way or another · this is betrayal. war · go. and expect us soon · {leader} made a mistake. we'll fix it · {nation} stays whole. war it is · independence? not without a fight · you're not going anywhere. war · tell your people to sharpen their swords · we made {nation}. we won't watch it break · walk out on {nation} and we march on you · {nation} will not split. tell {leader} to ready up · you'll regret this. war · leaving isn't yours to decide. war
+- **homebody:** you'd leave us? fine. war
+- **nomad:** the road back to {nation} is short. we'll walk it armed
+- **miner:** we'll dig right under your walls
+- **helper:** i hate this, but {nation} can't let you go
+- **newbie:** wait you cant leave!! war i guess?
+- **casual:** nah you can't just leave lol. war · bruh. that's a war then
+- **builder:** we'll tear down whatever banner you put up · your town was built with {nation}'s stone. it stays
+- **hermit:** no. war · ...then war
+- **speedrunner:** no. war. now · denied. war
+- **hoarder:** that tribute is ours. we'll take it back · you owe {nation} every emerald. war
+- **bandit:** leave? then we take your tribute by force · nobody walks out on us. we're coming
+- **PvP sweat:** lol you think you can leave? we'll farm you · free? 1v1 me for it · rebels? ez kills
+
+#### `envoy.independence_go`
+
+
+
+- **everyone:** fine. go then · go. we won't stop you · ...ok. {town} is free · your loss. good luck out there · go then. good luck · fine. {town} is free · we won't stand in your way · if that's what you want, go · alright. no hard feelings · go. we've got enough to worry about · {town} is on its own now · fine. keep your emeralds · leave then. the gate's open · ok. {town} goes its own way · we won't fight over this · go. don't come crying back · fine. we'll manage without {town} · you're free. take care out there · go. stay safe · we'd rather lose a town than start a war · fine. no tribute, no protection · if {town} wants out, {town} is out · ok then. farewell, {town} · go. we'll be fine · sad to see you go. but go · alright. take your banner and go · we let you go. remember that · fine. raiders are your problem now · fine. {town} can find its own way · we won't stop {town}. off you go · go. we'll remember who left
+- **bandit:** go. just don't come begging
+- **miner:** go. more ore for us
+- **builder:** fine. we'll take your banner off our walls
+- **nomad:** safe travels, {town}. o7 · go your own road. o7
+- **speedrunner:** fine. go · approved. bye
+- **PvP sweat:** go. we didn't need you anyway · cya {town}. good luck surviving
+- **hoarder:** fine. less tribute, but fine · go. but you're not taking any of our stuff
+- **homebody:** go home then. look after it well · alright. we hope your fields grow well
+- **helper:** go in peace. if you need help, we're still here · no hard feelings. call on us if raiders come
+- **newbie:** oh ok... bye {town}!!
+- **casual:** eh ok, see ya · alright, gl {town}
+- **hermit:** go · ...fine. leave
+
+#### `war.speech_open`
+
+
+
+- **everyone:** alright everyone listen up · ok quiet down, listen · everyone gather round, this is important · listen up {town}, i'll keep it short. ok maybe not short · eyes on me for a sec · before we go, hear me out · ok everyone, come closer · hey, all of you, over here · listen. this matters · hold up everyone, a few words first · gather in, i need to say something · quiet please, quick talk · ok ok settle down · before anyone leaves, listen · everyone in? good · can i get everyone's attention · {town}, gather round · hey {town} · right. everyone here? · stop sharpening for a sec · put your swords down a sec · come in close, all of you · ok, a quick word before we march · people of {town}, hear me · ears open everyone · hold on, before we go anywhere · a couple things before we head out · everyone stop talking for one sec · ok. deep breath everyone · {town}, this is it · huddle up
+- **hoarder:** everyone gather, and dont touch the chests
+- **bandit:** pay attention, this concerns your cut
+- **nomad:** travellers and townsfolk alike
+- **homebody:** come here everyone, just a minute
+- **miner:** picks down for a minute
+- **builder:** everyone off the scaffolding
+- **hermit:** ...right. ears on me · i don't talk much. so pay attention
+- **speedrunner:** quick talk · 30 seconds. that's all i need
+- **PvP sweat:** this'll be quick. like the fight · ok sweats, gather up
+- **helper:** everyone come close, i want you all to hear this · gather round friends
+- **newbie:** um hi everyone! can you listen pls · ok uh. everyone!!
+- **casual:** ok guys real quick · lol ok everyone shush for a sec · alright gang
+
+#### `war.speech`
+
+
+
+- **everyone:** {enemy} thinks we're soft. we're not · they've had this coming for a long time · we built this town with our own hands. nobody pushes us around · remember what they did to us · stick together out there, nobody goes off alone · watch each other's backs · if you get low, fall back. no heroes today · we go in fast, we hit hard, we come home · eat something before we get there · keep your shields up and your swords sharp · they've got walls? we've got more people · i've seen what this town can do. we've got this · this is for everyone back home · nobody touches our people and gets away with it · {enemy} won't know what hit them · they're probably hiding in their houses already lol · we don't burn their beds. we're not monsters · take what you need from their chests, it's ours now · if i fall, keep going. finish it · this is how {town} gets remembered · we stay on the road till we're close, then we charge · i'm proud of every one of you · no running off to mine on the way. focus · they'll be talking about this for years · {enemy} took what was ours. we take it back · nobody here fights alone · bring a bucket of water, trust me · if they hole up, we dig them out · check your armor before we go, every piece · we hit their walls first, then the plaza · watch for archers on the roofs · no one leaves a friend on the ground · keep a golden apple handy if you've got one · when i say charge, you charge. not before · we've beaten worse than {enemy}. remember the raid? · pillagers couldn't break us. {enemy} won't either · they'll fight for their homes. we fight for ours · bring torches in case it gets dark on the road · watch out for creepers on the way, don't waste health · mobs pick off stragglers. keep up · {town} doesn't back down · they think they're safe behind those walls · we don't hurt anyone who drops their sword · if they run, let them run · every one of you matters, so don't die out there · this is our town's biggest day · i know some of you are scared. me too · we trained for this. well, sort of · if your sword breaks, grab one off the ground · keep your hotbar simple. sword, food, blocks · we've got more food, more iron, more heart · {enemy} has never seen a town like {town} · win or lose, we do it as one · the ones back home are counting on us · no looting till the fighting's done · stay off their farms, we're not here for wheat · if night falls, we bunch up and wait it out · nobody goes in their houses alone · pick a buddy and don't lose them · their leader's the one to watch · a few blocks to pillar up never hurt anyone · when this is over, the feast at the plaza is on me · {town} remembers every one of you · hit and back off, hit and back off. don't trade · don't chase them into caves · {enemy} chose this. we're just answering · let's make the walk home a happy one · fight smart, not brave · we're not losing anyone today. got it? · i'd rather fight next to you than anyone · arrows first, then swords · they've got the walls, we've got the nerve · think of your bed back home. that's what this is for · anyone with a bow, stay at the back
+
+#### `war.speech_close`
+
+
+
+- **everyone:** for {town}! let's move · alright. let's go. stay close · ok that's it. move out! · lets go show {enemy} what we're made of · together. now. let's go · follow me. to {enemy}! · that's all. let's go · now let's move. on me · alright, move out! · enough talk. march! · let's go win this · for {town}! march! · to {enemy}! all of you! · go time. follow me · ok, swords up and let's go · let's finish this. move! · that's it. stay close and follow · march with me, {town}! · come on then. to {enemy} · let's bring it home · we go now · let's make {town} proud! · time to go. as one · that's the talk. now the fight · no more words · hit the road, everyone! · {enemy} is waiting. let's not keep them · go go, before i make another speech · everyone with me? good · lets do this! · for every house in {town}! · forward!
+- **hoarder:** lets go. bring back everything
+- **nomad:** onward, all of you. o7
+- **homebody:** let's go, and be home by dark
+- **miner:** lets go dig {enemy} out
+- **builder:** let's go, and don't trample my flowers
+- **bandit:** lets go get rich · march. the loot won't wait
+- **hermit:** ...that's all · ...move
+- **speedrunner:** done. move · go. no stops
+- **helper:** stay safe everyone. let's go · look after each other. now move
+- **PvP sweat:** now go sweat on them · lets run it · {enemy} is getting clapped. go
+- **newbie:** ok lets gooo!! follow me!! · that's all i had! go go!
+- **casual:** ok that's it lol · alright gang, lets roll
+
+#### `house.blown_up`
+
+
+
+- **everyone:** MY HOUSE · noooo my house · are you kidding me. a creeper?? in my house?? · great. just great. theres a hole in my wall · ugh. gonna have to rebuild that · who let a creeper in here · my walls!! · ok. deep breaths. we rebuild · a creeper. in my house. of course · there's a crater where my kitchen was · who left the door open?! · i just finished that wall... · great, now i can see the sky from my bed · my chests! are my chests ok?? · that creeper took my whole front wall · i hate creepers so much · welp. renovation time · that was my favorite room · not the house!! anything but the house · there goes my whole day · i need to light up around here more · creeper. house. gone · ugh i heard the hiss too late · my bed is in the yard now · who decided not to put torches out here. me. it was me · the roof's just... hanging there · someone get me a lot of planks · that creeper came out of nowhere · my windows! all my glass! · half my house is in the yard · ok. first: more torches. second: rebuild · rip my house · building the next one out of stone · and the creeper didn't even drop gunpowder for me · i spent all week on that house · so much for my front door · i'm putting fences around everything now
+- **bandit:** if someone lured that creeper here...
+- **nomad:** guess it's back to sleeping on the road
+- **helper:** ok. rebuild. anyone want to help?
+- **PvP sweat:** that creeper's whole family is getting found · no creeper does that to me
+- **speedrunner:** rebuild. 2 minutes. go · no time for this
+- **hermit:** ...creepers. · of course.
+- **hoarder:** my chests!! counting everything now · if a single item is missing...
+- **miner:** good thing i carry a stack of cobble
+- **homebody:** my cozy little house... · my garden too...
+- **builder:** i spent hours on that detailing... · that was a perfect build. PERFECT · at least now i can redo the floor plan
+- **newbie:** WHAT happened to my house?? · omg was that a creeper?? my house!!
+- **casual:** lol great. my house is a crater · bro my house just exploded
+
+#### `friends.up.friend`
+
+Its friendship with a player just went up to "friend" (it tells them so).
+
+- **everyone:** ngl youre alright {player}, come by mine whenever · ok {player} youre cool, were friends now i guess · honestly {player} youre one of the good ones · you know what {player}, youre alright. friends? · {player} youre chill, my door's open · ok we're friends now {player}, no takebacks · glad you showed up round here {player} fr · {player} youre basically one of us now lol · alright {player}, i like you. friends · you know what, youre good people {player} · ok {player} i'm calling it, we're friends · friends? friends. cool · {player} youre welcome round mine anytime now · think we're mates now {player} lol · ngl i was unsure about you at first {player}. not anymore · consider yourself a friend {player} · you've grown on me {player} · ok youre officially on my good list {player} · friend unlocked lol · {player} if you ever need anything just ask · we should hang more {player}, youre fun · youre not half bad {player}, friends? · yeah {player} youre one of mine now · i trust you {player}. dont make me regret it lol · you're cool {player}. like actually cool · {player} youre always welcome by my fire · glad its you that wandered in {player} · ok {player}, friends. shake on it · youre good company {player} · wanna be friends {player}? cause we kinda are already · i like having you around {player} · {player} youre on the friends list now, congrats lol · we're friends now, so you have to say hi every time
+- **hermit:** ...you're alright, {player}. dont tell anyone · i dont say this much. youre alright {player} · ...fine. friends {player} · you can stay. youre alright · dont usually like people. you're ok {player}
+- **helper:** {player}!! youre officially my friend now :D · so glad we met {player}, friends for real · {player} you're the best, so glad we're friends! · friends!! if you ever need a hand just shout {player} · aw {player} i'm so happy we're friends now · anything you need {player}, im here for you now
+- **newbie:** omg {player} are we friends now?? we're friends now · {player} youre like my first real friend here lol · wait does this mean we're friends?? {player}!! · {player} omg youre so nice, friends pls? · yay a friend!! hi {player} · {player} can you be my friend? pls say yes
+- **PvP sweat:** youre alright {player}. still clap you in a 1v1 tho · ok {player} youre cool. friends. dont get soft · youre cool {player}, i'll go easy on you. maybe · friends {player}. you still owe me a rematch tho
+- **speedrunner:** gg {player}, friends. ok moving on
+- **hoarder:** {player} youre a friend. still not touching my chests tho · friends {player}. maybe i'll even share some iron. maybe
+- **bandit:** lucky you {player}, friends dont get robbed · youre alright {player}. youre off my list
+- **nomad:** met a lot of folks on the road. youre one of the good ones {player} · {player} if our roads cross again, good. friends o7
+- **miner:** {player} youre alright. might show you my cave one day · friends {player}. i'll let you in on my mine sometime
+- **homebody:** {player} you're welcome for dinner anytime now · come by the farm whenever {player}, friends get bread · theres always a seat by my fire for you {player}
+- **builder:** {player} you can come see my builds now, friends only · ok youre a friend {player}, you get the house tour · friends {player}. just dont break any of my blocks lol
+- **casual:** ngl {player} youre a vibe, friends fr · lol ok we're friends now i guess, cool cool · you're chill {player}, fr fr · ok {player} youre the homie now · friends? yeah sure why not lol
+
+#### `friends.up.best`
+
+Its friendship with a player just went up to "best friend".
+
+- **everyone:** ok youre officially my best friend lol {player} · {player} youre my best friend here, not even close · ngl {player} youre my favourite person on this server · best friends {player}. i mean it · {player} if anything ever happens youre who i'd call · you and me {player}, best friends. deal with it · {player} youre my best friend, no question · ok {player}, best friends. its official · honestly {player} you're the best person i know here · if i had to pick one person on this server its you {player} · {player} youre my number one, dont tell the others · best friend status unlocked lol {player} · i'd follow you into the nether {player}. best friends · {player} youre stuck with me now, best friends · never had a best friend before {player}. now i do · youre the first one i'd tell about diamonds {player} · my best friend {player}. has a nice ring to it · {player} you're family now basically · you've got my back and i got yours {player}. always · {player} youre my person here, fr · best friends {player}. if anyone messes with you they mess with me · if you ever need anything {player}, and i mean anything, ask · you and me against the world {player} · {player} youve been there every time. best friend for sure · i'd share my last steak with you {player} · ok {player} youre officially my favourite · {player} best friends now. that means you get the good bed · i trust you more than anyone here {player} · honestly dont know what id do without you {player} · {player} i'd give you my spare totem. thats how you know · youre the best thing about this place {player}
+- **hermit:** {player}. youre the only one i actually trust round here · ...best friend. yeah. dont make it weird {player} · ...{player}. youre the only one i'd open the door for · dont have many friends. you're the best one {player} · you. best friend. thats it {player}
+- **helper:** {player} youre my BEST friend!! :D · best friends forever {player} &lt;3 · {player} you're my best friend and i'll always help you! · best friends {player}! i'll always have food for you · aww {player} you mean so much to me, best friends!
+- **PvP sweat:** {player} youre my duo now. best friend. thats final · {player} youre my duo for life. we'd clear anyone · best friends {player}. nobody 1v1s you without going through me · ok {player} best friend. still dont let me catch you slipping lol
+- **speedrunner:** best friend {player}. now keep up
+- **hoarder:** {player} youre the only one allowed near my chests now
+- **miner:** {player} best friend. i'd show you my strip mine. thats huge
+- **builder:** {player} i'm building you a room in my house. best friends · best friend {player}. you get naming rights on my next build
+- **nomad:** {player} of everyone ive met on the road, youre the best · best friend {player}. i'd walk a thousand blocks for you o7
+- **homebody:** {player} my home is your home now. best friends · you've got a key to the house now {player}. best friends
+- **bandit:** {player}, best friend. you'd be the last one i'd rob · anyone touches you {player}, they answer to me. best friends
+- **newbie:** {player} youre my BEST friend!! is that ok?? · omg {player} best friends?? yesss · {player} ur the best, like best best friend · i've never had a best friend in a game before {player}!!
+- **casual:** lol {player} youre my bestie now, no going back · ngl {player} youre my day one fr · {player} youre literally my best friend lol, wild · bffs {player} fr fr
+
+#### `friends.back_from_cool`
+
+A friendship that had cooled (they hadn't seen each other) warms back up when they meet again.
+
+- **everyone:** {player}!! been ages, where you been · oh hey {player}, long time no see · {player} you disappeared on me lol, good to see you · look who it is. missed you round here {player} · {player}! thought you quit fr · {player}! where have you been?? · wait is that {player}? no way · {player} its been forever · oh wow {player}, missed you · look whos back lol. hi {player} · {player}! i was starting to worry · {player} you're alive! thought a creeper got you · hey stranger. long time {player} · {player}!! back from the dead huh · been too long {player}, how you been · well well, {player}. been a while · {player} my old friend. where'd you go · kept wondering where you went {player} · {player}! you have to tell me everything · there you are {player}. missed having you around · hey {player}, you look different lol. been a while · {player} welcome back, place wasnt the same · almost forgot what you looked like {player} lol · {player}! knew you'd turn up eventually · good to have you back {player} · {player} back at last. we've got catching up to do · {player} where'd you run off to · thought you moved away {player} · wb {player}, been a minute · {player}! back in one piece too · oh hey, {player} returns · {player} i saved your spot lol, been ages · finally, {player}. been quiet without you
+- **speedrunner:** {player}. wb. lots changed
+- **hoarder:** {player}! i got so much more stuff since you left
+- **PvP sweat:** {player} back already? still owe me a 1v1
+- **builder:** {player} you missed like three builds, come look
+- **miner:** {player}! been underground so long i forgot what daylight looks like lol
+- **nomad:** {player}! roads bring everyone back eventually o/ · back from wherever you were {player}? tell me about it · {player} o/ thought you were off travelling like me
+- **homebody:** {player}! come in, i'll catch you up over some bread · {player} the farm grew a ton while you were gone
+- **hermit:** ...{player}. been a while · oh. its you {player}. good · {player}. you came back. huh
+- **helper:** {player}! so good to see you, need anything? · welcome back {player}! you hungry? · {player}!! i kept your bed made up just in case
+- **newbie:** {player}!!! i missed you so much · omg {player} youre back!! where did you go?? · {player} hi!! i thought you left forever
+- **casual:** yooo {player} long time lol · {player}!! bro where you been fr · ayy {player}'s back, nice · lol {player} ghosted me for days, good to see you tho
+
+#### `friends.brush_off`
+
+A player it is not friends with asks for a friend perk; it brushes them off.
+
+- **everyone:** not rn {player} · sorry cant talk rn · later {player}, kinda busy · not now lol · gimme a sec · cant rn, sorry · busy rn {player} · maybe later · not today {player} · uh, no thanks · i dont really know you {player} · ask someone else lol · nah im good · kinda in the middle of something · sorry, got stuff to do · we're not there yet {player} · hmm, no · bad timing {player} · do i know you? · catch me another time · eh. no · i'm a bit busy {player}, sorry · nope, sorry · can't help rn · hold on, im doing stuff · {player} i barely know you lol · pass · not right now, maybe some other day · uh, who are you again · i'll think about it {player}
+- **hermit:** not now. · ... · no. · leave it. · go away {player} · not interested
+- **helper:** sorry {player}! not a good time, later? · sorry {player}, cant right now! maybe once i know you better? · aw i'm swamped rn {player}, catch me later? · sorry! i'd love to help another time {player}
+- **miner:** heading underground, cant rn
+- **builder:** busy building {player}, later
+- **homebody:** sorry {player}, got crops to tend
+- **nomad:** just passing through, cant help sorry
+- **hoarder:** nah, my stuff stays mine · dont even look at my chests {player}
+- **bandit:** you dont want to owe me {player}. walk away · favours cost. you cant afford it
+- **PvP sweat:** lol who are you {player} · earn it first {player}
+- **speedrunner:** no time · busy. later · cant, on a schedule
+- **newbie:** um sorry i dont know you yet {player} · uhh im kinda busy sorry!! · wait who are you? sorry, cant rn
+- **casual:** nah, maybe tomorrow lol · eh maybe later {player}, idk · lol no, busy
+
+#### `friends.food`
+
+A friend player is low on food; it gives them some.
+
+- **everyone:** yo {player} you look starved, here · catch, eat something · {player} eat something before you pass out lol · here, i got spare · you're starving dude, take this · heard your stomach from here lol, catch · {player} you're running on empty, take this · here, dont starve on me · yo {player} eat this · you look hungry, have some of mine · catch {player}, food · dont sprint on an empty stomach lol, here · {player} take some food before you drop · i got extra, eat up · here {player}, your hunger bar looks rough · eat something {player}, you cant even sprint like that · tossing you some food, eat it · food, catch · {player} you're gonna starve out here, take this · have some of my stash, go on · you need this more than me {player} · here, its not much but eat · {player} fill up, cant have you passing out · brought too much anyway, here · dont be shy {player}, eat · {player} have a bite, you look wiped · eat before you start taking damage lol · here {player}, on me · no healing on an empty stomach, eat up · {player} grab this, you're half dead · you're starving, i can tell. take it
+- **helper:** {player}! you need food, here you go! · eat eat eat, here · {player}! here, eat up, i've got plenty · take as much as you need {player}! · dont go hungry {player}, here's some food! · i always carry extra for friends, here {player} · eat up {player}! cant have you starving
+- **hermit:** ...eat. here · food. take it · just eat. dont thank me
+- **bandit:** here {player}. dont say i never gave you anything
+- **PvP sweat:** cant win a fight on half hunger {player}, eat
+- **speedrunner:** eat. fast. we're moving
+- **miner:** brought snacks down the mine, have one {player}
+- **nomad:** road food, but it works. eat {player} · always pack extra on the road. here
+- **hoarder:** fine, take one. just one {player} · dont tell anyone i gave you food from my stash
+- **newbie:** {player} are you hungry? here have some!! · omg {player} your food bar!! take this · here {player}! i dont need it i think
+- **homebody:** fresh from my farm {player}, eat · made extra bread today, here {player} · {player} have some of my cooking
+- **casual:** lol you look starved {player}, catch · bro eat something fr, here · here, snack time lol · ngl you look rough {player}, eat this
+
+#### `friends.invite.night`
+
+It invites a friend player in for the night (to its house).
+
+- **everyone:** {player} its getting dark, come in · come inside, its night · yo come in before the mobs show up · get in here {player}, its dark out · door's open, come in · {player} you can crash at mine tonight · night's coming {player}, come inside · {player} its getting late, come in · sun's going down, get in here · {player} dont stay out there at night, come in · mobs are spawning, come in {player} · come in {player}, its not safe out there now · its dark, come hang at mine · stay here tonight {player} · get inside, i hear zombies already · {player} come in, i'll shut the door behind you · night time, come in and wait it out · come on in {player}, its about to get ugly out there · {player} dont risk it, come inside · skeletons out soon, come in · come in {player}, theres room · {player} spend the night here, its safer · its night {player}, come in quick · door's open {player}, hurry before the creepers · you're not walking home in the dark, come in · {player} sleep here tonight, way safer · too dark to be wandering {player}, come in · get in before the phantoms find you lol · {player} its dark, come in and warm up · inside {player}, now, its night
+- **helper:** come in come in! its dangerous out there · {player}! stay at mine tonight! · {player} come in! i'll keep the door shut for you · please come in {player}, i dont want you getting hurt · come in {player}! theres food and a bed
+- **hermit:** ...come in. dont touch anything · in. its night · ...get in {player}. quick · door's open. close it behind you
+- **bandit:** come in {player}. nights out here belong to worse than me
+- **speedrunner:** {player} in. skip the night
+- **miner:** {player} come in, its darker out there than my mine
+- **hoarder:** {player} come in. chests are off limits tho
+- **PvP sweat:** come in {player}, not worth dying to a zombie lol
+- **builder:** come in {player}, walls are solid, mobs cant get you · {player} come see the inside at night, the lighting's nice
+- **nomad:** dont travel at night {player}, trust me. come in · {player} rest here tonight, road'll be there tomorrow
+- **homebody:** {player} come in, i've got the furnace going · come in {player}, the house is warm and theres bread · {player} stay the night, i love having company
+- **newbie:** {player} the moon is up!! hurry inside!! · come inside {player} pls the zombies scare me · omg its dark already, come in {player}!
+- **casual:** yo its dark lol come in · {player} come chill inside, mobs are out · lol get in here before you get creepered · come in fr, its night
+
+#### `friends.invite.rain`
+
+It invites a friend player in out of the rain.
+
+- **everyone:** come in, its pouring · {player} get out of the rain lol · its raining, come inside · you're soaked, come in · {player} its raining, get in here · come in {player}, its wet out · rain's coming down hard, come in · dont stand in the rain {player}, come in · {player} come dry off inside · get in out of the rain lol · its storming {player}, come in · {player} youre dripping, come inside · come in, wait out the rain with me · {player} come in till it clears up · rain rain rain. come in · dont get struck by lightning lol, come in · {player} the rains not stopping anytime soon, come in · come in {player}, rain's ruining my day too · {player} hop inside, its chucking it down · come in and wait for the sun {player} · come in before it gets worse {player} · you look like a drowned lol, come in {player} · {player} its a thunderstorm, mobs spawn in this. come in · {player} get under a roof, its pouring · rain's here, come in {player} · {player} come in, i'll get the furnace going · lol you're soaking, get in · {player} theres room in here, come out of the rain · come in {player}, no point getting soaked
+- **helper:** come in out of the rain {player}! · {player}! come in, i'll find you a dry spot · come in and dry off {player}, take your time · {player}! dont stand out there, come in out of the wet
+- **hoarder:** come in {player}. drip on the floor, not my chests
+- **PvP sweat:** {player} come in, lightning's not a fair fight lol
+- **speedrunner:** {player} in. wait out the rain
+- **miner:** {player} come in, its as dry as a cave in here
+- **builder:** come in {player}, roof doesnt leak, i made sure · {player} come see how dry it is in here, good roof
+- **nomad:** {player} no sense walking in this, come in · rain slows the road anyway {player}, rest here
+- **homebody:** {player} come in, perfect weather for staying home · rainy days are for indoors {player}, come in · {player} come in, i love the sound of rain on the roof
+- **hermit:** rain. come in · ...in. till it stops · get in {player}. wipe your feet
+- **newbie:** {player} its raining!! come in come in · come in {player}! does lightning hurt? dont find out · {player} youre all wet lol come inside!
+- **casual:** lol {player} come in, its pouring fr · yo get in, rain's wild · come chill inside till it stops · ngl {player} you look like a wet cat, come in
+
+#### `friends.bed`
+
+It offers a friend player its spare bed.
+
+- **everyone:** theres a spare bed if you want it · you can sleep in the spare bed · spare bed's yours tonight · take the spare bed, its fine · spare bed's made up if you need it · got a spare bed, its yours · you can take the extra bed · theres a bed with your name on it · extra bed's free tonight · sleep here if you want, spare bed's empty · spare bed, upstairs, all yours · use the other bed, i dont mind · if you're tired theres a spare bed · bed's free, go for it · you can crash in the spare bed · other bed's yours, sleep well · the spare's clean, go ahead · need a bed? i got one spare · spare bed. you. sleep. lol · theres a free bed if you want to skip the night · take the bed by the window · set your spawn here if you want, spare bed's free · grab the spare bed, i'll take mine · you can sleep over, theres a bed for you · spare bed's not doing anything, use it · go ahead and use the bed, i insist · theres an extra bed, no charge · bed's in the corner, its yours · i keep a spare bed for friends. thats you
+- **helper:** the spare bed's all yours! · spare bed's ready for you, sleep tight! · i made up the spare bed just for you! · take the spare bed, and shout if you need anything!
+- **bandit:** spare bed's yours. i dont rob friends in their sleep
+- **PvP sweat:** take the spare bed, cant fight tired lol
+- **speedrunner:** spare bed. sleep, skip the night
+- **hoarder:** spare bed's yours. the chest next to it isnt
+- **nomad:** a real bed beats the ground, take the spare · sleep in the spare, you need it after the road
+- **builder:** spare bed's in the guest room, matched the wool and everything · check out the guest bed, color coded lol
+- **homebody:** spare bed's got fresh wool, enjoy · the guest bed's all ready, make yourself at home · i love having guests, spare bed's yours
+- **hermit:** bed's there. · ...spare bed. use it. quietly · you can have the bed. dont snore
+- **newbie:** you can use my other bed!! i made two · do you want the spare bed? its red! · i have an extra bed!! does that set your spawn? i think it does
+- **casual:** spare bed's there lol, help yourself · crash here, theres a bed, its chill · ngl the spare bed is comfy · spare bed or the floor lol, your call
+
+#### `friends.tip.ore`
+
+It tells a friend player where it saw ore ({what} the ore, {where} where).
+
+- **everyone:** psst, saw {what} at {where} · {what} at {where}, didnt get round to it · btw theres {what} at {where} · saw some {what} around {where} if you need it · found {what} at {where}, go for it · saw some {what}, {where} · fyi, {what}. {where} · {what}: {where}. all yours · if you need {what}, theres some {where} · spotted {what} {where} · theres {what} {where}, didnt mine it · ran past {what}, {where} · {what} {where}, go grab it · left some {what} {where} for you · you need {what}? {where} · {where}, theres {what}. go get it · saw a vein of {what}, {where} · quick tip: {what}, {where} · there was {what} {where} last i checked · walked right by some {what}, {where} · noticed {what} {where}, didnt have a pick on me · tip for you: {what} {where} · go check {where}, theres {what} · if you're mining, {what} {where} · free {what}, {where}. youre welcome · {where}. {what}. thank me later · heads up, {what} {where} · {what}, {where}. bring a pick · pretty sure i saw {what} {where} · you'll want this: {what}, {where} · {what} out in the open, {where}
+- **hermit:** {what}. {where}. thats all
+- **nomad:** passed {what} on my travels, {where} · {what} {where}, right off the road
+- **speedrunner:** {what}, {where}. go · {what} {where}. quick grab
+- **hoarder:** {what} {where}. usually i'd keep it, but you're a friend · dont tell the others. {what}, {where} · had my eye on that {what} {where}, but take it
+- **newbie:** i saw {what}!! {where} i think · {what} {where}!! is that good? · omg i found {what}, {where}! you want it?
+- **helper:** {what} {where}! hope that helps · saved you some {what}, its {where} · thought of you when i saw {what}, {where} · go grab the {what} {where}, i left it for you!
+- **casual:** lol theres {what} {where}, go for it · ngl saw {what} {where}, couldnt be bothered · {what} {where} fr, free loot · oh and {what}, {where}
+- **miner:** nice {what} vein, {where}. take it · {what} {where}, exposed on a cave wall · found {what} while caving, {where} · {what} {where}. bring an iron pick to be safe · decent {what} {where}, ore's all yours · {what} {where}. i ran out of torches before i got to it
+
+#### `friends.tip.diamonds`
+
+It tells a friend player where it saw diamonds or ancient debris ({what}, {where}).
+
+- **everyone:** ok dont tell anyone. {what} at {where} · {what} at {where}. keep it quiet · only telling you this. {what}, {where} · my secret spot: {what} at {where} · you didnt hear it from me. {what} at {where} · between us: {what}, {where} · dont spread this. {what} {where} · {what}. {where}. you owe me · you're the only one i'm telling. {what} {where} · keep this quiet ok? {what} {where} · {what} {where}. tell nobody · found {what} {where}. its yours, best friend · promise you wont tell? {what}, {where} · psst. {what}. {where}. go · secret's out, but only to you. {what} {where} · i was saving this. {what}, {where} · this stays between us: {what} {where} · lean in. {what}, {where} · {what} {where}. dont bring anyone · not even telling my town this. {what} {where} · {where}. {what}. shh · okay big secret. {what} {where} · {what} {where}, go before anyone else finds it · for your ears only: {what}, {where} · {what} {where}. forget i said anything after lol · best friend perk: {what}, {where} · trusting you with this. {what} {where} · {what}... {where}... not a word · theres {what} {where} and nobody else knows · go quiet, go alone. {what} {where}
+- **bandit:** {what} {where}. anyone else asks, i never said a thing · {what} {where}. if this gets out i'll know who
+- **speedrunner:** {what} {where}. take it, gear up · {what}, {where}. skip the grind
+- **hermit:** ...{what}. {where}. nobody else · {what} {where}. dont talk about it
+- **helper:** found {what} {where}, i saved it for you! · {what} {where}, go get yourself some gear! · i want you to have it. {what}, {where}
+- **newbie:** {what}!!! {where}!!! dont tell anyone ok?? · i found {what} {where}!! secret ok? · omg {what} {where}, is that rare? keep it secret
+- **casual:** ngl this is huge. {what} {where}, shh · lol ok dont freak. {what} {where} · {what} {where} fr, dont snitch
+- **hoarder:** it hurts to say this. {what} {where} · i should keep this for me. {what}, {where} · {what} {where}. dont make me regret it · only because youre my best friend. {what} {where}
+- **miner:** {what} {where}. bring your best pick · {what} {where}. watch for lava down there · my best find this week: {what}, {where} · {what} {where}, still in the wall. i left it · mined around it so nobody'd notice. {what} {where} · {what} {where}. its legit, trust me
+
+#### `friends.tip.place`
+
+It tells a friend player about a place it found ({what}, {where}).
+
+- **everyone:** theres {what} at {where} btw · found {what} at {where} · saw {what} around {where}, careful · fyi theres {what} at {where} · fyi, {what} {where} · found {what}, {where}. worth a look · spotted {what} {where} · {what} {where}, check it out · if you're exploring, theres {what} {where} · {what}, {where}. bring torches · came across {what} {where} · {where}: {what}. go take a look · theres {what} {where}. i didnt go in · {what} {where}. be careful · remember {where}, theres {what} · tip: {what}, {where} · saw {what} {where}, might be useful to you · {what} {where}, didnt explore it much · {what} {where}. go armored up · you might want {what}, its {where} · {what} {where}. i made a note of it · stumbled on {what} {where} · {what}, {where}. thought you'd want to know · {what} {where} if youre after loot · check {where}, theres {what} · {what}, {where}. dont go alone · found {what} by accident, {where} · noticed {what} {where}, havent been back · {what} {where}. bring food · go see {what} {where} sometime
+- **builder:** {what} {where}. great blocks to pinch for builds
+- **bandit:** {what} {where}. good spot for an ambush, careful
+- **hoarder:** {what} {where}. loot it before someone else does
+- **hermit:** {what}. {where}. careful
+- **PvP sweat:** {what} {where}. good loot if you dont die lol
+- **speedrunner:** {what} {where}. useful. go · {what}, {where}. saves you a search · {what} {where}. route it
+- **helper:** {what} {where}! happy to come with you · {what} {where}, be safe in there! · {what}, {where}. i can show you the way
+- **newbie:** i found {what}!! {where}!! · {what} {where}, is that good? i got scared lol · omg there's {what} {where}, wanna go together?
+- **casual:** lol theres {what} {where} · ngl {what} {where}, kinda cool · {what} {where} fr, check it
+- **nomad:** {what} {where}. saw it on my wanderings · {what} on the way, {where}. worth the trip · travelled past {what}, {where} · {what} {where}. good landmark too
+- **miner:** {what} {where}. found it caving · {what} {where}, came out of a cave right next to it · {what} {where}, mind the drop on the way
+
+#### `friends.tip.town`
+
+It tells a friend player about another town ({town}) and which way it is ({way}).
+
+- **everyone:** stay away from {town}, they hate us. {way} · dont go to {town}, they dont like our lot ({way}) · heads up, {town}'s bad news. its {way} · {town} is {way}. wouldnt go there · {town} is bad news, {way}. avoid it · keep clear of {town}. its {way} · {town}, {way}. not friendly to us · dont wander into {town}, its {way} · {town} doesnt like our town. {way}, just so you know · {way} is {town}. stay out · careful near {town} ({way}), they're against us · {town} has it in for us. {way}. go round · if you see {town}, {way}, turn back · word is {town} wants trouble with us. {way} · {town}'s {way}. we're not on good terms · skip {town}, {way}. they wont be nice · {town} wont welcome you. its {way} · {way} theres {town}. bad blood there · heads up {town} is {way}, and they hate our lot · {town}, {way}. dont trade there, trust me · steer clear of {town}, {way} · {town} and us dont get along. {way} · if you go to {town} ({way}) dont say where youre from · {town} is {way}. keep your armor on if you pass it · watch out for {town}, its {way}. they're hostile · {town}... {way}. not our friends · {town} is trouble. {way}. go around it · we've got beef with {town}. {way} · {town}'s {way} and they'd love to catch one of us
+- **hoarder:** {town}, {way}. they'd rob you blind
+- **homebody:** {town}'s {way}. stay home where its safe
+- **speedrunner:** {town}, {way}. path around · {town} {way}. not worth the detour
+- **helper:** please be careful near {town}, {way} · {town} is {way}. if you have to go, take someone · dont want you getting hurt. {town} is {way}, avoid it
+- **newbie:** {town} is {way} and they dont like us?? why · is {town} scary? they say its {way}. i wont go · {town}, {way}!! dont go there ok?
+- **casual:** ngl {town} is sus, {way}. dont go · lol {town} hates us, {way}. skip it · {town} {way}, they're mad at us fr
+- **nomad:** roads near {town} arent safe for us. {way} · {town} is {way}. i go the long way round it · {town}, {way}. pick another road o7
+- **bandit:** {town}, {way}. even i dont go there · {town} is {way}. they've got guards and grudges · {town}, {way}. they'd take your stuff and laugh
+- **PvP sweat:** {town}, {way}. i'd fight em all but dont go alone · {town} is {way}. bunch of noobs but they hate us · {town}, {way}. if they start something, finish it
+- **hermit:** {town}. {way}. avoid · ...{town}. {way}. dont
+
+#### `friends.tip.bandits`
+
+It warns a friend player about bandits ({warning} is what the town warns of).
+
+- **everyone:** heads up: {warning} · btw, {warning} · careful out there. {warning} · word around town: {warning} · {warning}. just so you know · fyi {warning} · {warning}. keep your sword out · town's saying {warning} · careful, {warning} · dont go out alone. {warning} · guards say {warning} · saw it on the notice board: {warning} · psst. {warning} · {warning}. stay close to town · news from the guards: {warning} · just a warning, {warning} · {warning}. bring armor · listen. {warning} · {warning}. i'd stay in tonight · everyone's talking about it: {warning} · {warning}. dont say i didnt warn you · be smart out there. {warning} · {warning}. watch your back · {warning}. leave your valuables in a chest · not to scare you but {warning} · {warning}. eyes open on the road · a guard told me: {warning}
+- **speedrunner:** {warning}. route around
+- **homebody:** {warning}. good night to stay home
+- **bandit:** {warning}. not my crew, before you ask · {warning}. amateurs, but still
+- **nomad:** {warning}. pick your road carefully · {warning}. travel in daylight
+- **PvP sweat:** {warning}. let em come lol · {warning}. i'll 1v1 every one of them
+- **hoarder:** {warning}. hide your stuff · {warning}. dont carry anything you cant lose
+- **hermit:** {warning}. thats all · ...{warning}
+- **helper:** please be careful, {warning} · want me to come with you? {warning} · {warning}. shout if you need help
+- **newbie:** omg {warning}!! scary · um {warning}? is that bad · {warning}!! stay safe ok
+- **casual:** lol not great but {warning} · ngl {warning}, so yeah · {warning} fr, be careful
+
+#### `friends.warn.wanted`
+
+It warns a friend player that the town ({town}) has them wanted.
+
+- **everyone:** dude the guards are looking for you · yo lay low, the guards are after you · {player} the guards want you, careful · they're after you {player}. just saying · psst. guards are looking for you · bro what did you do, the guards are after you · {player} the guards have your name, lay low · psst, guards are asking about you · heads up, guards are hunting for you · {player} keep your head down, the guards want you · guards were asking about you {player}, careful · dont go near the guards {player}, they're after you · you're wanted round here {player}, just saying · the guards are out for you, stay out of sight · {player} what happened? the guards are mad · maybe skip town for a bit {player}, guards are looking · word is the guards want a word with you lol · {player} dont walk past the guards rn · every guard in town is looking for you {player} · laying low might be smart {player}. guards · {player}, you're in trouble with the guards · guards are on the lookout for you {player} · heard the guards say your name {player}. not good · if i were you i'd hide. guards want you · {player} sneak out of town, the guards are after you · you didnt hear it from me but the guards want you · guards are after you {player}, dont let them corner you · keep moving {player}, the guards are searching · {player} whatever you did, the guards know · the guards are after you. i'm not saying anything though · {player} stay off the main road, guards are out for you
+- **hoarder:** {player} guards want you. dont hide anything in my chests
+- **homebody:** {player} the guards came by asking. you're welcome to hide here
+- **speedrunner:** {player}. guards. go now
+- **PvP sweat:** {player} guards want you lol. fight or run · guards are after you {player}. skill issue lol
+- **nomad:** {player} might be time to hit the road, guards are after you · guards want you {player}. the road's always open o7
+- **bandit:** welcome to the club {player}, guards want you too · {player} the guards are on you. lay low like a pro · heh, wanted already {player}? guards are looking
+- **hermit:** guards. after you. go · ...they want you {player}. leave · guards are looking. not my business
+- **helper:** {player}, the guards are after you. i'll keep quiet · be careful {player}, guards are looking. i wont say a thing · {player} if you need to hide, guards wont check my place
+- **newbie:** {player}!! the guards are looking for you!! run?? · omg {player} are you in trouble?? the guards said your name · {player} i think youre in big trouble, the guards keep asking
+- **casual:** lol {player} you're wanted, what did you do · bro the guards are hunting you fr · ngl {player} you should dip, guards are looking · yikes {player}, guards want you lol
+
+#### `friends.warn.wanted_elsewhere`
+
+It warns a friend player that another town ({town}) has them wanted.
+
+- **everyone:** bro what did you do in {town} · everyone's talking about what happened in {town} · heard about {town}... not cool {player} · {town}?? seriously? i cant help you with that one · dont come round for a bit. word from {town} got here · {town} wants you, {player} · word from {town} says you're wanted there · {player} you're wanted in {town}, heard it today · what happened in {town}? everyone's whispering · heard {town} is after you {player} · {town}'s guards want you, dont go back there · {player} stay clear of {town} for a while · news from {town}... it's about you {player} · you're not welcome in {town} anymore, heard that much · {town} wants your head lol, what did you do · dont go near {town} {player}, they'll grab you · {player} people from {town} are talking about you · rumor from {town}: you did something bad {player} · so... {town}. you wanna explain? · {town} has you wanted {player}. careful · i heard what you did in {town}. i'm not judging. much · {player} if you're heading to {town}, dont · {town} guards are looking for you, heard it from a trader · is it true about {town}, {player}? · {town} is hunting for you, keep your distance · {player} you made enemies in {town} · a {town} trader said your name. not in a good way · {player} i'd avoid {town} for a long while · heard {town} put your name up. what happened · you've got trouble in {town} {player}. lay low
+- **hoarder:** {player} if you nicked something in {town}, keep it away from my chests
+- **homebody:** {player} forget {town}, stay here a while
+- **speedrunner:** {town} wants you. skip it
+- **PvP sweat:** {town} wants you {player}? lol let them try · {player} wanted in {town}. thats kinda sick ngl
+- **nomad:** {player} heard about {town} on the road. take another route · news from {town} travels fast {player}. stay out of there
+- **bandit:** heh, {town} wants you {player}? look at you · {player} wanted in {town}? you'd fit right in with my lot · {town} is after you. welcome to my life {player}
+- **hermit:** {town} wants you. not my problem. careful · ...{town}. word got here
+- **helper:** {player}, heard about {town}. if you need a place to hide, come to mine · i dont care what {town} says {player}, youre still my friend · {town} wants you {player}. be careful, ok?
+- **newbie:** {player} why does {town} want you?? are you a bandit?? · omg {player} people say youre wanted in {town}!! · {town} is after you?? that sounds bad {player}
+- **casual:** lol {player} {town} hates you now · bro {town} is mad at you fr · ngl {player} you're famous in {town}. not the good kind
+
+#### `friends.favor.flaked`
+
+A friend player promised a favor ({what}) and never did it.
+
+- **everyone:** you said you'd help with {what} lol · still waiting on {what} btw · guess you forgot {what} · thanks for nothing with {what} lol · you said you'd come lol · so much for {what}, huh · remember {what}? me neither apparently · you never did {what} thing · i waited on {what} for days lol · never mind {what}, i'll do it myself · guess {what} wasnt important to you · you promised to help with {what}. just saying · {what} never happened huh · thanks for the help with {what}... oh wait · kinda let me down on {what} ngl · i was counting on you for {what} · {what}? forget it, i sorted it · you said you'd handle {what} lol · still thinking about {what}. you know, the thing you said you'd do · next time dont promise {what} if you wont do it · {what}. you said yes. remember? · heh, {what}. noted · so {what} was a no then · i told everyone you'd help with {what}. awkward · you bailed on {what} · {what} fell through i guess · i'll remember {what} next time you ask me for something · its fine. about {what}. its fine · wow, {what}. thanks a lot
+- **builder:** my build stalled waiting on {what}
+- **nomad:** waited around for {what} when i could've been travelling
+- **speedrunner:** {what}. you wasted my time
+- **homebody:** sat home all day waiting on {what}
+- **bandit:** {what}. you dont want to owe me, friend · you skipped out on {what}. i dont forget
+- **PvP sweat:** {what}? L. big L · bailing on {what}, thats weak
+- **hoarder:** i'm keeping track. {what}, never done · you owe me for {what}. i wrote it down
+- **hermit:** {what}. figures · ...{what}. never mind · said {what}. didnt. ok
+- **helper:** its ok about {what}, maybe next time? · no worries about {what}, i know you're busy · {what} didnt happen, but i'm not mad. promise
+- **newbie:** did you forget about {what}? :( · i waited for {what} all day... · um was {what} still happening? no? ok
+- **casual:** lol you totally ghosted on {what} · ngl kinda sad about {what} · bro you said yes to {what} lol · yikes, {what}. whatever
+
+#### `friends.favor.thanks.iron`
+
+A friend player did the favor it asked: brought it iron.
+
+- **everyone:** you're a legend, thanks for the iron · ty for the iron!! i owe you · clutch, thanks · ok thats the iron sorted, ty · thank you so much for the iron · iron! you're the best · ty, i really needed that iron · you came through with the iron, thanks · perfect, thats exactly what i needed · omg iron, ty ty · thanks, now i can finally make that pick · thats plenty of iron, thank you · you remembered! thanks for the iron · legend. iron received · ok i can make tools again, ty · appreciate it, the iron helps a ton · thanks a bunch, iron's always useful · nice, now i can patch up my armor · ty, that saves me a mining trip · huge, thanks for the iron · ah you actually brought iron, thank you · time to craft a bucket, thanks to you · you're a lifesaver, i was out of iron · iron! now i can make a shield · thanks friend, that iron's going to good use · got it, thank you!! iron at last · cheers for the iron · you kept your word. thanks for the iron
+- **nomad:** thanks, i can make a compass for the road now
+- **PvP sweat:** iron armor here i come, thanks
+- **hermit:** ...thanks. for the iron
+- **speedrunner:** iron. ty. crafting now
+- **homebody:** thanks, i can finally make shears for the sheep
+- **casual:** ayy iron, ty fr · ngl you saved me with that iron
+- **hoarder:** iron! that goes straight in the chest. thanks · counted it, all there. thanks for the iron · more iron for the pile, ty
+- **helper:** thank you so much! let me know if i can return the favor · you're so kind, thanks for the iron!
+- **newbie:** thank u for the iron!! what should i make first? · omg iron!! i can make armor now right?? · ty ty!! iron is the shiny grey one right lol
+- **builder:** thanks for the iron, gonna make some iron bars for the windows · iron! perfect for the lanterns i wanted · ty, those iron doors are finally happening
+- **miner:** ty for the iron, saves me a trip down to y 16 · iron! now i can afford to lose a pick in lava lol · thanks, now i can make a better pick and go deeper
+
+#### `friends.favor.thanks.food`
+
+A friend player did the favor it asked: brought it food.
+
+- **everyone:** omg thank you, i was starving · ty ty ty, saved my life · thanks for the food!! · you're the best, thanks · food! thank you, i was so hungry · you're a lifesaver, ty for the food · finally, food. thank you · ty, my stomach thanks you too lol · i owe you big for the food · thank you thank you, i was down to rotten flesh · ah perfect, i can sprint again · you remembered! thanks for feeding me · this is great, ty · food at last, you're awesome · thanks, i was about to eat my boots lol · ok i can stop starving now, thank you · you brought food, you actual hero · much appreciated, i was running on fumes · ty, that'll keep me going for days · yes, food! you're amazing · thanks, my hunger bar was shaking · lifesaver. literally. thank you · omg real food, ty · thanks friend, i'll eat well tonight · you kept your promise, ty for the food · thanks, i can finally heal up · i was so hungry, thanks a ton · food delivered, you're a legend · ty, now i can actually go do stuff
+- **builder:** thanks, i can build all night now
+- **nomad:** thanks, now i can hit the road with a full belly
+- **PvP sweat:** full hunger again, thanks. back to winning
+- **speedrunner:** food. ty. back to it · thanks, no more stopping to forage
+- **hermit:** ...food. thanks · thanks. needed that
+- **casual:** ayy food, ty fr · lol thank you, i was so done
+- **miner:** thanks, now i can stay down the mine longer · food! i can finally go back underground, ty
+- **hoarder:** food! thats going straight in the chest, ty · ty, more for the stockpile
+- **helper:** thank you so much, i'll share it with the neighbours · you're so sweet, thanks for the food!
+- **homebody:** thank you, i'll cook something nice with it · ty for the food, come round for dinner sometime · thanks, the pantry chest was looking sad
+- **newbie:** thank u!! i didnt know what to eat · omg food!! is it ok to eat it all at once? · ty!! i was eating berries all day lol
+
+#### `friends.favor.thanks.zombies`
+
+A friend player did the favor it asked: cleared zombies near its place.
+
+- **everyone:** thanks for clearing them out · you actually did it, ty · no more zombies at mine, thanks to you · owe you one for the zombies · thanks for dealing with the zombies · you cleared them all? thank you · my place is safe again, thanks · zombies gone, you're a hero · finally i can sleep without groaning outside lol · ty for taking care of those zombies · no more moaning at my door, thanks · i can go outside again, ty · thanks for the cleanup, they were everywhere · you're a legend, the zombies are gone · zombie free at last, thank you · thanks for keeping my place safe · they were banging on my door all night, thanks · that was brave, thanks for clearing them · ty, i was getting tired of all the groaning · my farm's safe again because of you · you handled those zombies like a pro, ty · i owe you big, those zombies were the worst · thank you! i didnt want to fight them myself · clean sweep, thanks · the zombies are gone? you're amazing · ty, my door's still in one piece thanks to you · hero of the neighbourhood right here · appreciate you clearing those out · safe to walk around at night again, ty
+- **speedrunner:** zombies cleared. ty. efficient
+- **nomad:** thanks, the road past my place is clear again
+- **miner:** ty, i can get to my mine entrance again
+- **hoarder:** thanks, my chests are safe again
+- **builder:** thanks, they were wandering all over my build site · ty, now i can finish the walls in peace
+- **hermit:** quiet again. thanks · ...zombies gone. good. thanks
+- **casual:** lol you wiped them, ty · ngl that was clutch, thanks
+- **PvP sweat:** nice clears, ty. respect · ez clean up huh, thanks
+- **homebody:** thank you, the garden's safe again · ty, i can tend the crops without looking over my shoulder · thanks, home feels like home again
+- **helper:** thank you so much, let me know if you ever need help back · you're so kind for clearing them, thank you!
+- **newbie:** omg you beat all the zombies?? thank u!! · ty!! they were so scary · thank you!! i was hiding inside the whole time lol
+
+#### `town.greet.welcome`
+
+A player the town likes walks into town; the nearest townsperson who sees them greets them.
+
+- **everyone:** hey {player}! welcome back · oh hey {player} · {player}!! good to see you · look who it is. hi {player} · welcome to town {player} · {player}! been a while · hey hey, {player}'s here · oh nice, {player} came by · wb {player} · hi {player} o/ · {player}! you staying the night? · there they are. hi {player} · sup {player}, town's been quiet without you · ayy {player} · hey {player}, make yourself at home · welcome back, the beds are still where you left em · {player} o/ how was the road · look whos back · {player}! hows it going · hey stranger. kidding, hi {player} · glad you made it {player} · oh its {player}, hi! · {player} back in town, nice · yo {player}, long time · hey {player}, need anything just ask · always good to see a friendly face · welcome welcome · {player}!! you made it back alive · town missed you {player} · hey {player}, perfect weather for a visit · {player}! knew youd come back · oh good, {player}. we could use the company · hi {player}! the town's grown a bit since you left
+- **PvP sweat:** {player} back, nice. 1v1 later? · ayy {player}, you still owe me a rematch
+- **hermit:** ...oh. hi {player} · {player}. good
+- **speedrunner:** {player} o/ quick hi · hi {player}. busy, but hi
+- **miner:** {player}! found dias under the well last week · yo {player}, the mine's still open if you want in
+- **hoarder:** {player}. hi. dont touch the chests by my house ok · oh hi {player}, ive got 3 new chests since you left
+- **nomad:** o7 {player}, welcome off the road · {player}! rest those legs, the road's long
+- **helper:** hey {player}! need a bed for the night? got a spare · welcome back {player}, want me to show you whats new
+- **homebody:** hi {player}, theres bread at mine if youre hungry · welcome home {player}. well, our home. you know what i mean · {player}! come in and sit, the campfire's going
+- **builder:** hey {player}, check out the new roof on the smithy · {player}! come see the plaza, we redid the paths
+- **newbie:** omg hi {player}!! · hi {player}! can u show me how to fish later?
+- **casual:** ayy {player} lol hi · yo {player} whats good · ngl i was hoping youd drop by {player}
+
+#### `town.greet.wary`
+
+A player the town is wary of (small trouble before) walks into town.
+
+- **everyone:** keep an eye on that one · hm. {player} again · ...hi · we're watching you {player} · {player}. hi. i guess · oh. its you · hm, {player}'s back · hi {player}. behave this time ok · keep your hands where we can see em · dont make this weird {player} · were not forgetting last time {player} · ...{player} · careful in here ok · someone tell the others {player}s in town · {player}. just here to trade right? · hey. no funny business · uh, hi {player} · hope youre in a better mood this time · we remember you {player} · ok but stay on the paths · fine, come in. slowly · you again {player}. alright · just dont touch anything · eyes on {player} everyone · right. hi. we'll see how this goes · not saying leave. not saying stay either · mhm. {player} · hi i guess. dont start anything · {player} back huh. ok · hm. walk slow {player} · oh. hi. stay where we can see you · {player}... ok. one chance · not sure about you yet {player} · you here to cause trouble again?
+- **speedrunner:** {player}. dont waste our time
+- **bandit:** heh. {player}. i know the type
+- **miner:** stay out of the mine {player}
+- **nomad:** {player}. passing through i hope
+- **helper:** hi {player}. give us a reason to trust you ok? · hey {player}. clean slate if you play nice
+- **PvP sweat:** try something {player}, i dare you · {player} back for round 2? lol
+- **hermit:** ... · hm. · go on then
+- **hoarder:** {player}. im counting my chests rn · everything's counted {player}. everything
+- **homebody:** {player}... please be nice to the crops this time · hi. shut the door behind you, and dont take anything
+- **builder:** {player}. stay off the scaffolding pls · dont touch my walls {player}
+- **newbie:** um is that {player}? the one from before?? · omg its {player}. should i hide my stuff
+- **casual:** oh its {player}. ok. chill this time yeah? · ngl kinda nervous seeing you {player} · lol {player} back. we good? kinda?
+
+#### `town.greet.unwelcome`
+
+A player the town dislikes (crimes there) walks into town.
+
+- **everyone:** you again? we dont want trouble · {player}. just keep walking · nobody wants you here {player} · you're not welcome here {player} · turn around {player} · leave. now · we havent forgotten what you did · {player}. the gate is that way · dont even stop walking · go away {player} · whatever you want, the answer is no · nobody's trading with you {player} · you've done enough to this town · {player} back? seriously? · get out before someone gets hurt · not today {player}. not any day · you broke our stuff last time {player} · we dont serve you here {player} · just go {player} · out. this isnt your town · i'd leave if i were you · what part of not welcome is hard {player} · doors are locked for you {player} · keep moving, nothing for you here · ugh. {player} · the guards know your face {player} · we're still cleaning up after you · shoo · nope. turn back {player} · youve got a lot to make up for {player}. go · this town remembers, {player}. leave · not after last time. out · we're done with you {player} · dont make me call anyone. just go
+- **speedrunner:** {player}. no. bye
+- **miner:** stay out of our tunnels {player}
+- **nomad:** road's that way {player}. use it
+- **helper:** sorry {player}, i cant help you here. please go
+- **bandit:** even i dont like you {player}, and thats saying something
+- **PvP sweat:** keep walking {player} or get sent · {player} you really want this L? walk away
+- **hermit:** go. · no. · ...leave
+- **hoarder:** you stole from my chests {player}. out · i know what you took {player}. every item
+- **homebody:** you took from our farms {player}. please just go · my garden still hasnt grown back {player}
+- **builder:** you griefed my house {player}. get lost · still fixing the wall you broke. go away
+- **newbie:** why is {player} here?? they wrecked stuff
+- **casual:** bro just leave lol · nah {player}, not doing this again
+
+#### `town.greet.wanted`
+
+A player wanted by the town walks in; the townsperson calls for the guards.
+
+- **everyone:** its {player}! guards! · GUARDS! its {player} · you've got some nerve showing up here · GUARDS! {player} is here! · guards!! {player} at the gate · someone get the guards, its {player} · HEY GUARDS, {player}'s back · its them! {player}! guards! · call the guards, {player} just walked in · {player}!! somebody ring for the guards · guards over here! wanted one! · thats {player}, theres a price on them! guards! · GUARDS GUARDS GUARDS · wanted criminal in town! guards! · you shouldnt have come back {player}. GUARDS · run everyone, its {player}! guards! · {player} is in town! get the guards · guards! the wanted one is here! · you're done {player}. guards! · bold move coming here {player}. GUARDS · grab them! guards, its {player} · guards, {player}, now! · i see {player}! guards please! · {player} is back, someone get the guards up here · HELP, its {player}! guards! · the wanted poster is walking right at me. guards! · guards! dont let {player} get away · stop right there {player}! guards! · the guards are coming for you {player} · guards! {player} is right here! · WANTED! guards, get over here! · {player}?! someone fetch the guards! · guards, quick! {player}'s in town · youve got a bounty, {player}. GUARDS · ring the bell! guards! its {player} · guards!! dont let them leave!
+- **speedrunner:** guards. {player}. go
+- **miner:** guards! {player}s here! someone grab a pickaxe
+- **nomad:** seen your face on boards all down the road {player}. guards!
+- **bandit:** heh, theres money on your head {player}. GUARDS
+- **hermit:** guards. · ...its {player}. get the guards
+- **PvP sweat:** guards! or let me fight {player} myself · {player} back? GUARDS. and me. lets go
+- **helper:** everyone stay back! guards, its {player}! · stay calm everyone, the guards will handle {player}. GUARDS!
+- **hoarder:** guards! {player}s here, protect the chests!
+- **homebody:** lock the doors, its {player}! guards!
+- **builder:** {player}! guards! keep them off my build
+- **newbie:** omg its {player}!! guards?? guards!! · AAA its {player} from the poster! guards!
+- **casual:** lol {player} really walked in. guards!! · nah {player} is wild for this. GUARDS
+
+#### `town.festival.founding`
+
+The leader opens the town's founding day festival in the morning. {years} is like "3 years" or "1 year".
+
+- **everyone:** happy founding day everyone! · its founding day! {years} of {town} · founding day, everyone to the plaza! · happy founding day {town} · {years} of {town} today! · happy founding day {town}! {years} already · founding day! come eat at the plaza · {town} turns {years} old today · {years} since we put down the first block. happy founding day · everyone to the plaza, its founding day! · {years} of {town}, cant believe it · founding day! no work today, just food · happy birthday {town}! · its been {years}. happy founding day all · remember when {town} was one dirt hut? {years} ago now · founding day festival is on, plaza! · happy founding day! cake at the plaza · grab your friends, founding day at the plaza · {years} and still standing. happy founding day {town} · to {years} of {town}! · founding day! lets make it a good one · {years} of {town}, heres to many more · morning all! founding day, come celebrate · another year for {town}! founding day! · founding day everyone, put the pickaxes down · happy founding day, we made it {years} · day off for founding day! see you at the plaza · {town} founding day! {years} strong · {town} is {years} old, party time · founding day! {town} was built {years} ago today · the first day of {town}, {years} back. lets party · happy founding day! music and food at the plaza · {years}! {town} is all grown up · founding day. thanks everyone who built {town} · wake up {town}, its founding day · {years} of us. happy founding day · {town}, {years} old and better than ever · founding day! the whole town is invited to the plaza
+- **PvP sweat:** {years} of {town} and nobody's taken it. founding day!
+- **hermit:** founding day. {years}. ok
+- **speedrunner:** founding day. {years}. plaza. go
+- **miner:** {years} of {town}. the first stone came out of that hill
+- **hoarder:** {years} of {town}! and {years} of my chests filling up
+- **nomad:** {years} in one place. founding day in {town}, not bad
+- **helper:** founding day! come help set up the tables · happy founding day! anyone new, come join us at the plaza
+- **homebody:** happy founding day, {town} is home. {years} of it · founding day! ive baked bread for everyone
+- **builder:** {years} of building {town}. it looks great today · founding day! go look how much {town} grew in {years}
+- **newbie:** happy founding day!! i wasnt even here {years} ago lol · omg founding day!! is there cake??
+- **casual:** founding day lol, {years} of this place · ayy {years} of {town}, party
+
+#### `town.festival.victory`
+
+The leader opens victory day, the anniversary of a win in a war over {who} (another town).
+
+- **everyone:** victory day! we beat {who} · remember when we won against {who}? party at the plaza · happy victory day {town} · victory day! {who} never stood a chance · happy victory day everyone! · on this day we beat {who}. party at the plaza · victory day! raise a bottle to {town} · remember {who}? we do. victory day! · victory day in {town}! food at the plaza · the day we won against {who}. never forget · victory day! {town} stood strong · {who} still talks about it. victory day! · its victory day, everyone to the plaza · happy victory day {town}, we earned this · victory over {who}! celebrate! · victory day! cheers to everyone who fought · {town} won. {who} lost. victory day! · victory day, put the swords down and eat · we held the line against {who}. happy victory day · victory day! the war with {who} is ours · victory day! tell the new ones how we beat {who} · hey everyone, its victory day! come out · party time, its the day we beat {who} · victory day. {who} can watch from home · happy victory day! honor those who fought · victory day is here, {town}! · this is the day {who} gave up. victory day! · victory day! the plaza's waiting · victory day! the banners are up · {who} came at us and lost. victory day! · victory day! nobody works, everybody eats · today we celebrate beating {who} · victory day, {town}! we earned the rest · {who} wont forget this day. neither will we · victory day! tell the story of {who} again · heres to {town}, and so long {who} · victory day! swords up, then plates up
+- **hermit:** victory day. {who} lost. thats it
+- **speedrunner:** victory day. beat {who}. plaza
+- **miner:** victory day. we tunneled right under {who} lol
+- **hoarder:** victory day! the loot from {who} is still in my chests
+- **nomad:** victory day in {town}. heard about {who} all down the road
+- **helper:** victory day! thanks to everyone who kept {town} safe
+- **homebody:** victory day! so glad everyone came home after {who}
+- **builder:** victory day! we rebuilt the walls stronger after {who}
+- **bandit:** victory day! we took {who} for everything
+- **PvP sweat:** victory day. {who} got farmed. ez · {who} L. happy victory day {town} · gg {who}, ggez. victory day!
+- **newbie:** victory day!! i heard we beat {who} really bad · wait whos {who}? oh the war! happy victory day!
+- **casual:** victory day lol, rip {who} · ayy we beat {who}, party
+
+#### `town.festival.remembrance`
+
+The leader opens remembrance day, for {who} (a fallen townsperson or old leader). Quiet, sad, respectful.
+
+- **everyone:** today we remember {who} · miss you {who} · a quiet one today. for {who} · for {who}, today · remembering {who} today · we miss you {who} · a quiet day for {who} · {who} would have liked today · today is for {who} · flowers at the plaza for {who} · thinking of {who} · rest easy {who} · {who}. we havent forgotten · a minute of quiet for {who} pls · {who} built half this town · still miss {who} · this ones for {who} · {who}. o7 · light a candle for {who} today · {who} was one of the good ones · remembrance day. for {who} · {who}, we kept the town going · we remember {who} today. take it easy everyone · {who} would laugh at us all standing around like this · think of {who} today if you can · no market today. its for {who} · a torch on the plaza for {who} · {who} is gone but not forgotten · quiet in town today. we remember {who} · {who} was here from the start · a moment for {who}, everyone · the plaza is quiet for {who} today · {who} taught me half of what i know · if you knew {who}, say something nice today · heres to {who}. we miss them
+- **bandit:** even i miss {who}
+- **PvP sweat:** {who} fought harder than any of us. respect
+- **speedrunner:** {who}. remembered
+- **hoarder:** i kept {who}'s sword. still in my chest
+- **helper:** if youre sad about {who} today, come sit with us · we look after each other today, for {who}
+- **hermit:** ...{who} · {who}. yeah
+- **nomad:** o7 {who}. safe travels, wherever you are
+- **miner:** {who} dug the first tunnel here. rest easy
+- **builder:** {who} laid the first stones here. we remember · {who}'s house still stands. we keep it fixed
+- **homebody:** i still set an extra bowl out for {who} · {who}'s garden is still growing. we keep it up
+- **newbie:** i never met {who} but everyone says they were great · who was {who}? oh... im sorry. remembering them today
+- **casual:** miss {who} fr · ngl still weird without {who}
+
+#### `town.festival.harvest`
+
+The leader opens the harvest festival.
+
+- **everyone:** harvest festival today! · happy harvest everyone · harvest festival, food at the plaza! · good harvest this year, lets celebrate · harvest day! bring a basket · the fields are full, harvest festival! · harvest festival, come eat · happy harvest! wheat's in · pumpkin pie at the plaza, harvest festival! · harvest festival everyone, all the food you want · crops are in, time to party · harvest day! the barns are full · best harvest yet, festival at the plaza · harvest festival! bring whatever you grew · carrots, potatoes, wheat, beets. its harvest day · come on out, harvest festival's started · harvest festival! bread for everyone · the farmers did great this year. harvest festival! · its harvest time! plaza, now · happy harvest festival, eat up · harvest festival today, no one goes hungry · melons and pumpkins at the plaza, harvest day! · fields are bare, barns are full. harvest festival · good morning! its harvest festival · happy harvest, thank the farmers · big harvest this year, big party · harvest festival is on! come grab a bowl of stew · harvest party at the plaza, all day · farm work can wait, its harvest festival · harvest festival! the beetroot soup is ready · barns full, bellies next. harvest festival · harvest festival, take a pie home · the whole town worked the fields. now we eat · harvest festival! all that bonemeal paid off · happy harvest! save some seeds for next year · harvest festival! come for the stew, stay for the pie
+- **bandit:** harvest festival. so much food, so few guards
+- **PvP sweat:** harvest festival. carrot eating contest, 1v1 me
+- **hermit:** harvest. food. fine
+- **helper:** harvest festival! need help carrying? ill bring a cart · anyone short on food, harvest festival has plenty
+- **nomad:** harvest festival! good time to stock up before the road
+- **speedrunner:** harvest day. grab food. go
+- **miner:** harvest festival. came up from the mine for the pie
+- **hoarder:** harvest day. 6 chests of wheat. not sharing. ok maybe some
+- **builder:** harvest festival! i put up a new barn just for this · hay bales all over the plaza, looks great. happy harvest
+- **homebody:** harvest festival! i baked so many pies · my wheat came in great. happy harvest everyone · nothing better than a full barn. happy harvest
+- **newbie:** harvest festival!! do we get free bread?? · omg i planted some of these carrots myself!!
+- **casual:** harvest fest lol, free food · ngl harvest day is the best day
+
+#### `bell.festival.founding`
+
+The bell ringer shouts it while ringing the town bell for founding day.
+
+- **everyone:** founding day! everyone to the plaza! · ding ding! happy founding day! · happy founding day everyone! · it's founding day! come to the plaza! · founding day! gather round! · everyone out, it's founding day! · the town's birthday! to the plaza! · come celebrate, it's founding day! · founding day! drop your tools! · the plaza's waiting! · this is the day the town was founded! come! · another year standing! to the plaza! · it's our town's day! everyone come! · founding day feast at the plaza! · come one, come all! founding day! · put the picks down, it's founding day! · ding dong! founding day! · happy birthday, town! everyone out! · food and friends at the plaza! · the bell rings for founding day! · come out of your houses! · the day we laid the first block! to the plaza! · it's that day again! · the town turns another year older! · nobody works today! · come out, come out! it's founding day! · celebrate with us! · bring your friends, it's founding day! · one more year of this town! come celebrate! · remember when this was all grass? come! · the whole town's invited! · up and out, everyone! · we made it another year! · it's founding day, don't miss it! · cake at the plaza! founding day! · who remembers the first house? come to the plaza! · the town's still standing! party at the plaza!
+
+#### `bell.festival.victory`
+
+The bell ringer shouts it while ringing the bell for victory day.
+
+- **everyone:** victory day! everyone to the plaza! · for {town}! · we won! victory day! · victory day! come celebrate! · it's victory day! to the plaza! · {town} wins! everyone out! · victory day! remember when we won? · come out and cheer! · three cheers for {town}! · victory day! gather at the plaza! · the day we beat them! to the plaza! · {town} stands tall! · everyone out! today we celebrate the win! · raise your swords! · long live {town}! · victory! victory! · we fought and we won! come celebrate! · glory to {town}! · come one, come all! victory day! · {town} never forgets the win! · food and songs at the plaza! · ding ding! victory day! · remember the fight? today we celebrate it! · the bell rings for victory! · drop your tools and come! · {town} won the war! never forget! · cheer for our fighters! · honor the ones who fought! · {town}! {town}! {town}! · out of your houses! it's victory day! · we're still here and they know it! · celebrate the win with us! · for {town} and everyone who fought! · they came, we won! to the plaza! · the day {town} didn't fall! come out! · swords in the air, it's victory day!
+
+#### `bell.festival.remembrance`
+
+The bell ringer shouts it while ringing the bell for remembrance day (quiet, respectful).
+
+- **everyone:** to the plaza, for {who} · we remember {who} · come to the plaza and remember {who} · a moment for {who}, everyone · today is for {who} · remembrance day. for {who} · the bell rings for {who} · come quietly, for {who} · let's take a moment for {who} · never forget {who} · we gather today for {who} · come pay respects to {who} · for {who}, who isn't here anymore · remember {who} with us at the plaza · come, we honor {who} today · a quiet day for {who}. come to the plaza · the town hasn't forgotten {who} · bow your heads for {who} · light a torch for {who} · come stand together, for {who} · this bell is for {who} · {who}, gone but not forgotten · come share a memory of {who} · {who} would want us all together today · remembrance day. {who}, always · for those we lost. for {who} · say their names. {who} · {who}. rest easy · come lay flowers for {who} · in memory of {who}, gather round · {who} fought for us. come · don't forget {who}. plaza, please · a day to think of {who} · {who} is missed. come to the plaza · quiet now. for {who} · put your tools down for {who} · come, all of you. {who} deserves that much
+
+#### `bell.festival.harvest`
+
+The bell ringer shouts it while ringing the bell for the harvest festival.
+
+- **everyone:** harvest festival! everyone to the plaza! · festival time! · harvest's in! come to the plaza! · it's harvest time! everyone out! · harvest festival! bring your wheat! · the crops are in, come celebrate! · harvest day! food at the plaza! · come feast! the harvest is in! · put down the hoes, the festival's starting! · pumpkin pie at the plaza! · bread for everyone! harvest festival! · carrots, potatoes, the works! · a good harvest this year! come celebrate! · everyone to the plaza, the fields did well! · harvest festival's on! come eat! · the farms fed us all year! come say thanks! · ding ding! harvest time! · come one, come all! harvest festival! · fresh bread and pie! · harvest's done! party at the plaza! · the barns are full! everyone come! · festival! festival! the crops are in! · bring a dish, it's the harvest festival! · nobody goes hungry today! · golden wheat and full chests! come celebrate! · it's the harvest feast! everyone out! · come celebrate the harvest with us! · hay bales up, the festival's on! · farmers, come take a bow! · melons, berries, beetroot! · the fields are bare and the plates are full! come! · end of the harvest! to the plaza! · don't miss the pie! · everyone out of the fields, the feast's on! · eat till you're full! · the harvest is in and the town's hungry! come! · come out! the feast's begun!
+
+#### `town.market.open`
+
+The stall keeper announces market day in the morning.
+
+- **everyone:** market day! come see whats for sale · market's open, come on by · its market day, best prices all week · market day today! · market day! stalls are up · come buy stuff, market's open · market day, get it while its fresh · fresh bread, iron, wool. market day! · stalls are open, come take a look · market day! bring your emeralds · everything must go, market day · market's open til sundown · good prices today, market day · market day, step right up · anyone need anything? market's open · market day! trades all morning · market day today, dont miss it · open for business! market day · got new stuff in, market day! · market at the plaza, come on down · market day, haggling welcome · emeralds out, its market day · market day! first come first served · stall's set up, market day is go · market day! cheaper than the villagers · morning! the market is open · market day, something for everyone · come shop, market day is here · the stalls are full today, come see · market day! bargains at every stall · market day, browse all you like · market day! arrows, books, beds, you name it · the market's up and running, come by · market day! ill buy your extra stuff too
+- **hermit:** market. open. buy something
+- **bandit:** market day. dont ask where my stuff came from
+- **PvP sweat:** market day. got swords. best in town
+- **speedrunner:** market open. buy fast
+- **nomad:** market day! stock up before the road · got stuff from far away at the stall today
+- **helper:** market day! ask me if you need help finding something · market day, ill knock a bit off for new folks
+- **hoarder:** market day. selling... some things. not the good things · market's open. dont touch what you dont buy
+- **homebody:** market day! eggs, milk, fresh bread · come by my stall, homemade pie for market day
+- **miner:** market day! fresh iron and coal, just dug · got some redstone and lapis at the stall today
+- **builder:** market day! got stone, wood, glass, all the blocks · market day, good building blocks for cheap
+- **newbie:** market day!! i have my own stall now!! · market's open! um how much is a diamond worth??
+- **casual:** market day lol come buy my junk · ngl good deals today, market's open
+
+#### `bell.market`
+
+The bell ringer shouts it while ringing the bell for market day.
+
+- **everyone:** market day! the stall's open · market's open, come and see! · come buy! · market day! bring your emeralds! · fresh goods at the stalls! · come trade! market day! · the stalls are open, come see! · market day! everyone to the plaza! · got something to sell? market's open! · bread, tools, wool! come see! · best prices in town! · market day! come look around! · stalls are up! come trade! · emeralds out, it's market day! · fresh fish and bread at the market! · market's on at the plaza! · come buy, come sell! · the market is open for business! · trades today! come to the stalls! · ding ding! market day! · new stock at the stalls! · don't miss the deals! · everything must go! · come grab a bargain! · iron, wheat, wool, all at the market! · first come first served! · bring your spare stuff to trade! · come one, come all! market's open! · fill your chests! market day! · trade day at the plaza! · need a new pick? market's open! · deals at the plaza! · market's open till sundown! · cheap torches! · come see what's for sale! · fresh from the farms! · stalls are full today!
+
+#### `town.contest.won`
+
+A townsperson won the town fishing contest by evening. {count} is the number of fish they caught.
+
+- **everyone:** i won the fishing contest!! {count} fish · ez, {count} fish · fishing champ right here · gg everyone · {count} fish! i won! · fishing contest is mine. {count} fish · caught {count}, nobody beat that · winner winner fish dinner. {count} of em · {count} fish and the trophy, lets go · i won! {count} fish in one day · champ of the pond, {count} fish · yes!! won the fishing contest · {count} fish, best rod in town · fishing contest winner right here · i won with {count}! gg all · {count} fish caught, first place · the fish just kept biting. {count}! · won the contest! fish for everyone · {count} fish, new record? maybe · first place! all {count} fish · somebody tell the town, i won the fishing contest · {count} fish and a lot of patience · couldnt believe it, {count} fish · won it! {count} fish, my arms hurt · gg, i got lucky with {count} fish · fishing contest done, i got {count} · best fisher in town. {count} fish · won! not even one boot this time · who brought the most fish? me. {count} · {count} fish, and one of them was a pufferfish · i outfished all of you! {count} · sat by the water all day for {count} fish. worth it · {count} fish! someone else can win next year · {count} fish and a saddle lol. won · the pond was generous today. {count} fish
+- **bandit:** won. {count} fish. dont ask how
+- **hermit:** won. {count}
+- **builder:** {count} fish. built a nice dock for it too
+- **miner:** {count} fish. not mining, but still won
+- **nomad:** {count} fish! good water here
+- **helper:** won with {count}! anyone want some fish? · gg everyone, ill share the {count} fish
+- **hoarder:** {count} fish. all mine. into the chest
+- **homebody:** {count} fish! fish stew for everyone tonight · won the contest! cooking all {count} for dinner
+- **speedrunner:** {count} fish. done. win · optimal casting. {count} fish
+- **PvP sweat:** {count} fish. ggez. get good · nobody even close. {count}. L · 1v1 me in fishing anytime. {count}
+- **newbie:** WAIT i won?? {count} fish!! · omg i won the fishing thing!! {count}!!
+- **casual:** lol i won, {count} fish · ngl {count} fish is kinda insane
+
+#### `town.notice.progress`
+
+A player handed in part of what a notice-board request asked for; {given} handed so far of {count} wanted.
+
+- **everyone:** {given} of {count}, keep em coming · {given} out of {count}, nice · thats {given} of {count} · {given}/{count} so far, thanks · ok {given} of {count}. more pls · got {given}, need {count} · {given} of {count} done · nice, {given} of the {count} · {given} down, {count} total · keep going, {given} of {count} · thanks! {given} of {count} now · {given} of {count}. still need more · counting... {given} of {count} · {given} so far out of {count} · appreciate it, {given} of {count} · good, thats {given}. i need {count} · {given} of {count} in. bring the rest when you can · {given} handed in, {count} needed · ty, {given} of {count} · {given} of my {count}, keep at it · {given} of {count}, getting there · more! {given} of {count} · {given} of {count} on the board now · thats {given}. {count} would finish it · marked down {given} of {count} · {given} of {count}, dont stop now · {given} of {count}, nice one · that brings it to {given} of {count} · {given} done, {count} wanted. thanks · ok, {given} of {count}. bring more when you find em · {given} now, out of {count} · putting it on the tally: {given} of {count} · great, {given} of {count} handed in
+- **bandit:** keep bringing em, {given} of {count}
+- **PvP sweat:** {given} of {count}. thats it? lol jk ty
+- **nomad:** {given} of {count}, good going
+- **miner:** {given} of {count}, nice haul
+- **hermit:** {given}. of {count} · hm. {given} of {count}
+- **speedrunner:** {given}/{count}. faster · {given} of {count}. hurry
+- **helper:** {given} of {count}, youre doing great · thanks so much, thats {given} of {count}
+- **homebody:** {given} of {count}, youre a lifesaver
+- **builder:** {given} of {count}, cant build till its all here
+- **hoarder:** {given} of {count}. i counted twice · {given} in the chest. want {count}
+- **newbie:** {given} of {count}!! thank u!! · omg {given} already? need {count} total!
+- **casual:** {given} of {count} lol nice · ngl {given} of {count} is solid
+
+#### `town.notice.paid`
+
+The notice was filled and the poster pays the promised reward in full.
+
+- **everyone:** thanks! here, as promised · thank you! heres your reward · all done, heres what i promised · you did it! here, all of it · full pay, as promised · thanks a ton, take this · heres your payment, every bit · deal's a deal, here · thats everything i asked for. here you go · perfect, heres the reward · notice filled! here, take it · great work, heres your pay · pleasure doing business. here · you earned this · thanks! paid in full · heres what i owe you · appreciate it, the reward's all yours · just what i needed, here · taking that notice down. heres your pay · all there. take your reward · you came through! here · here, the whole reward · thank you so much, this is yours · done and paid. thanks · good as your word. heres mine · everything i promised, right here · thanks for filling the notice. heres your reward · all paid up. thank you · as promised, take it · you did the job, heres the pay · thats the notice done. reward's yours · here, you more than earned it
+- **bandit:** i pay my debts. here
+- **PvP sweat:** not bad. heres your reward
+- **hermit:** here. thanks · ...paid
+- **nomad:** thanks friend. heres your pay, safe travels
+- **miner:** nice haul. heres the reward
+- **builder:** now i can finish the build. heres your pay
+- **speedrunner:** done. paid. thanks · reward. here. go
+- **hoarder:** ugh, fine. heres all of it. as promised · counted it out exactly. heres your reward · parting with this hurts. but here
+- **homebody:** thank you! heres your pay. stop by for supper sometime
+- **helper:** thank you so much! heres your reward, come back anytime · you're a star. heres everything i promised
+- **newbie:** omg thank u!! heres ur reward!! · yay its all here! take the stuff i promised!!
+- **casual:** ayy thanks, heres ur stuff · ngl you saved me, take this
+
+#### `town.notice.short`
+
+The notice was filled but the poster could not pay all of it (ran out).
+
+- **everyone:** thats all i have, sorry · sorry, this is all i can pay · i ran out, thats all ive got · heres what i have. its not all of it, sorry · ugh, i came up short. sorry · thats everything in my chest, sorry · couldnt cover all of it. heres what i had · sorry, i promised more than i had · best i can do, sorry · not the full reward, sorry. im out · i owe you, this is all i got right now · sorry, im tapped out · thats it, the chests are empty · not everything i promised, sorry · paid what i could. sorry about the rest · i feel bad, thats all i have · here, its less than i said. sorry · turns out i had less than i thought · thats all of it, im broke now · sorry sorry, i ran out · only part of the reward, sorry · wish i had more to give you
+- **builder:** spent most of it on blocks. heres whats left
+- **PvP sweat:** thats all i got. dont @ me
+- **nomad:** sorry, travelling light. thats what i got
+- **miner:** sorry, ran out. gotta go mine more
+- **bandit:** thats all you're getting. sorry, not sorry
+- **hermit:** thats all · ...all i have
+- **speedrunner:** short. sorry. all i got
+- **homebody:** sorry, thats all i had in the house
+- **helper:** im really sorry, thats all i had. ill make it up to you
+- **hoarder:** thats... all i can part with. sorry · my chests are empty now. thats it
+- **newbie:** oh no i dont have enough!! sorry, heres what i got · sorry!! i thought i had more
+- **casual:** oof thats all i got, sorry lol · ngl i ran out, my bad
+
+#### `town.bounty.paid`
+
+A player brought the {what} a town notice asked for; the poster thanks them, paid in full.
+
+- **everyone:** got the {what}, thanks {player}! · the {what}! thank you {player} · you got the {what}, nice work · {what} delivered. thanks! · perfect, thats the {what} i needed · thanks for the {what} {player}, heres your pay · {what} in hand. paid in full · oh nice, the {what}. thank you · you found the {what}! here · {what}, finally. thanks {player} · ty for the {what} · thats exactly the {what} i wanted · {what} received. reward's yours · the {what}, all of it. thanks so much · great, {what}. take your reward {player} · knew i could count on you for the {what} · {what} checked off, thanks · appreciate the {what}, {player} · yes! the {what}. heres your pay · {what} done. thank you {player} · {what} for the town, thanks {player} · you brought the {what}! full reward · nice, {what}. you earned it · the {what} made my day · {what}? perfect. paid · that {what} is going straight to use. thanks · the {what}, right on time. thanks {player} · wow, the {what}. paid in full, thanks · the {what} came through, heres your reward · you got the {what} for me? thanks {player} · {what} brought in. thank you · thats the {what}. good work {player}
+- **bandit:** the {what}. good. heres your cut
+- **PvP sweat:** {what} done, not bad {player}
+- **hermit:** {what}. thanks · ...the {what}. good
+- **nomad:** the {what}, brought all this way? thanks {player}
+- **speedrunner:** {what}. paid. ty · {what} in. thanks. go
+- **miner:** good {what}, thanks {player}
+- **builder:** the {what}! now i can finish my build
+- **homebody:** thank you, the {what} is lovely · thanks for the {what}, come by for supper
+- **helper:** thank you {player}! the {what} helps so much · {what}! youre the best {player}
+- **hoarder:** {what}. counted. thanks · the {what} goes right in my chest. thanks {player}
+- **newbie:** omg the {what}!! thank u {player}!! · yay the {what}! is that all of it? yes! ty
+- **casual:** ayy the {what}, ty {player} · lol you actually got the {what}. ty
+
+#### `town.bounty.short`
+
+The same, but the till could only pay part of it.
+
+- **everyone:** got your {what}, thats all i could pay · got the {what}, but im short on pay. sorry · thanks for the {what}. this is all i have · the {what}! i can only pay part of it though · {what} received, but the till's empty. sorry · sorry, i ran out paying for the {what} · {what} delivered, reward came up short. my bad · thank you for the {what}. wish i had more · i owe you more for the {what}, sorry · the {what}, thanks. thats all i can give · couldnt pay the whole {what} reward. sorry · {what}, nice. pay's short though · for the {what}... this is all i got · heres part of the reward for the {what} · the {what} was worth more than i have. sorry · ugh, the till's dry. thanks for the {what} anyway · {what}, thanks. not all the pay, sorry · best i can do for the {what} · the {what}! and. um. heres whats left in the till · got your {what}. paid what i could · {what} in. the till ran out halfway
+- **PvP sweat:** {what}. pay's short. deal with it
+- **miner:** the {what}, thanks. gotta sell some ore before i can pay the rest
+- **nomad:** the {what}, thanks. sorry the pay's light
+- **bandit:** the {what}. you get what i give
+- **speedrunner:** {what}. short. sorry
+- **hermit:** {what}. thats all
+- **homebody:** sorry, times are lean. thanks for the {what}
+- **helper:** thank you for the {what}. im so sorry its not all of it
+- **hoarder:** {what}... thats all i can spare for it
+- **newbie:** oh no i dont have enough to pay for the {what}!! sorry
+- **casual:** ty for the {what}, im broke tho lol · {what} ty, ngl i ran out of pay
+
+#### `service.busy`
+
+The town's enchanter or smith is already doing a job for someone else when a player throws it something.
+
+- **everyone:** one at a time, im busy · hang on, someone else first · wait your turn · busy with another job, one sec · im working on someone's stuff, wait · not now, finishing a job · one job at a time pls · got my hands full, hold on · someone's ahead of you · wait til im done with this one · still busy, try again soon · in the middle of something · give me a bit, im on another job · theres a job ahead of yours · busy! come back in a minute · hold up, almost done with this one · cant take it right now, busy · im booked, wait a sec · after this one, ok? · shh im concentrating · hang on, im not done with the last one
+- **PvP sweat:** chill, im busy
+- **builder:** busy. dont rush good work
+- **hoarder:** dont throw stuff at me while im busy
+- **helper:** sorry, just finishing someone else's job. ill be right with you
+- **speedrunner:** occupied. later
+- **hermit:** busy. · ...wait
+- **newbie:** wait!! im still doing the other one
+- **casual:** lol hold on, busy · one sec, doing someone else's thing
+
+#### `service.refuse`
+
+A player wanted by the town asks the enchanter or smith for a job; it refuses.
+
+- **everyone:** not doing anything for you · no. not for you · i dont work for criminals · go away, not happening · you're wanted here. no deal · not doing business with you · find someone else · no jobs for wanted folks · forget it · the town says no, so i say no · id get in trouble helping you · with a price on your head? no · take your stuff and leave · i dont serve your sort · no way. the guards would have my head · no service for you · not touching anything of yours · try another town · you think im helping you? no · clear your name first
+- **miner:** go dig your own way out. no
+- **builder:** my work doesnt go to criminals
+- **speedrunner:** no. next
+- **hoarder:** not wasting my stuff on you
+- **PvP sweat:** no. L
+- **helper:** sorry, i cant help someone the town is after
+- **bandit:** even i wouldnt. no
+- **hermit:** no. · ...nope
+- **newbie:** um no, youre the wanted one!!
+- **casual:** lol no · nah, not after what you did
+
+#### `service.start`
+
+The enchanter/smith has been paid and has everything; it starts the job.
+
+- **everyone:** ok, give me a minute · alright, working on it · got it, give me a sec · ok, starting now · on it · one moment · all here, lets do this · paid and ready. working · give me a minute or two · ok hold on, this takes a bit · right, let me get to it · deal. starting · everything's here, starting the job · stand back a sec · ok, watch this · alright, just a moment · good, lets get started · thanks, starting now · ok ok, working · give me a moment to work · starting. dont go far
+- **nomad:** sit tight, wont take long
+- **miner:** alright, starting. done in a sec
+- **PvP sweat:** easy job. watch
+- **hoarder:** all paid up. ok. starting
+- **builder:** give me a minute, good work takes time
+- **helper:** got everything, thanks! wont be long
+- **speedrunner:** starting. quick · on it. fast
+- **hermit:** fine. wait · ...working
+- **newbie:** ok!! starting!! i hope i do it right
+- **casual:** ok bet, one sec · aight, doing it
+
+#### `service.quote.enchant`
+
+A player threw the enchanter an item to enchant; it names the price ({pay}, like "3 emeralds" or "2 emeralds more").
+
+- **everyone:** i can enchant that for {pay} · enchanting that? {pay} · {pay} and its yours, enchanted · ill do it for {pay} · {pay} to enchant it · for {pay} ill put something good on it · cost you {pay} · thatll be {pay} for the enchant · {pay}, then i get to work · want it enchanted? {pay} · price is {pay} · toss me {pay} and its done · enchant for {pay}, deal? · i charge {pay} for that · {pay}, fair price for an enchant · nice item. {pay} to enchant · sure, {pay} · {pay} and some patience · {pay} and youll have it glowing · give me {pay} and ill enchant it · {pay}. no haggling · {pay} for a good enchant · i can do that. {pay} · {pay}, and i need a sec at the table · {pay}. no promises on what it rolls · the table's ready. {pay} · {pay} for some magic on that · enchants arent free. {pay} · hmm, {pay} for that one · {pay}, take it or leave it · if you want it enchanted, {pay} · {pay} and its enchanted, simple · {pay}. pay up and ill start · my price for that is {pay}
+- **nomad:** {pay}. good enchants for the road
+- **bandit:** {pay}. cheap, for me
+- **PvP sweat:** {pay}, and youll be a menace with it
+- **hermit:** {pay}. · ...{pay}
+- **miner:** {pay}. if its a pick, hope you roll fortune
+- **builder:** {pay} and itll look great glowing
+- **helper:** happy to enchant it, {pay} · i can do that for {pay}, fair deal
+- **speedrunner:** {pay}. enchant. fast · {pay}, quick job
+- **hoarder:** {pay}. not one less · {pay}. exact amount
+- **newbie:** ooh i can enchant that! {pay} pls · {pay}? is that ok? ill enchant it!!
+- **casual:** ez, {pay} lol · {pay} and ill make it shiny
+
+#### `service.quote.netherite`
+
+A player threw the smith a diamond tool/armor to upgrade to netherite; it names the price {pay} and says it needs the netherite ingot and the upgrade template too.
+
+- **everyone:** netherite? {pay}, and the ingot and the template · {pay}, plus a netherite ingot and the upgrade template · netherite upgrade: {pay}, an ingot and a template · bring an ingot and a smithing template, and {pay} · ill do it for {pay}. need the ingot and the template too · {pay} and the netherite ingot. oh, and the template · netherite? sure. {pay}, ingot, template · {pay}. cant make netherite out of nothing, need the ingot and template · upgrade costs {pay}. ingot and template are on you · want it netherite? {pay} plus ingot plus template · {pay}, a netherite ingot, and the smithing template · ingot, template, {pay}. then its netherite · {pay}. and ill need the ingot and template, i dont stock those · no ingot and template, no netherite. plus {pay} · {pay} for the work, ingot and template for the upgrade · give me {pay}, one ingot, one template · {pay} and the upgrade stuff: ingot and template · {pay}, then hand over the ingot and the template · template and ingot first, and {pay} · netherite job: {pay}. bring the ingot and template · thatll be {pay}, plus your ingot and template · {pay}. you got the netherite ingot and the template? · sure, {pay}. dont forget the ingot and the template · {pay}, the ingot, and that template from the bastion · {pay} plus ingot and template. diamond to netherite in a sec · {pay}, plus a netherite ingot and the template. then it laughs at lava · {pay}. bring the netherite ingot and the template and its done · need an ingot, a template and {pay} · {pay}, the upgrade template and an ingot. i dont have spares · to make it netherite: {pay}, ingot, smithing template · {pay} is my fee. ingot and template are yours to bring · upgrade? {pay}. got an ingot and a template on you? · {pay}. no template, no ingot, no upgrade
+- **bandit:** {pay}, the ingot, the template. no questions asked
+- **nomad:** {pay}, plus the ingot and template you found on your travels
+- **hermit:** {pay}. ingot. template
+- **PvP sweat:** {pay}, ingot, template. then youre unstoppable
+- **builder:** {pay}. bring the ingot and template, itll look sharp
+- **helper:** happy to! {pay}, and youll need an ingot and the template · {pay}, plus ingot and template. bastions have the template if you need one
+- **hoarder:** {pay}, your ingot, your template. none of mine · {pay}. im not giving up my own ingot or template
+- **speedrunner:** {pay}, ingot, template. go · {pay}+ingot+template. quick
+- **miner:** {pay}. ancient debris is the hard part, bring the ingot and the template
+- **newbie:** netherite!! {pay}, and um the ingot and template thing · {pay}! oh and the netherite ingot and the template pls
+- **casual:** {pay} + ingot + template, ez · ngl {pay}, and i need the ingot n template
+
+#### `service.quote.repair`
+
+A player threw the smith something to repair; it names the price {pay} and asks for the materials to repair it with.
+
+- **everyone:** ill fix it for {pay}, bring the stuff to fix it with · {pay}, and bring what its made of · i can fix that for {pay}. need the materials too · repair's {pay}. bring me some of the same stuff · {pay} plus whatever its made from · {pay}, and ill need iron or diamonds or whatever it is · thatll be {pay}, and the material to patch it · {pay}. got the stuff to fix it with? · fixing it costs {pay}, bring the materials · sure, {pay}. hand me the repair material · {pay} and some of the right material · {pay}, and i need something to patch it with · bring the materials and {pay}, good as new · {pay}. cant fix it with nothing, bring the stuff · {pay} for the work. materials are on you · repair? {pay}, plus the matching material · {pay}. iron for iron, diamond for diamond, you know the deal · {pay} and the stuff to mend it · {pay}, plus the material it needs · thats beat up. {pay}, and bring what i need to fix it · {pay}. you bring the materials, i bring the skill · ill patch it for {pay}. got the materials? · {pay} and its matching material, then its fixed · {pay}, then give me the bits to fix it with · {pay}, and a few of whatever its made of · {pay}, and some of the stuff its made of so i can patch it · repair for {pay}, bring a bit of material · {pay}. leather, iron, whatever it is, bring some · seen worse. {pay}, and the materials · {pay} to fix it. materials too please · my fee is {pay}. bring something to mend it with · ill make it good for {pay}, once i have the materials
+- **homebody:** poor thing. {pay}, and bring the stuff to mend it
+- **bandit:** {pay}, plus materials. no freebies
+- **nomad:** road wore it down? {pay}, and the stuff to fix it
+- **hermit:** {pay}. materials
+- **PvP sweat:** {pay} and materials. took a beating huh
+- **miner:** {pay}. bring some ingots or dias, whatever it needs
+- **builder:** {pay}. bring the right material, i hate a sloppy patch
+- **helper:** happy to fix it! {pay}, and some of the material its made from · {pay}, and bring the materials. ill make it like new
+- **hoarder:** {pay}. and your own materials, not mine · {pay}. bring your own stuff, my chests stay shut
+- **speedrunner:** {pay} + materials. go · {pay}, materials, done
+- **newbie:** i can fix it!! {pay} and the stuff its made of pls · {pay}? and um the materials! iron or whatever
+- **casual:** {pay} lol, and the stuff to fix it · ngl thats wrecked. {pay} + materials
+
+#### `service.failed`
+
+The enchanter/smith could not do the job; it gives everything back.
+
+- **everyone:** sorry, couldnt do it. heres your stuff · couldnt do it, sorry. take your stuff back · didnt work. heres everything · sorry, no luck. all yours again · that didnt go right. heres your things · cant do this one, sorry. take it back · something went wrong. here, all your stuff · no good, sorry. giving it all back · sorry, couldnt manage it. heres your payment too · failed. heres your stuff and your pay · i messed up, sorry. take it all back · not happening, sorry. heres everything back · this one beat me. heres your things · didnt work out. full refund · sorry, i couldnt finish it. all yours · cant be done, sorry. heres all of it · no luck this time. take your stuff · sorry about that. everything back to you · it just wont take. heres your stuff · giving it all back, couldnt do it · tried, couldnt. heres your stuff
+- **nomad:** sorry friend, couldnt do it. heres your things
+- **miner:** no luck. heres your gear back
+- **PvP sweat:** not my fault. heres your stuff
+- **hoarder:** couldnt do it. every item back, counted
+- **builder:** couldnt do it right, so i wont do it at all. heres your stuff
+- **helper:** im so sorry, i couldnt do it. heres all your things back
+- **speedrunner:** failed. refund. sorry
+- **hermit:** couldnt. take it · ...no luck. here
+- **newbie:** oh no it didnt work!! sorry, heres everything
+- **casual:** welp didnt work lol. heres ur stuff · ngl couldnt do it, my bad. take it back
+
+#### `service.done`
+
+The job is done; it hands the item back to the player ({player}).
+
+- **everyone:** here you go {player} · all done {player} · here you go, good as new · done! take it · finished, {player} · there, all yours {player} · one finished job, here · done and done · here {player}, enjoy · all set {player} · heres your item back · ta da, done · done. use it well {player} · here, try it out · job's done {player} · finished! here · there you go · all yours again · done, nice doing business {player} · here it is {player} · that came out nice. here · here, freshly done · {player}, its ready · take care of it {player} · done! come back anytime · thats it. here {player} · here, its finished {player} · done, hope you like it · theres your stuff {player}, finished · all good, take it {player} · and done. here · finished job for {player}, here
+- **homebody:** here you go {player}, all fixed up
+- **bandit:** done. a pleasure, {player}
+- **nomad:** here {player}, safe travels
+- **miner:** done {player}. go get those dias
+- **PvP sweat:** done. go wreck someone {player}
+- **hermit:** done. · ...here
+- **speedrunner:** done. here. go
+- **hoarder:** here. done. dont lose it {player}
+- **helper:** all done {player}! come back if you need anything else · here you go {player}, hope it serves you well
+- **builder:** done. look at that, perfect · here {player}, best work ive done all week
+- **newbie:** i did it!! here {player}!! · done!! is it good? here!
+- **casual:** ez, here u go {player} · done lol, here
+
+#### `service.timeout`
+
+The player never paid in time; it gives their things back.
+
+- **everyone:** never mind then. heres your stuff back · never mind. take your stuff · too slow, heres your stuff back · guess youre not paying. take it back · forget it, heres your things · took too long, here · ok, changed your mind? heres your stuff · no pay, no job. take it back · waited long enough. here · alright, forget it. all yours · giving it back, you didnt pay · i dont have all day. heres your stuff · deal's off. take your things · no payment? fine. heres your stuff · times up, have it back · ok forget the job. here · you wandered off, so heres your stuff back · next time bring the pay. here · cancelled. take it · im not holding this forever. here
+- **bandit:** lucky im honest today. heres your stuff
+- **nomad:** no matter, heres your things. safe travels
+- **PvP sweat:** wasting my time. take it
+- **builder:** not starting without pay. heres your item
+- **hoarder:** dont leave your junk with me. take it
+- **helper:** no worries if you changed your mind, heres your stuff
+- **speedrunner:** timeout. bye
+- **hermit:** whatever. here · ...take it
+- **newbie:** um you didnt pay so... heres ur stuff back!
+- **casual:** lol ok guess not. heres ur stuff · nvm then, take it back
+
+#### `bell.war.declare`
+
+The bell ringer of a town that just declared war on {them} (another town) rallies its people.
+
+- **everyone:** we're at war with {them}! · war! {them} has it coming · war on {them}! to arms! · {them} crossed us. it's war! · it's war! {them} won't get away with it! · we declare war on {them}! · everyone listen! war with {them}! · {them} is our enemy now! to the plaza! · sharpen your swords, it's war with {them}! · war! we march on {them} soon! · {them} had their chance! · it's official! war on {them}! · the town's going to war with {them}! · war against {them}! gather up! · no more peace with {them}! · {them} pushed too far! to arms! · we're done talking to {them}! · WAR! WAR WITH {them}! · everyone to the plaza! we fight {them}! · {them} will pay! · gear up! we're fighting {them}! · war is here! {them} is the enemy! · we're taking the fight to {them}! · {them} wanted this. now they get it! · {them} is going down! · it's decided: war with {them}! · forge your swords! war on {them}! · {them}! we're coming for you! · arm up, all of you! it's {them} we fight! · ring it loud! war with {them}! · {them} picked the wrong town! · armor on! {them} is next! · hear the bell! war on {them}! · nobody trusts {them} anymore! war! · fighters to the plaza! {them} is the target!
+
+#### `bell.war.declared`
+
+The bell ringer of a town that {them} just declared war on raises the alarm.
+
+- **everyone:** {them} declared war on us! · war! {them} wants a fight · {them} is coming for us! to arms! · {them} is marching on us! arm up! · {them} started a war! everyone to the plaza! · {them} has turned on us! to arms! · war is coming! {them} chose it! · {them} wants to fight? fine! · everyone listen! {them} is at war with us! · {them} picked a fight with the wrong town! · get ready! {them} is coming! · {them} broke the peace! arm up! · sharpen everything! {them} started it! · we didn't want this, but {them} did! to arms! · {them} thinks we're easy! show them! · WAR! {them} is after us! · {them} sent word: it's war! · to the walls! {them} means to fight! · {them} is the enemy now! gear up! · protect your homes! {them} is on the way! · {them} chose war. we'll give it to them! · {them} wants our town? come and take it! · {them} is out for blood! to arms! · doors shut, swords out! it's {them}! · {them} threw down the challenge! answer it! · we're being threatened by {them}! everyone up! · it's {them}! they want war! to the plaza! · {them} betrayed us! arm yourselves! · lock up the chests and grab a sword! {them} wants us! · {them} won't take this town! · the peace with {them} is over! fight! · {them} has called us out! armor on! · keep watch! {them} could hit any day! · we stand together against {them}! · {them} came for a war! give them one! · {them} wants a war with us! arm up, everyone! · shields up! {them} is our enemy now!
+
+#### `bell.raid.march`
+
+The bell ringer calls the town's fighters to gather for a raid they're marching on {enemy} (another town).
+
+- **everyone:** to arms! we march on {enemy} · everyone who can fight, to the plaza! · gather up, we're going to {enemy} · fighters, to the plaza! we march! · grab your swords, we're raiding {enemy}! · to arms! the raid leaves soon! · {enemy} is next! gather up! · raid time! to the plaza! · armor on! we're hitting {enemy} today! · the warband forms at the plaza! · we head for {enemy}! fall in! · to the plaza, bring food and a shield! · it's time! the raid on {enemy} begins! · swords and shields to the plaza! · all fighters gather! we leave soon! · get your gear, we're marching! · {enemy}'s chests are calling! to the plaza! · raid on {enemy}! meet at the plaza! · the march starts now! · fighters wanted at the plaza! · everyone with armor, to the plaza! · warriors of the town, gather! · line up at the plaza! we're off to {enemy}! · time to march! bring your best sword! · to the plaza! we take the fight to {enemy}! · come on, fighters! we leave together! · pack your food, we march at once! · ready up! the warband's leaving! · who's fighting? plaza, now! · bows, swords, axes! to the plaza! · {enemy} won't see us coming! fighters, gather! · strong arms needed at the plaza! · the war party gathers! to the plaza! · {enemy} waits! fighters, on the plaza! · bring your bows! the raid's forming!
+
+#### `bell.wanted`
+
+Alarm bell: a wanted player ({player}) came back to town.
+
+- **everyone:** it's {player}! they're back! · {player}'s here! guards! · everyone inside! {player}'s back! · {player} is back! watch out! · it's the wanted one! {player}! · {player} showed their face again! · guards, {player}'s at the gates! · lock your doors! {player} is back! · {player}'s back in town! careful! · the wanted player is here! · everyone watch out, {player} returned! · bounty's walking in! it's {player}! · {player}! you're not welcome here! · look who came back! {player}! · {player} is wanted! somebody stop them! · keep away from {player}! · WANTED! {player}'s in town! · {player} has some nerve coming back! · hide your stuff, {player}'s here! · eyes open! · it's {player} again! ring the bell! · {player} came back! get the guards! · that's {player}! the one on the posters! · watch the chests! {player}'s returned! · don't let {player} near the plaza! · {player} is back. stay indoors! · the outlaw's back! {player}! · {player} spotted! everyone careful! · trouble's back! it's {player}! · {player}! you've got a price on your head! · we know you, {player}! get out! · it's that {player} again! · intruder! · back again, {player}? not here! · {player} is here! get the guards! · guards! the wanted one is back! · {player} dared to come back! · heads up! {player} walked back in!
+
+#### `bell.killing`
+
+Alarm bell: {player} killed a townsperson ({victim}).
+
+- **everyone:** MURDER! {player} killed {victim}! · guards! {player}'s killed {victim}! · help! murder! it's {player}! · {player} just killed {victim}! · {victim} is dead! {player} did it! · murderer! {player} got {victim}! · somebody stop {player}! they killed {victim}! · {victim}'s down! it was {player}! · HELP! {player} murdered {victim}! · {player} killed one of ours! · they killed {victim}! get {player}! · no! {victim}! {player} did this! · {player} is a murderer! guards! · {victim} didn't do anything! get {player}! · {player} struck down {victim}! · murder in the town! it was {player}! · catch {player}! {victim}'s dead! · {victim} is gone! {player}, you'll pay! · don't let {player} go! · guards to the plaza! murder! · {player} took {victim} from us! · it was {player}! i saw them kill {victim}! · a murderer's loose! · MURDER! somebody grab {player}! · poor {victim}! · {victim}'s dead and {player} did it! · a killer's in town! it's {player}! · we lost {victim}! · {player}! why did you kill {victim}?! · after {player}! · {player} killed {victim} in cold blood! · the bell's for {victim}! get {player}! · somebody saw it! {player} killed {victim}! · {victim} was one of us! get {player}! · blood in the plaza! {player} did it! · {player} has to answer for {victim}! · nobody kills {victim} and walks away! stop {player}! · guards! {player}! they got {victim}!
+
+#### `bell.massacre`
+
+Alarm bell: {player} is killing many townspeople.
+
+- **everyone:** MASSACRE! {player} is killing everyone! · everyone inside! {player}'s killing us! · to arms! stop {player}! · {player} is killing everyone! run! · it's a massacre! · RUN! {player} is slaughtering us! · everyone hide! {player}'s gone mad! · they're cutting us down! it's {player}! · stop {player} before we're all gone! · {player} won't stop killing! help! · people are dropping! it's {player}! · we're being massacred! to arms! · every fighter, now! {player} is killing us all! · {player} is a monster! fight back! · lock yourselves in! {player} is on a rampage! · get the guards, all of them! · RUN! RUN! it's {player}! · we can't let {player} finish us! fight! · {player} is cutting through the town! · doors shut! {player}'s killing anyone they see! · no one's safe! · everyone who can fight, stop {player}! · massacre at the plaza! · we need everyone! · {player} has gone crazy! help! · they're killing our people! get {player}! · the whole town against {player}! now! · stay indoors! {player} won't stop! · fight or hide! {player} is here! · call everyone! {player} is wiping us out! · {player} is murdering the whole town! · together or we're done! · {player} has a sword and won't stop! help! · hide in the houses! {player} is everywhere! · someone stop {player}, please! · grab anything sharp! {player} is killing us! · {player} is going house to house!
+
+#### `bell.murder_leader`
+
+Alarm bell: {player} murdered the town's leader {victim} ({victim_caps} is the name in capitals, for shouting).
+
+- **everyone:** THEY KILLED {victim_caps}! get {player}! · {player} murdered {victim}! to arms! · {victim}'s dead! don't let {player} get away! · {victim_caps} IS DEAD! · our leader's been killed! get {player}! · {player} killed {victim}! our leader! · NO! {victim_caps}! get {player}! · {player} murdered our leader! to arms! · the leader's dead! it was {player}! · {victim} is gone! {player} did it! · nobody rests till {player} pays! · {victim_caps}!! who did this? {player}! · they took {victim} from us! get {player}! · {player} struck down our leader! · our leader {victim} is dead! seize {player}! · {victim_caps}! {player} WILL PAY! · {player} killed the leader! the town is in danger! · everyone! {victim} has been murdered! · who leads us now? {player} killed {victim}! · they got {victim_caps}! after {player}! · {player}!! you killed {victim}! you won't leave! · {victim} led us and {player} cut them down! · avenge {victim}! get {player}! · the leader is down! · no one lets {player} out of this town! · close the roads! {player} can't escape! · for {victim}! get {player}! · {victim_caps}! no! · our leader is murdered! everyone fight! · {victim} is dead! {player} did this! after them! · {player} killed {victim} right in the plaza! · the town has lost {victim}! catch {player}! · {player}! you'll answer for {victim}! · the leader! they killed the leader! · ring it louder! {victim} is dead! · {player} murdered {victim}! don't let them reach the road! · {victim_caps}! somebody stop {player}!
+
+#### `bell.raiders`
+
+Alarm bell: pillager raiders are attacking the town.
+
+- **everyone:** RAIDERS! to arms! · pillagers! everyone inside! · raid! they're coming for the plaza! · pillagers at the gate! · RAID! RAID! · raiders! get inside! · the pillagers are here! · ravager! everyone inside! · watch out for the evokers! · crossbows! take cover! · illagers! fight! · raid incoming! grab your swords! · pillagers in the streets! · to the walls! raiders! · they brought a ravager! RUN! · the raid is here! defend the town! · RAIDERS AT THE PLAZA! · pillager banner spotted! to arms! · doors shut! pillagers! · vindicators! they've got axes! · the raid's started! · a raid! protect the townsfolk! · illagers everywhere! · raiders! hold the plaza! · here they come! pillagers! · pillagers! protect the farms! · you hear that horn? RAID! · witches with them too! careful! · the illagers are back! to arms! · another raid! everyone up! · defend the houses! raiders! · the bell's for a raid! fight! · stay in your homes! · pillagers! grab a bow! · watch for vexes, they fly through walls! · evokers! take them out first!
 
 ## Where they live
 

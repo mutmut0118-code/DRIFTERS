@@ -149,14 +149,14 @@ final class TownReputation {
 
 		greeted.put(key, now);
 		String name = player.getGameProfile().getName();
-		List<String> lines = switch (standing) {
-			case WELCOME -> List.of("hey " + name + "! welcome back", "oh hey " + name, name + "!! good to see you", "look who it is. hi " + name);
-			case WARY -> List.of("keep an eye on that one", "hm. " + name + " again", "...hi", "we're watching you " + name);
-			case UNWELCOME -> List.of("you again? we dont want trouble", name + ". just keep walking", "nobody wants you here " + name);
-			case WANTED -> List.of("its " + name + "! guards!", "GUARDS! its " + name, "you've got some nerve showing up here");
-			default -> List.of("hey");
+		String line = switch (standing) {
+			case WELCOME -> CivLines.pick(speaker, "town.greet.welcome", "hey " + name + "! welcome back", "player", name);
+			case WARY -> CivLines.pick(speaker, "town.greet.wary", "hm. " + name + " again", "player", name);
+			case UNWELCOME -> CivLines.pick(speaker, "town.greet.unwelcome", "you again? we dont want trouble", "player", name);
+			case WANTED -> CivLines.pick(speaker, "town.greet.wanted", "its " + name + "! guards!", "player", name);
+			default -> "hey";
 		};
-		com.dinglebob.drifter.social.ChatLines.speak(speaker, lines.get(speaker.getRandom().nextInt(lines.size())));
+		com.dinglebob.drifter.social.ChatLines.speak(speaker, line);
 	}
 
 	/** The word about each player it has an opinion of, passed on to the towns round it (a fifth of the way). */

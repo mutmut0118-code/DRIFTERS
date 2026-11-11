@@ -3,7 +3,19 @@
 		{
 			"id": "view_from_the_top", "category": "exploration", "action": "high_point", "params": {"radius": 40, "rise": 8}, "when": "day",
 			"archetypes": {"nomad": 2.0, "builder": 1.5, "hermit": 1.5, "miner": 0.6}, "traits": {"curiosity": 0.5},
-			"duration": 200, "cooldown": 48000, "chat": ["nice view", "woah", "you can see so far from here", "the view up here tho", "worth the climb", "is that a village over there", "peak", "ngl this view is crazy"],
+			"duration": 200, "cooldown": 48000, "chat": ["nice view", "woah", "you can see so far from here", "the view up here tho", "worth the climb", "is that a village over there", "peak", "ngl this view is crazy",
+					"look at all that", "i can see my house from here", "the sky is so pretty rn", "clouds right there", "hi from up here",
+					"dont look down", "top of the world", "made it to the top", "legs are tired but it was worth it",
+					"spotted a mountain over there, going next", "i think i see an ocean", "thats a big forest",
+					"is that smoke? oh its a campfire", "cool biome over there", "the trees look tiny from here", "this is my thinking spot",
+					"gonna sit here a sec", "screenshot moment", "whoa the river goes on forever", "i see snow over that way",
+					"found a good spot for a base, right there", "view 10/10", "dont mind me, just looking", "how high am i even",
+					"the world is huge", "breathtaking ngl", "that cliff over there looks sick", "king of the hill",
+					"everything looks so calm from up here", "peaceful", "this is why i play", "i spy a pillager outpost. nope",
+					"desert, jungle and ocean all at once", "clear day, can see for days", "the mountains go on and on",
+					"wish i had a map right now", "marking this spot", "would put a beacon up here", "i could stay up here all day",
+					"oh wow theres a lake", "wish i had a water bucket to jump down lol", "one more step and im in the clouds",
+					"sunlight hits different up here", "so much world, so little time"],
 			"thought": "climbing up for the view"
 		},
 		{

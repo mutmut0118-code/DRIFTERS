@@ -8,7 +8,17 @@
 					{"do": "walk_to", "target": "flower", "near": 1.5},
 					{"do": "crouch", "ticks": 15},
 					{"do": "look_at", "target": "flower", "ticks": 50},
-					{"do": "say", "lines": ["mm, nice", "smells nice", "flowers :)", "pretty", "cute flower"], "chance": 0.2}
+					{"do": "say", "lines": ["mm, nice", "smells nice", "flowers :)", "pretty", "cute flower",
+							"smells like spring", "ahh", "*sniff*", "mmm sweet", "stop and smell the flowers they said", "this one smells the best",
+							"nature's air freshener", "smells like a meadow", "hm, smells like honey", "a bee was here first lol",
+							"smells better than the mine", "if only i could carry the smell home", "might pick this one for the house",
+							"nope, leaving it. too pretty", "flower break", "love a good poppy", "dandelions dont even smell lol",
+							"bees know what's up", "smells like a flower forest", "my nose says yes", "lovely", "smells like home", "fresh",
+							"ok that's nice", "best part of the day ngl", "little guy", "sniff sniff", "smells way better than zombies",
+							"this is the good stuff", "imagine making dye out of you. couldnt", "flower power", "the world needs more of these",
+							"smells sunny somehow", "allium? is that you", "good flower", "i see why the bees like it", "nice break from the grind",
+							"10/10 would smell again", "so peaceful out here", "smells like a field after rain", "careful not to step on it",
+							"you're doing great, flower"], "chance": 0.2}
 				]
 			},
 			"archetypes": {"homebody": 1.5, "newbie": 1.3, "speedrunner": 0.3}, "traits": {"patience": 0.4}, "cooldown": 12000, "offscreen": "show",
@@ -36,7 +46,16 @@
 					{"do": "walk_to", "target": "dog", "near": 1.5},
 					{"do": "crouch", "ticks": 30},
 					{"do": "look_at", "target": "dog", "ticks": 50, "hops": true},
-					{"do": "say", "lines": ["good dog", "who's a good boy", "good boy", "doggo!!", "pets the dog", "best boy"], "chance": 0.3}
+					{"do": "say", "lines": ["good dog", "who's a good boy", "good boy", "doggo!!", "pets the dog", "best boy",
+							"hi puppy", "aww", "who's a good pup", "you're the best, you know that?", "hey buddy", "good doggy", "such a good girl",
+							"pat pat", "ear scritches", "aww look at the tail go", "you want a bone? i dont have one sorry",
+							"head pats for the good boy", "hi friend", "dog!!", "cutest wolf ever", "awww hi", "good pupper", "the floof",
+							"i would die for this dog", "keep the skeletons away for me ok", "nice collar", "who's guarding the house today?",
+							"wolves are the best mob dont @ me", "puppy!!", "good job sitting", "fluffy", "hey little guy", "such a good doggo",
+							"aw he likes it", "pets pets pets", "the best boy in the whole overworld", "hey pal", "awww puppy eyes",
+							"you get all the pats", "doggo armor would look great on you", "my best friend", "who's the goodest", "hi buddy, hi",
+							"too cute", "aww he tilted his head", "you're a very good wolf", "*pets*", "heyyy pupper", "good dog, good dog",
+							"do you have a name? you should", "dont chase sheep ok", "tail wag detected", "absolute unit of a good boy"], "chance": 0.3}
 				]
 			},
 			"traits": {"sociability": 0.4}, "cooldown": 12000, "offscreen": "show",
@@ -65,7 +84,15 @@
 				"steps": [
 					{"do": "walk_to", "target": "water", "near": 1.5},
 					{"do": "look_at", "at": "down", "ticks": 100},
-					{"do": "say", "lines": ["looking good", "huh.", "is that me", "ngl i look good", "need a haircut", "the drip"], "chance": 0.25}
+					{"do": "say", "lines": ["looking good", "huh.", "is that me", "ngl i look good", "need a haircut", "the drip",
+							"hey handsome", "lookin fresh", "the hair is a mess", "is my skin always this blocky", "who is this cool guy", "oh hi me",
+							"hm. tired eyes", "need some armor ngl", "that's a face", "fit check", "not bad not bad", "squid wont stop staring",
+							"the water's too wavy for this", "ok ok i see you", "rough day, huh", "dirt on my face again",
+							"i look like i've been mining for days", "should probably wash up", "eh, could be worse", "dang i look cool",
+							"the face of a legend", "hi reflection", "do i always look this square", "looking a bit pale", "new skin who dis",
+							"that guy looks hungry", "lol what is that face", "smile", "looking sharp today", "hm. needs a helmet", "still got it",
+							"not my best angle", "fish in my face lol", "ok vanity break over", "you look tired buddy", "drip check passed",
+							"i'd trade with me", "so this is what the zombies see", "pixel perfect", "wow ok", "the water doesnt lie"], "chance": 0.25}
 				]
 			},
 			"traits": {"patience": 0.3}, "cooldown": 24000, "offscreen": "show",
@@ -106,7 +133,16 @@
 					{"do": "walk_to", "target": "door", "near": 1.5},
 					{"do": "look_at", "target": "door", "ticks": 10},
 					{"do": "swing", "times": 3},
-					{"do": "say", "lines": ["knock knock", "anyone home?", "hellooo?", "anyone in?", "room service", "open up"], "chance": 0.4},
+					{"do": "say", "lines": ["knock knock", "anyone home?", "hellooo?", "anyone in?", "room service", "open up",
+							"excuse me?", "anybody?", "knock knock, who's home", "yo, you in there?", "just saying hi", "anyone awake?",
+							"hey neighbor", "it's me, open up", "visitor!", "you home?", "delivery! jk", "can i come in?", "helloooo in there",
+							"hey, it's just me", "door's shut. anyone?", "not a zombie i swear", "hi?", "ding dong", "got a sec?",
+							"is this a bad time?", "anyone want company?", "just checking in", "yoo-hoo", "nobody? ok", "i hear a villager in there",
+							"hmm hello?", "friendly visit", "hrm, anyone around", "open the door pls", "you got any bread in there?",
+							"paying a visit", "knock knock knock", "hey, you alive in there?", "i come in peace", "anyone up for a chat?", "*knocks*",
+							"are you there?", "neighbor check", "hi, it's your friendly neighbor", "hm, quiet in there",
+							"dont make me break the door lol", "hmmm nobody's answering", "whose house is this anyway",
+							"home sweet... someone's home?", "rent's due lol"], "chance": 0.4},
 					{"do": "wait", "ticks": 60},
 					{"do": "look_around"}
 				]
@@ -167,7 +203,11 @@
 			"id": "hum_to_itself", "category": "micro", "action": "steps",
 			"params": {
 				"steps": [
-					{"do": "say", "lines": ["hm hm hmm", "la la la", "dum de dum", "doo doo doo", "mm mm mmm", "la di da", "hmm hm hmm hm"]},
+					{"do": "say", "lines": ["hm hm hmm", "la la la", "dum de dum", "doo doo doo", "mm mm mmm", "la di da", "hmm hm hmm hm",
+							"hmm hmm", "da da da", "doo be doo", "la la", "dum dum dum", "do do do doo", "do re mi", "ba da ba ba", "pa pa pa paa",
+							"na na na", "ta da da dum", "dee dee dum", "bum ba dum", "tra la la", "doo dee doo", "hmmhmm", "la da dee",
+							"dum di dum di dum", "ooh ooh ooh", "boop be doop", "da dum", "bop bop", "la la la la la", "dum dee dee dum", "*hums*",
+							"*whistles*", "doo doo da doo", "dee da"]},
 					{"do": "look_around"},
 					{"do": "jump", "times": 1, "chance": 0.5}
 				]
@@ -181,7 +221,17 @@
 				"find": {"friend": {"type": "friend", "radius": 20}},
 				"steps": [
 					{"do": "walk_to", "target": "friend", "near": 2},
-					{"do": "say", "to": "friend", "lines": ["look at that", "nice sunset, huh", "pretty sky tonight", "golden hour o/", "we should do this more", "nice view with you here"], "chance": 0.5},
+					{"do": "say", "to": "friend", "lines": ["look at that", "nice sunset, huh", "pretty sky tonight", "golden hour o/", "we should do this more", "nice view with you here",
+							"wow", "look at those colors", "sky's on fire", "best part of the day", "never gets old", "sun's going down",
+							"pretty, right?", "glad you're here for this", "orange and pink, nice", "check out the sky", "watch the sun go",
+							"this is my favorite time", "day's almost done", "beautiful evening", "soak it in", "mobs soon, but first this",
+							"five more minutes then bed", "worth stopping for", "the clouds look so cool rn", "sun's melting into the hills",
+							"good day today", "glad we made it to another sunset", "sit with me a sec", "ok this is nice", "another day survived",
+							"almost night, stay close", "look how big the sun is", "the sky's purple now", "makes the grind worth it",
+							"dont talk, just watch", "wish i could screenshot this", "just us and the sunset", "chill moment", "gg today",
+							"the sun says gn", "golden", "everything's orange", "what a view", "this is why i live here", "peaceful, huh",
+							"lets watch it go down", "wanna stay and watch?", "moon's coming up soon", "bye sun o/", "ahh. sunset",
+							"the mountains look so good from here"], "chance": 0.5},
 					{"do": "look_at", "at": "sun", "ticks": 240}
 				]
 			},
@@ -194,7 +244,16 @@
 				"steps": [
 					{"do": "hold", "item": "minecraft:diamond"},
 					{"do": "look_at", "at": "down", "ticks": 60},
-					{"do": "say", "lines": ["shiny", "beautiful", "dias :)", "look at it sparkle", "one day ill have a full set", "precious"], "chance": 0.3}
+					{"do": "say", "lines": ["shiny", "beautiful", "dias :)", "look at it sparkle", "one day ill have a full set", "precious",
+							"so shiny", "my precious", "look at you", "gorgeous", "the blue is so pretty", "worth every block i mined",
+							"y -59 was worth it", "a whole diamond", "sparkly", "not trading this one", "beauty", "best ore in the game",
+							"one diamond closer", "shiny shiny", "wow", "you're coming home with me", "the dream", "this is what i mine for",
+							"pick, sword, or save it? hmm", "enchanting table material right here", "never getting old", "just look at it",
+							"the glimmer", "a little blue miracle", "pretty rock", "glittery", "i'm keeping you safe", "dias dias dias",
+							"the most beautiful thing ive ever held", "feels heavy in my hand", "nobody's stealing this",
+							"one day a jukebox. one day", "hello gorgeous", "rich vibes", "in awe of this rock", "not going in a hoe, dont worry",
+							"a diamond. a real one", "shine bright", "i love you diamond", "into the chest you go. after i stare more", "flawless",
+							"ooooh", "best find all week", "you and me, diamond"], "chance": 0.3}
 				]
 			},
 			"needs": [{"item": "minecraft:diamond"}],
@@ -222,7 +281,16 @@
 					{"do": "walk_to", "target": "golem", "near": 4},
 					{"do": "look_at", "target": "golem", "ticks": 30},
 					{"do": "crouch", "ticks": 8},
-					{"do": "say", "lines": ["evening, big guy", "keep up the good work", "o7 golem", "stay strong big man", "thanks for the protection", "hey iron man"], "chance": 0.3}
+					{"do": "say", "lines": ["evening, big guy", "keep up the good work", "o7 golem", "stay strong big man", "thanks for the protection", "hey iron man",
+							"hey big guy", "o7", "thanks for keeping us safe", "respect", "you're doing great", "hi golem", "sup tin man",
+							"good work today", "protect the villagers ok", "salute", "big man o7", "dont hit me pls", "we're cool right?",
+							"stay iron", "nice flower you got", "keep smashing zombies", "the real hero of the village", "no rust on you, nice",
+							"how's patrol?", "thank you for your service", "hey buddy", "glad you're on our side", "big guy, big heart", "carry on",
+							"still standing, huh", "need a poppy? jk", "looking strong", "the village is lucky to have you", "nod", "metal friend",
+							"keep watch tonight", "evening patrol going ok?", "i'm one of the good ones, promise", "hey iron guy",
+							"you ever get a day off?", "you smell like iron lol", "good golem", "stand tall", "ill bring you iron if you crack",
+							"keep those pillagers away", "much respect, big guy", "the gentle giant", "quiet as always", "watching out for us o7",
+							"thanks for the save last night"], "chance": 0.3}
 				]
 			},
 			"traits": {"sociability": 0.4}, "cooldown": 24000, "offscreen": "show",

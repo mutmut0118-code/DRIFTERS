@@ -22,7 +22,11 @@
 			},
 			"weight": 0.6,
 			"cooldown": 12000,
-			"chat": ["lets gooo", "yesss", "LETS GOOO", "W", "hype", "we up", "woo!"],
+			"chat": ["lets gooo", "yesss", "LETS GOOO", "W", "hype", "we up", "woo!",
+					"yippee", "AYYY", "lets go lets go", "happy happy", "yay", "im so hyped", "best day ever", "dance break",
+					"cant stop wont stop", "good vibes only", "feeling good", "yeehaw", "whoop whoop", "woohoo!", "WE DID IT", "im so happy rn",
+					"party time", "happy dance", "look at me go", "crouch dance activated", "this calls for a dance", "big W today",
+					"yesss sir", "life is good", "hoorayyy", "cant contain it", "wiggle wiggle", "ez dub", "mood: amazing", "dance with me"],
 			"thought": "doing a little dance"
 		},
 		{
@@ -202,7 +206,13 @@
 				"bored": 1.5
 			},
 			"cooldown": 12000,
-			"chat": ["snowball fight!", "get rekt", "incoming", "SNOWBALL FIGHT", "heads up", "catch", "you started this"],
+			"chat": ["snowball fight!", "get rekt", "incoming", "SNOWBALL FIGHT", "heads up", "catch", "you started this",
+					"take that!", "haha gotcha", "eat snow", "youre going down", "bombs away", "snow war!", "duck!", "think fast", "pew pew",
+					"bullseye", "direct hit", "got you lol", "dont make me throw another", "snowball to the face", "winter war",
+					"im not done yet", "got a full stack, 16 of these lol", "ammo full", "ready or not", "dodge this",
+					"nothing personal, its just snow", "revenge!", "truce? nah", "surprise!", "the snowman made me do it", "payback",
+					"it doesnt even hurt, just knockback lol", "cant hurt you but it sure is funny", "one more!", "fire!", "en garde",
+					"i call this one the frosty special", "come on, throw back", "first to fall in the snow loses"],
 			"thought": "starting a snowball fight"
 		},
 		{
@@ -213,7 +223,16 @@
 					{"do": "walk_to", "target": "friend", "near": 3},
 					{"do": "hold", "item": "minecraft:diamond"},
 					{"do": "look_at", "target": "friend", "ticks": 40, "hops": true},
-					{"do": "say", "to": "friend", "lines": ["look what i found", "dias!!", "check this out", "look look look", "shiny right"], "chance": 0.7},
+					{"do": "say", "to": "friend", "lines": ["look what i found", "dias!!", "check this out", "look look look", "shiny right",
+							"look at this", "guess what i got", "check it out!!", "diamond!!", "see this?", "found a diamond", "look how shiny",
+							"lookie", "bet you're jealous", "found it deep down", "behold", "pretty cool huh", "we're rich lol", "look look",
+							"come look", "got one!", "yo yo yo check this", "real diamond", "isnt it pretty", "y -58 baby", "first one this week",
+							"mined it myself", "ok be honest, cool right", "this one's mine but you can look", "dont tell anyone where i found it",
+							"check the shine on this", "almost got enough for a pick", "look what the caves gave me",
+							"found it next to lava, almost died", "say it. say im cool", "brag time", "you seeing this?", "a diamond. for real",
+							"proud of this one", "hey look", "show and tell", "eyes on this", "had to show someone", "fresh from the mine",
+							"found more, there's a vein", "wanna hold it? no", "what do you think", "ok i'm a little proud", "rate it 1 to 10",
+							"nice right??"], "chance": 0.7},
 					{"do": "look_at", "target": "friend", "ticks": 30}
 				]
 			},
@@ -231,7 +250,11 @@
 					{"do": "look_at", "target": "friend", "ticks": 10},
 					{"do": "swing", "times": 1},
 					{"do": "jump", "times": 1},
-					{"do": "say", "to": "friend", "lines": ["up top!", "high five", "ayy", "o/"], "chance": 0.5}
+					{"do": "say", "to": "friend", "lines": ["up top!", "high five", "ayy", "o/",
+							"hands up!", "yeah!", "nice", "booyah", "woo!", "teamwork", "gimme five", "slap", "we're unstoppable", "yes!",
+							"we did it", "lets go", "best team", "heck yeah", "nailed it", "boom", "too slow lol", "oh yeah", "the dream team",
+							"partners!", "five!", "woohoo", "yay", "smack", "gg", "ayy we're good at this", "on three, up high", "nice one",
+							"duo goals", "missed a little lol", "big W", "up high, down low", "o/ \\o", "hype"], "chance": 0.5}
 				]
 			},
 			"archetypes": {"casual": 1.3, "helper": 1.3, "hermit": 0.2}, "traits": {"sociability": 1.0}, "moods": {"triumphant": 1.0}, "cooldown": 24000,
@@ -249,7 +272,16 @@
 					{"do": "walk_to", "target": "fire", "near": 2},
 					{"do": "crouch", "ticks": 20},
 					{"do": "look_at", "target": "friend", "ticks": 40},
-					{"do": "say", "to": "friend", "lines": ["nice night", "this is nice", "campfire with the homie", "we should do this more"], "chance": 0.4},
+					{"do": "say", "to": "friend", "lines": ["nice night", "this is nice", "campfire with the homie", "we should do this more",
+							"cozy", "warm", "love a good fire", "glad you're here", "quiet night", "this is the life", "nice and warm",
+							"fire's crackling", "pull up a log", "good company", "the stars are out", "wanna roast something?", "safe by the fire",
+							"long day huh", "mobs out there, us in here", "peaceful", "smells like smoke and wood", "good to rest", "we earned this",
+							"dont fall in lol", "what a day", "i like these nights", "the crackle is so nice", "tell me a story",
+							"zombies cant ruin this", "warm hands, warm heart", "glad we found each other", "just sitting is nice sometimes", "chill",
+							"the fire keeps the dark away", "sleep soon?", "stay a while", "ahh", "fire's going good", "best seat in the world",
+							"just us and the fire", "nice to slow down", "i'm not tired yet", "this is my favorite part of the night",
+							"listen to that fire", "you hear the crickets?", "a creeper hissed somewhere lol, not here", "who needs a bed",
+							"night's nicer with you", "keep the fire going"], "chance": 0.4},
 					{"do": "look_at", "target": "fire", "ticks": 160}
 				]
 			},
