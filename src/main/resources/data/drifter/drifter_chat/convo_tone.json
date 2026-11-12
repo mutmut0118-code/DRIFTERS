@@ -1,0 +1,859 @@
+{
+ "_comment": "The mood of a talk with a player (the user, 2026-11-12: \"i want the mood to keep going\"): the same kinds as in convo.json, requests.json and reactions.json with '.cold' (it's wary of them: warning them off its house, doesn't trust them, was insulted or threatened, in a temper) or '.down' (grieving) on the end. A talk's mood is set as it starts and kept; in it, a kind's cold or down lines are said when it has them here, else its usual ones. Also 'im good' / 'not great' as answers to 'you?'.",
+ "answers": {
+  "im_good": [
+   "im good",
+   "im fine",
+   "im ok",
+   "im okay",
+   "im alright",
+   "im chillin",
+   "im chilling",
+   "chillin",
+   "chilling",
+   "just chillin",
+   "just chilling",
+   "im vibing",
+   "vibing",
+   "just vibing",
+   "all good",
+   "all good here",
+   "not bad",
+   "not too bad",
+   "pretty good",
+   "doing good",
+   "doing well",
+   "doing fine",
+   "doing alright",
+   "im great",
+   "im doing good",
+   "im doing great",
+   "good thanks",
+   "fine thanks",
+   "good ty",
+   "cant complain",
+   "same old",
+   "im well",
+   "doing ok",
+   "im doing ok",
+   "good good",
+   "living the dream"
+  ],
+  "im_bad": [
+   "not great",
+   "not good",
+   "im not good",
+   "im not ok",
+   "been better",
+   "ive been better",
+   "pretty bad",
+   "bad day",
+   "having a bad day",
+   "rough day",
+   "not so good",
+   "terrible",
+   "awful",
+   "could be better",
+   "im tired",
+   "im exhausted",
+   "im sad",
+   "im not great"
+  ]
+ },
+ "lines": {
+  "convo.im_good": {
+   "any": [
+    "nice",
+    "good",
+    "good to hear",
+    "glad to hear it",
+    "same here",
+    "love that",
+    "good stuff",
+    "thats the way"
+   ],
+   "casual": [
+    "nice lol",
+    "vibes"
+   ],
+   "newbie": [
+    "yay!!",
+    "me too!!"
+   ],
+   "hermit": [
+    "good.",
+    "mm"
+   ],
+   "pvp_sweat": [
+    "cool",
+    "good. stay sharp"
+   ],
+   "helper": [
+    "glad to hear it!",
+    "good! shout if that changes"
+   ]
+  },
+  "convo.im_bad": {
+   "any": [
+    "oof, what happened",
+    "ah. rough one?",
+    "sorry to hear that",
+    "that bad huh",
+    "hang in there",
+    "it'll pass"
+   ],
+   "casual": [
+    "oof",
+    "rip, what happened"
+   ],
+   "newbie": [
+    "oh no!! why",
+    "aw :("
+   ],
+   "hermit": [
+    "hm. happens",
+    "mm"
+   ],
+   "pvp_sweat": [
+    "unlucky",
+    "shake it off"
+   ],
+   "helper": [
+    "oh no, anything i can do?",
+    "sorry to hear that! want some food?"
+   ]
+  },
+  "convo.im_good.cold": {
+   "any": [
+    "ok",
+    "good for you",
+    "sure",
+    "mhm",
+    "right",
+    "if you say so"
+   ],
+   "hermit": [
+    "ok."
+   ],
+   "pvp_sweat": [
+    "cool. and?"
+   ]
+  },
+  "convo.im_bad.cold": {
+   "any": [
+    "ok",
+    "not my problem",
+    "hm",
+    "happens",
+    "right"
+   ],
+   "hermit": [
+    "ok."
+   ]
+  },
+  "greet_back.cold": {
+   "any": [
+    "oh. its you",
+    "what",
+    "hi.",
+    "...hi",
+    "yeah?",
+    "what do you want",
+    "oh. hi",
+    "you again"
+   ],
+   "hermit": [
+    "what.",
+    "..."
+   ],
+   "newbie": [
+    "oh... hi",
+    "um. hi"
+   ],
+   "pvp_sweat": [
+    "what",
+    "sup."
+   ],
+   "hoarder": [
+    "hi. hands where i can see them"
+   ],
+   "helper": [
+    "oh. hi",
+    "hello."
+   ],
+   "casual": [
+    "oh. hey",
+    "sup i guess"
+   ]
+  },
+  "ask.hru_good.cold": {
+   "any": [
+    "fine.",
+    "im fine",
+    "why do you care",
+    "been better",
+    "fine. why",
+    "alive",
+    "what's it to you",
+    "same as ever",
+    "i was fine till now"
+   ],
+   "hermit": [
+    "fine.",
+    "..."
+   ],
+   "newbie": [
+    "im ok. i guess",
+    "fine..."
+   ],
+   "pvp_sweat": [
+    "fine. what",
+    "none of your business"
+   ],
+   "hoarder": [
+    "fine. dont touch anything"
+   ],
+   "helper": [
+    "im ok.",
+    "fine, thanks."
+   ],
+   "casual": [
+    "eh. fine",
+    "whatever, fine"
+   ]
+  },
+  "ask.hru_good.down": {
+   "any": [
+    "been better",
+    "not great tbh",
+    "rough day",
+    "hanging in there",
+    "im ok. just sad",
+    "not really",
+    "ill be fine",
+    "could be better"
+   ],
+   "hermit": [
+    "no.",
+    "...no"
+   ],
+   "newbie": [
+    "not really :(",
+    "sad today"
+   ],
+   "helper": [
+    "not great, but thank you for asking"
+   ]
+  },
+  "ask.wyd.cold": {
+   "any": [
+    "{doing}. why",
+    "busy. {doing}",
+    "none of your business",
+    "{doing}. alone",
+    "working. what do you want"
+   ],
+   "hermit": [
+    "busy."
+   ],
+   "pvp_sweat": [
+    "{doing}. move"
+   ],
+   "hoarder": [
+    "{doing}. and watching you"
+   ]
+  },
+  "ask.wyd_idle.cold": {
+   "any": [
+    "nothing. why",
+    "minding my own business",
+    "nothing that concerns you",
+    "standing here. is that ok"
+   ],
+   "hermit": [
+    "nothing."
+   ],
+   "hoarder": [
+    "watching my stuff"
+   ]
+  },
+  "ask.name.cold": {
+   "any": [
+    "{name}. why",
+    "{name}.",
+    "why do you want to know",
+    "{name}. dont wear it out"
+   ],
+   "hermit": [
+    "{name}."
+   ]
+  },
+  "ask.compliment.cold": {
+   "any": [
+    "ok",
+    "sure",
+    "what do you want",
+    "flattery wont help",
+    "hm",
+    "right",
+    "...thanks i guess"
+   ],
+   "hermit": [
+    "hm."
+   ],
+   "pvp_sweat": [
+    "ik. and?"
+   ],
+   "hoarder": [
+    "whatever youre after, no"
+   ]
+  },
+  "you_welcome.cold": {
+   "any": [
+    "yeah",
+    "sure",
+    "mhm",
+    "ok"
+   ],
+   "hermit": [
+    "mm."
+   ]
+  },
+  "bye_back.cold": {
+   "any": [
+    "bye",
+    "finally",
+    "ok bye",
+    "good",
+    "later."
+   ],
+   "hermit": [
+    "bye."
+   ],
+   "pvp_sweat": [
+    "cya. dont come back"
+   ]
+  },
+  "convo.unknown.cold": {
+   "any": [
+    "what",
+    "?",
+    "what do you want",
+    "make sense",
+    "what are you on about",
+    "huh. no"
+   ],
+   "hermit": [
+    "what."
+   ],
+   "pvp_sweat": [
+    "what. speak up"
+   ]
+  },
+  "convo.unknown_again.cold": {
+   "any": [
+    "are you done",
+    "i dont have time for this",
+    "ok. whatever",
+    "right. bye then"
+   ],
+   "hermit": [
+    "...enough."
+   ]
+  },
+  "convo.ack.cold": {
+   "any": [
+    "yeah",
+    "mhm",
+    "ok",
+    "right",
+    "so?",
+    "and?"
+   ],
+   "hermit": [
+    "mm."
+   ]
+  },
+  "convo.laugh.cold": {
+   "any": [
+    "whats funny",
+    "glad youre having fun",
+    "ha.",
+    "mhm",
+    "not that funny"
+   ],
+   "hermit": [
+    "..."
+   ],
+   "pvp_sweat": [
+    "what are you laughing at"
+   ]
+  },
+  "convo.nice.cold": {
+   "any": [
+    "ok",
+    "sure",
+    "glad you approve",
+    "mhm",
+    "right",
+    "if you say so"
+   ],
+   "hermit": [
+    "ok."
+   ],
+   "pvp_sweat": [
+    "ik"
+   ]
+  },
+  "convo.wow.cold": {
+   "any": [
+    "yes",
+    "yes really",
+    "thats what i said",
+    "believe it or dont"
+   ],
+   "hermit": [
+    "yes."
+   ]
+  },
+  "convo.agree.cold": {
+   "any": [
+    "sure",
+    "ok",
+    "mhm",
+    "great",
+    "if you say so"
+   ],
+   "hermit": [
+    "mm."
+   ]
+  },
+  "convo.sympathy.cold": {
+   "any": [
+    "dont",
+    "save it",
+    "im fine",
+    "didnt ask",
+    "ok"
+   ],
+   "hermit": [
+    "dont."
+   ]
+  },
+  "convo.pushback.cold": {
+   "any": [
+    "thats all youre getting",
+    "what did you expect",
+    "take it or leave it",
+    "yes. thats it"
+   ],
+   "hermit": [
+    "yes."
+   ]
+  },
+  "convo.met.cold": {
+   "any": [
+    "{player}. ok",
+    "ok, {player}",
+    "noted",
+    "{player}. fine",
+    "right. {player}"
+   ],
+   "hermit": [
+    "ok."
+   ],
+   "hoarder": [
+    "{player}. ill remember that face"
+   ]
+  },
+  "convo.met_hi.cold": {
+   "any": [
+    "hi.",
+    "yeah, hi",
+    "ok"
+   ],
+   "hermit": [
+    "hi."
+   ]
+  },
+  "convo.new_yes.cold": {
+   "any": [
+    "ok. dont cause trouble",
+    "new. right. mind the rules",
+    "welcome i guess",
+    "then learn where you shouldnt be",
+    "ok. keep out of peoples houses"
+   ],
+   "hermit": [
+    "ok."
+   ],
+   "hoarder": [
+    "new. the chests are not public"
+   ],
+   "pvp_sweat": [
+    "new. dont try anything"
+   ]
+  },
+  "convo.new_no.cold": {
+   "any": [
+    "ok",
+    "whatever",
+    "fine",
+    "dont know you"
+   ],
+   "hermit": [
+    "ok."
+   ]
+  },
+  "convo.tips.cold": {
+   "any": [
+    "figure it out",
+    "dont die. thats the tip",
+    "stay out of other peoples stuff",
+    "ask someone else"
+   ],
+   "hermit": [
+    "dont die."
+   ]
+  },
+  "convo.gtg.cold": {
+   "any": [
+    "im done here",
+    "ok. going",
+    "enough talk",
+    "bye",
+    "got things to do"
+   ],
+   "hermit": [
+    "going."
+   ]
+  },
+  "convo.gtg_doing.cold": {
+   "any": [
+    "enough. i need to {doing}",
+    "done talking. got to {doing}",
+    "bye. busy"
+   ],
+   "hermit": [
+    "busy. bye"
+   ]
+  },
+  "convo.why.dunno.cold": {
+   "any": [
+    "because",
+    "why do you care",
+    "i dont have to explain",
+    "just because",
+    "none of your business"
+   ],
+   "hermit": [
+    "because."
+   ]
+  },
+  "convo.why.nothing.cold": {
+   "any": [
+    "why what",
+    "what",
+    "?"
+   ],
+   "hermit": [
+    "what."
+   ]
+  },
+  "convo.talk_to_me.cold": {
+   "any": [
+    "about what",
+    "no",
+    "ive got nothing to say to you",
+    "what is there to say",
+    "why would i"
+   ],
+   "hermit": [
+    "no."
+   ]
+  },
+  "convo.you_there.cold": {
+   "any": [
+    "what",
+    "yes. what",
+    "im here. unfortunately",
+    "what now"
+   ],
+   "hermit": [
+    "what."
+   ]
+  },
+  "convo.wait_up.cold": {
+   "any": [
+    "what",
+    "what now",
+    "make it quick",
+    "fine. what"
+   ],
+   "hermit": [
+    "what."
+   ]
+  },
+  "convo.stay.cold": {
+   "any": [
+    "why should i",
+    "for a minute. thats it",
+    "fine. be quick",
+    "i dont take orders"
+   ],
+   "hermit": [
+    "...fine."
+   ]
+  },
+  "convo.look.cold": {
+   "any": [
+    "ok",
+    "and?",
+    "seen it",
+    "so?",
+    "great"
+   ],
+   "hermit": [
+    "and."
+   ]
+  },
+  "convo.have.yes.cold": {
+   "any": [
+    "maybe. why",
+    "what if i do",
+    "yes. no you cant have it",
+    "why. what do you want with it"
+   ],
+   "hermit": [
+    "yes. no."
+   ]
+  },
+  "convo.have.no.cold": {
+   "any": [
+    "no",
+    "no. and if i did",
+    "nope",
+    "why are you asking"
+   ],
+   "hermit": [
+    "no."
+   ]
+  },
+  "convo.today.nothing.cold": {
+   "any": [
+    "nothing you need to know",
+    "minding my business",
+    "work",
+    "why"
+   ],
+   "hermit": [
+    "work."
+   ]
+  },
+  "convo.mood.fine.cold": {
+   "any": [
+    "nothing. except you",
+    "you tell me",
+    "im fine. leave it",
+    "nothing",
+    "you. standing there"
+   ],
+   "hermit": [
+    "you."
+   ]
+  },
+  "convo.mood.angry.cold": {
+   "any": [
+    "you tell me",
+    "take a guess",
+    "bad day. dont make it worse",
+    "dont"
+   ],
+   "hermit": [
+    "you."
+   ]
+  },
+  "convo.friends.soon.cold": {
+   "any": [
+    "no",
+    "lol no",
+    "not happening",
+    "try being nice first",
+    "after what you did?"
+   ],
+   "hermit": [
+    "no."
+   ]
+  },
+  "convo.news.none.cold": {
+   "any": [
+    "nothing for you",
+    "ask someone else",
+    "no",
+    "why would i tell you"
+   ],
+   "hermit": [
+    "no."
+   ]
+  },
+  "convo.danger.none.cold": {
+   "any": [
+    "it was fine till you showed up",
+    "you tell me",
+    "depends what youre planning",
+    "safe enough"
+   ],
+   "hermit": [
+    "fine."
+   ]
+  },
+  "convo.food.where.cold": {
+   "any": [
+    "not from me",
+    "find your own",
+    "go hunt",
+    "not my problem"
+   ],
+   "hermit": [
+    "hunt."
+   ]
+  },
+  "greet_back.down": {
+   "any": [
+    "hey",
+    "hi",
+    "oh. hey",
+    "hi...",
+    "hey {player}"
+   ],
+   "hermit": [
+    "..."
+   ],
+   "newbie": [
+    "hi :("
+   ],
+   "helper": [
+    "oh, hi"
+   ]
+  },
+  "convo.unknown.down": {
+   "any": [
+    "hm?",
+    "sorry, what",
+    "what",
+    "sorry. miles away"
+   ],
+   "hermit": [
+    "..."
+   ]
+  },
+  "convo.ack.down": {
+   "any": [
+    "yeah",
+    "mhm",
+    "yeah...",
+    "anyway"
+   ],
+   "hermit": [
+    "mm."
+   ]
+  },
+  "convo.laugh.down": {
+   "any": [
+    "heh",
+    "yeah",
+    "mm",
+    "i needed that"
+   ],
+   "hermit": [
+    "heh."
+   ]
+  },
+  "convo.nice.down": {
+   "any": [
+    "thanks",
+    "yeah",
+    "ty",
+    "means a lot"
+   ],
+   "hermit": [
+    "ty."
+   ]
+  },
+  "convo.im_good.down": {
+   "any": [
+    "good",
+    "glad one of us is",
+    "thats good",
+    "good for you. really"
+   ],
+   "hermit": [
+    "good."
+   ]
+  },
+  "convo.im_bad.down": {
+   "any": [
+    "same",
+    "yeah. me too",
+    "know the feeling",
+    "rough all round then"
+   ],
+   "hermit": [
+    "same."
+   ]
+  },
+  "ask.wyd.down": {
+   "any": [
+    "trying to {doing}. keeps my mind off things",
+    "{doing}. just to stay busy",
+    "supposed to {doing}"
+   ],
+   "hermit": [
+    "{doing}."
+   ]
+  },
+  "ask.wyd_idle.down": {
+   "any": [
+    "nothing really",
+    "just thinking",
+    "not much",
+    "standing around"
+   ],
+   "hermit": [
+    "nothing."
+   ]
+  },
+  "convo.today.nothing.down": {
+   "any": [
+    "not much. not a good day",
+    "didnt feel like doing much",
+    "nothing really"
+   ],
+   "hermit": [
+    "nothing."
+   ]
+  },
+  "convo.gtg.down": {
+   "any": [
+    "anyway. see you",
+    "i should go",
+    "ok. later",
+    "thanks for stopping"
+   ],
+   "hermit": [
+    "bye."
+   ]
+  },
+  "convo.talk_to_me.down": {
+   "any": [
+    "not much to say today",
+    "sure. about what",
+    "i can try",
+    "ok. you start"
+   ],
+   "hermit": [
+    "...about what"
+   ]
+  }
+ }
+}

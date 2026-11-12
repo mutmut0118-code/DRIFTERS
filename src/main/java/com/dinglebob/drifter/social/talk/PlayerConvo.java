@@ -57,7 +57,7 @@ public final class PlayerConvo {
 		"hunt_with", "warning", "truce", "offer", "come_in", "sleep_here", "danger_tell", "threat_all", "threat", "wake_up", "jk"};
 	/** The glue: reactions, asking it to explain, steering the talk. */
 	static final String[] GLUE = {"laugh", "nice", "wow", "agree", "doubt", "sympathy", "ack", "pushback", "why", "wdym", "nvm", "talk_to_me",
-		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "everyone"};
+		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
 	private static final Set<String> WEAK = Set.of("who_is", "look");
 	/** Asked while it sleeps or fights, these still get through. */
@@ -83,6 +83,8 @@ public final class PlayerConvo {
 		int unknowns;
 		boolean hold = true;
 		boolean closed;
+		/** The mood of the talk, set as it starts and kept: "" (as it is with anyone), "cold" (wary of them, cross), "down" (grieving). */
+		String tone = "";
 		/** What its opener asked ("new", "pvp", "lost"), till when. */
 		@Nullable
 		String expecting;
@@ -118,6 +120,7 @@ public final class PlayerConvo {
 		if (c == null || !c.drifter.equals(drifter.getUUID()) || now > c.until + 20L * 30) {
 			c = new Convo();
 			c.drifter = drifter.getUUID();
+			c.tone = tone(drifter, player, now);
 			convos.put(player.getUUID(), c);
 		}
 
@@ -134,6 +137,75 @@ public final class PlayerConvo {
 				r.addFamiliarity(0.5);
 			}
 		}
+	}
+
+	/**
+	 * The mood a talk with them starts in, and stays in (the user, 2026-11-12: "i want the mood to keep going": one that
+	 * greets them with "oh. its you" doesn't turn friendly at "you okay?"). Cold: it's wary of them (warning them off its
+	 * place, keeping clear), doesn't trust them, was insulted or threatened by them lately, or is in a temper. Down: it's
+	 * grieving. Else as it is with anyone.
+	 */
+	private static String tone(DrifterEntity drifter, ServerPlayer player, long now) {
+		Mode mode = Mode.toward(drifter, player);
+		Relationship r = drifter.getSocial().get(player.getUUID());
+		Mood mood = drifter.getPersonality().mood().current();
+		boolean insulted = r != null && r.lastInsultAt >= 0 && now - r.lastInsultAt < 24000L && !r.lastInsult.isEmpty();
+		if (mode == Mode.WARNING || mode == Mode.AVOIDING || r != null && r.trust < 0.0 || insulted || lately(drifter, player, "threat", now, 24000L)
+			|| mood == Mood.ANGRY || mood == Mood.FRUSTRATED) {
+			return "cold";
+		}
+
+		return mood == Mood.GRIEVING ? "down" : "";
+	}
+
+	/** The line kind to say for this one, in the mood of the talk it's in: its cold or down lines when it has them. */
+	static String toned(DrifterEntity drifter, String key) {
+		if (convos.isEmpty()) {
+			return key;
+		}
+
+		long now = drifter.level().getGameTime();
+		for (Convo c : convos.values()) {
+			if (c.drifter.equals(drifter.getUUID()) && now < c.until + 20L * 30 && !c.tone.isEmpty()) {
+				return Lines.has(key + "." + c.tone) ? key + "." + c.tone : key;
+			}
+		}
+
+		return key;
+	}
+
+	/** The talk warms up (an apology taken, a joke owned up to): its mood is as with anyone again. */
+	private static void warm(ServerPlayer player) {
+		Convo c = convos.get(player.getUUID());
+		if (c != null && c.tone.equals("cold")) {
+			c.tone = "";
+		}
+	}
+
+	/** In a cold talk with this player. */
+	private static boolean cold(ServerPlayer player) {
+		Convo c = convos.get(player.getUUID());
+		return c != null && c.tone.equals("cold");
+	}
+
+	/**
+	 * Out to hurt them, or running from them: no talk at all ("get lost"). Only wary of them (warning them off its house,
+	 * keeping clear) isn't that: it talks, coldly (the user, 2026-11-12: "awesome" got "get lost" from one that had just
+	 * offered to show them round, for standing by its house).
+	 */
+	static boolean enemy(DrifterEntity drifter, ServerPlayer player) {
+		if (Spar.on(drifter, player)) {
+			return false;
+		}
+
+		Mode mode = Mode.toward(drifter, player);
+		if (mode == Mode.WARNING || mode == Mode.AVOIDING) {
+			Relationship r = drifter.getSocial().get(player.getUUID());
+			return r != null && r.trust < -40.0 || drifter.getTarget() == player
+				|| drifter.getLastHurtByMob() == player && drifter.tickCount - drifter.getLastHurtByMobTimestamp() < 20 * 30;
+		}
+
+		return mode.hostile() || Mode.atOdds(drifter, player);
 	}
 
 	/** It started a talk with them: this line of its opener, which may have asked something. */
@@ -496,7 +568,7 @@ public final class PlayerConvo {
 
 	/** A welcome to someone new, and (where there's a town to show) an offer to show them round. */
 	private static void welcome(DrifterEntity drifter, ServerPlayer player, String key, long now) {
-		boolean tour = !Mode.atOdds(drifter, player) && !com.dinglebob.drifter.api.TalkApi.places(drifter).isEmpty()
+		boolean tour = !Mode.atOdds(drifter, player) && !cold(player) && !com.dinglebob.drifter.api.TalkApi.places(drifter).isEmpty()
 			&& drifter.getPersonality().get(Trait.SOCIABILITY) >= 0.35;
 		say(drifter, player, tour ? key + "_tour" : key, null);
 		if (tour) {
@@ -526,7 +598,7 @@ public final class PlayerConvo {
 		Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
 		String name = Heard.callName(drifter, player);
 		Mode mode = Mode.toward(drifter, player);
-		boolean hostile = (mode.hostile() || mode == Mode.WARNING || Mode.atOdds(drifter, player)) && !Spar.on(drifter, player);
+		boolean hostile = enemy(drifter, player);
 		boolean friend = r.trust >= Mode.FRIENDLY_TRUST;
 		boolean knows = r.trust >= PlayerTalk.KNOWS_THEM;
 		boolean helper = drifter.getPersonality().archetype() == Archetype.HELPER;
@@ -619,6 +691,10 @@ public final class PlayerConvo {
 			case "ack", "middle", "iam" -> {
 				say(drifter, player, mine.equals("ack") ? "convo.ack" : "convo.asked.middle", null);
 				followUp(drifter, c, now, 0.45);
+			}
+			case "im_good", "im_bad" -> {
+				say(drifter, player, "convo." + mine, null);
+				followUp(drifter, c, now, 0.35);
 			}
 			case "everyone" -> say(drifter, player, "greet_back", null);
 			case "why" -> why(drifter, player, r, c, now);
@@ -1121,6 +1197,7 @@ public final class PlayerConvo {
 			r.addFear(-8.0);
 			r.lastInsult = "";
 			say(drifter, player, "convo.jk.ok", null);
+			warm(player);
 		} else {
 			say(drifter, player, "convo.jk.again", null);
 		}
@@ -1145,6 +1222,7 @@ public final class PlayerConvo {
 				r.lastInsult = "";
 				r.grudges.removeIf(grudge -> grudge.event() == SocialEvent.HIT_ONCE);
 				say(drifter, player, "convo.sorry.forgiven", null);
+				warm(player);
 			} else {
 				say(drifter, player, "convo.sorry.again", null);
 			}

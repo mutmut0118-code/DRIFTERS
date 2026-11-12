@@ -83,5 +83,22 @@ drifter hear thank you alice
 wait 4
 drifter hear bye
 wait 4
+# The mood of a talk: after a threat, a new talk with it starts cold and stays cold.
+drifter hear im gonna kill you
+wait 75
+drifter hear hello alice
+wait 4
+drifter hear you okay
+wait 4
+drifter hear im chillin
+wait 4
+drifter hear awesome
+wait 4
+drifter hear wyd
+wait 4
+drifter hear sorry
+wait 4
+drifter hear you okay
+wait 4
 execute as @e[type=drifter:drifter] at @s run drifter brain
 stop

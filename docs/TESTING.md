@@ -3690,3 +3690,11 @@ Quick try without waiting for them: stand by one and run `/drifter hear <anythin
       brings it back.)
 - [ ] **Nothing odd.** A head that's the wrong person, a banner the wrong colour, a link that leads to "Nothing's
       known of this", text off the page: tell me which page.
+## 0.23.46-side.1: a talk keeps its mood (new)
+
+- [ ] **Cold stays cold.** Find one that greets you coldly ("oh. its you"), or stand in the house of one that doesn't
+      know you, or insult one ("youre trash") and talk to it a minute later. Ask "you okay?", "wyd", say "awesome":
+      short, unfriendly answers all the way, never "get lost" unless it's actually after you.
+- [ ] **It can warm up.** Say "sorry" (or "jk" after a threat): if it accepts, the rest of the talk is normal.
+- [ ] **Grieving.** After one of its friends dies, talk to it: quiet, sad answers.
+- [ ] **"you?"** When it asks "good, you?", answer "im chillin" or "not great": it answers that.

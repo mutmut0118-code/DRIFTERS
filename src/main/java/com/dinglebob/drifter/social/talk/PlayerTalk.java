@@ -460,7 +460,7 @@ public final class PlayerTalk {
 		Mode mode = Mode.toward(drifter, player);
 		// (A 1v1 they asked for is a game, not a grudge: it still talks to them.)
 		// (At odds with them in any way, it answers as an enemy would: no "name's Ann" mid-hunt.)
-		boolean hostile = (mode.hostile() || mode == Mode.WARNING || Mode.atOdds(drifter, player)) && !Spar.on(drifter, player);
+		boolean hostile = PlayerConvo.enemy(drifter, player);
 		boolean insultedLately = r.lastInsultAt >= 0 && now - r.lastInsultAt < INSULT_REMEMBERED && !r.lastInsult.isEmpty();
 		Object[] who = {"player", name, "name", drifter.getName().getString()};
 
@@ -909,8 +909,12 @@ public final class PlayerTalk {
 	// ---------------------------------------------------------------------------------------------
 
 	/** Its answer, said once it's "typed" (longer lines later); then what it said it'd do, if anything. */
-	static boolean reply(DrifterEntity drifter, String key, @Nullable Runnable then, Object... vars) {
-		String line = Lines.pick(drifter, key, vars);
+	static boolean reply(DrifterEntity drifter, String said, @Nullable Runnable then, Object... vars) {
+		// (In the mood of the talk: its cold lines for someone it's wary of, when it has them for this.)
+		String toned = PlayerConvo.toned(drifter, said);
+		String first = toned.equals(said) ? null : Lines.pick(drifter, toned, vars);
+		String key = first != null ? toned : said;
+		String line = first != null ? first : Lines.pick(drifter, said, vars);
 		long now = drifter.level().getGameTime();
 		if (line == null) {
 			if (then != null) {
