@@ -960,10 +960,43 @@ final class Diplomacy {
 		BlockPos till = town.till();
 		var level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
 			net.minecraft.resources.ResourceLocation.parse(town.dimension)));
-		if (till == null || level == null || !level.isLoaded(till) || !(level.getBlockEntity(till) instanceof net.minecraft.world.Container chest)) {
+		if (till == null || level == null) {
 			return 0;
 		}
 
+		// Its till not loaded (nobody near): on paper (A10 part 2), out of what it was last seen to hold, never more.
+		if (!level.isLoaded(till)) {
+			return town.spawned ? TownAway.paperTill(town, count) : 0;
+		}
+
+		if (!(level.getBlockEntity(till) instanceof net.minecraft.world.Container chest)) {
+			return 0;
+		}
+
+		// What went in and out of it on paper while it wasn't loaded: done to the chest itself first.
+		if (town.away.tillDelta != 0) {
+			int moved = move(chest, town.away.tillDelta);
+			town.away.tillDelta -= town.away.tillDelta < 0 ? -moved : moved;
+			// (Less in it than it was seen to hold, someone's been at it: what couldn't be taken is let go.)
+			if (town.away.tillDelta < 0) {
+				town.away.tillDelta = 0;
+			}
+		}
+
+		int done = move(chest, count);
+		int holds = 0;
+		for (int i = 0; i < chest.getContainerSize(); i++) {
+			if (chest.getItem(i).is(net.minecraft.world.item.Items.EMERALD)) {
+				holds += chest.getItem(i).getCount();
+			}
+		}
+
+		town.away.tillSeen = holds;
+		return done;
+	}
+
+	/** Emeralds into this chest (count over 0) or out of it (under 0): how many were. */
+	private static int move(net.minecraft.world.Container chest, int count) {
 		int done = 0;
 		if (count < 0) {
 			for (int i = 0; i < chest.getContainerSize() && done < -count; i++) {

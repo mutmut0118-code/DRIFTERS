@@ -1,4 +1,4 @@
-# Stairs home (0.23.43-side.1): a Drifter digs a staircase down, a tunnel on, and a tunnel back under where it started,
+# Stairs home (0.23.44-side.1): a Drifter digs a staircase down, a tunnel on, and a tunnel back under where it started,
 # then is sent back up to the top. It should walk back along its tunnel and up its own stairs, not dig a shaft straight
 # up (the user's town, 2026-11-12). Deep flat world: run/server.properties level-type=minecraft:flat with ~100 stone layers.
 # The "Successfully filled" counts: air, then cobblestone in the area, before the walk home; cobblestone again after it

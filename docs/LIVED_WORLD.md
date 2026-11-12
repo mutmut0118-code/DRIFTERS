@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10), A10 part 1: the world's history never stops (0.23.43); next A10 part 2 |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10), A10 part 1: the world's history never stops (0.23.43), part 2: a town's people live on while you're away (0.23.44); next A10 part 3 |
 | W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Done: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20), W6 + W7 its past and the places nobody's near (0.23.22); the nations on the nearest big land (the Continents mod's spawn island), players starting on the road into a town, a loading screen of up to two minutes building more (0.23.31); LOD mods later |
 | B | Trades and services instead of villager trading | Done: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9), B4 prices, B5 services (enchanting, repairs, netherite), B6 what villagers gave (0.23.27); not yet: B7 |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); the user's notes (0.23.24): guards by size and night rounds, home at night, festival crowds, bells (an alarm bell for raids, killings and massacres, rung again while the trouble lasts, 0.23.30), home whims and cooking, a crook in every city, the Gazette and a crier, the town mine, fuller chests, rebuilding after an explosion; traditions, stables and bees (0.23.27); not yet: cults |
@@ -1370,3 +1370,11 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   own diplomacy and read back. A pace setting (Quiet, Normal, Lively). News travels: a town hears only of its own
   power, its enemies and allies, and near neighbours; nothing is shown on the player's screen. Details in
   docs/PROGRESS.md (0.23.43). Next: part 2 when the user says; then the chronicle revamp and quests.
+- 2026-11-11 (0.23.44): **A10 part 2, a built town's people live on while you're away.** A made town nobody's near
+  has a day on paper every game day: the summary's losses are real deaths by the world's rule (respawn, lives,
+  permanent), its guards first; very rarely its leader is assassinated (out of office in every setting); someone
+  leaves now and then; an empty house draws a newcomer, a stranger who takes its work; votes and risings happen among
+  people who aren't loaded; its till and stores move on paper with real emeralds and food only. Gone for good: a grave
+  at the town's edge (for deaths in front of the player too, from now on). Nothing on screen: the town's people tell
+  you when you walk back in, and a friend's fate reaches the journal then. Details in docs/PROGRESS.md (0.23.44).
+  Next: part 3 (the town itself changes) when the user says; then the chronicle revamp and quests.

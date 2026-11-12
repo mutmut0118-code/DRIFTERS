@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 8;
+	public static final int API_VERSION = 9;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -92,6 +92,61 @@ public final class DrifterApi {
 	@Nullable
 	public static DrifterRecord record(UUID drifter) {
 		return com.dinglebob.drifter.world.DrifterRegistry.record(drifter);
+	}
+
+	// ----- A death while away (API 9) -----
+
+	/** How a death while away ended. */
+	public enum AwayDeath {
+		/** It comes back (the respawn setting, or lives left): at its bed with nothing, one death more, when it's next loaded. */
+		BACK,
+		/** Gone for good (permadeath, or its last life): out of its group now, its record gone, removed when it's next loaded. */
+		GONE,
+		/** No such Drifter alive in the world (never known, dead and on its way back, gone already). */
+		UNKNOWN
+	}
+
+	/**
+	 * This Drifter died, far from everyone, of {@code cause} (a few words: "fighting near Highcrest"): a real death, by the
+	 * world's own rule. Decided now from its record; done to the Drifter itself when it's next loaded (at once, if it's
+	 * loaded). What it carried is lost. No death message, no {@link DrifterEvents#DIED}: the caller knows.
+	 */
+	public static AwayDeath dieAway(net.minecraft.server.MinecraftServer server, UUID drifter, String cause) {
+		return com.dinglebob.drifter.world.AwayDeaths.die(server, drifter, cause);
+	}
+
+	/** Would a death now be one this Drifter comes back from (by the respawn setting and the deaths on its record)? */
+	public static boolean wouldComeBack(UUID drifter) {
+		return com.dinglebob.drifter.world.AwayDeaths.wouldComeBack(drifter);
+	}
+
+	/** Is it gone for good by a death while away, and only not removed yet (not loaded since)? */
+	public static boolean goneAway(UUID drifter) {
+		return com.dinglebob.drifter.world.AwayDeaths.gone(drifter);
+	}
+
+	/**
+	 * Whose deaths while their area is unloaded are decided by the caller ({@link #dieAway}): catch-up rolls no death of
+	 * its own for them.
+	 */
+	public static void awayDeathsDecidedBy(java.util.function.Predicate<DrifterEntity> whose) {
+		com.dinglebob.drifter.world.AwayDeaths.decidedBy(whose);
+	}
+
+	/** A username no Drifter has, as a new Drifter picks its own. */
+	public static String newName(net.minecraft.server.MinecraftServer server) {
+		return com.dinglebob.drifter.identity.Usernames.generate(server.overworld().getRandom(), server);
+	}
+
+	/** As {@link #spawn}, its username this one (from {@link #newName}): its own, not a name given to it. */
+	@Nullable
+	public static DrifterEntity spawnAs(ServerLevel level, net.minecraft.core.BlockPos feet, String username) {
+		DrifterEntity drifter = spawn(level, feet, username);
+		if (drifter != null) {
+			drifter.takeName(username);
+		}
+
+		return drifter;
 	}
 
 	// ----- Reading and changing a Drifter -----

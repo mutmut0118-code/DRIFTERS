@@ -520,6 +520,28 @@ final class Friends {
 	// ----- Changing -----
 
 	/** Over: it's done with them (cooled or ended can't become friends again; trust starts over from Drifter's own). */
+	/** A player learned what became of one of its people in its town (died away for good, or left): gone, and why. */
+	static void learned(UUID player, UUID drifter, String why) {
+		for (Bond b : bonds.values()) {
+			if (b.drifter.equals(drifter) && b.player.equals(player) && b.state != State.GONE) {
+				b.state = State.GONE;
+				b.why = why;
+				dirty();
+			}
+		}
+	}
+
+	/** Do these two know each other past strangers (whatever became of it)? */
+	static boolean known(UUID player, UUID drifter) {
+		for (Bond b : bonds.values()) {
+			if (b.drifter.equals(drifter) && b.player.equals(player) && b.stage.ordinal() >= Stage.ACQUAINTANCE.ordinal()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	static void end(UUID drifter, UUID player, String why) {
 		Bond b = bond(drifter, player);
 		if (b != null && b.state != State.ENDED && b.state != State.GONE && b.stage.ordinal() >= Stage.ACQUAINTANCE.ordinal()) {

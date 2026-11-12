@@ -1,4 +1,4 @@
-# Stairs home, far (0.23.43-side.1): the same with each path search reaching only 32 blocks, so the way back up its
+# Stairs home, far (0.23.44-side.1): the same with each path search reaching only 32 blocks, so the way back up its
 # stairs is out of one search's reach and it must go back along its own trail (look for "going back the way it came").
 # Stairs home: a Drifter digs a staircase down, a tunnel on, and a tunnel back under where it started,
 # then is sent back up to the top. It should walk back along its tunnel and up its own stairs, not dig a shaft straight

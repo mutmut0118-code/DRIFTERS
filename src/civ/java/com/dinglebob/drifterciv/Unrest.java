@@ -285,8 +285,8 @@ final class Unrest {
 		Politics.stand(server, town, group, true);
 		// (Someone has to stand against it: the boldest of the unhappy.)
 		if (town.candidates.size() < 2) {
-			loaded.stream().filter(one -> approval(town, one.getUUID()) <= UNHAPPY).max(Comparator.comparingDouble(Politics::ambition))
-				.ifPresent(one -> town.candidates.add(one.getUUID()));
+			people(town, group).stream().filter(id -> approval(town, id) <= UNHAPPY && !town.candidates.contains(id) && !town.crooks.contains(id))
+				.max(Comparator.comparingDouble(Politics::keen)).ifPresent(town.candidates::add);
 		}
 
 		loaded.stream().filter(one -> approval(town, one.getUUID()) <= UNHAPPY).findFirst()

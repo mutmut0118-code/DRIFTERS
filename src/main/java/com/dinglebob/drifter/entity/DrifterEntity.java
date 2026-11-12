@@ -1568,6 +1568,15 @@ public class DrifterEntity extends PathfinderMob {
 	 * blocks, dimmed through walls, hidden through walls while it sneaks). A name you give it (spawn command, name tag)
 	 * is kept.
 	 */
+	/** Its username is this one, as if it had picked it itself (a newcomer named before it was made). */
+	public void takeName(String username) {
+		this.named = true;
+		this.autoName = username;
+		this.setCustomName(net.minecraft.network.chat.Component.literal(username));
+		this.setCustomNameVisible(true);
+		RealSkins.atOnce(this);
+	}
+
 	public void ensureName() {
 		if (this.named || this.level().isClientSide || this.getServer() == null) {
 			return;

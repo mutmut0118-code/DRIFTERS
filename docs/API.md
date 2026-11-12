@@ -299,6 +299,20 @@ background threads hand back with `onServerThread` meanwhile and `each` every fe
 finished before a world's first tick (the addon's world plan in single player: the game's own loading screen stays up
 over it). The server's own task queue runs nothing before the first tick, so a plain wait there would never end.
 
+## A death while away (API 9)
+
+For something that decides a Drifter's fate while its area isn't loaded (the addon's towns, living their days on
+paper):
+
+| Call | What it does |
+| --- | --- |
+| `DrifterApi.dieAway(server, uuid, cause)` | A real death by the world's own rule, decided now from the Drifter's record: `BACK` (respawn, or lives left: at its bed with nothing, one death more, remembered, when it's next loaded), `GONE` (permadeath or its last life: out of its group now, its record gone, the entity removed when it's next loaded), `UNKNOWN` (not alive in the world). Done at once to a loaded Drifter. What it carried is lost. No death message and no `DrifterEvents.DIED`: the caller knows. |
+| `DrifterApi.wouldComeBack(uuid)` | Whether a death now would be one it comes back from. |
+| `DrifterApi.goneAway(uuid)` | Gone for good by `dieAway`, and only not removed yet. |
+| `DrifterApi.awayDeathsDecidedBy(predicate)` | Catch-up rolls no death of its own for these Drifters (the caller decides them with `dieAway`). |
+| `DrifterApi.newName(server)` | A username no Drifter has, as a new one picks its own. |
+| `DrifterApi.spawnAs(level, feet, username)` | As `spawn`, with that username as its own (not a name given to it). |
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

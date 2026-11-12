@@ -119,23 +119,46 @@ final class Politics {
 
 	/** The leader's laws, by its personality. */
 	static void laws(MinecraftServer server, Town town, DrifterEntity leader) {
+		laws(server, town, leader.getUUID());
+		DrifterApi.think(leader, "laid down the laws of " + town.name + ": " + lawsLong(town));
+	}
+
+	/** One of its people's trait: its own if it's loaded, else as the world's record has it (A10 part 2: a town nobody's near). */
+	static double trait(MinecraftServer server, UUID id, String name) {
+		DrifterEntity loaded = TownFounding.loaded(server, id);
+		if (loaded != null) {
+			return DrifterApi.trait(loaded, name);
+		}
+
+		var record = DrifterApi.record(id);
+		return record == null ? 0.5 : record.traits().getOrDefault(name, 0.5);
+	}
+
+	/** {@link #ambition} of one who may not be loaded. */
+	static double keen(UUID id) {
+		MinecraftServer server = DrifterCivilizations.server();
+		return server == null ? 0.0 : 0.5 * trait(server, id, "sociability") + 0.4 * trait(server, id, "greed") + 0.4 * trait(server, id, "bravery");
+	}
+
+	/** The laws of a leader who may not be loaded. */
+	static void laws(MinecraftServer server, Town town, UUID leader) {
 		town.laws.clear();
 		town.laws.add(NO_STEALING);
 		town.laws.add(NO_KILLING);
-		double greed = DrifterApi.trait(leader, "greed");
+		double greed = trait(server, leader, "greed");
 		town.tax = 0;
 		if (greed >= 0.45) {
 			town.laws.add(TAX);
 			town.tax = 1 + (int)Math.floor((greed - 0.45) * 6.0);
 		}
 
-		if (DrifterApi.trait(leader, "caution") >= 0.55 || DrifterApi.trait(leader, "aggression") >= 0.7) {
+		if (trait(server, leader, "caution") >= 0.55 || trait(server, leader, "aggression") >= 0.7) {
 			town.laws.add(FARMS);
 		}
 
 		town.boardDay = -1;
-		Chronicle.add(server, "town", leader.getName().getString() + "'s laws for " + town.name + ": " + lawsLong(town));
-		DrifterApi.think(leader, "laid down the laws of " + town.name + ": " + lawsLong(town));
+		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		Chronicle.add(server, "town", (group == null ? "Its leader" : name(group, leader)) + "'s laws for " + town.name + ": " + lawsLong(town));
 	}
 
 	/** Its people's ambition: how keen it is to lead (sociable, greedy, bold). */
@@ -154,19 +177,20 @@ final class Politics {
 			town.candidates.add(town.leader);
 		}
 
-		List<DrifterEntity> keen = new ArrayList<>();
+		// (Its people not loaded stand too, by what the world's record has of them: a town nobody's near still votes. One
+		// barred, a leader killed and back, doesn't.)
+		List<UUID> keen = new ArrayList<>();
 		for (UUID id : group.members) {
-			DrifterEntity member = TownFounding.loaded(server, id);
-			if (member != null && !id.equals(town.leader) && !town.crooks.contains(id) && ambition(member) >= AMBITION) {
-				keen.add(member);
+			if (!id.equals(town.leader) && !town.crooks.contains(id) && !id.equals(town.away.barred) && keen(id) >= AMBITION) {
+				keen.add(id);
 			}
 		}
 
-		keen.sort(Comparator.comparingDouble(Politics::ambition).reversed());
-		keen.stream().limit(2).forEach(member -> town.candidates.add(member.getUUID()));
+		keen.sort(Comparator.comparingDouble(Politics::keen).reversed());
+		keen.stream().limit(2).forEach(town.candidates::add);
 		if (town.candidates.isEmpty()) {
-			group.members.stream().filter(id -> !id.equals(town.leader) && !town.crooks.contains(id)).map(id -> TownFounding.loaded(server, id)).filter(java.util.Objects::nonNull)
-				.max(Comparator.comparingDouble(Politics::ambition)).ifPresent(one -> town.candidates.add(one.getUUID()));
+			group.members.stream().filter(id -> !id.equals(town.leader) && !town.crooks.contains(id) && !id.equals(town.away.barred))
+				.max(Comparator.comparingDouble(Politics::keen)).ifPresent(town.candidates::add);
 		}
 
 		if (town.candidates.size() > 1) {
@@ -189,6 +213,7 @@ final class Politics {
 		town.candidates.clear();
 		town.nextElection = day + EVERY;
 		town.revolt = false;
+		town.away.barred = null;
 		if (standing.size() == 1 && !standing.get(0).equals(town.leader)) {
 			// (The leader stepped down; one stood.)
 			UUID one = standing.get(0);
@@ -196,11 +221,7 @@ final class Politics {
 			town.leader = one;
 			town.leaderSince = day;
 			Unrest.newLeader(town, null, one);
-			DrifterEntity leader = TownFounding.loaded(server, one);
-			if (leader != null) {
-				laws(server, town, leader);
-			}
-
+			laws(server, town, one);
 			town.boardDay = -1;
 			return;
 		}
@@ -215,20 +236,24 @@ final class Politics {
 		standing.forEach(id -> votes.put(id, 0));
 		for (UUID id : group.members) {
 			DrifterEntity voter = TownFounding.loaded(server, id);
-			if (voter == null) {
+			// (One not loaded votes too, by what the world's record has of whom it trusts: a town nobody's near.)
+			var record = voter == null ? DrifterApi.record(id) : null;
+			if (voter == null && record == null) {
 				continue;
 			}
 
 			// (Whom it trusts most, give or take its own leanings: friends all alike, it still has a favourite. The leader: what
 			// it thinks of how it led, too.)
 			Map<UUID, Double> leaning = new java.util.HashMap<>();
-			standing.forEach(one -> leaning.put(one, DrifterApi.trustInDrifter(voter, one) + voter.getRandom().nextDouble() * 8.0
-				+ (one.equals(town.leader) ? Unrest.approval(town, id) - Unrest.START : 0.0)));
+			standing.forEach(one -> leaning.put(one, (voter != null ? DrifterApi.trustInDrifter(voter, one) : record.drifterTrust().getOrDefault(one, 0.0))
+				+ server.overworld().getRandom().nextDouble() * 8.0 + (one.equals(town.leader) ? Unrest.approval(town, id) - Unrest.START : 0.0)));
 			UUID choice = standing.contains(id) ? id : standing.stream().max(Comparator.comparingDouble(leaning::get)).orElse(null);
 			if (choice != null) {
 				votes.merge(choice, 1, Integer::sum);
 				choices.put(id, choice);
-				DrifterApi.think(voter, "voted for " + name(group, choice) + " for leader of " + town.name);
+				if (voter != null) {
+					DrifterApi.think(voter, "voted for " + name(group, choice) + " for leader of " + town.name);
+				}
 			}
 		}
 
@@ -254,10 +279,7 @@ final class Politics {
 			town.leader = winner;
 			town.leaderSince = day;
 			Unrest.newLeader(town, choices, winner);
-			DrifterEntity leader = TownFounding.loaded(server, winner);
-			if (leader != null) {
-				laws(server, town, leader);
-			}
+			laws(server, town, winner);
 		}
 
 		town.boardDay = -1;

@@ -297,7 +297,7 @@ public final class Respawns {
 
 	/** Where it comes back: beside its bed if it still has one (where a player stands up from it), else near its base's middle. */
 	@Nullable
-	private static Vec3 spot(ServerLevel level, Home home) {
+	static Vec3 spot(ServerLevel level, Home home) {
 		if (!home.dimension.equals(level.dimension().location())) {
 			return null;
 		}

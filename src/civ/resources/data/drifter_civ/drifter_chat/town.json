@@ -1,6 +1,66 @@
 {
-  "_comment": "Town life said in chat (0.23.41-side.1: these were fixed lines in the code before; now lines here, with the old ones as the code's fallback). {player} is the player's name, {town} the town's, {who} who a festival is for, {years} how long since founding ('3 years'), {count} a number, {given} how many handed in so far, {what} the thing a notice asked for, {pay} a price ('2 emeralds', or '2 emeralds more'), {them}/{enemy} the other town, {victim} who was killed ({victim_caps} the same in capitals). 'bell.' lines are what a bell ringer shouts (picked when the bell is rung).",
+  "_comment": "Town life said in chat (0.23.41-side.1: these were fixed lines in the code before; now lines here, with the old ones as the code's fallback). {player} is the player's name, {town} the town's, {who} who a festival is for, {years} how long since founding ('3 years'), {count} a number, {given} how many handed in so far, {what} the thing a notice asked for, {pay} a price ('2 emeralds', or '2 emeralds more'), {them}/{enemy} the other town, {cause} what one of its people died of or why they left (a few words), {victim} who was killed ({victim_caps} the same in capitals). 'bell.' lines are what a bell ringer shouts (picked when the bell is rung).",
   "lines": {
+    "town.lost": {
+      "any": [
+        "we lost {who} while you were away. {cause}",
+        "{who} is gone. {cause}",
+        "you heard? {who} died, {cause}",
+        "{who} didnt make it back. {cause}",
+        "theres a new stone in the yard. {who}",
+        "rip {who}. {cause}",
+        "{who} is dead {player}. {cause}",
+        "we buried {who} not long ago"
+      ]
+    },
+    "town.lost.friend": {
+      "any": [
+        "{player}.. {who} is gone. {cause}. im sorry",
+        "you should know, {who} died. {cause}",
+        "{player}, about {who}. {cause}. the grave is by the edge of town",
+        "sorry {player}. we lost {who}, {cause}",
+        "{who} talked about you. gone now, {cause}",
+        "i know you two were close. {who} died, {cause}"
+      ]
+    },
+    "town.lost.back": {
+      "any": [
+        "{who} died out there, {cause}. back now though",
+        "{who} got killed {cause}, lost everything",
+        "{who} came home with nothing. died {cause}",
+        "ask {who} about it, died {cause}",
+        "{who} had a rough one, {cause}"
+      ]
+    },
+    "town.lost.me": {
+      "any": [
+        "i died out there {player}. {cause}",
+        "lost all my stuff, died {cause}",
+        "dont ask. died {cause}",
+        "{player} i died while you were gone lol. {cause}",
+        "back from the dead. {cause}"
+      ]
+    },
+    "town.left": {
+      "any": [
+        "{who} left town for good",
+        "{who} packed up and left",
+        "{who} doesnt live here anymore",
+        "you missed {who}, gone off somewhere",
+        "{who} moved on. house is empty",
+        "{who} had enough and left"
+      ]
+    },
+    "town.newcomer": {
+      "any": [
+        "{who} moved in while you were gone",
+        "we got someone new, {who}",
+        "have you met {who}? new here",
+        "{who} took the empty house",
+        "new face in town, {who}",
+        "{who} came up the road a while back"
+      ]
+    },
     "town.greet.home": {
       "any": [
         "hey {player}, good to have you home",

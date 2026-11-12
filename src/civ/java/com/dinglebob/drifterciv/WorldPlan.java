@@ -221,7 +221,19 @@ final class WorldPlan {
 		// check` (where the summary, the towns and the nations disagree), `plan pace [quiet|normal|lively]`, `plan news`
 		// (what the nearest town would have heard from afar).
 		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(
-			net.minecraft.commands.Commands.literal("drifterciv").requires(source -> source.hasPermission(2)).then(net.minecraft.commands.Commands.literal("plan")
+			net.minecraft.commands.Commands.literal("drifterciv").requires(source -> source.hasPermission(2))
+			// Debug (A10 part 2): `/drifterciv away` (the nearest town's ledger), `away day [n]` (days on paper now),
+			// `away kill|leave|newcomer|assassinate`.
+			.then(net.minecraft.commands.Commands.literal("away")
+				.executes(ctx -> awayCommand(ctx, "status", 0))
+				.then(net.minecraft.commands.Commands.literal("day").executes(ctx -> awayCommand(ctx, "day", 1))
+					.then(net.minecraft.commands.Commands.argument("days", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1, 400))
+						.executes(ctx -> awayCommand(ctx, "day", com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "days")))))
+				.then(net.minecraft.commands.Commands.literal("kill").executes(ctx -> awayCommand(ctx, "kill", 0)))
+				.then(net.minecraft.commands.Commands.literal("leave").executes(ctx -> awayCommand(ctx, "leave", 0)))
+				.then(net.minecraft.commands.Commands.literal("newcomer").executes(ctx -> awayCommand(ctx, "newcomer", 0)))
+				.then(net.minecraft.commands.Commands.literal("assassinate").executes(ctx -> awayCommand(ctx, "assassinate", 0))))
+			.then(net.minecraft.commands.Commands.literal("plan")
 				.then(net.minecraft.commands.Commands.literal("ties").executes(ctx -> {
 					List<String> lines = tiesLines();
 					String text = lines.isEmpty() ? "Nothing between the powers worth telling" : String.join("\n", lines);
@@ -556,7 +568,37 @@ final class WorldPlan {
 	}
 
 	/** A made town counts as watched with a player this far past its land (about where its people are loaded and acting). */
-	private static final int WATCHED = 192;
+	static final int WATCHED = 192;
+
+	private static int awayCommand(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx, String what, int days) {
+		Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()));
+		MinecraftServer server = ctx.getSource().getServer();
+		List<String> lines = town == null ? List.of("No town near") : what.equals("status") ? TownAway.status(server, town)
+			: what.equals("day") ? List.of(TownAway.debugDays(server, town, days)) : List.of(TownAway.debug(server, town, what));
+		DrifterCivilizations.LOGGER.info("[away] {}", String.join(" | ", lines));
+		ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(String.join("\n", lines)), false);
+		return 1;
+	}
+
+	/** The power this made town's own is at war with, by the summary (the first of them), named; null: none. */
+	@Nullable
+	static String enemyOf(Town town) {
+		Place place = place(town.id);
+		if (history == null || place == null) {
+			return null;
+		}
+
+		UUID own = history.power(place);
+		for (Map.Entry<String, History.Ties> entry : history.ties.entrySet()) {
+			String key = entry.getKey();
+			if (entry.getValue().war && key.length() == 73 && key.contains(own.toString())) {
+				String other = key.startsWith(own.toString()) ? key.substring(37) : key.substring(0, 36);
+				return history.name(UUID.fromString(other));
+			}
+		}
+
+		return null;
+	}
 	/** How much more often things happen between powers at each pace (quiet: as in the written past; normal; lively). */
 	private static final double[] PACE = {1.0, 4.0, 8.0};
 	/** The pairs the towns' own diplomacy rolled for at the last step (read back into the ties at the next). */
