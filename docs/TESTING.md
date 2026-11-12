@@ -3582,3 +3582,24 @@ Both jars in, as always. Nothing pops up on your screen for any of this: you fin
       own)".
 - [ ] **An older world.** Open a world from before this version: no errors, `/drifterciv plan check` consistent, wars
       that were on are still on.
+
+## Side session: out of a mine by its own stairs, not a shaft up (new, 0.23.43-side.1)
+
+Before: Drifters coming back up from a mine or cave dug a one-block shaft straight up through the rock beside their own
+staircase (in a town: holes next to and through the stairs, one under a sign). Now they walk back along their tunnel and
+up their stairs; they still dig up when there's truly no other way out.
+
+- [ ] **In a town.** Play near a town with a mine (the stone staircase going down). Over a day or two, look at the ground
+      round the staircase: no new one-block holes or shafts coming up from below, and no new cobblestone pillars in old
+      shafts. (Old holes from before stay; that's fine.)
+- [ ] **Watch one come home.** With cheats on, stand at the top of a Drifter's mine stairs while it's down there, and at
+      dusk (or `/time set 12000`) watch it come back: it should come up the stairs. `/drifter thoughts` near it may say
+      "going back the way it came ... rather than digging through" when the way is long.
+- [ ] **The quick test.** In a flat creative spot: `/drifter spawn Digger`, `/drifter stop` (its brain off),
+      `/drifter giveall iron_pickaxe`, `/drifter giveall torch 32`, then face the way you want and
+      `/drifter tunnel 60 0` (a staircase down to height 0; it takes a few minutes, or `/tick sprint 6000`). When it's at
+      the bottom: `/drifter goto <x y z of the top step>`. It walks back up the stairs.
+- [ ] **Still digs out when trapped.** Put a Drifter in a closed pocket deep underground (`/tp` it into a 1x2 hole you
+      dug and closed) and `/drifter goto` somewhere on the surface: it digs its way up.
+- [ ] **Nothing odd elsewhere.** Drifters exploring caves, digging their mines and walking about the surface behave as
+      before. If one walks a long way round where a few blocks of digging would plainly be quicker, tell me where.

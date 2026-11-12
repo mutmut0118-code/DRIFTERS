@@ -60,10 +60,7 @@ public class DrifterMemory {
 	}
 
 	public void walked(BlockPos feet) {
-		this.trail.addAndMoveToLast(feet.asLong());
-		if (this.trail.size() > MAX_TRAIL) {
-			this.trail.removeFirstLong();
-		}
+		this.onTrail(feet);
 
 		this.wear.addTo(feet.asLong(), 1);
 		if (this.wear.size() > MAX_WEAR) {
@@ -97,6 +94,18 @@ public class DrifterMemory {
 	/** Its trails, a copy (for a path search on another thread). */
 	public it.unimi.dsi.fastutil.longs.LongOpenHashSet trailCopy() {
 		return new it.unimi.dsi.fastutil.longs.LongOpenHashSet(this.trail);
+	}
+
+	/**
+	 * Onto its trail only (not worn in): where a walk ended. Its mine's stairs and tunnels are walked a step at a time, each
+	 * step a walk that ends as it gets there, and none of them was on its trail, so it didn't know the way back out (the
+	 * user's town, 2026-11-12; {@code nav.Retrace}).
+	 */
+	public void onTrail(BlockPos feet) {
+		this.trail.addAndMoveToLast(feet.asLong());
+		if (this.trail.size() > MAX_TRAIL) {
+			this.trail.removeFirstLong();
+		}
 	}
 
 	public boolean isOnTrail(BlockPos feet) {

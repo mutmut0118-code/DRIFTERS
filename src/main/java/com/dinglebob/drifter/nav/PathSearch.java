@@ -149,6 +149,27 @@ public class PathSearch {
 	/** Seconds-equivalent per point of fall damage, before the Caution weight. */
 	public static final double FALL_DAMAGE_COST = 1.5;
 
+	/**
+	 * Weights on a partial route's cost so far, heaviest first (see {@link #partialBest}). A walked stair step up costs
+	 * about 0.53 s and brings a goal straight above 0.23 s nearer, so the weights start at 3, over the 2.3 that takes; a
+	 * block dug and climbed up costs about 4 s for the same 0.23, which no weight here makes worth it.
+	 */
+	private static final double[] PARTIAL_WEIGHTS = {3.0, 5.0, 10.0};
+	/**
+	 * Seconds a block of the way costs dug straight through (the dig's extra plus a pillar's block, before the time to
+	 * break it): a walk found by the second pass is taken unless it costs more than digging the straight line would
+	 * (it's "much longer" then; the user's rule for this fix).
+	 */
+	public static final double DIG_WAY_PER_BLOCK = DIG_PENALTY + PILLAR;
+	/** The share of the search's nodes the second, open-ground pass gets. */
+	private static final double WALK_ONLY_SHARE = 0.5;
+	/**
+	 * Blocks from the start a weighted partial route must end, and blocks nearer the goal it must get it, or the next weight
+	 * is tried (nearer by as much as the follower counts as progress, so a chain of them never looks stuck).
+	 */
+	private static final double PARTIAL_MIN_DISTANCE = 5.0;
+	private static final double PARTIAL_MIN_PROGRESS = 3.0;
+
 	/** The open list: a binary heap on f, without a comparator object or boxing (a hot spot in the profile). */
 	private static final class NodeHeap {
 		private Node[] heap = new Node[1024];
@@ -264,14 +285,37 @@ public class PathSearch {
 	private final boolean startUnderwater;
 	/** Highest drop into water it plans (its bravery). */
 	private final int waterDrop;
-	private final NodeHeap open = new NodeHeap();
-	private final LocalGrid<Node> nodes;
+	private NodeHeap open = new NodeHeap();
+	private LocalGrid<Node> nodes;
 	/** Each cell's "beside a deep drop" answer (asked for every move into it). */
 	private final LocalGrid<Boolean> deepDrop;
 	@Nullable
 	private Node startNode;
 	private Node best;
 	private double bestH = Double.MAX_VALUE;
+	/**
+	 * A partial route's end, picked as Baritone does: the cell with the least {@code h + g / k} for each weight
+	 * {@code k} in {@link #PARTIAL_WEIGHTS}, the first that ends {@link #PARTIAL_MIN_DISTANCE} blocks or more from where it
+	 * starts and {@link #PARTIAL_MIN_PROGRESS} blocks nearer the goal. The plain nearest cell ({@link #best}) only when none
+	 * does. The nearest cell alone goes wherever is nearest however dear: with a home far above a mine, straight up
+	 * through the rock (the user's town, 2026-11-12). Weighing what a cell costs to reach keeps a partial route on the walk
+	 * up its own stairs or along its tunnel, and digging up still wins where nothing walkable gets it nearer.
+	 */
+	private final Node[] partialBest = new Node[PARTIAL_WEIGHTS.length];
+	private final double[] partialScore = new double[PARTIAL_WEIGHTS.length];
+	/**
+	 * The second pass (see {@link #finish}): only ground that's open already, no digging and no blocks put down. When the
+	 * search runs out underground (its window or its nodes) on a route that digs, the cells it looked at were mostly digs
+	 * round where it stands, and the walk back along its own tunnel and up its own stairs was never reached: so it dug a
+	 * shaft up beside them (the user's town, 2026-11-12). Open ground alone is a small search underground (its tunnels,
+	 * its stairs, a cave), and finds that walk.
+	 */
+	private boolean walkOnly;
+	/** The first pass's route end, while the second pass looks for a walk instead. */
+	@Nullable
+	private Node digEnd;
+	/** Where the second pass's nodes start counting (it gets {@link #WALK_ONLY_SHARE} of the search's nodes). */
+	private int walkOnlyFrom;
 	/** (Volatile: a search on a path thread sets it, and the Drifter's tick reads it; the result is set first.) */
 	private volatile Status status = Status.RUNNING;
 	private volatile List<PathStep> result = List.of();
@@ -378,10 +422,17 @@ public class PathSearch {
 		this.open.add(first);
 		this.best = first;
 		this.bestH = first.f;
+		java.util.Arrays.fill(this.partialBest, first);
+		java.util.Arrays.fill(this.partialScore, first.f);
 	}
 
 	public Status status() {
 		return this.status;
+	}
+
+	/** It started this search underground (unseen cells count as rock). */
+	public boolean underground() {
+		return this.view.underground();
 	}
 
 	public List<PathStep> result() {
@@ -528,7 +579,7 @@ public class PathSearch {
 
 			Node node = this.open.poll();
 			if (node == null) {
-				return this.finish(this.best, true);
+				return this.finish(this.partialEnd(), true);
 			}
 
 			if (node.closed) {
@@ -540,8 +591,9 @@ public class PathSearch {
 				return this.finish(node, false);
 			}
 
-			if (++this.expanded >= com.dinglebob.drifter.DrifterConfig.pathNodes()) {
-				return this.finish(this.best, true);
+			if (++this.expanded >= (this.walkOnly ? this.walkOnlyFrom + (int)(com.dinglebob.drifter.DrifterConfig.pathNodes() * WALK_ONLY_SHARE)
+				: com.dinglebob.drifter.DrifterConfig.pathNodes())) {
+				return this.finish(this.partialEnd(), true);
 			}
 
 			double h = this.heuristic(node.pos);
@@ -550,13 +602,92 @@ public class PathSearch {
 				this.best = node;
 			}
 
+			for (int k = 0; k < PARTIAL_WEIGHTS.length; k++) {
+				double score = h + node.g / PARTIAL_WEIGHTS[k];
+				if (score < this.partialScore[k]) {
+					this.partialScore[k] = score;
+					this.partialBest[k] = node;
+				}
+			}
+
 			this.expand(node);
 		}
 
 		return Status.RUNNING;
 	}
 
+	/** Where a partial route ends (see {@link #partialBest}). */
+	private Node partialEnd() {
+		Node weighted = this.weightedEnd();
+		return weighted != null ? weighted : this.best;
+	}
+
+	/** The first weighted partial end that gets it somewhere (see {@link #partialBest}), or null. */
+	@Nullable
+	private Node weightedEnd() {
+		double startH = this.heuristic(this.start);
+		for (Node node : this.partialBest) {
+			if (node.pos.distSqr(this.start) >= PARTIAL_MIN_DISTANCE * PARTIAL_MIN_DISTANCE
+				&& this.heuristic(node.pos) <= startH - PARTIAL_MIN_PROGRESS * WALK) {
+				return node;
+			}
+		}
+
+		return null;
+	}
+
+	/** Building blocks this pass may put down (none on the open-ground pass). */
+	private int blocks() {
+		return this.walkOnly ? 0 : this.blocksAvailable;
+	}
+
+	private static boolean digs(Node end) {
+		for (Node node = end; node != null && node.parent != null; node = node.parent) {
+			if (!node.digs.isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** Starts the open-ground pass (see {@link #walkOnly}) from the start again. */
+	private void startWalkOnly(Node digEnd) {
+		this.digEnd = digEnd;
+		this.walkOnly = true;
+		this.walkOnlyFrom = this.expanded;
+		this.open = new NodeHeap();
+		this.nodes = new LocalGrid<>(this.start, com.dinglebob.drifter.DrifterConfig.pathRange() + 8);
+		Node first = new Node(this.start);
+		first.f = this.heuristic(this.start);
+		this.nodes.put(this.start, first);
+		this.startNode = first;
+		this.open.add(first);
+		this.best = first;
+		this.bestH = first.f;
+		java.util.Arrays.fill(this.partialBest, first);
+		java.util.Arrays.fill(this.partialScore, first.f);
+	}
+
 	private Status finish(Node end, boolean partial) {
+		// A route underground that runs out short of the goal and digs: first a look for a way over open ground (see
+		// walkOnly). (Not up top: routes there dig through leaves all the time, and open ground is a big search.)
+		if (partial && !this.walkOnly && this.view.underground() && end != null && end.parent != null && digs(end)) {
+			this.startWalkOnly(end);
+			return Status.RUNNING;
+		}
+
+		if (this.walkOnly) {
+			// The walk all the way there, unless it's much longer than digging straight; part of the way, if it gets it
+			// well nearer at a fair cost (the weighted end); otherwise the first pass's route, digs and all.
+			double straight = Math.max(0.0, Vec3.atBottomCenterOf(this.start).distanceTo(this.target) - this.goalRadius);
+			boolean walk = end != null && end.parent != null && (partial ? end == this.weightedEnd() : end.g <= straight * DIG_WAY_PER_BLOCK);
+			if (!walk) {
+				end = this.digEnd;
+				partial = true;
+			}
+		}
+
 		PathBudget.finished(this.expanded);
 		if (end == null || end.parent == null) {
 			this.status = Status.FAILED;
@@ -604,7 +735,7 @@ public class PathSearch {
 				case DOOR -> clearance.cost += DOOR;
 				case AVOID -> clearance.cost += AVOID * this.caution * 2.0;
 				case SOLID -> {
-					if (!mayDig || !info.diggable() || this.failedDigs.contains(cell)) {
+					if (!mayDig || this.walkOnly || !info.diggable() || this.failedDigs.contains(cell)) {
 						return null;
 					}
 
@@ -703,7 +834,7 @@ public class PathSearch {
 
 		NavView.Kind below = this.view.cell(f.below()).kind();
 		boolean placeable = below == NavView.Kind.OPEN || below == NavView.Kind.WATER;
-		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocksAvailable && !this.failedBridges.contains(f)
+		if (placeable && onSolidFloor && !inWater && node.blocksUsed < this.blocks() && !this.failedBridges.contains(f)
 			&& !this.view.indoors(node.pos)) {
 			double cost = BRIDGE + c.cost + BLOCK_RESOURCE * this.thrift * 2.0 + (this.view.townGround(f) ? TOWN_PLACE : 0.0);
 			this.add(node, f, MoveType.BRIDGE, cost, c, 1);
@@ -1330,7 +1461,7 @@ public class PathSearch {
 
 		// Not from water: floating, there's nothing to jump off and the block can't go under its feet (found in testing: in
 		// a pool with high sides it planned pillars from the water and bobbed there; it digs a step into the side instead).
-		if (onSolidFloor && !inWater && !this.view.isWater(n.below()) && node.blocksUsed < this.blocksAvailable
+		if (onSolidFloor && !inWater && !this.view.isWater(n.below()) && node.blocksUsed < this.blocks()
 			&& !this.failedPillars.contains(n) && !this.view.lavaWithinTwo(n) && !this.view.indoors(n)) {
 			Clearance head = this.clear(true, n.above(2));
 			if (head != null) {
