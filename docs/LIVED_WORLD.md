@@ -19,7 +19,7 @@ a test and an entry here.
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10); next A10 |
+| A | Towns where villages were (world generation) | In progress: A1, A2, A11 (0.23.0, 0.23.1), A3, A4 sizes (0.23.2), ruins (0.23.3), A5, A6, A9 (0.23.4), cities (0.23.5), raids (0.23.6), town shapes (0.23.10), A10 part 1: the world's history never stops (0.23.43); next A10 part 2 |
 | W | The civilized world: a world plan of nations (a capital city, its towns round it), roads and highways joining them all, terrain shaped to fit, more shapes, a history already written | Done: W1 + W2 (0.23.11), lamps (0.23.12), W3 shapes (0.23.13), W4 + W5 the world plan and its roads (0.23.14), natural ground and roads (0.23.16), walkable roads routed round hills (0.23.17), towns on low flat land and winding roads (0.23.18), the world readied before it's played (0.23.19, under a minute 0.23.20), W6 + W7 its past and the places nobody's near (0.23.22); the nations on the nearest big land (the Continents mod's spawn island), players starting on the road into a town, a loading screen of up to two minutes building more (0.23.31); LOD mods later |
 | B | Trades and services instead of villager trading | Done: B1 lines of work (0.23.7), B2 and B3 trades and shops (0.23.9), B4 prices, B5 services (enchanting, repairs, netherite), B6 what villagers gave (0.23.27); not yet: B7 |
 | C | Town life and culture (days, hangouts, comings and goings, events, festivals, monuments, beliefs) | Done: C1 to C6 (0.23.23); the user's notes (0.23.24): guards by size and night rounds, home at night, festival crowds, bells (an alarm bell for raids, killings and massacres, rung again while the trouble lasts, 0.23.30), home whims and cooking, a crook in every city, the Gazette and a crier, the town mine, fuller chests, rebuilding after an explosion; traditions, stables and bees (0.23.27); not yet: cults |
@@ -1361,3 +1361,12 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   Details in docs/PROGRESS.md (0.23.42) and docs/superpowers/specs/2026-11-11-start-of-world-menu-design.md. The user's
   order from here: A10 next (every nation has a town made from the first minute now, so the summary history stops for
   all of them: A10 is what keeps them going), then the chronicle revamp, then quests.
+- 2026-11-11 (0.23.43): **A10 part 1, the world's history never stops.** A10 was split in four with the user: (1) the
+  world's history goes on everywhere (this), (2) a made town's people live by the summary while nobody's near, (3) the
+  town itself changes (built, burned, rebuilt), (4) far towns stop costing (only if measured). Part 1: the summary runs
+  every day for every power; far away, wars are fought and towns taken, a made town among them (new nation, new banner
+  when someone's there; never burned, its leader kept, its losses a number for now). One record between two powers:
+  the summary's ties, mirrored to their made towns; a pair with a player by one of its towns is decided by the towns'
+  own diplomacy and read back. A pace setting (Quiet, Normal, Lively). News travels: a town hears only of its own
+  power, its enemies and allies, and near neighbours; nothing is shown on the player's screen. Details in
+  docs/PROGRESS.md (0.23.43). Next: part 2 when the user says; then the chronicle revamp and quests.

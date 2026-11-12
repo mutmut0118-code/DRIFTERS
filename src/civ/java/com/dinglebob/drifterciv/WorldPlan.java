@@ -684,9 +684,10 @@ final class WorldPlan {
 					owned.add(key);
 				}
 
-				// What their towns decided, read back (the first time since the world was opened: every pair's).
-				if (!pulledAll || owned.contains(key) || ownedBefore.contains(key)) {
-					pull(server, a, b, made.get(a), made.get(b));
+				// What their towns decided, read back (the first time since the world was opened, and a pair the summary
+				// has nothing on yet, a nation formed or a town freed in play: every pair's).
+				if (!pulledAll || owned.contains(key) || ownedBefore.contains(key) || !history.ties.containsKey(key)) {
+					pull(server, a, b, made.get(a), made.get(b), !pulledAll || !history.ties.containsKey(key));
 				}
 			}
 		}
@@ -773,9 +774,10 @@ final class WorldPlan {
 	}
 
 	/** What the made towns of two powers have between them, into the ties (nothing between any of them: left as it is). */
-	private static void pull(MinecraftServer server, UUID a, UUID b, List<Town> ofA, List<Town> ofB) {
+	private static void pull(MinecraftServer server, UUID a, UUID b, List<Town> ofA, List<Town> ofB, boolean first) {
 		double standing = 0;
 		int count = 0;
+		int wars = 0;
 		boolean war = false;
 		boolean peace = false;
 		boolean alliance = false;
@@ -791,7 +793,7 @@ final class WorldPlan {
 				count++;
 				standing += r.standing;
 				if (r.war) {
-					war = true;
+					wars++;
 					aStarted = x.id.equals(r.startedBy);
 				}
 
@@ -805,7 +807,12 @@ final class WorldPlan {
 			return;
 		}
 
+		// At war or not, by what changed among their towns since the ties were written: a war on, and any two of their
+		// towns have made peace: over (a peace is made between two towns, and holds for their powers); no war, and any two
+		// are at war: begun. Read for the first time (an older world, where each pair of towns had its own): as most have it.
 		History.Ties ties = history.ties(a, b);
+		boolean was = ties.war;
+		war = first ? wars * 2 > count : ties.war ? wars == count : wars > 0;
 		if (war && !ties.war) {
 			ties.war = true;
 			ties.since = history.day;
@@ -816,9 +823,21 @@ final class WorldPlan {
 			ties.truceUntil = History.DAYS + truce;
 		}
 
+		boolean turned = first || war != was;
 		ties.alliance = !war && alliance;
 		ties.peace = !war && (peace || alliance);
 		ties.standing = standing / count;
+
+		// War begun or peace made between two of their towns is their powers': written to the rest of their towns at once
+		// (left as they were, the towns still at war would start it again tomorrow).
+		if (turned) {
+			for (Town x : ofA) {
+				for (Town y : ofB) {
+					Diplomacy.mirror(server, x, y, ties.standing, ties.peace, ties.alliance, ties.war, a.equals(ties.startedBy),
+						Math.max(0, ties.truceUntil - history.day));
+				}
+			}
+		}
 	}
 
 	/**

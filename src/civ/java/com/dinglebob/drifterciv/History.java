@@ -460,17 +460,18 @@ final class History {
 		double sb = Math.max(1, this.strength(b));
 		int lostA = (int)Math.round(this.random.nextDouble() * 4 * sb / (sa + sb));
 		int lostB = (int)Math.round(this.random.nextDouble() * 4 * sa / (sa + sb));
-		lostA = (int)Math.min(lostA, fa.people);
-		lostB = (int)Math.min(lostB, fb.people);
-		fa.people = Math.max(0, fa.people - lostA);
-		fb.people = Math.max(0, fb.people - lostB);
-		// (A made town's dead on paper: a number for now; who they were is for when its people live by the summary.)
+		// (A made town's dead on paper: a number for now, its people as they are; who they were is for when its people
+		// live by the summary. Its count here isn't worn down: it never grows back here either.)
 		if (fa.made) {
 			fa.paperLost += lostA;
+		} else {
+			fa.people = Math.max(0, fa.people - lostA);
 		}
 
 		if (fb.made) {
 			fb.paperLost += lostB;
+		} else {
+			fb.people = Math.max(0, fb.people - lostB);
 		}
 
 		t.dead += lostA + lostB;

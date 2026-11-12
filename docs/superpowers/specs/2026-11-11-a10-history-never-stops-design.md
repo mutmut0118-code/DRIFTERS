@@ -162,3 +162,19 @@ How the one truth is kept:
   what happened where a player could know of it stays.
 - A world saved by 0.23.42 or before: on first load the ties are filled in from the built towns' relations and the
   plan's nations from the towns' real ones, once (a plan version number).
+
+## Settled while building (0.23.43)
+
+- **News reach is narrower than written above:** a town hears of its own power, powers at war or allied with it (not a
+  plain pact), and powers seated within 1,200 blocks (not 2,600). With the wider reach every town in a five-nation world
+  heard everything, which defeats "the rest reaches a player late or not at all".
+- **Pace as measured:** Normal is about one piece of news every 13 days and a war starting or ending every 30 to 60
+  days (livelier than "fifty to a hundred"); Quiet about one every 33 days; Lively is told apart mostly by more quarrels
+  and battles. All three are numbers in `WorldPlan.PACE` and `History`.
+- **A free town not built, beaten by a nation in the present, is taken by it** (in the written past only peace was
+  made): otherwise no town ever changed hands at these war lengths.
+- **Who decides a pair:** a player within a made town's land + 192 blocks of either power's towns (spectators don't
+  count). Read back: a war on is over once any two of their towns have made peace; no war becomes war once any two are
+  at war; the first read of an older world goes by what most of their towns have.
+- **A made town's people on paper aren't worn down by its losses** (they'd never grow back in this part): the losses
+  are only counted (`paperLost`).

@@ -3378,6 +3378,61 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.43: A10 part 1, the world's history never stops** (the user, 2026-11-11: A10 before the chronicle revamp and
+  quests; split in four parts, "yes, that's the right split and order"; "yes, that's the pace i want, keep it
+  configurable"; no message on your screen, "yes, that's right, no exceptions"). Design:
+  docs/superpowers/specs/2026-11-11-a10-history-never-stops-design.md; plan:
+  docs/superpowers/plans/2026-11-11-a10-history-never-stops.md.
+  - **Why:** since 0.23.42 every nation has a town made from the first minute, and the summary history (the thousand
+    written days before day 1, carried on a day at a time) stopped for any nation with a made town. So nothing happened
+    anywhere a player wasn't.
+  - **What it is:** the summary runs every game day for every power, made towns or not. Far from every player, nations
+    and free towns quarrel, make pacts and alliances, go to war, fight battles, make peace, unite, rise up; towns are
+    taken. A made town nobody's near can be taken on paper: it changes nation (banner and colours changed by its people
+    when someone's there), its old nation's wars are no longer its own. A nation that loses its capital with its whole
+    self is gone (`Nations.follow`). A made town is never burned to a ruin on paper, its leader isn't changed on paper,
+    and the people it loses on paper are only a number yet (`Place.paperLost`, saved: faces come with part 2).
+  - **One record (`WorldPlan.day`):** between two planned powers `History.Ties` is the record and the `Diplomacy.Relation`
+    between their made towns mirrors it (`Diplomacy.mirror`). A pair of powers is "the towns' own" while a player (not a
+    spectator) is within a made town's land + 192 blocks (`WATCHED`) of either side: then the towns' own envoys and drift
+    decide and the summary reads it back (`pull`); otherwise the summary decides and writes it to the towns (`push`), and
+    their own daily drift and envoys stand still for that pair (`WorldPlan.paper`). A war begun or a peace made on either
+    side carries across when a pair changes hands. A watched town is never where a paper battle is fought, and its
+    nation isn't conquered whole while it's watched.
+  - **Pace:** `CivConfig.worldPace` (Mod Menu → Drifter: Civilizations → "World events": Quiet, Normal, Lively;
+    `/drifterciv plan pace <quiet|normal|lively>`). Measured headless over 900+ days: Normal about one piece of news
+    every 13 days and a war starting or ending every 30 to 60; Quiet about one every 33 days (the written past's pace).
+    The written past itself is unchanged by the setting.
+  - **News travels (`WorldPlan.newsFor`):** a town hears of its own power's affairs, of powers at war or allied with its
+    own, and of powers seated within 1,200 blocks (`NEWS_REACH`). **Ruling:** narrower than the design said ("a pact",
+    2,600 blocks): with that reach every town heard everything in a five-nation world, which is what the user didn't
+    want. The chronicle records everything ("News from afar: ..."); the gazette's "From afar", the crier's headlines and
+    the journal show only what reached the town; the morning chat summary leaves far news out (the user: approved).
+  - **Debug (op):** `/drifterciv plan ties` (every pair, who decides it), `plan check` (the summary, the towns and the
+    nations agree?), `plan news` (what the nearest town has heard), `plan take` (the nearest made town taken on paper
+    now), `plan pace`.
+  - **Old worlds:** on first load every pair of powers is read from their made towns once (at war if most of their
+    towns' pairs are), and nations formed in play whose capital is a planned place are adopted into the plan.
+  - **Tested:** headless: 900+ days in 100-day jumps at Normal and Quiet, `plan check` consistent at every stop, across
+    a restart, on a 0.23.42 save, and after forced takes; a day's step under 3 ms at worst. Dev client: standing in a
+    taken town (consistent, news and journal right); a war and then a peace made between two made towns with a player
+    there, then the player gone for three days (see TESTING). **Not seen yet:** a made town taken by a war that ran its
+    own course (only forced with `plan take`; unmade towns were taken naturally).
+  - **Review (one fresh reviewer, whole branch), fixed:** a peace made in play was undone once the player left (the
+    read-back called it war while any two towns still were); a pair with no ties yet was never read; an old save spread
+    one war to whole nations on first load; the crier and headlines carried all far news; the written past was no
+    longer the same as before (a clamp); a made town's count of people on paper only ever fell.
+    **Found testing the fix in the dev client, fixed:** peace made between two towns held a day, then their nations'
+    other towns (still at war) began it again: a turn of war or peace read back from the towns is now written to all
+    of the two powers' towns at once. Rerun: war (the towns' own), peace made, the player gone three days: still at
+    peace, on paper, `plan check` consistent throughout.
+    **Deferred minors:** an envoy on the road, or an ally joining, on a pair the summary decides can wobble for a day;
+    `Nations.moved` returns early if the new nation isn't formed; news in a 100-day jump is stamped with the day it's
+    caught up on; a plain peace pact doesn't carry news (the ruling above); a nation emptied by takes one town at a
+    time isn't dissolved until its capital goes.
+  - **Next (each needs the user's go-ahead):** A10 part 2 (a made town's people live by the summary while nobody's
+    near), part 3 (the town itself changes), part 4 (far towns stop costing, only if measured); then the chronicle
+    revamp and quests.
 - **0.23.42: "Who are you?", the start-of-world menu, part 2 of the "RPG profile" idea** (the user, 2026-11-11: "while
   creating a new world and the town plan is loading we get a menu, picking our name and pronouns, and a nation we want
   to be a citizen of, or no nation at all"; "it should actually be a nation's town, for the capital for us to be

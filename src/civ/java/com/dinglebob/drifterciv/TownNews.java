@@ -193,12 +193,19 @@ final class TownNews {
 		long day = Chronicle.day(server);
 		List<Chronicle.Entry> all = Chronicle.all();
 		List<String> heads = new ArrayList<>();
+		// (News from afar: only what would have reached it. Its crier calls these out: it knows no more than its town does.)
+		java.util.Set<String> reached = new java.util.HashSet<>();
+		for (History.News heard : WorldPlan.newsFor(town, day, 2)) {
+			reached.add(History.AFAR + heard.text());
+		}
+
 		for (int pass = 0; pass < 2 && heads.size() < most; pass++) {
 			for (int i = all.size() - 1; i >= 0 && heads.size() < most; i--) {
 				Chronicle.Entry entry = all.get(i);
 				boolean ours = entry.text().contains(town.name);
 				boolean big = entry.kind().equals("war") || entry.kind().equals("nation") || entry.kind().equals("law") || entry.kind().equals("festival");
-				if (day - entry.day() <= 1 && (pass == 0 ? ours : !ours && big)) {
+				if (day - entry.day() <= 1 && (pass == 0 ? ours : !ours && big)
+					&& (!entry.text().startsWith(History.AFAR) || reached.contains(entry.text()))) {
 					String text = entry.text();
 					heads.add(text.length() > 80 ? text.substring(0, 77) + "..." : text);
 				}

@@ -3554,3 +3554,31 @@ whims). Talks between Drifters and their answers to you are unchanged.
       on him". (Few lines use pronouns yet: the chronicle and quests will.)
 - [ ] **Check who you are.** `/drifterciv who` says it in chat. (Testing only: `/drifterciv who again` asks you again as
       if you were new.)
+
+## 0.23.43: the world's history never stops (A10 part 1) (new)
+
+Both jars in, as always. Nothing pops up on your screen for any of this: you find out in towns.
+
+- [ ] **Things happen while you're away.** In a world with nations, note what `/drifterciv plan ties` says (who's at war
+      or at peace with whom; you need cheats on). Then skip a hundred days: `/time add 2400000`, wait about a minute
+      and a half (the world catches up three days at a time), and run `/drifterciv plan ties` again. Standings have
+      moved; over a few hundred days a war starts or ends.
+- [ ] **The chronicle.** `/drifterciv chronicle` (or a town's chronicle book): entries starting "News from afar:" for
+      things that happened where nobody was.
+- [ ] **News only reaches where it would.** Stand in a town and run `/drifterciv plan news`: what that town has heard
+      (its own nation's affairs, its enemies' and allies', and near neighbours'). A town of another nation far away
+      has heard a different list. The town's news lectern ("From afar") and its crier say the same; the morning chat
+      summary doesn't carry far news at all.
+- [ ] **The pace.** Mod Menu → Drifter: Civilizations → "The world" → **World events**: Quiet, Normal, Lively (or
+      `/drifterciv plan pace lively`). On Lively, a hundred days brings clearly more news than on Quiet.
+- [ ] **A town taken while you were away.** The quick way: stand in a town that isn't a capital, run
+      `/drifterciv plan take`, and it says which nation took it. Walk away and come back (or wait a day): the banner on
+      the plaza and its people's colours change to the new nation's (its people change them when someone's there), the
+      journal's page for it names the new nation, and the chronicle says who took it from whom.
+- [ ] **Still all in agreement.** At any point `/drifterciv plan check` should say "Consistent: the summary, the towns
+      and the nations agree". If it lists anything instead, copy it to me.
+- [ ] **In front of you it's still the towns' own doing.** Stand in a town whose nation is at war: envoys still ride
+      and peace is still made the old way while you're there; `/drifterciv plan ties` marks that pair "(their towns'
+      own)".
+- [ ] **An older world.** Open a world from before this version: no errors, `/drifterciv plan check` consistent, wars
+      that were on are still on.
