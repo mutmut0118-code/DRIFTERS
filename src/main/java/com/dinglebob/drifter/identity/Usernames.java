@@ -46,13 +46,13 @@ public final class Usernames {
 
 	record Lists(List<String> words, List<String> adjectives, List<String> firstNames, List<String> prefixes, List<String> suffixes,
 		Set<String> banned, List<String> bannedParts, List<String> titles, List<String> sentences, List<String> worldNames, List<String> countryTags,
-		List<String> phrases, List<String> channelTags, List<String> emoticons, List<String> mobWords, List<String> mobTails, List<String> places, List<String> placeTails) {
+		List<String> phrases, List<String> channelTags, List<String> emoticons, List<String> mobWords, List<String> mobTails, List<String> places, List<String> placeTails, List<String> jokes) {
 	}
 
 	private static final Lists FALLBACK = new Lists(List.of("drift", "stone", "pine", "fox", "moss", "ember"), List.of("lazy", "swift", "quiet"),
 		List.of("sam", "alex", "max"), List.of("xX", "itz"), List.of("Xx", "mc"), Set.of(), List.of(), List.of("Dr", "Captain"), List.of("ImNotA%s"),
 		List.of("minh", "yuki", "mateo"), List.of("BR", "VN"), List.of("the_real_%s", "Simply%s"), List.of("Playz", "Gaming"), List.of("O_o", "xD"),
-		List.of("creeper", "warden"), List.of("slayer", "main"), List.of("boston", "leeds"), List.of("lad", "town"));
+		List.of("creeper", "warden"), List.of("slayer", "main"), List.of("boston", "leeds"), List.of("lad", "town"), List.of("Ben_Dover"));
 	private static volatile Lists lists = FALLBACK;
 
 	private Usernames() {
@@ -91,6 +91,7 @@ public final class Usernames {
 		List<String> mobTails = new ArrayList<>();
 		List<String> places = new ArrayList<>();
 		List<String> placeTails = new ArrayList<>();
+		List<String> jokes = new ArrayList<>();
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
@@ -114,6 +115,7 @@ public final class Usernames {
 				addAll(json, "mob_tails", mobTails);
 				addAll(json, "places", places);
 				addAll(json, "place_tails", placeTails);
+				addAll(json, "jokes", jokes);
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter names file {}", file.getKey(), e);
 			}
@@ -131,7 +133,7 @@ public final class Usernames {
 			titles.isEmpty() ? FALLBACK.titles() : List.copyOf(titles), sentences.isEmpty() ? FALLBACK.sentences() : List.copyOf(sentences),
 			or(worldNames, FALLBACK.worldNames()), or(countryTags, FALLBACK.countryTags()), or(phrases, FALLBACK.phrases()), or(channelTags, FALLBACK.channelTags()),
 			or(emoticons, FALLBACK.emoticons()), or(mobWords, FALLBACK.mobWords()), or(mobTails, FALLBACK.mobTails()), or(places, FALLBACK.places()),
-			or(placeTails, FALLBACK.placeTails()));
+			or(placeTails, FALLBACK.placeTails()), or(jokes, FALLBACK.jokes()));
 		Nicknames.clear();
 		Drifter.LOGGER.info("Loaded {} words for Drifter usernames", words.size() + adjectives.size() + firstNames.size());
 	}
@@ -216,6 +218,18 @@ public final class Usernames {
 	}
 
 	private static String candidate(RandomSource random, Lists l) {
+		// Now and then a prank-call name (the user, 2026-11-12: "cheeky ones like vera bagina, keep them rare"): as it is, run
+		// together, lowercase, or with digits.
+		if (random.nextInt(JOKE_ONE_IN) == 0) {
+			String joke = pick(random, l.jokes());
+			return switch (random.nextInt(5)) {
+				case 0 -> joke.replace("_", "");
+				case 1 -> joke.toLowerCase(Locale.ROOT);
+				case 2 -> joke + "_" + (1 + random.nextInt(9));
+				default -> joke;
+			};
+		}
+
 		// (0 to 99 the shapes as before; 100 to 159 the ones taken from real players' names, 0.23.47.)
 		int roll = random.nextInt(160);
 		String name;
@@ -473,7 +487,15 @@ public final class Usernames {
 		return lists;
 	}
 
+	/** One name in this many is a joke name. */
+	private static final int JOKE_ONE_IN = 150;
+
 	private static String digits(RandomSource random) {
+		// (Now and then the numbers players think are funny.)
+		if (random.nextInt(40) == 0) {
+			return random.nextBoolean() ? "69" : "420";
+		}
+
 		return switch (random.nextInt(4)) {
 			case 0 -> Integer.toString(random.nextInt(10));
 			case 1, 2 -> Integer.toString(10 + random.nextInt(90));

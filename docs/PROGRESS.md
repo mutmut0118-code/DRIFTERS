@@ -3378,6 +3378,11 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.49: now and then a joke name** (the user, 2026-11-12: "cheeky ones like vera bagina, keep them rare"): about one
+  name in 150 is a prank-call one (Ben_Dover, Seymour_Butz, Dixie_Normous, Vera_Bagina...; `jokes` in
+  `drifter_names/real.json`), as it is, run together, lowercase or with a digit; and one number ending in 40 is 69 or 420.
+  None about abuse, race or hate, and all through the filter as ever. Tested: 450 made, 5 jokes.
+
 - **0.23.48: more kinds of Drifter usernames, from real players' names** (the user, 2026-11-12, with two /drifter lists
   of real accounts from the experimental real usernames: "take inspo from these usernames ... to add more username
   variation"). `identity.Usernames`: shapes from 100 to 159 of a roll (the old ones 0 to 99, now about five in eight): short
