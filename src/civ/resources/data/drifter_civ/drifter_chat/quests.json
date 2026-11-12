@@ -1,0 +1,140 @@
+{
+  "_comment": "Quests (Quests.java): what someone says when they ask something of a player, and after. {player} is what it calls you, {what} the goods and how many ('16 iron ingots'), {thing} the goods alone ('iron ingots'), {enemy} who its town is at war with, {town} its town (or, carrying word, the town it's for), {who} who word is for (or from), {dead} whose grave, {pay} a whole clause about the pay ('the town will pay 60 silver', 'the till's empty but we won't forget it', 'i'll pay 30 silver when you're back', 'i cant pay but id owe you one').",
+  "lines": {
+    "quest.ask.war": {
+      "any": [
+        "{player}, we're at war with {enemy} and running out of {thing}. could you bring {what}? {pay}",
+        "this war with {enemy} is eating through our {thing}. can you get us {what}? {pay}",
+        "{player} we need {what} for the fight with {enemy}. {pay}. can you do it?",
+        "we're short of {thing} and {enemy} isnt letting up. {what} would keep us going. {pay}. will you?",
+        "hey {player}. {town} needs {what} while this war's on. {pay}. you in?",
+        "cant hold off {enemy} without {thing}. could you bring {what}? {pay}",
+        "{player} i'll be straight with you, the war's going through our {thing}. bring {what}? {pay}",
+        "we need {thing} badly, {enemy} is at our throats. {what}, can you manage that? {pay}"
+      ]
+    },
+    "quest.ask.short": {
+      "any": [
+        "{player}, the town's clean out of {thing}. could you bring {what}? {pay}",
+        "we've got no {thing} left at all. can you get us {what}? {pay}",
+        "hey {player}, {town}'s out of {thing}. {what} would sort us out. {pay}. can you?",
+        "not a single one left in the stores. could you find {what}? {pay}",
+        "{player} you get around. we need {what}, we're out. {pay}",
+        "the stores are empty of {thing}. bring {what} and {pay}. deal?",
+        "ran out of {thing} this week. any chance you could bring {what}? {pay}"
+      ]
+    },
+    "quest.ask.word": {
+      "any": [
+        "{player} are you heading anywhere near {town}? could you take word to {who} for me? {pay}",
+        "i need to get word to {who} over in {town} and i cant leave. would you take it? {pay}",
+        "hey {player}, you travel. could you carry something to {who} in {town}? {pay}",
+        "ive been meaning to write to {who} in {town} for ages. would you take it there? {pay}",
+        "{player} could you do me a favor and take word to {who} in {town}? {pay}",
+        "i cant get away and {who} in {town} needs to hear from me. will you go? {pay}"
+      ]
+    },
+    "quest.ask.word.leader": {
+      "any": [
+        "{player}, i need word taken to {who}, who leads {town}. i cant spare anyone. will you carry it? {pay}",
+        "the town has business with {town} and nobody to send. would you take word to {who}? {pay}",
+        "{player} can i trust you with something? word for {who} in {town}. {pay}",
+        "i need {who} of {town} to hear from us and my people are all needed here. will you go? {pay}",
+        "someone has to take word to {who} in {town}. id rather it was you. {pay}"
+      ]
+    },
+    "quest.ask.dead": {
+      "any": [
+        "{player}... i still think about {dead}. would you put a flower on their grave for me? i cant make myself go",
+        "its been hard since {dead} died. could you lay a flower on the grave for me? i just cant yet",
+        "can i ask you something {player}? {dead}'s grave has nothing on it. would you leave a flower there for me?",
+        "i keep meaning to visit {dead} and i never do. would you take a flower over for me?",
+        "{player} would you do something for me. a flower for {dead}, on the grave. i cant face it",
+        "i miss {dead}. if you're passing the graveyard, would you leave a flower for me?"
+      ]
+    },
+    "quest.yes.bring": {
+      "any": [
+        "thank you. just throw it over when you have it",
+        "good. bring it to me when you've got it",
+        "i knew id ask the right person. throw it to me when you're back",
+        "thats a weight off. bring it straight to me",
+        "thank you {player}, truly. ill be here"
+      ]
+    },
+    "quest.yes.word": {
+      "any": [
+        "thank you. find them and tell them i sent you",
+        "youre a star. come back and tell me when its done",
+        "thanks {player}. safe roads",
+        "good, thank you. come find me when you're back",
+        "that means a lot. mind how you go"
+      ]
+    },
+    "quest.yes.dead": {
+      "any": [
+        "thank you. any flower, they werent fussy",
+        "thank you {player}. tell me when its done",
+        "that means more than you know",
+        "thanks. just by the stone is fine",
+        "youre kind. thank you"
+      ]
+    },
+    "quest.no": {
+      "any": [
+        "ok, no worries",
+        "fair enough, had to ask",
+        "thats alright, ill find someone",
+        "no problem, forget i asked",
+        "all good, another time maybe",
+        "understood"
+      ]
+    },
+    "quest.thanks.bring": {
+      "any": [
+        "thats all of it. thank you, here's what was promised",
+        "you came through. here, every bit of it",
+        "thank you {player}, the town wont forget this. here",
+        "all there. heres your pay, as promised",
+        "thats what we needed. take this, you earned it"
+      ]
+    },
+    "quest.thanks.word": {
+      "any": [
+        "you found {who}? thank you. here, as promised",
+        "so {who} knows now. good. thank you {player}",
+        "thats a relief. thanks for going all that way",
+        "you made it there and back. thank you, here",
+        "good, {who}'s heard. i owe you"
+      ]
+    },
+    "quest.thanks.unpaid": {
+      "any": [
+        "you did it. thank you {player}, i owe you one",
+        "thank you. ive nothing to give you but i wont forget it",
+        "thats done then. thank you, truly",
+        "i cant pay you, you know that. but thank you",
+        "thanks {player}. if you ever need something, ask"
+      ]
+    },
+    "quest.thanks.dead": {
+      "any": [
+        "you went? thank you {player}. really",
+        "{dead} would have liked that. thank you",
+        "thank you. i'll go myself one day. not yet",
+        "that means a lot to me. thank you",
+        "thanks {player}. i wont forget it"
+      ]
+    },
+    "quest.word.got": {
+      "any": [
+        "from {who}? ok, got it. thanks for coming all this way",
+        "word from {who} in {town}! thank you, tell them i heard",
+        "{who} sent you? good to hear from them. thanks {player}",
+        "ah, from {who}. about time lol. thank you for bringing it",
+        "all the way from {town}? thank you. tell {who} its received",
+        "got it. tell {who} thanks, and thank you too"
+      ]
+    }
+  }
+}

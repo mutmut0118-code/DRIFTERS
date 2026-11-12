@@ -542,7 +542,8 @@ final class FriendPerks {
 	/** A player threw it something: toward a favor? */
 	private static void received(DrifterEntity drifter, ServerPlayer player, ItemStack stack) {
 		Friends.Bond b = Friends.bond(drifter, player);
-		if (b == null || b.favor == null || !b.favor.promised()) {
+		// (Not what a quest of its counts already.)
+		if (b == null || b.favor == null || !b.favor.promised() || Quests.claims(drifter, player, stack)) {
 			return;
 		}
 
@@ -575,6 +576,12 @@ final class FriendPerks {
 		b.favor = null;
 		b.lastFavor = Friends.now();
 		String name = player.getGameProfile().getName();
+		// (Kept on the journal's Quests page, under Done.)
+		Quests.record(player.server, player, "favor", switch (kind) {
+			case "iron" -> needed(kind) + " iron for " + b.drifterName;
+			case "food" -> "Food for " + b.drifterName;
+			default -> "Monsters at " + b.drifterName + "'s place";
+		}, drifter.getUUID(), b.drifterName, Diplomacy.townOf(drifter.getUUID()), "A favor for a friend. You're closer for it.");
 		DrifterApi.addTrustInPlayer(drifter, player.getUUID(), name, FAVOR_TRUST);
 		TalkApi.addFamiliarity(drifter, player.getUUID(), name, FAVOR_FAMILIARITY);
 		say(drifter, player, "friends.favor.thanks." + kind, false);

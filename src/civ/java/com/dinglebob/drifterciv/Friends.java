@@ -283,6 +283,8 @@ final class Friends {
 		// Where something is, told to a friend: whispered.
 		TalkApi.setWhisperRule((drifter, player, key) -> CivConfig.friends().whisper && isFriend(drifter, player));
 		TalkApi.registerPlayerFacts((drifter, player, words, flags) -> {
+			// (What it's asking of them just now, if anything: Quests.)
+			Quests.facts(drifter, player, words);
 			Bond b = bond(drifter.getUUID(), player.getUUID());
 			if (b == null) {
 				return;

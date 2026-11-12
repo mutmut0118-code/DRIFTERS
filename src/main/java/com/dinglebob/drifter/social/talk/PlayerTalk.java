@@ -261,6 +261,12 @@ public final class PlayerTalk {
 		asked.remove(player.getUUID());
 	}
 
+	/** A question some Drifter asked them still waits for their yes or no. */
+	static boolean awaiting(ServerPlayer player, long now) {
+		Asked question = asked.get(player.getUUID());
+		return question != null && now <= question.until();
+	}
+
 	/** It asked them this (phase 3): their next yes or no is the answer. */
 	static void ask(DrifterEntity drifter, ServerPlayer player, Topics.Question question, Object[] vars, long now, String topic) {
 		asked.put(player.getUUID(), new Asked(drifter, question, vars, now + ANSWER_WITHIN, topic));

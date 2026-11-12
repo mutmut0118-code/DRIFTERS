@@ -3485,7 +3485,7 @@ Off by default. Turn it on in Mod Menu (Drifter's settings, the "Spawning" page,
 ## 0.23.41: your journal, the J key (new)
 
 - [ ] **Open it.** In any world with the two mods, press **J**. An open book appears: you on the left page, a list on the
-      right, four bookmarks along the top (People, Towns, Law, Favors). J or Esc closes it. The game keeps running behind
+      right, four bookmarks along the top (People, Towns, Law, Favors; since 0.23.51 Favors is Quests, and there's a fifth, Chronicle). J or Esc closes it. The game keeps running behind
       it. (To change the key: Options > Controls > Key Binds > Drifter: Civilizations > Open journal.)
 - [ ] **It looks like vanilla.** The pages are the vanilla book's, the writing is the vanilla font, and turning a page
       makes the book's sound. Tell me anything that looks off (text over the edge, hard to read, off-centre).
@@ -3720,3 +3720,33 @@ Only matters with Numismatic Overhaul installed (it is in DRIFTER TEST). Without
 - [ ] **Said in coins.** An escort or a race offers its pay in coins ("60 silver"), and pays in coins.
 - [ ] **Anything odd.** A price that's absurd either way (a bucket for pennies, a carrot for silver), a Drifter
       saying "emeralds" for a sum, a payment that never arrives: tell me the item or the line.
+
+## 0.23.51: quests (new)
+
+People now ask things of you, in person, and the journal (J) has a **Quests** bookmark where Favors was.
+
+- [ ] **Being asked.** Spend a few minutes in a town where you're not in trouble, standing near people. Now and then
+      one turns to you and asks something in chat: to bring goods, to carry word to someone in another town, or to lay
+      a flower on a grave. It should feel occasional, not constant (at most about one ask a day in a town).
+      To force one: `/drifterciv quest offer` (or `quest offer short`, `quest offer word`, `quest offer dead`,
+      `quest offer war`); it puts you beside whoever asks.
+- [ ] **Answering in chat.** Wait until they've finished speaking, then type `yes` or `no`. Yes: they thank you and it
+      appears under "Your word given". No: nothing is held against you.
+- [ ] **The page.** Press J, Quests. An unanswered ask is under "Offered"; click it: a headline, who asked with their
+      head, their words in a box, why, what's wanted with the item's picture, what you'd get, how long, and two
+      buttons, **Take it** and **Not for me**. Click one: the page changes and the list updates.
+- [ ] **Bring something.** Take a "bring" quest from a town's leader or shopkeeper, then throw them the goods (Q).
+      They count them aloud, and when it's all there they throw you the pay, from the town's till. Throw too many: the
+      extra comes back.
+- [ ] **Carry word.** Take one. If they had paper they throw you a letter named for who it's for: go to that town
+      (the page gives where), throw the letter to that person, they answer, then go back to whoever asked for thanks or
+      pay. With no letter, just stand next to the person a moment.
+- [ ] **See to the dead.** Someone who likes you asks for a flower on a grave. Go to the town's graveyard, plant any
+      flower beside that stone, go back and they thank you.
+- [ ] **Giving up.** On a quest you've taken, the page has **I can't do it after all**. They think a little less of
+      you; less than if you let the time run out.
+- [ ] **Favors and notices.** A friend's favor shows on the same page with the same buttons. A town's board notices
+      show under "On the boards" once you've been to its plaza.
+- [ ] **A town at war** should ask for iron or food "for the war", paying about double. I couldn't test this one.
+- [ ] **Anything odd.** Asked too often, asked by someone asleep or far away, a reward that never arrives, a quest that
+      can't be finished: tell me what the page said.

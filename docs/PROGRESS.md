@@ -3396,6 +3396,68 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.51: quests, stage 1 (RPG profile part 4)** (the user, 2026-11-12: "quests"; away while it was built: "wil be afk
+  si keep workin"). Design: docs/superpowers/specs/2026-11-12-quests-design.md. `Quests.java` (saved
+  "drifter_civ_quests", version 1), `drifter_talk/quests.json` (the one talk a quest is asked in), `drifter_chat/quests.json`
+  (what's said).
+  - **The Quests bookmark replaces Favors** (`Quests.tab`): Offered, Your word given, On the boards, Done. Each line opens
+    a page across both pages in the Chronicle's style: headline, where and when, who asked (head, nation's banner), their
+    words in a box, why they ask, what's wanted (the item's own picture, how many handed over and carried), what they'd
+    get and from where, how long, and buttons: "Take it", "Not for me", once taken "I can't do it after all". Two new
+    things a page can hold (`Journal.ITEM`, `Journal.BUTTON`; a button's page takes the place of the one showing, and what
+    it does is the server's to say: `Quests.open`, ids "q:<n>[:take|no|drop]", "qf:<friend>", "qn:<notice>").
+  - **Asked in person:** each five seconds a townsperson within 8 blocks who has just seen the player, isn't wary of them
+    (trust -5 or better; the town welcome or neutral, no fine or warrant there) and is free to talk (`TalkApi.freeToTalk`,
+    API 13: not asleep, at odds, mid-talk, nor the player with someone's question still to answer) may ask, one time in
+    four; at most one ask a half day, one a day in a town, five open at once (favors count, notices don't), never by
+    someone they already owe one. Answered yes or no in chat (the talk's question) or on the page; unanswered, it lapses in
+    a day at no cost.
+  - **Bring something (`bring`):** a town's leader or keeper. At war (`WorldPlan.enemyOf`): what a war takes that its stores
+    are short of (iron, bread, arrows, steak, leather), paid twice its worth. Not at war: something it has none of at all,
+    paid 1.6 times. 8, 16 or 32 by how close they are (a stranger; liked, or welcome in the town; a friend or one of its
+    nation's own). By a stall's listed price where Numismatic Overhaul has one, so buying at a stall to hand in never
+    pays. Thrown to the giver (what's over is handed back); paid there and then from its pockets, then the till; ends
+    unneeded when the war does.
+  - **Carry word (`word`):** anyone, to the leader (or, from an ordinary person, the keeper) of a town within 1,500 blocks
+    (a leader's: 3,000), by the world's plan, so also to towns nobody has been near yet (the leader the summary names;
+    whoever leads it once it's there). A letter if the giver has paper when they say yes to its face (its own sheet,
+    named and marked, a sheet again once read), else by word of mouth: stand by them. Then back to whoever asked for the
+    pay (2 emeralds' worth and 1 more each 300 blocks, 12 at most, half for a stranger; nothing if they've nothing).
+    Five days. The page warns when they're wanted or exiled where it's for.
+  - **See to the dead (`dead`):** someone who likes them, for one of the town's people dead within sixty days with a stone
+    in its graveyard: a flower planted by the stone, then telling them. Paid in trust and familiarity.
+  - **Favors and notices** are done as before and shown here: a favor with its page and buttons, a notice once they've
+    been by the board (within 24 blocks of the plaza), both kept under Done. Goods a quest counts aren't counted again by
+    a notice or a favor for the same thing.
+  - **Ending:** done ones stay about a year; a word not kept costs the giver's trust (-6, and a town's word of them when it
+    was the town's), given back on the page less (-2); a giver gone, the town's leader or keeper stands by a town's quest,
+    a person's own ends quietly. A big bring (any in a war, or 24 and more) is a deed in the Chronicle.
+  - **Debug:** `/drifterciv quest` (theirs, listed), `quest offer [war|short|word|dead]` (someone within 64 blocks asks
+    now; the player is put by them), `quest page <id>`, `quest hand <n>` (the goods made from nothing and handed over, and
+    it says so), `quest go <n>` / `quest back <n>`.
+  - **Tested** in the dev client (saves quest1, quest2): asked aloud of their own accord and by the command; yes in chat
+    and from the page; a shortage's paper handed over in two lots and paid from the till; a flower laid and thanked; word
+    taken to a town made on arrival, its leader found, and thanks on return; the Quests list and pages (screenshots of the
+    list, an offer and a notice looked at). **Not tested:** a war's ask (no war at hand), a letter (no giver had paper),
+    clicking the buttons with the mouse (their ids were driven by command), lapses and failures over days, a giver dying,
+    two players, coins.
+  - **Review** (one fresh reviewer; no critical finding; fixed): quests depended on the Friendship setting; a town's
+    quest lapsed the moment its leader died; someone asleep or mid-talk could ask, and an ask could overwrite another
+    question waiting on the player; the pay ignored listed prices and had a floor of 3 emeralds (bread from a stall handed
+    in at twenty times its cost); a letter that went astray made the quest unfinishable, and tossed pay could be picked up
+    by a passer-by; notices showed from anywhere on a town's land; a new leader re-named every five seconds; more than
+    asked for was swallowed; the five-quest limit not kept on a yes.
+  - **Rulings:** (1) "see to the dead" is a flower on the grave only: what the dead carried is long gone or was never
+    real, and a keepsake would be made from nothing. (2) Word is paid on coming back, as the design says (paid by the
+    person, in person). (3) A notice counts as read from near the plaza, not the board's own block. (4) "Told of a
+    notice" by someone isn't built. (5) The addon's quests reach into Drifter past the API in the few ways notices
+    already do (tossing an item, turning to look).
+  - **Deferred minors:** time limits run while a player is offline (a server); any flower by the stone counts, whoever
+    planted it; an ask whose words were never said (the talk failed to start its line) still shows as offered; a yes
+    typed before the asker has finished a two-part line isn't heard (Drifter's own talk timing); a war's ask for "food
+    after a long one" and tools; a warning before carrying word to a town hostile to their nation.
+  - **Next:** stage 2 (find someone, deal with someone). The shops design (docs/superpowers/specs/2026-11-12-shops-worth-it-design.md)
+    waits for the user's three answers.
 - **0.23.50: the economy on coins (quests, stage 0)** (the user, 2026-11-12: "make it compatible with numismatic
   overhauls when it comes to giving emeralds ... the whole economy should center around NO if its installed"; "think of
   bronze more like pennies, silver coins as dollars 10s or 20s, and gold coins as like 100 bills ... its very easy to get

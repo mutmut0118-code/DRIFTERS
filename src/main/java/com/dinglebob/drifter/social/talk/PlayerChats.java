@@ -156,6 +156,17 @@ public final class PlayerChats {
 		}
 	}
 
+	/**
+	 * Could it open a talk with them now, as it would of its own accord: neither in a talk, no question of anyone's waiting
+	 * on them, it not asleep, sparring or at odds with them, they not in an encounter?
+	 */
+	public static boolean free(DrifterEntity drifter, ServerPlayer player) {
+		long now = drifter.level().getGameTime();
+		return openings.stream().noneMatch(opening -> opening.player == player) && !PlayerConvo.talking(player) && !PlayerTalk.awaiting(player, now)
+			&& com.dinglebob.drifter.encounter.Encounters.active(player.getUUID()) == null && Conversations.idle(drifter) && !PlayerTalk.answering(drifter)
+			&& !Spar.sparring(drifter) && !Mode.atOdds(drifter, player) && !drifter.isSleeping();
+	}
+
 	/** It brings up this topic with them (or one that suits); the topic, or null if none does. */
 	@Nullable
 	public static Topics.Topic start(DrifterEntity drifter, ServerPlayer player, @Nullable String topicId, long now) {

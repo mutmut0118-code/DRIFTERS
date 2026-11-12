@@ -86,13 +86,18 @@ public final class Journal {
 	public static final int QUOTE = 9;
 	public static final int LINK = 10;
 	public static final int BREAK = 11;
+	public static final int ITEM = 12;
+	public static final int BUTTON = 13;
 
 	/**
 	 * One thing on a page, top to bottom: a headline ({@code a}), a dateline ({@code a} left, {@code b} right), a double
 	 * rule, a thin one, text ({@code a}, its ink), a small heading, banners ({@code more}: each "picture, tab, caption, tab,
 	 * page"), heads ({@code more}: each "skin, tab, name, tab, page, tab, caption"), a person ({@code a} skin, {@code b}
 	 * name, {@code more}: their power's picture, then a line about them), a quote ({@code a} the words, {@code b} who,
-	 * {@code more}: their skin), a link ({@code a} the words, {@code b} the page), a break (the rest on the right page).
+	 * {@code more}: their skin), a link ({@code a} the words, {@code b} the page), a break (the rest on the right page),
+	 * an item ({@code a} its id, for its picture; {@code b} what's said of it; {@code more}: fainter lines under that), a
+	 * button ({@code a} its words, {@code b} the page it asks for in this one's place: what pressing it does is the
+	 * server's to say, {@link Quests#open}).
 	 * A picture: "b" and a dye's id (a banner), "s" and a skin (a head), "-" (none). A skin: a Drifter's skin texture and
 	 * the real player's skin it wears, as the world's record keeps them ("": none known).
 	 */
@@ -139,6 +144,8 @@ public final class Journal {
 				case PERSON -> out.add("[person] " + el.b() + (el.a().isEmpty() ? " (no skin)" : "") + ": " + String.join(" / ", el.more()));
 				case QUOTE -> out.add("\"" + el.a() + "\" - " + el.b());
 				case LINK -> out.add("-> " + el.a() + " [" + el.b() + "]");
+				case ITEM -> out.add("[item " + el.a() + "] " + el.b() + (el.more().isEmpty() ? "" : " (" + String.join("; ", el.more()) + ")"));
+				case BUTTON -> out.add("[button] " + el.a() + " [" + el.b() + "]");
 				case BREAK -> out.add("--- right page ---");
 				default -> out.add(el.a());
 			}
@@ -208,7 +215,9 @@ public final class Journal {
 				int tick = context.server().getTickCount();
 				Integer last = turned.put(player.getUUID(), tick);
 				if (last == null || tick != last) {
-					ServerPlayNetworking.send(player, Annals.page(player, open.id().length() > 80 ? "" : open.id()));
+					String id = open.id().length() > 80 ? "" : open.id();
+					// (The Quests bookmark's pages and buttons: Quests. The Chronicle's: Annals.)
+					ServerPlayNetworking.send(player, id.startsWith("q") ? Quests.open(player, id) : Annals.page(player, id));
 				}
 			});
 		});
@@ -375,7 +384,7 @@ public final class Journal {
 			people(server, player, mine, bonds, friendsOn, now),
 			towns(server, player, standings, heardOf, friendTowns, bonds, day, bounty),
 			law(player, towns, day, bounty),
-			favors(bonds, friendsOn, now),
+			Quests.tab(player),
 			Annals.tab(player)));
 	}
 
@@ -558,32 +567,6 @@ public final class Journal {
 		return new Tab("Law", lines, "A clean record. Nobody's after you.");
 	}
 
-	private static Tab favors(List<Friends.Bond> bonds, boolean friendsOn, long now) {
-		if (!friendsOn) {
-			return new Tab("Favors", List.of(), "Friendships are switched off in the settings.");
-		}
-
-		List<Line> lines = new ArrayList<>();
-		for (Friends.Bond b : bonds) {
-			if (b.favor == null || !b.active()) {
-				continue;
-			}
-
-			int needed = FriendPerks.needed(b.favor.kind());
-			long left = Math.max(0, b.favor.due() - now);
-			List<String> detail = new ArrayList<>();
-			detail.add(b.drifterName + " asked you: " + favorWords(b.favor, now));
-			detail.add(b.favor.promised() ? "You said you would." : "You haven't said yes yet. Talk to them.");
-			if (b.favor.at() != null && b.favor.kind().equals("zombies")) {
-				detail.add("Their place is at " + b.favor.at().getX() + ", " + b.favor.at().getZ());
-			}
-
-			lines.add(new Line(b.drifterName, Math.min(b.favor.done(), needed) + " of " + needed + ", " + timeLeft(left), b.favor.promised() ? PLAIN : FAINT, detail));
-		}
-
-		return new Tab("Favors", lines, "Nobody's asked you for anything. Friends will.");
-	}
-
 	// ----- Words -----
 
 	private static String favorWords(Friends.Favor favor, long now) {
@@ -596,7 +579,7 @@ public final class Journal {
 		return what + " (" + Math.min(favor.done(), needed) + " of " + needed + " done, " + timeLeft(Math.max(0, favor.due() - now)) + ")";
 	}
 
-	private static String timeLeft(long ticks) {
+	static String timeLeft(long ticks) {
 		return ticks >= 24000L ? days(ticks / 24000L) + " left" : ticks >= 1000L ? ticks / 1000L + (ticks / 1000L == 1 ? " hour left" : " hours left")
 			: ticks > 0 ? "almost out of time" : "out of time";
 	}

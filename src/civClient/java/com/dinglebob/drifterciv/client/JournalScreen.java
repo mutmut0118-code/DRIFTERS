@@ -299,6 +299,15 @@ final class JournalScreen extends Screen {
 			}
 			case Journal.QUOTE -> this.wrap("\"" + el.a() + "\"", this.wide - 22).size() * 9 + this.wrap(el.b(), this.wide - 22).size() * 9 + 8 + 4;
 			case Journal.LINK -> 12;
+			case Journal.ITEM -> {
+				int lines = this.wrap(el.b(), this.wide - 22).size();
+				for (String more : el.more()) {
+					lines += this.wrap(more, this.wide - 22).size();
+				}
+
+				yield Math.max(18, lines * 9 + 2) + 3;
+			}
+			case Journal.BUTTON -> 18;
 			default -> 0;
 		};
 	}
@@ -527,6 +536,37 @@ final class JournalScreen extends Screen {
 				graphics.drawString(this.font, ">", x + this.wide - this.font.width(">"), y + 1, FAINT, false);
 				this.hit(x, y, x + this.wide, y + 11, el.b());
 			}
+			case Journal.ITEM -> {
+				// (The thing itself, as the game draws it; what's said of it beside it.)
+				var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.tryParse(el.a()));
+				graphics.renderItem(new net.minecraft.world.item.ItemStack(item), x, y);
+				int line = y + 1;
+				for (FormattedCharSequence part : this.wrap(el.b(), this.wide - 22)) {
+					graphics.drawString(this.font, part, x + 21, line, INK, false);
+					line += 9;
+				}
+
+				for (String more : el.more()) {
+					for (FormattedCharSequence part : this.wrap(more, this.wide - 22)) {
+						graphics.drawString(this.font, part, x + 21, line, 0xFF6B5C40, false);
+						line += 9;
+					}
+				}
+			}
+			case Journal.BUTTON -> {
+				// (A boxed word in the middle of the page: pressed, the page it names takes this one's place.)
+				String text = this.clip(el.a(), this.wide - 16);
+				int width = this.font.width(text) + 16;
+				int bx = x + (this.wide - width) / 2;
+				boolean hover = in(mouseX, mouseY, bx, y + 1, bx + width, y + 15);
+				graphics.fill(bx, y + 1, bx + width, y + 15, hover ? PAPER_DARK : 0xFFEFE4C4);
+				graphics.fill(bx, y + 1, bx + width, y + 2, INK);
+				graphics.fill(bx, y + 14, bx + width, y + 15, INK);
+				graphics.fill(bx, y + 1, bx + 1, y + 15, INK);
+				graphics.fill(bx + width - 1, y + 1, bx + width, y + 15, INK);
+				graphics.drawString(this.font, text, bx + 8, y + 4, ink(el.ink()), false);
+				this.hit(bx, y + 1, bx + width, y + 15, "!" + el.b());
+			}
 			default -> {
 			}
 		}
@@ -722,7 +762,14 @@ final class JournalScreen extends Screen {
 				float print = this.print();
 				for (Object[] hit : this.hits) {
 					if (in((int)(mouseX / print), (int)(mouseY / print), (int)hit[0], (int)hit[1], (int)hit[2], (int)hit[3])) {
-						this.turnTo((String)hit[4]);
+						String to = (String)hit[4];
+						// (A button: its page in this one's place, not one further on.)
+						if (to.startsWith("!")) {
+							this.turned.pollLast();
+							to = to.substring(1);
+						}
+
+						this.turnTo(to);
 						return true;
 					}
 				}
@@ -834,7 +881,10 @@ final class JournalScreen extends Screen {
 	List<String> debugLinks() {
 		List<String> out = new ArrayList<>();
 		for (Object[] hit : this.hits) {
-			out.add((String)hit[4]);
+			// (Not the buttons: looking through the book presses nothing.)
+			if (!((String)hit[4]).startsWith("!")) {
+				out.add((String)hit[4]);
+			}
 		}
 
 		return out;

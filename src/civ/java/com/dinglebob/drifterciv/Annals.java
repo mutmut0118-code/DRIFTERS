@@ -686,7 +686,7 @@ final class Annals {
 	}
 
 	/** A power's picture: its banner's colour ("b" and the dye's id), or a free town's leader's head ("s" and the skin), or "-". */
-	private static String picture(UUID power) {
+	static String picture(UUID power) {
 		Integer colour = WorldPlan.powerColour(power);
 		if (colour != null) {
 			return "b" + colour;

@@ -331,6 +331,10 @@ An addon adds its own things to ask through the chat handler above, and these:
 `/drifter hear <text>` (debug): the nearest Drifter hears it as if a player beside it had typed it (the player running
 it; from the console, a stand-in player), for testing a talk without a client.
 
+`TalkApi.freeToTalk(drifter, player)` (API 13): could it open a talk with this player now, as it would of its own accord
+(neither in a talk, no question waiting on the player, it not asleep, sparring or at odds with them, they not in an
+encounter)? Ask before `startTalk` with a topic of your own (the addon's quests do).
+
 ## A Drifter's skin on its record (API 11)
 
 `DrifterRecord.skin()` keeps what a Drifter looks like while it isn't loaded (or is gone): `skinTexture()` (its skin's

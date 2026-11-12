@@ -575,6 +575,11 @@ final class WorldPlan {
 	/** What a power nobody can name any more is called. */
 	static final String FORGOTTEN = "a town since forgotten";
 
+	/** The power a place of the plan is of (made or not): its nation, or itself. */
+	static UUID powerOf(Place place) {
+		return history != null ? history.power(place) : place.nation != null ? place.nation : place.id;
+	}
+
 	/** The power a town is of: its nation (the plan's, or one formed in play), or itself. */
 	static UUID powerOf(Town town) {
 		Place place = place(town.id);

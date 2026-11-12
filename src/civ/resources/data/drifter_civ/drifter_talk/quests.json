@@ -1,0 +1,40 @@
+{
+ "comment": "Quests (Quests.java): the one talk a quest is asked in. Started by the code with what's asked ({b.q_ask}: a line of quest.ask.* in drifter_chat/quests.json, filled in) and what it says to a yes ({b.q_yes}) or a no ({b.q_no}); a yes does 'quest'.",
+ "player_topics": [
+  {
+   "id": "quest_ask",
+   "weight": 0.0,
+   "needs": [],
+   "tags": [
+    "quest"
+   ],
+   "turns": [
+    {
+     "by": "a",
+     "lines": {
+      "any": [
+       "{b.q_ask}"
+      ]
+     }
+    }
+   ],
+   "question": {
+    "yes": {
+     "lines": {
+      "any": [
+       "{b.q_yes}"
+      ]
+     },
+     "do": "quest"
+    },
+    "no": {
+     "lines": {
+      "any": [
+       "{b.q_no}"
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

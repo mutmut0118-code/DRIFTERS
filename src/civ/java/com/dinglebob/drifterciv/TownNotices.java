@@ -209,6 +209,11 @@ final class TownNotices {
 			return;
 		}
 
+		// (Not what a quest of its counts already.)
+		if (Quests.claims(drifter, player, stack)) {
+			return;
+		}
+
 		String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 		for (Town town : Towns.all()) {
 			for (Notice notice : List.copyOf(town.notices)) {
@@ -226,6 +231,9 @@ final class TownNotices {
 
 				pay(server, town, drifter, player, notice.points);
 				town.notices.remove(notice);
+				// (Kept on the journal's Quests page, under Done.)
+				Quests.record(server, player, "notice", "A notice filled: " + Quests.things(notice.count, BuiltInRegistries.ITEM.get(ResourceLocation.parse(notice.item))),
+					drifter.getUUID(), notice.posterName, town, "Filled, and paid for there and then.");
 				Chronicle.add(server, "town", player.getGameProfile().getName() + " brought " + notice.posterName + " the " + notice.count + " "
 					+ new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(notice.item))).getHoverName().getString().toLowerCase(java.util.Locale.ROOT)
 					+ " " + town.name + " needed");

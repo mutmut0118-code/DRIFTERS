@@ -279,6 +279,15 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.talk.PlayerChats.start(drifter, player, topicId, drifter.level().getGameTime()) != null;
 	}
 
+	/**
+	 * Could it open a talk with this player now, as it would of its own accord (API 13): neither of them in a talk, no
+	 * question waiting on the player, it not asleep, sparring or at odds with them, they not in an encounter? For an addon
+	 * about to {@link #startTalk} something of its own.
+	 */
+	public static boolean freeToTalk(DrifterEntity drifter, ServerPlayer player) {
+		return com.dinglebob.drifter.social.talk.PlayerChats.free(drifter, player);
+	}
+
 	/** Hostile on sight by nature: a Bandit (now), or a delver. */
 	public static boolean hostileOnSight(DrifterEntity drifter) {
 		return drifter.getSocial().disposition() == com.dinglebob.drifter.social.Disposition.BANDIT || drifter.isDelver();

@@ -87,6 +87,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		FriendGoals.register();
 		FriendCommands.register();
 		Journal.register();
+		Quests.register();
 		Citizens.register();
 		TownAway.register();
 		Annals.register();
