@@ -97,7 +97,7 @@ public final class DrifterMerchant implements Merchant {
 		}
 
 		// The goods out of its pockets (the screen gave the player a copy), the payment into them (the screen took it).
-		take(this.keeper.getInventory(), shopOffer.goods());
+		take(this.keeper.getInventory(), this.shop.takes(this.keeper, shopOffer));
 		give(this.keeper, shopOffer.pay());
 		give(this.keeper, shopOffer.payB());
 		this.keeper.getMemory().thoughts().add(this.keeper.level().getGameTime(), "sold " + describe(shopOffer.goods()) + " to "

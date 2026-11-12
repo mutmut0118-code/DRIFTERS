@@ -341,6 +341,20 @@ encounter)? Ask before `startTalk` with a topic of your own (the addon's quests 
 against them for, seen or heard of (`(witness, killer, victim) -> true`: a town whose leader asked for it; the addon's
 "deal with someone" quest). Everyone else who saw it still judges it as ever.
 
+`DrifterEvents.DYING` (API 14): a Drifter is about to die, everything it carries and wears still on it (it drops right
+after): for marking what it leaves behind. `DIED` comes after the drop.
+
+`ShopKeeper.takes(keeper, offer)` (API 14): what leaves its pockets for one of an offer; by default the offer's goods.
+A shop that hands goods over with something added (a maker's line under the name) returns the piece as it carries it.
+
+`TownWork.wareToEnchant(drifter)` / `wareEnchanted(drifter, done)` (API 14): a thing of its trade it carries that it
+would enchant to sell dearer (which stacks), or null; Drifter's `EnchantWaresGoal` takes it to an enchanting table it
+knows, with its own levels and lapis, and says how it went. A `TownWork.Service` of kind `"retrim"` is done at a
+smithing table; the town changes the piece when it's handed back.
+
+`DrifterApi.wearsTrim(stack, uniform)` and `DrifterApi.trim(registries, stack, uniform)` (API 14): does this piece
+carry that uniform's trim; put that uniform's trim on it.
+
 ## A Drifter's skin on its record (API 11)
 
 `DrifterRecord.skin()` keeps what a Drifter looks like while it isn't loaded (or is gone): `skinTexture()` (its skin's

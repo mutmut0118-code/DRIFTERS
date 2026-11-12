@@ -1,0 +1,84 @@
+{
+  "_comment": "Blood goods (BloodGoods.java) and the smith's new services (TownServices.java). {player} is what it calls you, {who} whose armour it was, {town} the town it was of, {pay} the price.",
+  "lines": {
+    "blood.seen": {
+      "any": [
+        "wait. thats {who}'s armor",
+        "is that... thats {who}'s. where did you get that",
+        "{player} is wearing {who}'s armor",
+        "i know that armor. that was {who}'s",
+        "thats off {who}. you just walk around in it?",
+        "hey. {who} wore that"
+      ]
+    },
+    "blood.ask": {
+      "any": [
+        "that was {who}'s, {player}. hand it over",
+        "{player}. thats {who}'s armor. give it here and thats the end of it",
+        "youre not keeping {who}'s armor. throw it over",
+        "that belongs to this town. {who} wore it. hand it over, {player}",
+        "ill have {who}'s armor back, {player}. now"
+      ]
+    },
+    "blood.back": {
+      "any": [
+        "ill see it gets back to {who}'s people",
+        "thank you. {who} would want it home",
+        "right. thats where it belongs",
+        "good. ill take it from here",
+        "{who}'s. ill make sure its looked after"
+      ]
+    },
+    "blood.ours": {
+      "any": [
+        "thats one of ours, off someone dead. im not touching it",
+        "those are our colours, and nobody sold you that. no",
+        "no. that came off one of ours. take it back to {town}",
+        "i wont deal in that. someone of ours died in it"
+      ]
+    },
+    "blood.nothing": {
+      "any": [
+        "not mine to buy. a smith could put new colours on it",
+        "i dont deal in armor, and that ones got a name on it. try a smith",
+        "thats somebody's from {town}. nothing to me, but i dont buy armor. a smith might redo it"
+      ]
+    },
+    "blood.trophy": {
+      "any": [
+        "one of {town}'s! ill take that off you",
+        "ha, {town}'s colours. thats going on the wall. here",
+        "off one of {town}'s? good. heres something for it",
+        "{town}'s armor. ill pay for that gladly"
+      ]
+    },
+    "blood.trophy.broke": {
+      "any": [
+        "one of {town}'s! id take it but ive nothing to pay with",
+        "{town}'s colours, nice. cant pay you for it right now though",
+        "id buy that off you if i had anything on me. keep it for now"
+      ]
+    },
+    "crime.blood": {
+      "any": [
+        "i asked you for that armor, {player}. thats a fine",
+        "you kept it. fine then, {player}, youll pay for it",
+        "thats stealing from the dead, {player}. youre fined"
+      ]
+    },
+    "service.quote.retrim": {
+      "any": [
+        "i can put our colours on that for {pay}. then its just armor",
+        "new colours? {pay} and nobody will know it",
+        "{pay} and ill redo the trim. wont be anyones but yours after"
+      ]
+    },
+    "service.quote.repair.own": {
+      "any": [
+        "ill fix it for {pay}, ive got what it takes",
+        "{pay} and its good as new, ive the stuff here",
+        "i can mend that. {pay}, materials and all"
+      ]
+    }
+  }
+}

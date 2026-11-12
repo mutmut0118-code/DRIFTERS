@@ -47,6 +47,14 @@ public interface ShopKeeper {
 		return true;
 	}
 
+	/**
+	 * (API 14.) What comes out of its pockets for one of this offer: the offer's goods as it carries them (the goods
+	 * themselves, unless the shop hands them over with something added: a maker's line under the name).
+	 */
+	default ItemStack takes(DrifterEntity keeper, ShopOffer offer) {
+		return offer.goods();
+	}
+
 	/** A trade was made. */
 	default void traded(DrifterEntity keeper, Player player, ShopOffer offer) {
 	}

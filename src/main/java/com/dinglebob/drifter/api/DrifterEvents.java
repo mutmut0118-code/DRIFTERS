@@ -30,6 +30,16 @@ public final class DrifterEvents {
 		}
 	});
 
+	/**
+	 * (API 14.) A Drifter is about to die: everything it carries and wears is still on it (it drops right after). For
+	 * marking what it leaves behind.
+	 */
+	public static final Event<Dying> DYING = EventFactory.createArrayBacked(Dying.class, listeners -> (drifter, source) -> {
+		for (Dying listener : listeners) {
+			listener.onDying(drifter, source);
+		}
+	});
+
 	/** A Drifter came back from the dead (at its bed, its base or the world spawn), with nothing. */
 	public static final Event<Respawned> RESPAWNED = EventFactory.createArrayBacked(Respawned.class, listeners -> drifter -> {
 		for (Respawned listener : listeners) {
@@ -149,6 +159,11 @@ public final class DrifterEvents {
 	@FunctionalInterface
 	public interface Received {
 		void onReceived(DrifterEntity drifter, Player player, net.minecraft.world.item.ItemStack stack);
+	}
+
+	@FunctionalInterface
+	public interface Dying {
+		void onDying(DrifterEntity drifter, DamageSource source);
 	}
 
 	@FunctionalInterface

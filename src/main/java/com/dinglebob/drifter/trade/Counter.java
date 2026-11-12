@@ -19,15 +19,17 @@ final class Counter {
 		int made = 0;
 		ItemStack pay = offer.pay();
 		ItemStack goods = offer.goods();
+		// (As the keeper carries them: its shop may hand them over with a maker's line added.)
+		ItemStack carried = keeper.getShop() != null ? keeper.getShop().takes(keeper, offer) : goods;
 		for (int i = 0; i < times; i++) {
 			if (customer.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, pay)) < pay.getCount()
-				|| keeper.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, goods)) < goods.getCount()) {
+				|| keeper.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, carried)) < carried.getCount()) {
 				break;
 			}
 
 			DrifterMerchant.take(customer.getInventory(), pay);
 			DrifterMerchant.give(keeper, pay.copy());
-			DrifterMerchant.take(keeper.getInventory(), goods);
+			DrifterMerchant.take(keeper.getInventory(), carried);
 			DrifterMerchant.give(customer, goods.copy());
 			made++;
 		}

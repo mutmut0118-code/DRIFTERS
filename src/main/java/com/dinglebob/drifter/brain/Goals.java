@@ -3285,6 +3285,7 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.skills.StableGoal());
 		goals.add(new com.dinglebob.drifter.skills.ServiceGoal());
 		goals.add(new com.dinglebob.drifter.skills.EnchantBooksGoal());
+		goals.add(new com.dinglebob.drifter.skills.EnchantWaresGoal());
 		// Brewing (milestone 18, section 10.14).
 		goals.add(new com.dinglebob.drifter.skills.BrewGoal());
 		// Netherite gear (milestone 18, section 19).

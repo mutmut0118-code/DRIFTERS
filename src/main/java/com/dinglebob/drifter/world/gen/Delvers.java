@@ -460,7 +460,14 @@ public final class Delvers {
 				enchant(level, stack, random);
 			}
 
+			worn(stack, random);
 			inventory.add(stack);
+		}
+
+		// (What it wears has seen its years in the town: nothing in a town made ready is new off the anvil. The user,
+		// 2026-11-12: what falls off a body is used; what a shop sells is new.)
+		for (EquipmentSlot slot : slots) {
+			worn(drifter.getItemBySlot(slot), random);
 		}
 
 		// (Everyone in a town has a shield by then: found by the user, a town just made with half its people off to the store
@@ -557,6 +564,16 @@ public final class Delvers {
 			Uniforms.trimmed(piece, new ArmorTrim(material.get(), pattern.get(), false));
 		}
 	}
+
+	/** Wear on a kit's piece, by its use so far: a tenth to something over half of its life gone. */
+	private static void worn(ItemStack stack, RandomSource random) {
+		if (!stack.isEmpty() && stack.isDamageableItem() && !stack.isDamaged()) {
+			stack.setDamageValue((int)(stack.getMaxDamage() * (WORN_LEAST + (WORN_MOST - WORN_LEAST) * random.nextDouble())));
+		}
+	}
+
+	private static final double WORN_LEAST = 0.1;
+	private static final double WORN_MOST = 0.55;
 
 	/** An enchanting-table enchantment at level 8 to 25, as a player of its gear would have. */
 	private static void enchant(ServerLevel level, ItemStack stack, RandomSource random) {

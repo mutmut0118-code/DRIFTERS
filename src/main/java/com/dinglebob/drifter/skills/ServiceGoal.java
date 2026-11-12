@@ -114,6 +114,8 @@ public final class ServiceGoal extends Goals.Goal {
 		return new Activity(drifter) {
 			private int step;
 			private ItemStack working = ItemStack.EMPTY;
+			/** How many of each material it carried of its own before the job's were put in its pack. */
+			private final java.util.Map<net.minecraft.world.item.Item, Integer> ownBefore = new java.util.HashMap<>();
 
 			@Override
 			public String describe() {
@@ -142,8 +144,11 @@ public final class ServiceGoal extends Goals.Goal {
 					back.add(this.takeOut());
 					// What's left of what it was given (the materials it didn't use).
 					for (ItemStack given : job.materials()) {
-						int left = given.getCount();
 						var inventory = this.drifter.getInventory();
+						// (Only what the work left of them: not its own of the same kind. 0.23.53: it handed over its own iron.)
+						int own = this.ownBefore.getOrDefault(given.getItem(), 0);
+						int left = Math.max(0, Math.min(given.getCount(), inventory.count(stack -> stack.getItem() == given.getItem()) - own));
+						this.ownBefore.merge(given.getItem(), 0, Integer::sum);
 						for (int slot = 0; slot < inventory.getContainerSize() && left > 0; slot++) {
 							ItemStack stack = inventory.getItem(slot);
 							if (stack.getItem() == given.getItem()) {
@@ -162,6 +167,23 @@ public final class ServiceGoal extends Goals.Goal {
 			/** The job's item (as it is now) out of its pack. */
 			private ItemStack takeOut() {
 				var inventory = this.drifter.getInventory();
+				// (The very one it worked on first: it may carry others like it, its own to sell. Found reading it, 0.23.53.)
+				for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+					if (inventory.getItem(slot) == this.working && !this.working.isEmpty()) {
+						inventory.setItem(slot, ItemStack.EMPTY);
+						return this.working;
+					}
+				}
+
+				// (An enchanting may leave another stack in its place: the enchanted one of its kind before a plain one of its own.)
+				for (int slot = 0; slot < inventory.getContainerSize() && job.kind().equals("enchant"); slot++) {
+					ItemStack stack = inventory.getItem(slot);
+					if (stack.getItem() == this.working.getItem() && stack.isEnchanted()) {
+						inventory.setItem(slot, ItemStack.EMPTY);
+						return stack;
+					}
+				}
+
 				for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
 					ItemStack stack = inventory.getItem(slot);
 					if (!stack.isEmpty() && (stack == this.working || stack.getItem() == this.working.getItem() || job.kind().equals("netherite")
@@ -188,8 +210,25 @@ public final class ServiceGoal extends Goals.Goal {
 					}
 					case 1 -> {
 						// Into its pack for the work (and the materials it was given).
-						this.working = job.item().copy();
-						this.drifter.getInventory().add(this.working);
+						// (Its pack takes its own copy of what's put in and empties what was handed it: the one in the pack is
+						// the one it works on, and the one it hands back. 0.23.53.)
+						this.drifter.getInventory().add(job.item().copy());
+						this.working = ItemStack.EMPTY;
+						for (int slot = 0; slot < this.drifter.getInventory().getContainerSize(); slot++) {
+							if (ItemStack.isSameItemSameComponents(this.drifter.getInventory().getItem(slot), job.item())) {
+								this.working = this.drifter.getInventory().getItem(slot);
+								break;
+							}
+						}
+
+						if (this.working.isEmpty()) {
+							return Status.FAILURE;
+						}
+
+						for (ItemStack stack : job.materials()) {
+							this.ownBefore.putIfAbsent(stack.getItem(), this.drifter.getInventory().count(other -> other.getItem() == stack.getItem()));
+						}
+
 						for (ItemStack stack : job.materials()) {
 							this.drifter.getInventory().add(stack.copy());
 						}
@@ -207,6 +246,12 @@ public final class ServiceGoal extends Goals.Goal {
 								}
 
 								yield slot < 0 ? Status.FAILURE : this.begin(new SmithTask(this.drifter, station, slot));
+							}
+							case "retrim" -> {
+								// (At the smithing table: its town does the fitting when it hands it back.)
+								this.drifter.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+								this.drifter.level().levelEvent(1044, station, 0);
+								yield Status.RUNNING;
 							}
 							default -> {
 								this.repair();

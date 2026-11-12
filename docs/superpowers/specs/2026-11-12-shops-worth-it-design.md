@@ -1,8 +1,11 @@
 # Making shops worth more than looting
 
-Design draft, 2026-11-12. **Not approved yet: nothing here is built.** The user's words are quoted; everything marked
-**(my call)** is a proposal to say yes or no to. Written while the user was away, so the three questions at the end
-are the ones I would have asked one at a time.
+Design, 2026-11-12. **Approved by the user the same day ("Yes, build it"), with my three recommendations at the end
+taken as they stand:** no extra damage to looted gear, the mild version of blood goods, and made-to-order gear first of
+the money-only things. The user's words are quoted; everything marked **(my call)** was a proposal and is now agreed.
+
+**Built so far:** parts 1 and 2 in 0.23.53 (see docs/PROGRESS.md for what was built and how it differs in detail).
+Part 3 (made to order, then a hired sword, then buying off a bounty) follows, one version each.
 
 ## Why
 

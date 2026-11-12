@@ -3396,6 +3396,64 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.53: shops worth more than looting, parts 1 and 2** (design `docs/superpowers/specs/2026-11-12-shops-worth-it-design.md`,
+  the user: "Yes, those three", then "Yes, build it" to my three recommendations). API 14.
+  - **New against battered (part 1).**
+    - A shop's goods are new and plain: `Trades.forSale` counts only those (a worn or trimmed one in its pockets was
+      counted, and the offer then handed over a new one from nothing). Gear bought carries "Made by <smith> of <town>"
+      under its name (`ShopKeeper.takes`, API 14: what leaves its pockets is the piece without that line).
+    - A smith now and then enchants a piece of armour to sell (`EnchantWaresGoal`, `TownWork.wareToEnchant`): a new
+      plain piece of those it sells, one about at a time, one every two days, at the town's enchanting table (its smith
+      is told where it is, as anyone living there knows), the table's own roll, its own levels and lapis (a new smith
+      starts with a few; it buys lapis at its door). Sold as itself, dearer (1.6 times, 0.3 more a level past the first).
+      Armour only: an enchanted sword in its pockets may be the one it uses.
+    - Honest wear: a town made ready dresses its people in armour and weapons a tenth to something over half worn
+      (`Delvers.townKit`); soldiers' and caught-up Drifters' kits already were. No extra damage when a Drifter dies.
+    - Repairs: the fee is 15% of what the piece sells for new, an emerald's worth at most (was a flat emerald), and
+      with nothing brought to mend it with the smith uses its own, if it carries it, charged at its price.
+  - **Blood goods (part 2, `BloodGoods.java`).** Armour in a town's colours that one of its people died in (any
+    death) is marked as it falls (`DrifterEvents.DYING`, API 14: before its things drop) and says so under its name
+    ("Worn by <who> of <town>"). One of that town's people who sees a player wearing or holding it: those who see it
+    trust them 10 less a piece (30 at most at once; twice that for a known killer of its people), the word about them
+    in the town 5 less, once a piece; a guard who sees it asks for it back: thrown to anyone of the town within a
+    minute, done (unasked: 3 trust); kept, a fine of 3 as theft is ("blood", `Justice`), and asked again a day later.
+    Thrown to a keeper or smith elsewhere: of its nation, refused ("one of ours"); a keeper of a town at war with its
+    town buys it (half its worth, from its own pockets); a smith of any other town (an enemy's too) puts its own
+    town's colours on it for 2 emeralds' worth (a `retrim` job, `TownServices`), and then it's plain armour; a keeper
+    with nothing to it hands it back and says to try a smith. On one of its own town's people again, it's the
+    town's again. The fine needs it seen on them still after the minute: put away or gone off with, nothing follows
+    (nobody knows), and the ask lapses after five minutes.
+  - **Found and fixed on the way:** a smith's or enchanter's job worked on an emptied stack (the pack keeps its own
+    copy of what's put in), so which piece came back was by luck of the pack's order (`ServiceGoal`: it works on, and
+    hands back, the one in its pack); things handed back to a player could be picked up by a passing townsperson
+    (now theirs alone to pick up).
+  - **Tested** in the dev client (save a10p2_g, an outsider, by the debug `/drifterciv blood mark` and
+    `/drifterciv town hand <line>`): seen in it, said aloud, trust down; a guard asked; the helmet handed over, taken
+    back with thanks; the chestplate kept: fined 3 after the minute, the chronicle's line; another town of its nation: keeper and smith refuse; a town with nothing to it: keeper sends them
+    to a smith, the smith quotes, is paid, does it at its smithing table, the leggings come back in its town's trim
+    with no mark; at war: the keeper buys the chestplate. A repair quoted with its own iron ("ive the stuff here"),
+    taken and done. The smith, sent to it, walked to the enchanter's table and enchanted a chestplate (Protection I, 3 levels and lapis spent), then put it on itself (see the rulings): the enchanted piece on offer in its shop was not seen. **Not tested:** armour off a guard really killed (the mark at death);
+    buying in the trading screen with the mouse (the maker's line, and that the plain piece leaves its pockets);
+    Drifter customers buying gear; coins. A smith on a mining trip with its town doesn't break off for a job (as
+    before): the job waits till it's back.
+  - **Review** (one fresh reviewer; fixed, then built and booted, not replayed in the client): Drifter customers
+    couldn't buy gear any more (`BuyGoal` counted the piece with its maker's line); an enchanted piece the smith wore
+    was on offer and sold off its back; a repair with its own iron handed the player more of its iron; the fine fell
+    on a piece put away out of sight, and anyone of the town could levy it unseen; a marked piece of a town that's
+    gone, or thrown to another town's enchanter, was swallowed; a citizen of any town of the nation wearing it cleared
+    the mark (dropped: a citizen is asked for it like anyone); the mark came off a re-trim that didn't take.
+  - **Rulings:** (0) A smith that enchants a piece better than what it wears puts it on (as it does with any better
+    piece it carries) and its old one isn't sold; the next one it makes is for the shop. Left as it is: ask the user
+    if they'd rather it never wore its wares. (0b) A re-trim takes the fee only, no template or trim material: the
+    town's colours are the smith's to give, as its guards' were. (1) Marked at any death, not only a killing: it's the town's dead's either way, and how it died
+    isn't known to who finds it. (2) Drifters who loot it aren't held to it yet (only its own town's, on whom it's
+    the town's again). (3) Other towns of its nation refuse it at the counter and no more, as designed. (4) The
+    smith's "long time at it" isn't checked: its levels and lapis are the limit. (5) Existing towns' kits aren't
+    worn after the fact, and their smiths have no lapis till they mine or buy it.
+  - **Deferred minors:** `enchantNext` isn't saved (a smith may enchant one soon after a restart); a refused piece
+    thrown again and again still counts as a gift each time (as refused services did); a job that fails keeps the
+    pay (as before).
+  - **Next:** part 3, one at a time: made-to-order gear, a hired sword, buying off a bounty.
 - **0.23.52: quests, stage 2: find someone, deal with someone** (the design's second stage, approved with it; built
   while the user was away). `Quests.java`; lines in `drifter_chat/quests.json`.
   - **Find someone (`find`):** a town's leader or keeper, of someone they like (or a friend, or one of its nation's own),

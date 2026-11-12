@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 13;
+	public static final int API_VERSION = 14;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -863,6 +863,28 @@ public final class DrifterApi {
 	 */
 	public static int retrim(DrifterEntity drifter, TownUniform from, TownUniform to) {
 		return com.dinglebob.drifter.world.Uniforms.retrim(drifter, from, to);
+	}
+
+	/** (API 14.) This armor piece carries this uniform's trim (its pattern and material). */
+	public static boolean wearsTrim(net.minecraft.world.item.ItemStack stack, @Nullable TownUniform uniform) {
+		net.minecraft.world.item.armortrim.ArmorTrim trim = stack.isEmpty() ? null : stack.get(net.minecraft.core.component.DataComponents.TRIM);
+		net.minecraft.resources.ResourceLocation pattern = uniform == null ? null : net.minecraft.resources.ResourceLocation.tryParse(uniform.trimPattern());
+		net.minecraft.resources.ResourceLocation material = uniform == null ? null : net.minecraft.resources.ResourceLocation.tryParse(uniform.trimMaterial());
+		return trim != null && pattern != null && material != null && trim.pattern().is(pattern) && trim.material().is(material);
+	}
+
+	/**
+	 * (API 14.) Puts this uniform's trim on the piece (in place of the one it has), if it takes one and the trim is
+	 * registered in this world; whether it did.
+	 */
+	public static boolean trim(net.minecraft.core.RegistryAccess registries, net.minecraft.world.item.ItemStack stack, @Nullable TownUniform uniform) {
+		net.minecraft.world.item.armortrim.ArmorTrim trim = com.dinglebob.drifter.world.Uniforms.trim(registries, uniform);
+		if (trim == null || !stack.is(net.minecraft.tags.ItemTags.TRIMMABLE_ARMOR)) {
+			return false;
+		}
+
+		stack.set(net.minecraft.core.component.DataComponents.TRIM, trim);
+		return true;
 	}
 
 	/**

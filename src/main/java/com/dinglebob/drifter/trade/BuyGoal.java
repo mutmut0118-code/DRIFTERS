@@ -210,14 +210,16 @@ public final class BuyGoal extends Goals.Goal {
 				for (int i = 0; i < purchase.times(); i++) {
 					ItemStack pay = purchase.offer().pay();
 					ItemStack goods = purchase.offer().goods();
+					// (As the keeper carries them: its shop may hand them over with a maker's line added. 0.23.53.)
+					ItemStack carried = keeper.getShop() != null ? keeper.getShop().takes(keeper, purchase.offer()) : goods;
 					if (this.drifter.getInventory().count(stack -> stack.is(pay.getItem())) < pay.getCount()
-						|| keeper.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, goods)) < goods.getCount()) {
+						|| keeper.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, carried)) < carried.getCount()) {
 						break;
 					}
 
 					DrifterMerchant.take(this.drifter.getInventory(), pay);
 					DrifterMerchant.give(keeper, pay.copy());
-					DrifterMerchant.take(keeper.getInventory(), goods);
+					DrifterMerchant.take(keeper.getInventory(), carried);
 					DrifterMerchant.give(this.drifter, goods.copy());
 					bought++;
 				}

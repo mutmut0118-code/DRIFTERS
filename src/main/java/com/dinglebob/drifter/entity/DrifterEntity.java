@@ -3131,6 +3131,11 @@ protected void customServerAiStep() {
 		boolean wasDead = this.dead;
 		// (Read before dying: the game forgets the fight as it dies, and the message comes out "it died".)
 		net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();
+		if (!wasDead && !this.isRemoved() && !this.level().isClientSide()) {
+			// (Its things still on it: they drop in the dying.)
+			com.dinglebob.drifter.api.DrifterEvents.DYING.invoker().onDying(this, source);
+		}
+
 		super.die(source);
 		if (!wasDead && this.dead && !this.level().isClientSide()) {
 			com.dinglebob.drifter.world.Respawns.died(this, source, deathMessage, comesBack, worth);

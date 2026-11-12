@@ -3763,3 +3763,24 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
       or call the guards for it.
 - [ ] If someone else kills the bandit first, the quest just ends ("not by your doing"), no pay, nothing held against
       you.
+
+## 0.23.53: shops worth more than looting (new)
+
+- [ ] **A smith's goods say who made them.** Buy a tool or a piece of armour from a smith at its door (mornings).
+      Under its name: "Made by <the smith> of <the town>". It should be brand new.
+- [ ] **Cheaper repairs.** Throw a worn iron tool to a smith. It should ask well under the price of a new one, and if
+      it has iron on it, say it has what it takes (no need to bring the iron). Pay (throw the emeralds), wait, and it
+      hands it back mended.
+- [ ] **An enchanted piece, now and then.** After a few days in a town with a smith and an enchanter, the smith's
+      trades may include one enchanted piece of armour, dearer than the plain one.
+- [ ] **A dead guard's armour is known.** Kill a town guard (or find one dead) and pick up its armour: under the
+      name it says "Worn by <who> of <the town>". Put it on and walk about that town: someone says whose it was, and a
+      guard asks for it back. Throw it to anyone of the town and that's the end of it. Keep it for a minute and you're
+      fined (`/drifterciv town` shows the fine).
+      (To try it without killing anyone: wear any iron armour and run `/drifterciv blood mark`; `/drifterciv blood`
+      lists what's on you.)
+- [ ] **Elsewhere.** Throw such a piece to the shopkeeper or smith of another town of the same nation: they won't
+      touch it. To a smith of a town outside that nation: it offers to put its own colours on it for 2 emeralds; pay,
+      and it comes back as plain armour with a different trim. To the shopkeeper of a town at war with the dead
+      one's town: it buys it.
+- [ ] New towns only: townspeople's armour and weapons are part worn, not brand new.

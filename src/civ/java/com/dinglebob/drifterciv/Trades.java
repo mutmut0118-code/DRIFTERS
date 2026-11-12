@@ -81,6 +81,17 @@ final class Trades {
 	/** Modded gear a smith (or fletcher) makes to sell, beyond its file's list: iron tier or lower (B6 keeps diamond to "sells"). */
 	private static final int GEAR_TIER = 3;
 
+	/** An enchanted piece: this many times the plain one's price, and this much more a level past the first. */
+	private static final double ENCHANTED = 1.6;
+	private static final double ENCHANTED_LEVEL = 0.3;
+	/** After enchanting a piece to sell, the next not for this long; after a try that didn't come off, this long. */
+	private static final long ENCHANTS_EVERY = 24000L * 2;
+	private static final long ENCHANT_REST = 20L * 60 * 10;
+	/** When each smith may next enchant a piece to sell (game time; not saved). */
+	private static final Map<UUID, Long> enchantNext = new HashMap<>();
+	/** The smiths told where their town's enchanting table is (not saved: told again after a restart, which changes nothing). */
+	private static final Set<UUID> knowsTable = new java.util.HashSet<>();
+
 	private static Map<String, Line> lines = Map.of();
 
 	static void register() {
@@ -217,6 +228,8 @@ final class Trades {
 			}
 
 			drifter.giveExperienceLevels(6 + drifter.getRandom().nextInt(9));
+			// (For a piece enchanted to sell now and then: Trades.wareToEnchant.)
+			drifter.getInventory().add(new ItemStack(net.minecraft.world.item.Items.LAPIS_LAZULI, 6 + drifter.getRandom().nextInt(7)));
 		}
 
 		drifter.getSenses().terrain().mark(home.center);
@@ -475,6 +488,20 @@ final class Trades {
 				}
 
 				firstStock(member, town, line);
+				// (Its smith knows where the town's enchanter works, as anyone living there would: for a piece enchanted to
+				// sell. Found in testing, 0.23.53: it had never been in that house, and so never enchanted anything.)
+				if (line.name().equals("smith") && !knowsTable.contains(id)) {
+					for (UUID other : group.members) {
+						DrifterEntity enchanter = "enchanter".equals(town.lines.get(other)) ? TownFounding.loaded(server, other) : null;
+						Home theirs = enchanter == null ? null : DrifterApi.home(enchanter);
+						BlockPos table = theirs == null ? null : theirs.enchantingTable(member.level());
+						if (table != null) {
+							member.getSenses().terrain().mark(table);
+							knowsTable.add(id);
+							break;
+						}
+					}
+				}
 
 				((LineShop)member.getShop()).sign(member);
 			} else if (member.getShop() instanceof LineShop) {
@@ -650,8 +677,68 @@ final class Trades {
 	 */
 	private static int forSale(DrifterEntity drifter, Item item) {
 		int carried = drifter.getInventory().count(stack -> stack.is(item));
-		int keep = ownUse(item) ? 1 : new ItemStack(item).has(net.minecraft.core.component.DataComponents.FOOD) ? KEEP_FOOD : 0;
-		return Math.max(0, carried - keep);
+		// (New and plain ones only: a shop's goods are sound, the user, 2026-11-12. A worn one it picked up, one with a trim
+		// or an enchantment on, isn't what the offer hands over; the enchanted have offers of their own.)
+		ItemStack plain = new ItemStack(item);
+		int sound = drifter.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, plain));
+		int keep = ownUse(item) ? 1 : plain.has(net.minecraft.core.component.DataComponents.FOOD) ? KEEP_FOOD : 0;
+		return Math.max(0, Math.min(sound, carried - keep));
+	}
+
+	/** Armour (what it wears isn't in its pockets: all it carries is for sale), new and plain. */
+	private static boolean plainArmour(ItemStack stack) {
+		return !stack.isEmpty() && DrifterApi.armorPoints(stack) > 0 && ItemStack.isSameItemSameComponents(stack, new ItemStack(stack.getItem()));
+	}
+
+	/** A piece of armour it enchanted to sell: enchanted, sound, nothing else on it. */
+	private static boolean enchantedWare(ItemStack stack, List<Item> sells) {
+		if (stack.isEmpty() || !stack.isEnchanted() || stack.isDamaged() || DrifterApi.armorPoints(stack) <= 0 || !sells.contains(stack.getItem())) {
+			return false;
+		}
+
+		ItemStack bare = stack.copy();
+		bare.remove(net.minecraft.core.component.DataComponents.ENCHANTMENTS);
+		bare.remove(net.minecraft.core.component.DataComponents.REPAIR_COST);
+		ItemStack plain = new ItemStack(stack.getItem());
+		plain.remove(net.minecraft.core.component.DataComponents.ENCHANTMENTS);
+		plain.remove(net.minecraft.core.component.DataComponents.REPAIR_COST);
+		return ItemStack.isSameItemSameComponents(bare, plain);
+	}
+
+	/**
+	 * A smith's piece to enchant, to sell dearer (the user, 2026-11-12): a new plain piece of armour of those it sells, one
+	 * enchanted piece about at a time, one every couple of days; at a table it knows, with its own levels and lapis
+	 * (Drifter's EnchantWaresGoal). Or null.
+	 */
+	@Nullable
+	static java.util.function.Predicate<ItemStack> wareToEnchant(Town town, DrifterEntity drifter) {
+		String name = town.lines.get(drifter.getUUID());
+		Line line = name == null ? null : line(name);
+		if (line == null || line.shop() == null || !name.equals("smith") || drifter.level().getGameTime() < enchantNext.getOrDefault(drifter.getUUID(), 0L)) {
+			return null;
+		}
+
+		List<Item> sells = sells(line, drifter);
+		if (drifter.getInventory().count(stack -> enchantedWare(stack, sells)) > 0) {
+			return null;
+		}
+
+		return stack -> plainArmour(stack) && stack.isEnchantable() && sells.contains(stack.getItem());
+	}
+
+	static void wareEnchanted(DrifterEntity drifter, boolean done) {
+		enchantNext.put(drifter.getUUID(), drifter.level().getGameTime() + (done ? ENCHANTS_EVERY : ENCHANT_REST));
+	}
+
+	/** Gear a shop made: "Made by Ansel of Hollowbrook" under its name (for the feel of owning it; it does nothing). */
+	private static ItemStack made(ItemStack goods, DrifterEntity keeper, Town town) {
+		if (goods.getMaxStackSize() == 1 && goods.isDamageableItem()) {
+			goods.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(
+				Component.literal("Made by " + keeper.getName().getString() + " of " + town.name).withStyle(style -> style.withColor(net.minecraft.ChatFormatting.GRAY)
+					.withItalic(false)))));
+		}
+
+		return goods;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -809,8 +896,27 @@ final class Trades {
 			for (Item item : sells(this.line, keeper)) {
 				ShopOffer offer = Market.trade(item, Market.price(keeper, item) * standing, forSale(keeper, item), true);
 				if (offer != null && !offers.stream().anyMatch(other -> other.goods().is(item))) {
-					offers.add(offer);
+					offers.add(new ShopOffer(offer.pay(), offer.payB(), made(offer.goods(), keeper, this.town), offer.times()));
 				}
+			}
+
+			// A piece it enchanted to sell: itself, dearer by what's on it.
+			List<Item> sells = sells(this.line, keeper);
+			var pockets = keeper.getInventory();
+			// (Its pockets only, not what it wears; and not while it has a player's piece in them for a job.)
+			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE && !TownServices.busy(keeper); slot++) {
+				ItemStack stack = pockets.getItem(slot);
+				if (!enchantedWare(stack, sells) || offers.stream().anyMatch(other -> ItemStack.isSameItemSameComponents(this.takes(keeper, other), stack))) {
+					continue;
+				}
+
+				int levels = 0;
+				for (var entry : stack.getEnchantments().entrySet()) {
+					levels += entry.getIntValue();
+				}
+
+				double each = Market.price(keeper, stack.getItem()) * standing * (ENCHANTED + ENCHANTED_LEVEL * Math.max(0, levels - 1));
+				offers.add(new ShopOffer(DrifterApi.money(each), ItemStack.EMPTY, made(stack.copyWithCount(1), keeper, this.town), 1));
 			}
 
 			for (Item item : this.line.shop().buys()) {
@@ -831,6 +937,19 @@ final class Trades {
 			}
 
 			return offers;
+		}
+
+		/** As it carries them: without the maker's line the offer hands them over with. */
+		@Override
+		public ItemStack takes(DrifterEntity keeper, ShopOffer offer) {
+			ItemStack goods = offer.goods();
+			if (!goods.has(net.minecraft.core.component.DataComponents.LORE) || DrifterApi.moneyWorth(goods) > 0) {
+				return goods;
+			}
+
+			ItemStack carried = goods.copy();
+			carried.remove(net.minecraft.core.component.DataComponents.LORE);
+			return carried;
 		}
 
 		@Override

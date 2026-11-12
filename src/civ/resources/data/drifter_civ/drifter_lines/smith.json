@@ -80,7 +80,8 @@
 		"buys": [
 			"minecraft:iron_ingot",
 			"minecraft:raw_iron",
-			"minecraft:coal"
+			"minecraft:coal",
+			"minecraft:lapis_lazuli"
 		]
 	}
 }

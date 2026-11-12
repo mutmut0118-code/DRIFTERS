@@ -34,7 +34,11 @@ final class TownServices {
 
 	/** What each costs (money points: an emerald is 6). */
 	private static final double ENCHANT = 12;
+	/** A repair: this share of what the piece sells for new, an emerald at most (the user, 2026-11-12: keeping good gear good is the cheap way). */
 	private static final double REPAIR = 6;
+	private static final double REPAIR_SHARE = 0.15;
+	/** Its own colours on a piece that carried another town's (BloodGoods). */
+	private static final double RETRIM = 12;
 	private static final double NETHERITE = 18;
 	/** Not paid in this long: everything back. */
 	private static final long WAITS = 20L * 120;
@@ -50,6 +54,8 @@ final class TownServices {
 		double paid;
 		final long since;
 		boolean working;
+		/** Its own material put to a repair (charged for): what's left of it stays with it. */
+		ItemStack own = ItemStack.EMPTY;
 		@Nullable
 		List<ItemStack> back;
 
@@ -64,6 +70,7 @@ final class TownServices {
 				case "enchant" -> "enchant " + this.playerName + "'s " + name(this.item);
 				case "repair" -> "repair " + this.playerName + "'s " + name(this.item);
 				case "netherite" -> "make " + this.playerName + "'s " + name(this.item) + " netherite";
+				case "retrim" -> "put its town's colours on " + this.playerName + "'s " + name(this.item);
 				default -> "a job for " + this.playerName;
 			};
 		}
@@ -106,6 +113,15 @@ final class TownServices {
 		MinecraftServer server = drifter.getServer();
 		Town town = server == null ? null : town(drifter);
 		String line = town == null ? null : town.lines.get(drifter.getUUID());
+		// (One of a dead townsperson's pieces: its town's to take back, an enemy's to buy, one of its nation's to refuse;
+		// only a smith who doesn't care goes on, to put its own colours on it. BloodGoods.)
+		int blooded = BloodGoods.marked(stack) ? BloodGoods.received(drifter, player, stack) : BloodGoods.NOTHING;
+		if (blooded == BloodGoods.SEEN_TO) {
+			return;
+		}
+
+		boolean blood = blooded == BloodGoods.RETRIM;
+
 		if (town == null || line == null || !line.equals("enchanter") && !line.equals("smith")) {
 			return;
 		}
@@ -113,7 +129,7 @@ final class TownServices {
 		Job job = jobs.get(drifter.getUUID());
 		boolean money = DrifterApi.moneyWorth(stack) > 0;
 		if (job != null && !job.player.equals(player.getUUID())) {
-			if (!money && wanted(line, stack) != null) {
+			if (!money && (blood || wanted(line, stack) != null)) {
 				say(drifter, CivLines.pick(drifter, "service.busy", "one at a time, im busy", "player", player.getGameProfile().getName()));
 				giveBack(drifter, player, take(drifter, stack));
 			}
@@ -123,7 +139,7 @@ final class TownServices {
 
 		TownReputation.Standing standing = TownReputation.of(town, player);
 		if (job == null) {
-			if (money || wanted(line, stack) == null) {
+			if (money || !blood && wanted(line, stack) == null) {
 				return;
 			}
 
@@ -145,9 +161,9 @@ final class TownServices {
 			// (Its pay: it keeps that.)
 			job.paid += DrifterApi.moneyWorth(stack);
 		} else {
-			String kind = wanted(line, stack);
+			String kind = blood ? "retrim" : wanted(line, stack);
 			ItemStack held = take(drifter, stack);
-			if (job.item.isEmpty() && kind != null && (kind.equals("enchant") || kind.equals("repair") || kind.equals("netherite"))) {
+			if (job.item.isEmpty() && kind != null && (kind.equals("enchant") || kind.equals("repair") || kind.equals("netherite") || kind.equals("retrim"))) {
 				job.item = held;
 				job.kind = kind;
 			} else {
@@ -160,19 +176,34 @@ final class TownServices {
 		}
 
 		// (A diamond piece with what netherite takes, or a worn one: which it is now.)
-		if (line.equals("smith") && job.kind != null && !job.kind.equals("netherite") && has(job, Items.NETHERITE_INGOT)
+		if (line.equals("smith") && job.kind != null && !job.kind.equals("netherite") && !job.kind.equals("retrim") && has(job, Items.NETHERITE_INGOT)
 			&& has(job, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE) && diamond(job.item)) {
 			job.kind = "netherite";
 		}
 
 		Job it = job;
-		double price = Math.round((it.kind.equals("enchant") ? ENCHANT : it.kind.equals("netherite") ? NETHERITE : REPAIR) * standing.prices);
+		// (A repair with nothing brought to mend it with: with its own, if it carries it, charged for.)
+		boolean brought = it.materials.stream().anyMatch(m -> it.item.getItem().isValidRepairItem(it.item, m));
+		ItemStack own = it.kind.equals("repair") && !brought ? ownMaterial(drifter, it.item) : ItemStack.EMPTY;
+		int units = own.isEmpty() ? 0 : Math.min(Math.min(own.getCount(), drifter.experienceLevel()),
+			(int)Math.ceil(it.item.getDamageValue() / Math.max(1.0, it.item.getMaxDamage() / 4)));
+		double price = Math.max(1, Math.round(switch (it.kind) {
+			case "enchant" -> ENCHANT;
+			case "netherite" -> NETHERITE;
+			case "retrim" -> RETRIM;
+			default -> Math.max(1.0, Math.min(REPAIR, REPAIR_SHARE * Market.price(drifter, it.item.getItem()))) + units * Market.price(drifter, own.getItem());
+		} * standing.prices));
 		boolean ready = it.paid >= price && switch (it.kind) {
-			case "enchant" -> true;
+			case "enchant", "retrim" -> true;
 			case "netherite" -> has(it, Items.NETHERITE_INGOT) && has(it, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
-			default -> it.materials.stream().anyMatch(m -> it.item.getItem().isValidRepairItem(it.item, m));
+			default -> brought || units > 0;
 		};
 		if (ready) {
+			if (units > 0) {
+				job.own = take(drifter, own.copyWithCount(units));
+				job.materials.add(job.own);
+			}
+
 			job.working = true;
 			say(drifter, CivLines.pick(drifter, "service.start", "ok, give me a minute", "player", job.playerName));
 			DrifterApi.think(drifter, "took a job: " + job.what());
@@ -183,8 +214,12 @@ final class TownServices {
 				case "enchant" -> CivLines.pick(drifter, "service.quote.enchant", "i can enchant that for " + more, "pay", more, "player", job.playerName);
 				case "netherite" -> CivLines.pick(drifter, "service.quote.netherite", "netherite? " + pay + ", and the ingot and the template", "pay", more,
 					"player", job.playerName);
-				default -> CivLines.pick(drifter, "service.quote.repair", "ill fix it for " + more + ", bring the stuff to fix it with", "pay", more,
+				case "retrim" -> CivLines.pick(drifter, "service.quote.retrim", "i can put our colours on that for " + more + ". then its just armor", "pay", more,
 					"player", job.playerName);
+				default -> units > 0
+					? CivLines.pick(drifter, "service.quote.repair.own", "ill fix it for " + more + ", ive got what it takes", "pay", more, "player", job.playerName)
+					: CivLines.pick(drifter, "service.quote.repair", "ill fix it for " + more + ", bring the stuff to fix it with", "pay", more,
+						"player", job.playerName);
 			});
 		}
 	}
@@ -212,6 +247,19 @@ final class TownServices {
 		return stack.getMaxStackSize() > 1 ? "material" : null;
 	}
 
+	/** What it carries that mends this (an ingot, a diamond, planks...): the stack, or empty. */
+	private static ItemStack ownMaterial(DrifterEntity drifter, ItemStack item) {
+		var inventory = drifter.getInventory();
+		for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+			ItemStack stack = inventory.getItem(slot);
+			if (!stack.isEmpty() && stack.getMaxStackSize() > 1 && item.getItem().isValidRepairItem(item, stack)) {
+				return stack.copyWithCount(inventory.count(other -> ItemStack.isSameItemSameComponents(other, stack)));
+			}
+		}
+
+		return ItemStack.EMPTY;
+	}
+
 	private static boolean diamond(ItemStack stack) {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().startsWith("diamond_") && stack.getMaxStackSize() == 1;
 	}
@@ -221,7 +269,7 @@ final class TownServices {
 	}
 
 	/** That stack out of its pack (held apart for the job). */
-	private static ItemStack take(DrifterEntity drifter, ItemStack stack) {
+	static ItemStack take(DrifterEntity drifter, ItemStack stack) {
 		var inventory = drifter.getInventory();
 		int left = stack.getCount();
 		ItemStack held = stack.copyWithCount(0);
@@ -238,13 +286,19 @@ final class TownServices {
 		return held.isEmpty() ? stack.copy() : held;
 	}
 
-	private static void giveBack(DrifterEntity drifter, Player player, ItemStack stack) {
+	static void giveBack(DrifterEntity drifter, Player player, ItemStack stack) {
 		if (stack.isEmpty()) {
 			return;
 		}
 
 		drifter.getCamera().track(player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
-		drifter.tossForward(stack);
+		// (Theirs to pick up, nobody else's: a townsperson passing took it. Found in testing, 0.23.53.)
+		drifter.tossForward(stack).setTarget(player.getUUID());
+	}
+
+	/** It has a player's things in hand for a job. */
+	static boolean busy(DrifterEntity drifter) {
+		return jobs.containsKey(drifter.getUUID());
 	}
 
 	/** The job it's working on, for its goal. */
@@ -264,6 +318,29 @@ final class TownServices {
 
 		job.working = false;
 		job.back = new ArrayList<>(back);
+		// (Its town's colours on it, and it's nobody's dead's any more.)
+		Town town = town(drifter);
+		if (done && "retrim".equals(job.kind) && town != null && !back.isEmpty()
+			&& DrifterApi.trim(drifter.level().registryAccess(), back.get(0), TownUniforms.uniform(town))) {
+			BloodGoods.clear(back.get(0));
+		}
+
+		// (Its own material it didn't use, the job not done: back in its pockets, not to the player.)
+		if (!job.own.isEmpty()) {
+			int mine = job.own.getCount();
+			for (var each = job.back.iterator(); each.hasNext() && mine > 0;) {
+				ItemStack stack = each.next();
+				if (stack.getItem() == job.own.getItem() && stack != job.back.get(0)) {
+					ItemStack kept = stack.split(Math.min(mine, stack.getCount()));
+					mine -= kept.getCount();
+					drifter.getInventory().add(kept);
+					if (stack.isEmpty()) {
+						each.remove();
+					}
+				}
+			}
+		}
+
 		DrifterApi.think(drifter, (done ? "done: " : "couldn't: ") + job.what());
 		if (!done) {
 			say(drifter, CivLines.pick(drifter, "service.failed", "sorry, couldnt do it. heres your stuff", "player", job.playerName));

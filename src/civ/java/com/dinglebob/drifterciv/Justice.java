@@ -69,6 +69,8 @@ final class Justice {
 	private static final int FINE_HORSE = 5;
 	private static final int FINE_LIVESTOCK = 2;
 	private static final int FINE_PEACE = 1;
+	/** Keeping one of its dead's armour when a guard asked for it back: as theft. */
+	private static final int FINE_BLOOD = 3;
 
 	/** Each lesser crime (by its kind): what it's called, and its fine (emeralds, one more each time after). */
 	private record Kind(String what, int fine) {
@@ -76,7 +78,7 @@ final class Justice {
 
 	private static final Map<String, Kind> KINDS = Map.of("theft", new Kind("stealing", FINE_THEFT), "farms", new Kind("harming the town's farms", FINE_FARMS),
 		"horse", new Kind("stealing a horse", FINE_HORSE), "livestock", new Kind("killing the town's animals", FINE_LIVESTOCK), "peace",
-		new Kind("ringing the alarm for nothing", FINE_PEACE));
+		new Kind("ringing the alarm for nothing", FINE_PEACE), "blood", new Kind("keeping the armour of one of its dead", FINE_BLOOD));
 	/** Its pen's animals are within this of its pen. */
 	private static final double PEN_REACH = 12.0;
 	/** Monsters this near its bell: a reason to ring it. */
@@ -95,7 +97,7 @@ final class Justice {
 	/** How close to the town a culprit has to be for a guard to go after them, and a citizen's bed to its middle. */
 	private static final double IN_TOWN = 80.0;
 	/** Witnesses within this of a killing. */
-	private static final double WITNESS = 32.0;
+	static final double WITNESS = 32.0;
 	/** The same deed seen by several of them within this is one crime (ticks). */
 	private static final long SAME_CRIME = 20L * 60;
 	/** A killing witnessed: seen within this, the killer in sight within the last few seconds; or this close, heard. */
@@ -315,7 +317,7 @@ final class Justice {
 
 	/** Its town, or (gone for good, out of its group already) the town it died one of. */
 	@Nullable
-	private static Town townOrWasOf(DrifterEntity dead) {
+	static Town townOrWasOf(DrifterEntity dead) {
 		Town town = townOf(dead);
 		UUID was = DrifterApi.groupAtDeath(dead);
 		if (town == null && was != null) {
@@ -467,7 +469,7 @@ final class Justice {
 
 	/** One of its people who sees this player now (near enough to), or null. */
 	@Nullable
-	private static DrifterEntity witness(MinecraftServer server, Town town, ServerPlayer player) {
+	static DrifterEntity witness(MinecraftServer server, Town town, ServerPlayer player) {
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
 		if (group == null) {
 			return null;
@@ -504,7 +506,7 @@ final class Justice {
 	}
 
 	/** A law broken by a player, seen by one of its people. */
-	private static void crime(MinecraftServer server, Town town, ServerPlayer player, String kind, DrifterEntity witness) {
+	static void crime(MinecraftServer server, Town town, ServerPlayer player, String kind, DrifterEntity witness) {
 		long now = server.overworld().getGameTime();
 		Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(player.getGameProfile().getName()));
 		if (criminal.exiledUntil > 0 || now - criminal.lastAt < SAME_CRIME && kind.equals(criminal.crime)) {

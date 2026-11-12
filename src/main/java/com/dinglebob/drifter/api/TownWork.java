@@ -203,6 +203,19 @@ public interface TownWork {
 		return false;
 	}
 
+	/**
+	 * (API 14.) A thing of its trade it carries that it would enchant to sell dearer (a smith's piece, now and then), or
+	 * null: at an enchanting table it knows, the table's own roll, with its own levels and lapis.
+	 */
+	@org.jetbrains.annotations.Nullable
+	default java.util.function.Predicate<net.minecraft.world.item.ItemStack> wareToEnchant(DrifterEntity drifter) {
+		return null;
+	}
+
+	/** (API 14.) It went to enchant one ({@code done}: it came off). */
+	default void wareEnchanted(DrifterEntity drifter, boolean done) {
+	}
+
 	/** The player this guard keeps an eye on now (one its town is wary of, or worse, in the town), or null. */
 	default net.minecraft.world.entity.player.Player watched(DrifterEntity guard) {
 		return null;

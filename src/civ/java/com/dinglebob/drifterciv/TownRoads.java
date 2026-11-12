@@ -385,6 +385,16 @@ final class TownRoads {
 		}
 
 		@Override
+		public java.util.function.Predicate<net.minecraft.world.item.ItemStack> wareToEnchant(DrifterEntity drifter) {
+			return Trades.wareToEnchant(this.town, drifter);
+		}
+
+		@Override
+		public void wareEnchanted(DrifterEntity drifter, boolean done) {
+			Trades.wareEnchanted(drifter, done);
+		}
+
+		@Override
 		public boolean enchantsBooks(DrifterEntity drifter) {
 			return "enchanter".equals(this.town.lines.get(drifter.getUUID()));
 		}
