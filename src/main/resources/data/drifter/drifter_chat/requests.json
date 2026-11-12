@@ -49,7 +49,7 @@
     },
     "ask.hru_good": {
       "any": ["good", "good hbu", "pretty good", "not bad", "doing alright", "good, you?", "cant complain", "chilling", "alright", "decent", "great actually"],
-      "newbie": ["good!! this game is fun", "great!! wbu"],
+      "newbie": ["good!! today is fun", "great!! wbu"],
       "hermit": ["fine.", "fine"],
       "pvp_sweat": ["cracked as always", "good. undefeated"],
       "helper": ["good! you?", "doing great, thanks for asking!"]

@@ -582,6 +582,12 @@ public final class PlayerTalk {
 
 		// (Without its progress or counts: "gather birch log (0/3)", "craft oak planks x3".)
 		String doing = activity.describe().replaceAll("\\s*\\(.*\\)$", "").replaceAll("\\s+x\\d+$", "").toLowerCase(Locale.ROOT);
+		// (Standing and talking with a player: what it was doing before they spoke.)
+		if (doing.startsWith("talk with ") || doing.startsWith("look for ")) {
+			return PlayerConvo.wasDoing(drifter);
+		}
+
+		PlayerConvo.doingNow(drifter, doing.isBlank() || doing.equals("idle") ? null : doing);
 		return doing.isBlank() || doing.equals("idle") ? null : doing;
 	}
 

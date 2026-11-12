@@ -88,7 +88,10 @@ public final class DrifterCommands {
 					"n", 3, "stake", 3, "bet", 4, "count", 3, "demand", 5, "thief", "Bob", "victim", "Bob", "army", "the Reds", "target", "Bob", "crime", "murder",
 					"reward", 5, "place", "Oakvale", "friend", "Bob", "town", "Oakvale", "years", "3 years", "given", 2, "why", "the raiders",
 					"news", "bandits seen near Oakvale", "where", "by the river", "them", "Pinewood", "enemy", "Pinewood", "victim_caps", "BOB",
-					"leader", "Bob", "warning", "bandits on the north road", "fine", "3 emeralds", "amount", "5 emeralds");
+					"leader", "Bob", "warning", "bandits on the north road", "fine", "3 emeralds", "amount", "5 emeralds", "item", "bread", "last", "its fine",
+					"insult", "a noob", "doing", "gather wood", "dist", 120, "ore", "iron", "built", "a wall", "mob", "zombie", "close_call", "nearly blew up",
+					"traded_with", "Bob", "news_who", "Bob", "news_what", "found diamonds", "laws", "no stealing, no killing", "days", 12, "goods",
+					"bread, torches");
 				if (line == null) {
 					ctx.getSource().sendFailure(Component.literal("No lines for " + key + " (see docs/CHAT_LINES.md)"));
 					return 0;

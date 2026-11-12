@@ -112,6 +112,8 @@ public final class PlayerConvo {
 
 	/** They said something to it, or it to them: the talk goes on. */
 	static void touch(ServerPlayer player, DrifterEntity drifter, long now, boolean theirs) {
+		// (What it's doing as they speak, kept for "wyd" once it has stopped to talk.)
+		PlayerTalk.doing(drifter);
 		Convo c = convos.get(player.getUUID());
 		if (c == null || !c.drifter.equals(drifter.getUUID()) || now > c.until + 20L * 30) {
 			c = new Convo();
@@ -169,7 +171,32 @@ public final class PlayerConvo {
 
 	/** It answered a player with this (so "why?" and "wdym" have something to go on). */
 	static void said(DrifterEntity drifter, String key, String line) {
-		lastSaid.put(drifter.getUUID(), new String[] {key, line});
+		// (Not its own "?" or "i said ...": "wdym" after those has nothing to repeat.)
+		if (!key.startsWith("convo.unknown") && !key.startsWith("convo.wdym")) {
+			lastSaid.put(drifter.getUUID(), new String[] {key, line});
+		}
+	}
+
+	/** What each Drifter was doing before it stopped to talk. */
+	private static final Map<UUID, String> before = new HashMap<>();
+
+	static void doingNow(DrifterEntity drifter, @Nullable String doing) {
+		if (doing == null) {
+			before.remove(drifter.getUUID());
+		} else {
+			before.put(drifter.getUUID(), doing);
+		}
+	}
+
+	@Nullable
+	static String wasDoing(DrifterEntity drifter) {
+		return before.get(drifter.getUUID());
+	}
+
+	/** They've said something to this one since then. */
+	static boolean saidSince(ServerPlayer player, DrifterEntity drifter, long since) {
+		Convo c = convos.get(player.getUUID());
+		return c != null && c.drifter.equals(drifter.getUUID()) && c.exchanges > 0 && c.lastPlayerAt > since;
 	}
 
 	/** The player it's standing and talking with, or null: {@link ListenGoal} keeps it there, facing them. */
@@ -590,7 +617,7 @@ public final class PlayerConvo {
 				}
 			}
 			case "ack", "middle", "iam" -> {
-				say(drifter, player, "convo.ack", null);
+				say(drifter, player, mine.equals("ack") ? "convo.ack" : "convo.asked.middle", null);
 				followUp(drifter, c, now, 0.45);
 			}
 			case "everyone" -> say(drifter, player, "greet_back", null);
@@ -741,13 +768,24 @@ public final class PlayerConvo {
 					moving(player);
 				}
 			}
-			case "come_in" -> {
+			case "come_in", "sleep_here" -> {
+				// (Its own door, and it by it: else there's nothing to come into.)
+				Home home = drifter.getDrifterBrain().home();
+				if (home == null) {
+					say(drifter, player, "convo.your_house.none", null);
+					return;
+				}
+
+				if (mine.equals("sleep_here")) {
+					say(drifter, player, friend ? "convo.sleep_here.yes" : "convo.sleep_here.no", null);
+					return;
+				}
+
 				boolean night = player.level().getDayTime() % 24000L >= 13000L;
 				boolean hoarder = drifter.getPersonality().archetype() == Archetype.HOARDER;
 				boolean yes = friend || knows && !night && !hoarder || helper && r.trust >= 0.0 && !night;
 				say(drifter, player, yes ? "convo.come_in.yes" : night && knows ? "convo.come_in.night" : "convo.come_in.no", null);
 			}
-			case "sleep_here" -> say(drifter, player, friend ? "convo.sleep_here.yes" : "convo.sleep_here.no", null);
 			case "wake_up" -> say(drifter, player, "convo.wake_up.awake", null);
 			default -> say(drifter, player, "convo.unknown", null);
 		}

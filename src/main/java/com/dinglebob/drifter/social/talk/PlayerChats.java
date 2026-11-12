@@ -62,6 +62,7 @@ public final class PlayerChats {
 		final Set<String> world;
 		int turn;
 		long nextAt;
+		final long since;
 		/** It said something (a topic whose lines didn't fit says nothing, and asks nothing). */
 		boolean said;
 
@@ -74,6 +75,7 @@ public final class PlayerChats {
 			Heard.addPlayerFacts(drifter, player, this.a, this.b);
 			this.world = Facts.world(drifter, player);
 			this.nextAt = now + 5;
+			this.since = now;
 		}
 	}
 
@@ -201,6 +203,11 @@ public final class PlayerChats {
 
 	/** Its next line (turns that don't come up skipped); false when it has said its piece. */
 	private static boolean step(Opening opening, long now) {
+		// (They've answered already: the rest of its piece is left unsaid, "im frog btw" after "hey frog".)
+		if (opening.said && PlayerConvo.saidSince(opening.player, opening.drifter, opening.since)) {
+			return false;
+		}
+
 		while (opening.turn < opening.topic.turns().size()) {
 			Topics.Turn turn = opening.topic.turns().get(opening.turn++);
 			if (!turn.by().equals("a") || opening.drifter.getRandom().nextDouble() > turn.chance()
@@ -290,7 +297,7 @@ public final class PlayerChats {
 	/** Up to {@code most} who know them and see them say this, one after another; false when fewer than two would. */
 	private static boolean round(ServerLevel level, ServerPlayer player, String key, int most, long now) {
 		List<DrifterEntity> round = new ArrayList<>(level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(ROUND_RANGE), drifter -> {
-			if (!drifter.isAlive() || drifter.isTemporary() || drifter.encounter() != null) {
+			if (!drifter.isAlive() || drifter.isTemporary() || drifter.encounter() != null || drifter.isSleeping()) {
 				return false;
 			}
 

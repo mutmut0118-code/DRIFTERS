@@ -70,6 +70,20 @@ final class TownTalk {
 		return leader == null || group == null ? null : group.names.get(leader);
 	}
 
+	/** A crime as it's said ("stealing", not the law's own word for it). */
+	private static String crime(String crime) {
+		return switch (crime) {
+			case "theft" -> "stealing";
+			case "farms" -> "wrecking the farms";
+			case "livestock" -> "hurting the animals";
+			case "horse" -> "taking a horse";
+			case "peace", "fight" -> "fighting in town";
+			case "murder" -> "murder";
+			case "massacre" -> "a massacre";
+			default -> crime.isBlank() ? "breaking the law" : crime.startsWith("murder") ? "murder" : crime;
+		};
+	}
+
 	private static BlockPos middle(Town.Plot plot) {
 		return plot.origin.offset(plot.sizeX / 2, 0, plot.sizeZ / 2);
 	}
@@ -169,11 +183,11 @@ final class TownTalk {
 		Town.Criminal criminal = town.crimes.get(player.getUUID());
 		if (mine.equals("am_wanted")) {
 			if (criminal != null && criminal.wantedUntil > 0) {
-				say(drifter, player, "town.talk.wanted.yes", null, "crime", criminal.crime, "days", Math.max(1, criminal.wantedUntil - day));
+				say(drifter, player, "town.talk.wanted.yes", null, "crime", crime(criminal.crime), "days", Math.max(2, criminal.wantedUntil - day));
 			} else if (criminal != null && criminal.exiledUntil > 0) {
-				say(drifter, player, "town.talk.wanted.exiled", null, "crime", criminal.crime, "days", Math.max(1, criminal.exiledUntil - day));
+				say(drifter, player, "town.talk.wanted.exiled", null, "crime", crime(criminal.crime), "days", Math.max(2, criminal.exiledUntil - day));
 			} else if (criminal != null && criminal.fine > 0) {
-				say(drifter, player, "town.talk.wanted.fine", null, "crime", criminal.crime, "fine", TownNotices.describe(DrifterApi.money(criminal.fine)));
+				say(drifter, player, "town.talk.wanted.fine", null, "crime", crime(criminal.crime), "fine", TownNotices.describe(DrifterApi.money(criminal.fine)));
 			} else {
 				say(drifter, player, standing == TownReputation.Standing.WELCOME ? "town.talk.wanted.liked" : "town.talk.wanted.no", null);
 			}
@@ -268,7 +282,7 @@ final class TownTalk {
 				}
 
 				if (goods.isEmpty()) {
-					say(drifter, player, keeper == null ? "town.talk.sells.no_stall" : "town.talk.sells.nothing", null);
+					say(drifter, player, town.keeper == null ? "town.talk.sells.no_stall" : "town.talk.sells.nothing", null);
 				} else {
 					say(drifter, player, keeper == drifter ? "town.talk.sells.mine" : "town.talk.sells", null, "goods", String.join(", ", goods), "who",
 						keeper.getName().getString());

@@ -3631,3 +3631,34 @@ up their stairs; they still dig up when there's truly no other way out.
       dug and closed) and `/drifter goto` somewhere on the surface: it digs its way up.
 - [ ] **Nothing odd elsewhere.** Drifters exploring caves, digging their mines and walking about the surface behave as
       before. If one walks a long way round where a few blocks of digging would plainly be quicker, tell me where.
+
+## 0.23.44-side.2: talking with Drifters (new)
+
+Drifters now hold a conversation. Test with a few of them around, in a town if you can.
+
+- [ ] **It stops for you.** Say a Drifter's name or part of it ("hey frog"). It stops, turns to you and stays while you
+      talk, about 20 seconds after each message. Stop typing and it says it's off and goes back to work.
+- [ ] **Only that one answers.** "hi dani", "thank you mayorcanvas", "cookie you are cool": the one you named answers,
+      nobody else. Misspellings work ("froggg", "cookiew").
+- [ ] **Never silent.** Answer whatever it says: "thats cool", "lol", "same", "why", "wdym", "ikr", gibberish. It always
+      says something back, and sometimes brings up something itself.
+- [ ] **It takes your answer.** When one says "hey, new here?", answer "i am" or "hi im muto". When a PvP sweat asks
+      "you any good at pvp?", answer "kinda" (it offers a 1v1; say yes or no).
+- [ ] **Others keep quiet.** While you talk with one, the others near should talk much less, and not right after your
+      message.
+- [ ] **Ask about it.** "do you have any bread", "i like your helmet" (try "hat" on one without a helmet), "is this
+      your house", "what did you do today", "whats wrong", "why dont you like me", "wanna be friends".
+- [ ] **Ask it to do things.** "show me your house" (it leads you there), "wait here", "look at this" (look at
+      something first), "lets go mining" / "lets kill mobs" (a friend with the tool comes along; a stranger says no;
+      then ask "why").
+- [ ] **In a town.** "what is this place", "who runs this town", "what are the rules", "wheres the shop", "where can i
+      sleep", "whats for sale", "any work", "am i wanted", "whats going on", "are you a guard", and **"can you show me
+      around"** (a walk round the town with a word at each stop) or "take me to the smith".
+- [ ] **Sleeping and fighting.** Talk to one in bed ("zzz"; "wake up" wakes a friend). Talk to one mid-fight ("busy!!").
+- [ ] **Threats.** "im gonna kill all of you" in a town: they react, and like you less. Then "jk".
+- [ ] **Warnings.** "dont go in the mine theres a dungeon down there", then ask another time "whats dangerous around
+      here". "behind you!" makes it look.
+- [ ] **Anything odd.** A reply that doesn't fit, a Drifter that stands too long or walks off mid-talk, two answering
+      at once: a screenshot, as before.
+
+Quick try without waiting for them: stand by one and run `/drifter hear <anything>` (it hears it as if you'd typed it).

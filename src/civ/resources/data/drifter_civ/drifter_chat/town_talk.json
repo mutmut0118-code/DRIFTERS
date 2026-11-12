@@ -290,22 +290,63 @@
     "{town}. welcome",
     "youre in {town}",
     "its called {town}",
-    "{town}, best town around"
+    "{town}, best town around",
+    "welcome to {town}",
+    "{town}. you new here?",
+    "this here is {town}",
+    "we call it {town}",
+    "{town}. home sweet home",
+    "{town}, ever heard of it?",
+    "the town of {town}",
+    "{town}. first time?",
+    "youve found {town}",
+    "{town}. be nice and youll like it",
+    "{town}, thats the name",
+    "{town}. what brings you here?",
+    "you made it to {town}"
    ],
    "hermit": [
-    "{town}."
+    "{town}.",
+    "{town}. thats all",
+    "...{town}"
    ],
    "newbie": [
-    "its {town}!! i live here"
+    "its {town}!! i live here",
+    "{town}!! isnt it cool",
+    "this is {town}!! do you like it?"
    ],
    "helper": [
-    "this is {town}! welcome"
+    "this is {town}! welcome",
+    "youre in {town}! need anything?",
+    "{town}! want me to show you around?"
    ],
    "pvp_sweat": [
-    "{town}. dont start anything"
+    "{town}. dont start anything",
+    "{town}. my turf",
+    "{town}. behave and we're cool"
    ],
    "nomad": [
-    "{town}. nice place to stop a while"
+    "{town}. nice place to stop a while",
+    "{town}. good stop on a long road"
+   ],
+   "speedrunner": [
+     "{town}. next question"
+   ],
+   "hoarder": [
+     "{town}. dont touch the chests"
+   ],
+   "bandit": [
+     "{town}. watch your pockets"
+   ],
+   "homebody": [
+     "{town}. its home"
+   ],
+   "builder": [
+     "{town}. still needs work but its ours"
+   ],
+   "casual": [
+     "{town} lol, you lost?",
+     "its {town} ngl pretty chill place"
    ]
   },
   "town.talk.leader": {
@@ -313,23 +354,60 @@
     "{leader} runs things",
     "thatd be {leader}",
     "{leader}'s the leader",
-    "{leader}. usually round the plaza",
-    "{leader}, for now"
+    "{leader}, for now",
+    "{leader} is in charge",
+    "{leader} leads us",
+    "{leader}, why whats up",
+    "ask for {leader}",
+    "{leader} calls the shots",
+    "thats {leader}'s job",
+    "{leader} is the boss here",
+    "we follow {leader}",
+    "{leader}. you need them for something?",
+    "its {leader}'s town really",
+    "{leader} looks after the place",
+    "{leader}. does a decent job",
+    "yeah, {leader}"
    ],
    "hermit": [
-    "{leader}."
+    "{leader}.",
+    "{leader}. not me",
+    "{leader}. ask them, not me"
    ],
    "newbie": [
-    "{leader}!! theyre really nice"
+    "{leader}!! theyre really nice",
+    "{leader}!! have you met them?",
+    "its {leader} i think!!"
    ],
    "pvp_sweat": [
-    "{leader}. id do it better"
+    "{leader}. id do it better",
+    "{leader}. could take them in a 1v1 tho",
+    "{leader}. dont test them"
    ],
    "bandit": [
-    "{leader}. for now"
+    "{leader}. for now",
+    "{leader}. not that i listen much"
    ],
    "helper": [
-    "{leader} is our leader! want me to point them out?"
+    "{leader} is our leader! want me to point them out?",
+    "{leader}! theyre lovely, say hi",
+    "{leader} leads us! need to find them?"
+   ],
+   "speedrunner": [
+     "{leader}. anything else"
+   ],
+   "nomad": [
+     "{leader}. every town has one"
+   ],
+   "homebody": [
+     "{leader}. keeps us all safe and fed"
+   ],
+   "builder": [
+     "{leader}. picks where everything gets built"
+   ],
+   "casual": [
+     "{leader} lol, pretty chill tbh",
+     "thats {leader} fr"
    ]
   },
   "town.talk.leader.me": {
@@ -338,16 +416,59 @@
     "me, actually",
     "youre talking to them",
     "i run this place",
-    "me. be nice"
+    "me. be nice",
+    "thats me",
+    "youre looking at them",
+    "right here",
+    "im the leader, hi",
+    "me. what do you need?",
+    "you found me",
+    "its me, im in charge",
+    "yours truly",
+    "me. someone has to",
+    "this is my town",
+    "im the one in charge here",
+    "me, why whats up",
+    "me, believe it or not",
+    "the leader? me"
    ],
    "hermit": [
-    "me."
+    "me.",
+    "me. sadly",
+    "me. dont make it a thing"
    ],
    "newbie": [
-    "me!! i know right"
+    "me!! i know right",
+    "me!! still cant believe it",
+    "omg its me actually!!"
    ],
    "pvp_sweat": [
-    "me. so behave"
+    "me. so behave",
+    "me. ez",
+    "me. got a problem with that?"
+   ],
+   "speedrunner": [
+     "me. make it quick"
+   ],
+   "hoarder": [
+     "me. its all mine to look after"
+   ],
+   "homebody": [
+     "me. i look after everyone here"
+   ],
+   "builder": [
+     "me. and the place looks good for it"
+   ],
+   "bandit": [
+     "me. so mind your manners"
+   ],
+   "helper": [
+     "thats me! how can i help?",
+     "me! anything you need, just ask"
+   ],
+   "casual": [
+     "me lol",
+     "thats me ngl, no idea how"
    ]
   },
   "town.talk.leader.none": {
@@ -355,7 +476,52 @@
     "nobody right now",
     "we dont have one atm",
     "no leader at the moment",
-    "its... complicated right now"
+    "its... complicated right now",
+    "no one atm",
+    "nobody runs it right now",
+    "we're between leaders",
+    "theres no leader right now",
+    "nobody, we manage",
+    "no one. we're sorting it out",
+    "good question, nobody atm",
+    "that spot's empty right now",
+    "nobody in charge atm",
+    "no one, want the job?",
+    "leaderless for now",
+    "nobody. long story",
+    "we dont have a leader rn"
+   ],
+   "nomad": [
+     "nobody atm. towns do fine without"
+   ],
+   "homebody": [
+     "no one right now. we look after each other"
+   ],
+   "speedrunner": [
+     "none. next"
+   ],
+   "bandit": [
+     "nobody. interesting, right"
+   ],
+   "helper": [
+     "nobody right now, sorry! can i help instead?",
+     "no leader atm! we all pitch in"
+   ],
+   "pvp_sweat": [
+     "nobody. should be me tbh",
+     "no one rn. i'd win that vote ez"
+   ],
+   "hermit": [
+     "nobody.",
+     "no one. suits me"
+   ],
+   "newbie": [
+     "nobody!! i dont know whats going on",
+     "um we dont have one rn i think"
+   ],
+   "casual": [
+     "nobody lol, its a bit of a mess",
+     "no one rn ngl"
    ]
   },
   "town.talk.rules": {
@@ -364,19 +530,58 @@
     "the rules: {laws}",
     "{laws}. thats about it",
     "basically {laws}",
-    "{laws}. break them and the guards come"
+    "{laws}. break them and the guards come",
+    "our laws: {laws}",
+    "{laws}. keep to that and youre fine",
+    "{laws}. not hard",
+    "its {laws}",
+    "here its {laws}",
+    "{laws}. the guards mean it",
+    "remember: {laws}",
+    "{laws}. got it?",
+    "{laws}. same for everyone",
+    "short list: {laws}",
+    "{laws}. you planning something?",
+    "{laws}. everything else is fine",
+    "town law is {laws}",
+    "{laws}. why, what did you do?"
    ],
    "hermit": [
-    "{laws}."
+    "{laws}.",
+    "{laws}. and leave me alone",
+    "{laws}. dont make me repeat it"
    ],
    "pvp_sweat": [
-    "{laws}. try it and see"
+    "{laws}. try it and see",
+    "{laws}. break one, i dare you",
+    "{laws}. guards hit hard, L for you"
    ],
    "helper": [
-    "just {laws}! easy"
+    "just {laws}! easy",
+    "{laws}! stick to that and everyone's happy",
+    "its {laws}! ask if youre not sure"
    ],
    "bandit": [
-    "{laws}. officially"
+    "{laws}. officially",
+    "{laws}. shame really",
+    "{laws}. if they catch you"
+   ],
+   "homebody": [
+     "{laws}. keeps the place peaceful"
+   ],
+   "speedrunner": [
+     "{laws}. done"
+   ],
+   "hoarder": [
+     "{laws}. and hands off my stuff"
+   ],
+   "newbie": [
+     "{laws}!! i learned them all",
+     "um {laws} i think!!"
+   ],
+   "casual": [
+     "{laws} lol thats it",
+     "{laws}, nothing crazy tbh"
    ]
   },
   "town.talk.rules.none": {
@@ -384,7 +589,54 @@
     "not really any rules",
     "no real laws yet",
     "just dont be a jerk",
-    "nothing written down lol"
+    "nothing written down lol",
+    "no rules here yet",
+    "none that i know of",
+    "we dont have laws yet",
+    "nothing official",
+    "no laws, just be decent",
+    "nobody's made any yet",
+    "none yet. use your head",
+    "no rules so far",
+    "not yet, we just get along",
+    "laws? not here, not yet",
+    "nope. just be nice",
+    "nothing set, dont make us need some",
+    "no list. just common sense",
+    "none. why, planning something?"
+   ],
+   "homebody": [
+     "no rules, we're all friends here"
+   ],
+   "speedrunner": [
+     "none. moving on"
+   ],
+   "hoarder": [
+     "no laws. still, dont touch my stuff"
+   ],
+   "bandit": [
+     "no laws. my kind of town",
+     "none. yet"
+   ],
+   "helper": [
+     "no rules yet! just be kind",
+     "none so far! we trust each other"
+   ],
+   "pvp_sweat": [
+     "no rules. doesnt mean try me",
+     "none. still wouldnt push it"
+   ],
+   "hermit": [
+     "none.",
+     "no rules. leave me alone tho"
+   ],
+   "newbie": [
+     "i dont think we have any!!",
+     "um none yet? pls be nice tho"
+   ],
+   "casual": [
+     "nah no rules lol",
+     "none rn, we just vibe"
    ]
   },
   "town.talk.people": {
@@ -393,13 +645,61 @@
     "{count} or so",
     "theres {count} of us now",
     "{count}, give or take",
-    "hard to say, {count} maybe"
+    "hard to say, {count} maybe",
+    "{count} of us live here",
+    "{count} i think",
+    "{count} last i counted",
+    "{count} of us so far",
+    "id say {count}",
+    "{count} of us these days",
+    "{count}. why, moving in?",
+    "{count} of us, more or less",
+    "{count}, something like that",
+    "{count} of us call it home",
+    "probably {count}",
+    "{count} of us. you thinking of staying?",
+    "{count}, not counting visitors",
+    "right now? {count}"
    ],
    "hermit": [
-    "{count}. too many"
+    "{count}. too many",
+    "{count}. enough",
+    "{count}. i avoid most"
    ],
    "newbie": [
-    "{count}!! and me"
+    "{count}!! and me",
+    "{count} i think!! i lose count",
+    "um {count}? im still meeting everyone"
+   ],
+   "bandit": [
+     "{count}. why, you counting?"
+   ],
+   "speedrunner": [
+     "{count}. roughly"
+   ],
+   "builder": [
+     "{count}. each one needs a house, trust me"
+   ],
+   "nomad": [
+     "{count}. more than im used to"
+   ],
+   "homebody": [
+     "{count} of us. like a big family"
+   ],
+   "hoarder": [
+     "{count}. i keep count"
+   ],
+   "helper": [
+     "{count} of us! all friendly",
+     "{count}! always room for one more"
+   ],
+   "pvp_sweat": [
+     "{count}. id beat all of them",
+     "{count} of us. so dont try anything"
+   ],
+   "casual": [
+     "{count} lol idk exactly",
+     "{count} of us ngl"
    ]
   },
   "town.talk.story": {
@@ -408,16 +708,64 @@
     "founded {days} days ago",
     "weve been at it {days} days",
     "{days} days old and still standing",
-    "started as a few huts {days} days back"
+    "started as a few huts {days} days back",
+    "{days} days and counting",
+    "its {days} days old",
+    "{town} is {days} days old",
+    "been going {days} days now",
+    "we settled here {days} days ago",
+    "{days} days ago this was nothing",
+    "{days} days since we put the first block down",
+    "{days} days so far. not bad right?",
+    "we built it up over {days} days",
+    "{days} days in. its come a long way",
+    "day {days} of {town}",
+    "{town} started {days} days ago, just a few of us",
+    "{days} days. you like it?"
    ],
    "builder": [
-    "{days} days of building. you should have seen it at the start"
+    "{days} days of building. you should have seen it at the start",
+    "{days} days and im still not done with it"
    ],
    "hermit": [
-    "{days} days. it was quieter before"
+    "{days} days. it was quieter before",
+    "{days} days. long enough",
+    "{days} days. thats the story"
    ],
    "homebody": [
-    "{days} days. feels like home now"
+    "{days} days. feels like home now",
+    "{days} days of good neighbors"
+   ],
+   "bandit": [
+     "{days} days. plenty saved up by now"
+   ],
+   "miner": [
+     "{days} days. lot of stone hauled since"
+   ],
+   "speedrunner": [
+     "{days} days. slow build tbh"
+   ],
+   "hoarder": [
+     "{days} days. ive counted every one"
+   ],
+   "nomad": [
+     "{days} days in one spot. imagine"
+   ],
+   "helper": [
+     "{days} days now! everyone pitched in",
+     "{town}'s {days} days old! ask me anything"
+   ],
+   "pvp_sweat": [
+     "{days} days and nobody's taken it. ez",
+     "{days} days undefeated"
+   ],
+   "newbie": [
+     "{days} days!! thats so long",
+     "um {days} days i think? i wasnt counting"
+   ],
+   "casual": [
+     "{days} days old lol, time flies",
+     "like {days} days ngl"
    ]
   },
   "town.talk.story.new": {
@@ -425,7 +773,57 @@
     "its brand new, we just founded it",
     "we only just started this place",
     "barely a few days old",
-    "new town, still building"
+    "new town, still building",
+    "just founded",
+    "only a day or two old",
+    "we just got here",
+    "brand new. give it time",
+    "not much story yet, its new",
+    "still fresh, we just settled",
+    "youre seeing it at the very start",
+    "we just put the first blocks down",
+    "newest town around",
+    "its new. ask again in a while",
+    "no history yet, come back later",
+    "just started. lots to build",
+    "we only just picked this spot",
+    "early days still",
+    "theres not much to tell yet"
+   ],
+   "miner": [
+     "new town. barely dug anything yet"
+   ],
+   "speedrunner": [
+     "new. speedbuilding it"
+   ],
+   "nomad": [
+     "new place. we only just stopped walking"
+   ],
+   "homebody": [
+     "brand new, but it already feels like home"
+   ],
+   "builder": [
+     "new. so much left to build, i love it"
+   ],
+   "helper": [
+     "its brand new! we could use a hand",
+     "just founded! exciting right?"
+   ],
+   "pvp_sweat": [
+     "new town. gonna be the best one, watch",
+     "just founded. already better than the rest"
+   ],
+   "hermit": [
+     "new.",
+     "just founded. nothing to tell"
+   ],
+   "newbie": [
+     "its new!! we just made it",
+     "omg its so new i still get lost"
+   ],
+   "casual": [
+     "its brand new lol, nothing to tell",
+     "just started ngl"
    ]
   },
   "town.talk.where": {
@@ -434,19 +832,63 @@
     "{way}, cant miss it",
     "head {way} for {what}",
     "{what}? {way}",
-    "go {way}, youll see {what}"
+    "go {way}, youll see {what}",
+    "{way} of here",
+    "{what} is {way}, not far",
+    "its {way} from here",
+    "{way}. just keep walking",
+    "that way, {way}",
+    "{what}? over to the {way}",
+    "to the {way}",
+    "{way} a bit, youll find {what}",
+    "try {way}",
+    "you want {way}",
+    "{way} from where youre standing",
+    "look {way}, {what} is over there",
+    "{what} is off to the {way}",
+    "walk {way}, its there"
    ],
    "hermit": [
-    "{way}."
+    "{way}.",
+    "{way}. bye",
+    "...{way}"
    ],
    "helper": [
-    "{what} is {way} of here! want me to take you?"
+    "{what} is {way} of here! want me to take you?",
+    "{way} of here! say if you want me to lead",
+    "{what} is {way}! shout if you get lost"
    ],
    "speedrunner": [
-    "{way}. go"
+    "{way}. go",
+    "{way}. sprint"
    ],
    "newbie": [
-    "um i think {what} is {way}"
+    "um i think {what} is {way}",
+    "{way}!! i only just learned that",
+    "its {way}!! i think. pls dont get lost"
+   ],
+   "homebody": [
+     "{way}, just a little stroll"
+   ],
+   "bandit": [
+     "{way}. dont wander off"
+   ],
+   "miner": [
+     "{way}. i know every block round here"
+   ],
+   "builder": [
+     "{way}. youll know it when you see it"
+   ],
+   "nomad": [
+     "{way}. short walk"
+   ],
+   "pvp_sweat": [
+     "{way}. even a noob could find it",
+     "{way}. ez walk"
+   ],
+   "casual": [
+     "its {way} i think lol",
+     "{way} ngl its close"
    ]
   },
   "town.talk.where.here": {
@@ -455,16 +897,56 @@
     "youre standing next to it lol",
     "right there",
     "just here, look",
-    "this is it"
+    "this is it",
+    "youre basically on top of it",
+    "this is {what}",
+    "look around, {what}'s right here",
+    "youre at {what} already",
+    "here. you found it",
+    "its right by you",
+    "few steps away, look",
+    "you walked right up to it",
+    "thats it right there",
+    "right under your nose",
+    "youre here already",
+    "{what}? youre at it",
+    "cant get much closer",
+    "this is the spot"
    ],
    "hermit": [
-    "here."
+    "here.",
+    "there. look.",
+    "look around."
    ],
    "newbie": [
-    "its right here!!"
+    "its right here!!",
+    "its here!! you found it",
+    "omg youre right next to it!!"
    ],
    "pvp_sweat": [
-    "right in front of you bro"
+    "right in front of you bro",
+    "youre standing at it. L",
+    "open your eyes lol its right here"
+   ],
+   "bandit": [
+     "right here. eyes open next time"
+   ],
+   "nomad": [
+     "here. shortest trip ever"
+   ],
+   "builder": [
+     "right here. nice isnt it?"
+   ],
+   "speedrunner": [
+     "here. done"
+   ],
+   "helper": [
+     "its right here! need anything else?",
+     "you found {what}! its just here"
+   ],
+   "casual": [
+     "right here lol",
+     "bro its right there"
    ]
   },
   "town.talk.where.none": {
@@ -473,7 +955,53 @@
     "no such thing here yet",
     "not built yet",
     "this town doesnt have that",
-    "we dont have {what} yet"
+    "not here, not yet",
+    "we havent got one",
+    "nope, nothing like that yet",
+    "{what}? not here yet",
+    "{what}? we dont have that",
+    "still waiting on that one",
+    "not in this town, sorry",
+    "nowhere, we dont have one",
+    "wish we did. not yet",
+    "nope. maybe one day",
+    "havent got that here yet",
+    "youd have to try another town",
+    "thats still on the list",
+    "none here. sorry",
+    "not yet, we're working on it"
+   ],
+   "bandit": [
+     "nope. this place has nothing"
+   ],
+   "nomad": [
+     "not here. next town over maybe"
+   ],
+   "builder": [
+     "not yet. its on my list"
+   ],
+   "speedrunner": [
+     "none. skip it"
+   ],
+   "helper": [
+     "not yet, sorry! hopefully soon",
+     "we dont have that yet, sorry! anything else i can find you?"
+   ],
+   "pvp_sweat": [
+     "dont have one. cope",
+     "nope. small town L"
+   ],
+   "hermit": [
+     "none.",
+     "dont have one."
+   ],
+   "newbie": [
+     "we dont have one!! i wish we did",
+     "um i dont think we have that yet"
+   ],
+   "casual": [
+     "nah we dont have that lol",
+     "not a thing here yet ngl"
    ]
   },
   "town.talk.sleep.empty": {
@@ -481,13 +1009,61 @@
     "theres an empty house {way} of here",
     "try the empty place {way}",
     "nobody's using the house {way}, should be fine",
-    "theres a free house {way}"
+    "theres a free house {way}",
+    "empty house {way}, take it",
+    "theres a house nobody's in, {way}",
+    "{way}. theres a house with no one in it",
+    "head {way}, one of the houses is empty",
+    "the house {way} is empty",
+    "nobody lives in the one {way}",
+    "{way} of here, empty house. all yours",
+    "try {way}, theres a house going spare",
+    "theres a spare house to the {way}",
+    "go {way}, the empty house. nobody will mind",
+    "the place {way} has no owner yet",
+    "{way}. empty house, cant miss it",
+    "you can crash in the empty house {way}",
+    "one house is free, its {way}"
    ],
    "helper": [
-    "theres an empty house {way}! you can use that"
+    "theres an empty house {way}! you can use that",
+    "theres a free house {way}! want me to show you?",
+    "the house {way} is empty! make yourself at home"
    ],
    "hermit": [
-    "empty house. {way}."
+    "empty house. {way}.",
+    "{way}. empty one.",
+    "house {way}. not mine."
+   ],
+   "hoarder": [
+     "empty house {way}. dont touch mine"
+   ],
+   "bandit": [
+     "empty house {way}. nobody will ask questions"
+   ],
+   "speedrunner": [
+     "{way}. empty house. go"
+   ],
+   "nomad": [
+     "empty house {way}. a roof's a roof"
+   ],
+   "builder": [
+     "the house {way} is empty. good build too"
+   ],
+   "homebody": [
+     "theres a cozy empty house {way}"
+   ],
+   "pvp_sweat": [
+     "empty house {way}. dont say i never help",
+     "{way}. free house, ez"
+   ],
+   "newbie": [
+     "theres an empty house {way}!! i think its ok to use",
+     "{way}!! nobody lives in that one"
+   ],
+   "casual": [
+     "empty house {way} lol go for it",
+     "theres one {way} nobody uses ngl"
    ]
   },
   "town.talk.sleep.none": {
@@ -496,13 +1072,62 @@
     "no spare beds that i know of",
     "nowhere free rn",
     "bring your own bed lol",
-    "ask a friend for their spare bed"
+    "ask a friend for their spare bed",
+    "nothing free, sorry",
+    "all full",
+    "no room right now",
+    "no inn here, and the houses are full",
+    "all the houses have someone in them",
+    "nope, full up",
+    "no empty houses atm",
+    "sorry, every bed's spoken for",
+    "we're full. got a bed on you?",
+    "nowhere i can think of",
+    "no free houses. place your own bed somewhere",
+    "full town, sorry",
+    "not unless you build one",
+    "nothing spare right now",
+    "all taken. try again another day"
    ],
    "helper": [
-    "no empty houses right now, sorry! maybe a friend has a spare bed"
+    "no empty houses right now, sorry! maybe a friend has a spare bed",
+    "all full, sorry! wish i had a spare bed for you",
+    "no free houses, so sorry! try placing your own bed nearby"
    ],
    "hermit": [
-    "no."
+    "no.",
+    "full.",
+    "no. not mine either"
+   ],
+   "hoarder": [
+     "none spare. and my bed is mine"
+   ],
+   "speedrunner": [
+     "none. skip the night somewhere else"
+   ],
+   "bandit": [
+     "no room. keep moving"
+   ],
+   "nomad": [
+     "full. id just put a bed down anywhere"
+   ],
+   "builder": [
+     "no empty ones. need to build more"
+   ],
+   "homebody": [
+     "no spare beds, sorry. wish i could help"
+   ],
+   "pvp_sweat": [
+     "no room. sleep outside, noob",
+     "full. skill issue"
+   ],
+   "newbie": [
+     "theres no room!! sorry",
+     "um i think every house is full"
+   ],
+   "casual": [
+     "nah we're full lol",
+     "no room rn ngl, sorry"
    ]
   },
   "town.talk.sells": {
@@ -511,7 +1136,53 @@
     "the stall has {goods} today",
     "{goods}, ask {who}",
     "mostly {goods} at the stall",
-    "{who}'s got {goods}"
+    "{who}'s got {goods}",
+    "{who} has {goods} for sale",
+    "{goods} at {who}'s stall",
+    "you can get {goods} from {who}",
+    "right now its {goods}",
+    "go see {who}: {goods}",
+    "{goods}. {who} runs the stall",
+    "last i saw, {goods}",
+    "{goods} i think. {who} would know",
+    "the stall? {goods}",
+    "{goods}. talk to {who}",
+    "{who} keeps {goods} in stock",
+    "{goods}. need any of that?",
+    "{goods}, if {who} hasnt sold out",
+    "not me, but {who} has {goods}"
+   ],
+   "homebody": [
+     "{goods}. {who} is fair on prices"
+   ],
+   "speedrunner": [
+     "{goods}. {who}. go"
+   ],
+   "bandit": [
+     "{goods}. {who} guards it well. sadly"
+   ],
+   "hoarder": [
+     "{goods}. id buy it all if i could"
+   ],
+   "helper": [
+     "{who} has {goods} today! worth a look",
+     "{goods}! {who} will sort you out"
+   ],
+   "pvp_sweat": [
+     "{goods}. nothing a pro needs",
+     "{who} has {goods}. mid stock tbh"
+   ],
+   "hermit": [
+     "{goods}. see {who}.",
+     "{goods}."
+   ],
+   "newbie": [
+     "{goods}!! {who} sells them",
+     "um {goods} i think!! i cant afford any"
+   ],
+   "casual": [
+     "{who} has {goods} and stuff lol",
+     "{goods} rn ngl decent stuff"
    ]
   },
   "town.talk.sells.mine": {
@@ -520,16 +1191,57 @@
     "today its {goods}",
     "{goods}. right click me to trade",
     "selling {goods}, good prices",
-    "{goods}, take a look"
+    "{goods}, take a look",
+    "{goods} in stock",
+    "{goods} right now",
+    "got {goods} for you",
+    "{goods}. interested?",
+    "i sell {goods}",
+    "{goods}. want some?",
+    "fresh in: {goods}",
+    "on the stall today: {goods}",
+    "{goods}. bring something to pay with",
+    "{goods}. what are you after?",
+    "{goods}, fair prices",
+    "{goods}. while it lasts",
+    "this stall's mine. {goods}",
+    "{goods}. best youll find round here",
+    "whats left is {goods}"
    ],
    "hoarder": [
-    "{goods}. no discounts"
+    "{goods}. no discounts",
+    "{goods}. hate parting with it tbh"
    ],
    "helper": [
-    "{goods}! have a look"
+    "{goods}! have a look",
+    "{goods}! tell me what you need",
+    "ive got {goods} today! happy to help you pick"
    ],
    "pvp_sweat": [
-    "{goods}. buy or move along"
+    "{goods}. buy or move along",
+    "{goods}. top tier stock, ez",
+    "{goods}. no haggling, youd lose"
+   ],
+   "homebody": [
+     "{goods}, all looked after properly"
+   ],
+   "speedrunner": [
+     "{goods}. pick fast"
+   ],
+   "bandit": [
+     "{goods}. prices went up just now"
+   ],
+   "hermit": [
+     "{goods}.",
+     "{goods}. buy or dont"
+   ],
+   "newbie": [
+     "{goods}!! pls buy something",
+     "i have {goods}!! first stall ive ever run"
+   ],
+   "casual": [
+     "{goods} rn lol",
+     "got {goods} ngl good stuff"
    ]
   },
   "town.talk.sells.nothing": {
@@ -537,7 +1249,53 @@
     "stall's empty today",
     "nothing in stock rn",
     "sold out, come back tomorrow",
-    "not much today"
+    "not much today",
+    "nothing right now",
+    "all sold out",
+    "shelves are bare",
+    "nothing left, sorry",
+    "empty rn, try later",
+    "nothing for sale at the moment",
+    "all gone. try another day",
+    "the stall's got nothing rn",
+    "nothing today, sorry",
+    "out of stock",
+    "nope, cleaned out",
+    "nothing to sell rn. what were you after?",
+    "sold through everything",
+    "bad timing, its all gone"
+   ],
+   "homebody": [
+     "all gone today, sorry about that"
+   ],
+   "speedrunner": [
+     "nothing. come back later"
+   ],
+   "bandit": [
+     "empty. nothing worth taking either"
+   ],
+   "hoarder": [
+     "nothing. somebody bought it all. wasnt me"
+   ],
+   "helper": [
+     "all sold out, sorry! check back soon",
+     "nothing right now, sorry! try again in a bit"
+   ],
+   "pvp_sweat": [
+     "sold out. too slow",
+     "nothing left. L"
+   ],
+   "hermit": [
+     "nothing.",
+     "empty."
+   ],
+   "newbie": [
+     "theres nothing left!! sorry",
+     "um its all sold out i think"
+   ],
+   "casual": [
+     "nothing rn lol",
+     "sold out ngl, unlucky"
    ]
   },
   "town.talk.sells.no_stall": {
@@ -545,7 +1303,55 @@
     "we dont have a stall yet",
     "no shop here yet",
     "the keeper's not around",
-    "no market yet, still building"
+    "no market yet, still building",
+    "nobody's selling anything rn",
+    "nothing for sale here rn",
+    "no one to buy from right now",
+    "no shopkeeper atm",
+    "nobody's running a stall rn",
+    "cant buy anything here atm",
+    "no trading here right now",
+    "no keeper, no sales",
+    "not today, nobody's selling",
+    "no one's keeping shop rn",
+    "we've got no one selling atm",
+    "nope, no trader about",
+    "nothing to buy here for now"
+   ],
+   "builder": [
+     "no keeper rn. hopefully soon"
+   ],
+   "nomad": [
+     "no trader here rn. try the next town"
+   ],
+   "speedrunner": [
+     "no shop rn. skip"
+   ],
+   "bandit": [
+     "no trader about. pity"
+   ],
+   "hoarder": [
+     "nobody selling. keep what youve got"
+   ],
+   "helper": [
+     "no one's selling right now, sorry! ask around if you need something",
+     "no shopkeeper atm, sorry!"
+   ],
+   "pvp_sweat": [
+     "no trader rn. bring your own gear",
+     "nobody selling. unlucky"
+   ],
+   "hermit": [
+     "no one sells here rn.",
+     "nothing. no keeper."
+   ],
+   "newbie": [
+     "nobody's selling right now!! sorry",
+     "um i dont think anyone sells stuff rn"
+   ],
+   "casual": [
+     "nobody selling rn lol",
+     "no shop stuff atm ngl"
    ]
   },
   "town.talk.work.notice": {
@@ -554,13 +1360,58 @@
     "theres a notice up for {what}",
     "someone needs {what}, pays well",
     "check the board, {who} is after {what}",
-    "bring {who} {what} and you get paid"
+    "bring {who} {what} and you get paid",
+    "{who} is looking for {what}",
+    "theres a notice: {what} for {who}",
+    "yeah, {who} needs {what}",
+    "{what}. {who} posted it on the board",
+    "the board says {what}",
+    "you could fetch {what} for {who}",
+    "{who} will pay for {what}",
+    "got {what}? {who} wants it",
+    "if you can find {what}, see the board",
+    "one job up: {what}",
+    "{what}, thats what the board's asking for",
+    "{who} put up a notice for {what}. interested?",
+    "yep. {what}, reward's on the board",
+    "{what} would do it. {who} is asking"
    ],
    "helper": [
-    "yes! {who} needs {what}, itd really help"
+    "yes! {who} needs {what}, itd really help",
+    "{who} is after {what}! the board has the details",
+    "theres a notice for {what}! good way to help out"
    ],
    "hermit": [
-    "{what}. for {who}. board."
+    "{what}. for {who}. board.",
+    "{what}. board.",
+    "{who} wants {what}. not my problem"
+   ],
+   "nomad": [
+     "{who} wants {what}. good excuse for a trip"
+   ],
+   "homebody": [
+     "{who} needs {what}. theyd be so grateful"
+   ],
+   "speedrunner": [
+     "{what} for {who}. fast job"
+   ],
+   "bandit": [
+     "{what}. {who} pays. or keep it, your call"
+   ],
+   "hoarder": [
+     "{who} wants {what}. id keep it myself"
+   ],
+   "pvp_sweat": [
+     "{what} for {who}. ez job",
+     "{who} wants {what}. even you could do it"
+   ],
+   "newbie": [
+     "{who} needs {what}!! i cant find any",
+     "um the board says {what}!! i think it pays"
+   ],
+   "casual": [
+     "{who} wants {what} lol, easy money",
+     "theres {what} on the board ngl not bad"
    ]
   },
   "town.talk.work.none": {
@@ -569,7 +1420,56 @@
     "no work today",
     "not that i know of",
     "check the board later",
-    "all quiet, no notices"
+    "all quiet, no notices",
+    "no jobs right now",
+    "the board's empty",
+    "no notices up",
+    "nope, nothing posted",
+    "nothing needs doing atm",
+    "not today, sorry",
+    "nobody's asking for anything rn",
+    "no jobs going. try tomorrow",
+    "boards bare rn",
+    "we're all sorted for now",
+    "nothing posted. ask again later",
+    "no bounties, no notices",
+    "not at the moment",
+    "nah, slow day for work"
+   ],
+   "homebody": [
+     "no notices today. come rest a while instead"
+   ],
+   "nomad": [
+     "nothing here. maybe the next town"
+   ],
+   "speedrunner": [
+     "none. dont wait around"
+   ],
+   "bandit": [
+     "no work. honest work anyway"
+   ],
+   "hoarder": [
+     "nothing. id have taken it already"
+   ],
+   "helper": [
+     "nothing posted right now, sorry! check back soon",
+     "no notices atm! thanks for asking tho"
+   ],
+   "pvp_sweat": [
+     "nothing. go find your own fights",
+     "no jobs. grind somewhere else"
+   ],
+   "hermit": [
+     "no.",
+     "nothing. board's empty."
+   ],
+   "newbie": [
+     "theres nothing on the board!! i checked",
+     "um no i dont think so, sorry!!"
+   ],
+   "casual": [
+     "nah nothing rn lol",
+     "no jobs atm ngl"
    ]
   },
   "town.talk.wanted.yes": {
@@ -577,19 +1477,58 @@
     "yes. for {crime}. id leave",
     "the guards want you for {crime}",
     "you? yeah, {crime}. {days} more days",
-    "wanted for {crime}. run"
+    "wanted for {crime}. run",
+    "youre wanted here. charge: {crime}",
+    "the guards are looking for you",
+    "youre wanted. days left: {days}",
+    "wanted. {crime}. i wouldnt hang around",
+    "guards have your name. {crime}",
+    "youre in big trouble here",
+    "wanted, and the guards know your face",
+    "{crime}. the whole town knows",
+    "youre on the wanted list. days left: {days}",
+    "they want you for {crime}. what happened?",
+    "wanted. why are you still standing here",
+    "youre wanted. did you really do it?"
    ],
    "hermit": [
-    "yes. go."
+    "yes. go.",
+    "wanted. {crime}.",
+    "wanted... leave me out of it"
    ],
    "pvp_sweat": [
-    "wanted for {crime}. guards will love this"
+    "wanted for {crime}. guards will love this",
+    "youre wanted, {crime}. L",
+    "youre wanted lol. guards gonna farm you"
    ],
    "helper": [
-    "yes... for {crime}. you should go before they see you"
+    "yes... for {crime}. you should go before they see you",
+    "youre wanted, {crime}... please be careful",
+    "the guards are after you. id slip out quietly"
    ],
    "newbie": [
-    "yes!! for {crime}!! why did you do that"
+    "yes!! for {crime}!! why did you do that",
+    "omg youre the wanted one!! {crime}!!",
+    "the guards are after you!! pls dont hurt me"
+   ],
+   "nomad": [
+     "wanted here. id hit the road if i were you"
+   ],
+   "hoarder": [
+     "wanted. {crime}. stay away from my chests"
+   ],
+   "speedrunner": [
+     "wanted. {crime}. move"
+   ],
+   "homebody": [
+     "youre wanted here. please dont bring trouble to my door"
+   ],
+   "bandit": [
+     "wanted, huh. welcome to the club"
+   ],
+   "casual": [
+     "ngl youre wanted. {crime}",
+     "the guards want you lol. id bounce"
    ]
   },
   "town.talk.wanted.exiled": {
@@ -597,7 +1536,52 @@
     "youre banned for {crime}, {days} more days",
     "exiled. {days} days left",
     "you shouldnt be here. {crime}",
-    "{days} more days of exile for you"
+    "{days} more days of exile for you",
+    "youre exiled. days left: {days}",
+    "banned. {crime}. come back later",
+    "exile. youre not supposed to be in town",
+    "you got thrown out for {crime}",
+    "youre banned from town rn",
+    "exiled, charge: {crime}. days left: {days}",
+    "the town banned you. you know why",
+    "youre not allowed in. days left: {days}",
+    "banned. guards wont like you being here",
+    "exiled for {crime}. what did you expect",
+    "still banned. wait it out",
+    "youre exiled. why come back early?",
+    "ban's still on. days left: {days}"
+   ],
+   "speedrunner": [
+     "banned. days left: {days}. bye"
+   ],
+   "homebody": [
+     "youre banned. please just go home"
+   ],
+   "nomad": [
+     "exiled. plenty of other roads out there o7"
+   ],
+   "bandit": [
+     "exiled for {crime}. not bad"
+   ],
+   "helper": [
+     "youre exiled, sorry... days left: {days}",
+     "banned for {crime}. wait it out and itll be ok"
+   ],
+   "pvp_sweat": [
+     "exiled lol. L",
+     "banned for {crime}. skill issue"
+   ],
+   "hermit": [
+     "exiled. go.",
+     "banned... {crime}."
+   ],
+   "newbie": [
+     "youre banned!! for {crime}!!",
+     "um i dont think youre allowed here!!"
+   ],
+   "casual": [
+     "ur banned lol. {crime}",
+     "ngl youre exiled rn. days left: {days}"
    ]
   },
   "town.talk.wanted.fine": {
@@ -605,7 +1589,50 @@
     "you owe {fine} for {crime}",
     "theres a fine, {fine}. pay a guard",
     "{fine} for {crime}. throw it to a guard",
-    "pay your {fine} and its forgotten"
+    "pay your {fine} and its forgotten",
+    "theres a fine on you. {fine}",
+    "you owe the town {fine}",
+    "just a fine. {fine}",
+    "{fine}. pay it and youre clear",
+    "fine of {fine}, charge: {crime}",
+    "not wanted, but you owe {fine}",
+    "the guards want {fine} from you",
+    "{fine} and its all square",
+    "you got fined. {fine}. find a guard",
+    "unpaid fine. {fine}",
+    "its {fine}. hand it to a guard",
+    "could be worse. {fine} and youre done",
+    "you owe {fine}. what did you do?"
+   ],
+   "speedrunner": [
+     "{fine}. guard. go"
+   ],
+   "bandit": [
+     "{fine}. or just dont get caught next time"
+   ],
+   "hoarder": [
+     "{fine}. id hate to part with that much",
+     "you owe {fine}. i counted"
+   ],
+   "helper": [
+     "its only a fine, {fine}. a guard will take it",
+     "you owe {fine}. pay a guard and youre all good!"
+   ],
+   "pvp_sweat": [
+     "{fine} fine lol. L",
+     "pay the {fine} or the guards 1v1 you"
+   ],
+   "hermit": [
+     "{fine}. pay it.",
+     "fine... {fine}."
+   ],
+   "newbie": [
+     "you have a fine!! {fine}!!",
+     "um i think you owe {fine}? ask a guard"
+   ],
+   "casual": [
+     "u got a fine lol. {fine}",
+     "ngl its just {fine}. pay up and chill"
    ]
   },
   "town.talk.wanted.no": {
@@ -614,16 +1641,55 @@
     "nope, clean record",
     "not that ive heard",
     "youre good",
-    "no trouble that i know of"
+    "no trouble that i know of",
+    "nah youre clear",
+    "nothing on you",
+    "no. should you be?",
+    "the guards have nothing on you",
+    "no fine, no ban",
+    "nope. keep it that way",
+    "not wanted. why, what did you do?",
+    "youre not in any trouble",
+    "nah. clean as far as i know",
+    "no one's after you",
+    "nothing against your name",
+    "no, relax",
+    "all clear"
    ],
    "hermit": [
-    "no."
+    "no.",
+    "no. nothing.",
+    "no. dont make it a yes"
    ],
    "pvp_sweat": [
-    "not yet lol"
+    "not yet lol",
+    "nah. boring record tbh",
+    "no lol. you wish"
    ],
    "bandit": [
-    "not yet"
+    "not yet",
+    "no. shame"
+   ],
+   "homebody": [
+     "no no, nothing like that. relax"
+   ],
+   "hoarder": [
+     "no. unless you touch my stuff"
+   ],
+   "speedrunner": [
+     "no. clear"
+   ],
+   "helper": [
+     "no, youre all good! dont worry",
+     "nope! nothing to worry about"
+   ],
+   "newbie": [
+     "no!! i dont think so?",
+     "nope!! youre ok i think"
+   ],
+   "casual": [
+     "nah ur good lol",
+     "nope ur chill fr"
    ]
   },
   "town.talk.wanted.liked": {
@@ -631,10 +1697,53 @@
     "wanted? people like you here",
     "no lol, youre welcome here",
     "youre one of the good ones",
-    "nah, the town likes you"
+    "nah, the town likes you",
+    "you? no. people like you here",
+    "nah, youre welcome here anytime",
+    "not at all. youre well liked",
+    "no. the town thinks well of you",
+    "wanted? you? no chance",
+    "youre in good standing here",
+    "nope. folks here like you",
+    "no lol. youre practically one of us",
+    "the opposite. people are glad to see you",
+    "nah. you've got a good name here",
+    "no trouble at all. youre a friend of the town",
+    "youre fine. better than fine",
+    "no. why, feeling guilty?"
    ],
    "helper": [
-    "no way! everyone likes you here"
+    "no way! everyone likes you here",
+    "not at all! youre always welcome here",
+    "no! people speak well of you"
+   ],
+   "hoarder": [
+     "no. id still watch my chests tho"
+   ],
+   "nomad": [
+     "nah. youre welcome here, and thats rare"
+   ],
+   "bandit": [
+     "no. the town likes you. for now"
+   ],
+   "homebody": [
+     "of course not. youre always welcome at ours"
+   ],
+   "pvp_sweat": [
+     "nah. town loves you. kinda cringe",
+     "no lol. youre the town favorite"
+   ],
+   "hermit": [
+     "no. they like you.",
+     "no... youre alright"
+   ],
+   "newbie": [
+     "no!! people here think youre great!!",
+     "nope!! youre like the nicest one"
+   ],
+   "casual": [
+     "nah ur loved here lol",
+     "lol no. everyone likes you fr"
    ]
   },
   "town.talk.unwelcome": {
@@ -643,16 +1752,58 @@
     "ask someone else",
     "you should go",
     "i dont have anything to say to you",
-    "leave"
+    "leave",
+    "nothing for you here",
+    "im not answering that",
+    "not for you",
+    "keep walking",
+    "we dont talk to people like you",
+    "move along",
+    "youre not welcome here",
+    "no. not you",
+    "i know who you are. no",
+    "save it",
+    "try another town",
+    "you wont get anything out of me",
+    "walk away"
    ],
    "hermit": [
-    "go."
+    "go.",
+    "no.",
+    "..."
    ],
    "pvp_sweat": [
-    "get out"
+    "get out",
+    "not talking to you. L",
+    "walk away before the guards do it for you"
    ],
    "helper": [
-    "i cant help you. sorry"
+    "i cant help you. sorry",
+    "sorry, i really cant. please go",
+    "id help anyone else. not you, sorry"
+   ],
+   "nomad": [
+     "this road's closed to you"
+   ],
+   "hoarder": [
+     "stay away from me and my stuff"
+   ],
+   "speedrunner": [
+     "no. bye"
+   ],
+   "homebody": [
+     "please just leave us alone"
+   ],
+   "bandit": [
+     "beat it"
+   ],
+   "newbie": [
+     "i-im not supposed to talk to you!!",
+     "pls go away!!"
+   ],
+   "casual": [
+     "nah not talking to you",
+     "lol no. bye"
    ]
   },
   "town.talk.on.alarm": {
@@ -660,28 +1811,108 @@
     "the alarm! somethings wrong",
     "bells ringing, trouble",
     "alarm. stay inside or grab a sword",
-    "trouble in town, careful"
+    "trouble in town, careful",
+    "alarm bell. something's up",
+    "thats the alarm. be careful",
+    "alarm's going. stay sharp",
+    "the bell means trouble",
+    "trouble. the alarm's ringing",
+    "its the alarm, not a festival",
+    "alarm. keep your sword out",
+    "somethings wrong in town. alarm",
+    "bad day. alarm's up",
+    "alarm bell. you armed?",
+    "alarm. watch your back",
+    "town's on alert rn",
+    "alarm. you see anything?"
    ],
    "newbie": [
     "THE ALARM!!",
-    "somethings attacking!!"
+    "its the alarm!! what do we do"
    ],
    "pvp_sweat": [
-    "alarm. finally some action"
+    "alarm. finally some action",
+    "alarm. watch me carry"
+   ],
+   "nomad": [
+     "alarm. this is why i dont settle long"
+   ],
+   "hoarder": [
+     "alarm. nobody touch my chests"
+   ],
+   "bandit": [
+     "alarm. wasnt me. this time"
+   ],
+   "speedrunner": [
+     "alarm. no time"
+   ],
+   "homebody": [
+     "the alarm... i just want to get indoors"
+   ],
+   "helper": [
+     "its the alarm! stay close, ill keep an eye out",
+     "alarm bell. are you ok? be careful"
+   ],
+   "hermit": [
+     "alarm.",
+     "alarm... trouble again"
+   ],
+   "casual": [
+     "alarm lol. not a chill day",
+     "alarms going off ngl its a mess"
    ]
   },
   "town.talk.on.festival": {
    "any": [
     "its {what}!",
     "{what} today, everyone's at the plaza",
-    "{what}. come celebrate",
-    "festival day, {what}"
+    "festival day, {what}",
+    "today is {what}",
+    "its {what}, no one's working much",
+    "{what}. big day here",
+    "everyone's out for {what}",
+    "{what}. happens every year",
+    "its {what}. you staying for it?",
+    "{what}, thats why its busy",
+    "town's marking {what} today",
+    "{what}. head to the plaza",
+    "its {what}. you didnt know?",
+    "day off. its {what}",
+    "{what}. whole town turns out"
    ],
    "hermit": [
-    "{what}. too loud"
+    "{what}. too loud",
+    "{what}.",
+    "{what}... ill be glad when its over"
    ],
    "newbie": [
-    "its {what}!! come on"
+    "its {what}!! come on",
+    "omg its {what} today!!",
+    "{what}!! everyone's at the plaza!!"
+   ],
+   "bandit": [
+     "{what}. everyone's busy. interesting"
+   ],
+   "nomad": [
+     "{what}. good day to be passing through"
+   ],
+   "speedrunner": [
+     "{what}. no work today. weird"
+   ],
+   "homebody": [
+     "its {what}. whole town together for once"
+   ],
+   "helper": [
+     "its {what}! youre welcome to join us",
+     "{what} today. come along, everyone's invited"
+   ],
+   "pvp_sweat": [
+     "{what}. no fights today, sadly",
+     "its {what}. i'd rather have a tournament"
+   ],
+   "casual": [
+     "its {what} lol, nobody's working",
+     "{what} today. pretty chill ngl"
    ]
   },
   "town.talk.on.market": {
@@ -689,14 +1920,105 @@
     "market day",
     "its market day, best prices",
     "market's on, go have a look",
-    "market day, the stall's busy"
+    "market day, the stall's busy",
+    "market day today",
+    "its market day. bring emeralds",
+    "market's on at the stall",
+    "market day, thats all",
+    "market day. good time to buy",
+    "just market day",
+    "market day. you buying or selling?",
+    "its market day, go see the stall",
+    "the market's on today",
+    "market day. prices are better today",
+    "market day. need anything?",
+    "nothing wrong, its market day",
+    "market day. stall's the place to be"
+   ],
+   "homebody": [
+     "market day! good day for a wander round the stall"
+   ],
+   "bandit": [
+     "market day. lots of full pockets"
+   ],
+   "speedrunner": [
+     "market day. buy fast"
+   ],
+   "hoarder": [
+     "market day. my favorite day",
+     "market day. im counting my emeralds already"
+   ],
+   "helper": [
+     "its market day! the stall has good prices today",
+     "market day! want anything? the stall's open"
+   ],
+   "pvp_sweat": [
+     "market day. boring unless you need gear",
+     "market day. go buy a better sword lol"
+   ],
+   "hermit": [
+     "market. ill stay out of it",
+     "market... too many people"
+   ],
+   "newbie": [
+     "its market day!! i love market day",
+     "market day!! im saving up for something"
+   ],
+   "casual": [
+     "market day lol, go spend something",
+     "its market day ngl good deals"
    ]
   },
   "town.talk.on.contest": {
    "any": [
     "fishing contest today",
     "its the fishing contest, most fish by evening wins",
-    "everyone's fishing, contest day"
+    "everyone's fishing, contest day",
+    "its the fishing contest",
+    "contest day. everyone's got a rod out",
+    "fishing contest. most fish wins",
+    "fishing contest today, ends this evening",
+    "the fishing contest is on",
+    "contest day. grab a rod",
+    "fishing contest. you joining?",
+    "its contest day, the fishing one",
+    "everyone's down at the water. fishing contest",
+    "fishing contest. got a rod?",
+    "just the fishing contest",
+    "whole town's fishing today. contest",
+    "fishing contest. winner's picked this evening"
+   ],
+   "miner": [
+     "fishing contest. id rather be underground"
+   ],
+   "homebody": [
+     "the fishing contest! fish for supper all week"
+   ],
+   "hoarder": [
+     "fishing contest. im keeping every fish i catch"
+   ],
+   "speedrunner": [
+     "fishing contest. slowest sport there is"
+   ],
+   "helper": [
+     "its the fishing contest! you should join in",
+     "fishing contest today! good luck if you join"
+   ],
+   "pvp_sweat": [
+     "fishing contest. im winning it. ez",
+     "contest day. most fish wins and thats me"
+   ],
+   "hermit": [
+     "fishing contest.",
+     "contest... at least fishing is quiet"
+   ],
+   "newbie": [
+     "its the fishing contest!! i hope i win",
+     "fishing contest!! im not very good at it tho"
+   ],
+   "casual": [
+     "fishing contest lol. everyones sweating over cod",
+     "contest day ngl i just like fishing"
    ]
   },
   "town.talk.on.nothing": {
@@ -705,13 +2027,54 @@
     "just a normal day",
     "the usual",
     "nothing really",
-    "quiet day"
+    "quiet day",
+    "nothing much",
+    "not a lot",
+    "same as every day",
+    "nothing today",
+    "just people getting on with it",
+    "nothing going on that i know of",
+    "normal day. work, eat, sleep",
+    "no festival, no market. just a day",
+    "nothing. why, did you hear something?",
+    "all quiet",
+    "nothing new",
+    "just town stuff",
+    "nothing special today. you?",
+    "no alarm, if thats what you mean"
    ],
    "hermit": [
-    "nothing."
+    "nothing.",
+    "quiet. good."
    ],
    "casual": [
-    "nothing lol"
+    "nothing lol",
+    "not much ngl",
+    "just vibing, nothing on"
+   ],
+   "builder": [
+     "nothing. just work to do"
+   ],
+   "nomad": [
+     "nothing. same as yesterday. i might wander"
+   ],
+   "speedrunner": [
+     "nothing. slow day"
+   ],
+   "homebody": [
+     "just a nice quiet day"
+   ],
+   "helper": [
+     "nothing special today! need help with anything?",
+     "just a quiet day. anything youre looking for?"
+   ],
+   "pvp_sweat": [
+     "nothing. dead town today",
+     "nothing lol. wish there was a fight"
+   ],
+   "newbie": [
+     "nothing i think!! did i miss something?",
+     "um just a normal day i think"
    ]
   },
   "town.talk.job.keeper": {
@@ -719,10 +2082,50 @@
     "i keep the stall",
     "im the shopkeeper",
     "i run the market stall",
-    "stall keeper. buy something"
+    "stall keeper. buy something",
+    "i mind the stall",
+    "shopkeeper. the stall's mine",
+    "i sell things. the stall",
+    "the stall. i do the selling",
+    "i keep shop here",
+    "im the one behind the stall",
+    "stall keeper. need anything?",
+    "keeper of the stall",
+    "i trade. the town stall is mine to run",
+    "shopkeeper. looking to buy?",
+    "i run the shop",
+    "i look after the stall",
+    "stall. selling, all day"
    ],
    "hoarder": [
-    "i keep the stall. and count every coin"
+    "i keep the stall. and count every coin",
+    "the stall. everything in it is counted"
+   ],
+   "speedrunner": [
+     "stall. buy quick"
+   ],
+   "bandit": [
+     "stall keeper. honest prices. mostly"
+   ],
+   "helper": [
+     "im the shopkeeper! need anything from the stall?",
+     "i keep the stall. happy to help you find something"
+   ],
+   "pvp_sweat": [
+     "shopkeeper. my prices beat anyones",
+     "stall keeper. best trader here ez"
+   ],
+   "hermit": [
+     "stall keeper.",
+     "the stall. buy or go."
+   ],
+   "newbie": [
+     "i keep the stall!! its a lot of counting",
+     "im the shopkeeper!! still learning the prices"
+   ],
+   "casual": [
+     "i run the stall lol. come buy stuff",
+     "shopkeeper ngl its a decent gig"
    ]
   },
   "town.talk.job.leader": {
@@ -730,7 +2133,52 @@
     "i run this town",
     "im the leader",
     "leader. someone has to",
-    "i lead {town}"
+    "i lead {town}",
+    "i lead this town",
+    "leader of {town}",
+    "im in charge here",
+    "i run {town}",
+    "town leader. thats me",
+    "im the one in charge",
+    "leader. its a lot of work",
+    "i look after {town}",
+    "i make the calls here",
+    "{town} is mine to look after",
+    "leader. what do you need?",
+    "i lead. the rest keep it running",
+    "the leader. you wanted something?"
+   ],
+   "speedrunner": [
+     "leader. busy. whats up"
+   ],
+   "homebody": [
+     "i lead {town}. its home, someone has to care"
+   ],
+   "bandit": [
+     "i run {town}. remember that"
+   ],
+   "builder": [
+     "leader. i want {town} looking right"
+   ],
+   "helper": [
+     "i lead {town}. anything you need, ask",
+     "im the leader! how can i help?"
+   ],
+   "pvp_sweat": [
+     "leader. top of {town}. ez",
+     "i run {town}. nobody argues"
+   ],
+   "hermit": [
+     "leader.",
+     "i lead. not by choice."
+   ],
+   "newbie": [
+     "im the leader!! i know, i cant believe it either",
+     "i lead {town}!! its kinda scary"
+   ],
+   "casual": [
+     "i run the place lol",
+     "leader ngl. dont ask me how"
    ]
   },
   "town.talk.job.guard": {
@@ -738,15 +2186,50 @@
     "im a guard",
     "guard. i keep watch over the town",
     "i guard {town}",
-    "yep, town guard",
-    "guard duty"
+    "guard duty",
+    "im one of the guards",
+    "guard of {town}",
+    "i keep the town safe",
+    "town guard. behave",
+    "i watch for trouble",
+    "guard. i keep the peace",
+    "i stand watch",
+    "guard. mobs and thieves, mostly",
+    "i protect {town}",
+    "guard. so dont start anything",
+    "on the watch. guard",
+    "guard here. any trouble to report?",
+    "i guard the place. you need something?"
    ],
    "pvp_sweat": [
     "guard. best job here",
-    "i get paid to fight. yes"
+    "i get paid to fight. yes",
+    "guard. try something, i dare you"
    ],
    "hermit": [
-    "guard."
+    "guard.",
+    "guard. move along."
+   ],
+   "homebody": [
+     "guard. i keep our homes safe"
+   ],
+   "speedrunner": [
+     "guard. patrol. busy"
+   ],
+   "bandit": [
+     "guard. funny, i know"
+   ],
+   "helper": [
+     "im a guard. if youre in trouble, come find me",
+     "guard! ill keep you safe in town"
+   ],
+   "newbie": [
+     "im a guard!! i take it very seriously",
+     "guard!! i havent caught anyone yet"
+   ],
+   "casual": [
+     "guard lol. mostly standing around",
+     "town guard ngl its quiet most days"
    ]
   },
   "town.talk.job.smith": {
@@ -754,10 +2237,50 @@
     "im the smith",
     "i make tools and armor",
     "smith. bring iron",
-    "blacksmith, repairs too"
+    "blacksmith, repairs too",
+    "i work the anvil",
+    "blacksmith",
+    "smith. tools, armor, that sort of thing",
+    "i do the smithing here",
+    "town smith",
+    "i forge the gear",
+    "smith. need something made?",
+    "im the blacksmith here",
+    "iron in, tools out. smith",
+    "i make the town's tools",
+    "smithing. hot work",
+    "the smith. got anything that needs fixing?",
+    "i hammer iron all day"
    ],
    "miner": [
-    "smith. i mine my own iron too"
+    "smith. i mine my own iron too",
+    "smith. cant have too much iron"
+   ],
+   "speedrunner": [
+     "smith. tools. fast"
+   ],
+   "hoarder": [
+     "smith. i count every ingot"
+   ],
+   "helper": [
+     "im the smith! need anything repaired?",
+     "smith. bring me your worn tools, ill sort them"
+   ],
+   "pvp_sweat": [
+     "smith. my swords hit harder",
+     "i make the gear. youre welcome"
+   ],
+   "hermit": [
+     "smith.",
+     "smith. iron. thats it."
+   ],
+   "newbie": [
+     "im the smith!! i only burned myself once",
+     "smith!! i make tools and stuff"
+   ],
+   "casual": [
+     "smith lol. i hit iron till its a sword",
+     "blacksmith ngl. its loud"
    ]
   },
   "town.talk.job.enchanter": {
@@ -765,7 +2288,49 @@
     "im the enchanter",
     "i enchant things, for a price",
     "enchanter. bring levels worth of emeralds",
-    "i do the enchanting here"
+    "i do the enchanting here",
+    "enchanter",
+    "i enchant gear",
+    "town enchanter",
+    "i put enchants on things",
+    "enchanting. books and lapis",
+    "the enchanter. got something that needs an enchant?",
+    "i work the enchanting table",
+    "enchanter. it costs, but its worth it",
+    "i do enchants",
+    "enchanter. sharpness, protection, that kind of thing",
+    "i make good gear better",
+    "enchants. thats my trade",
+    "enchanter. what do you need enchanted?"
+   ],
+   "bandit": [
+     "enchanter. my prices arent kind"
+   ],
+   "speedrunner": [
+     "enchanter. quick enchants only"
+   ],
+   "hoarder": [
+     "enchanter. i dont waste lapis"
+   ],
+   "helper": [
+     "im the enchanter! want something enchanted?",
+     "enchanter. bring your gear and ill see what i can do"
+   ],
+   "pvp_sweat": [
+     "enchanter. sharpness 5 or go home",
+     "i enchant. my gear is stacked"
+   ],
+   "hermit": [
+     "enchanter. dont touch the table",
+     "enchants. pay first."
+   ],
+   "newbie": [
+     "im the enchanter!! the table still confuses me",
+     "enchanter!! i love the purple glow"
+   ],
+   "casual": [
+     "enchanter lol. i make stuff glow",
+     "i do enchants ngl its mostly luck"
    ]
   },
   "town.talk.job.farmer": {
@@ -773,10 +2338,50 @@
     "i farm",
     "farmer. wheat mostly",
     "i grow the food",
-    "i work the fields"
+    "i work the fields",
+    "farmer",
+    "im a farmer",
+    "i work the farm",
+    "i grow the crops",
+    "farming. somebody has to feed everyone",
+    "farmer. the fields keep me busy",
+    "i plant, i harvest, repeat",
+    "town farmer",
+    "i keep the town fed",
+    "farmer. crops dont plant themselves",
+    "the fields. thats my job",
+    "farmer. ever tried it?",
+    "i tend the crops"
    ],
    "homebody": [
-    "i farm! best job"
+    "i farm! best job",
+    "farmer. nothing beats a full field"
+   ],
+   "speedrunner": [
+     "farmer. plant, harvest, go"
+   ],
+   "hoarder": [
+     "farmer. i count every seed"
+   ],
+   "helper": [
+     "im a farmer! i keep everyone fed",
+     "farmer. happy to share farming tips"
+   ],
+   "pvp_sweat": [
+     "farmer. hoe diff",
+     "i farm. somebody has to feed you noobs"
+   ],
+   "hermit": [
+     "farmer. mind the crops.",
+     "i farm. crops dont talk."
+   ],
+   "newbie": [
+     "im a farmer!! i replant every time now",
+     "farmer!! i love watching stuff grow"
+   ],
+   "casual": [
+     "farmer lol. i just hit wheat all day",
+     "i farm ngl its peaceful"
    ]
   },
   "town.talk.job.fisher": {
@@ -784,7 +2389,49 @@
     "i fish",
     "fisher. down by the water",
     "i catch the fish",
-    "fishing all day"
+    "fishing all day",
+    "fisher",
+    "im a fisher",
+    "i fish for the town",
+    "town fisher",
+    "rod and water. thats the job",
+    "i fish. cod, salmon, whatever bites",
+    "fishing. its quiet work",
+    "i bring in the fish",
+    "fisher. i like the quiet",
+    "i sit by the water with a rod",
+    "fisher. you fish?",
+    "the one with the rod. fisher",
+    "fishing, mostly. sometimes i catch junk"
+   ],
+   "speedrunner": [
+     "fisher. slow job. dont ask"
+   ],
+   "hoarder": [
+     "fisher. i keep the treasure catches"
+   ],
+   "homebody": [
+     "fisher. fish for supper every night"
+   ],
+   "helper": [
+     "i fish for the town! want some fishing tips?",
+     "fisher. i keep everyone in cooked cod"
+   ],
+   "pvp_sweat": [
+     "fisher. biggest catches in town ez",
+     "i fish. still out-fish everyone here"
+   ],
+   "hermit": [
+     "fisher. dont scare the fish",
+     "i fish. alone."
+   ],
+   "newbie": [
+     "im a fisher!! i caught a boot once",
+     "fisher!! i still get excited at every bite"
+   ],
+   "casual": [
+     "i fish lol. best job, barely moving",
+     "fisher ngl its super chill"
    ]
   },
   "town.talk.job.fletcher": {
@@ -792,7 +2439,46 @@
     "i make bows and arrows",
     "fletcher",
     "im the fletcher, arrows mostly",
-    "bows and arrows, thats me"
+    "bows and arrows, thats me",
+    "town fletcher",
+    "im a fletcher",
+    "i make arrows",
+    "fletcher. bows, arrows",
+    "sticks, flint, feathers. arrows",
+    "i keep the town in arrows",
+    "fletching. arrows by the stack",
+    "i string bows and make arrows",
+    "fletcher. need arrows?",
+    "the arrow maker",
+    "i do the bows here",
+    "fletcher. you shoot?",
+    "arrows. lots of arrows"
+   ],
+   "speedrunner": [
+     "fletcher. arrows. quick"
+   ],
+   "hoarder": [
+     "fletcher. i count every arrow"
+   ],
+   "helper": [
+     "im a fletcher! running low on arrows?",
+     "fletcher. i make sure the town has arrows"
+   ],
+   "pvp_sweat": [
+     "fletcher. my arrows dont miss",
+     "i make bows. and i out-aim everyone"
+   ],
+   "hermit": [
+     "fletcher. busy.",
+     "arrows. i make them."
+   ],
+   "newbie": [
+     "im the fletcher!! i make arrows!!",
+     "fletcher!! i keep running out of feathers"
+   ],
+   "casual": [
+     "fletcher lol. i make pointy sticks",
+     "i make arrows ngl its a lot of feathers"
    ]
   },
   "town.talk.job.hunter": {
@@ -800,7 +2486,52 @@
     "i hunt",
     "hunter. meat and leather",
     "i bring in the meat",
-    "out hunting most days"
+    "out hunting most days",
+    "hunter",
+    "im a hunter",
+    "town hunter",
+    "i hunt for the town",
+    "hunting. food and hides",
+    "i track animals, bring back meat",
+    "hunter. keeps the town fed",
+    "i hunt. cows, pigs, whatever's out there",
+    "meat and leather, thats my job",
+    "hunter. im out past the houses a lot",
+    "i go out and hunt",
+    "hunter. you hunt?",
+    "i do the hunting round here"
+   ],
+   "hoarder": [
+     "hunter. i keep count of every hide"
+   ],
+   "speedrunner": [
+     "hunter. fast food"
+   ],
+   "bandit": [
+     "hunter. animals, mostly"
+   ],
+   "nomad": [
+     "hunter. suits me, im always out wandering"
+   ],
+   "helper": [
+     "im a hunter! i bring in food for everyone",
+     "hunter. if the town needs meat, i fetch it"
+   ],
+   "pvp_sweat": [
+     "hunter. nothing gets away from me",
+     "i hunt. ez kills all day"
+   ],
+   "hermit": [
+     "hunter. thats all.",
+     "i hunt. alone."
+   ],
+   "newbie": [
+     "im a hunter!! i feel bad for the pigs tho",
+     "hunter!! i get lost sometimes"
+   ],
+   "casual": [
+     "hunter lol. i chase cows around",
+     "i hunt ngl its mostly walking"
    ]
   },
   "town.talk.job.miner": {
@@ -808,10 +2539,51 @@
     "i mine",
     "miner. iron and coal mostly",
     "im down the mine most days",
-    "town miner"
+    "town miner",
+    "miner",
+    "im a miner",
+    "i work the mine",
+    "i dig for the town",
+    "mining. ore and stone",
+    "i bring up the ore",
+    "pickaxe work. miner",
+    "miner. the town needs iron",
+    "i spend my days underground",
+    "i mine for the town",
+    "miner. you mine much?",
+    "i dig. coal, iron, cobble",
+    "stone and ore, thats me"
    ],
    "miner": [
-    "miner. best job there is"
+    "miner. best job there is",
+    "miner. cant keep me out of a cave",
+    "miner. always chasing the next vein"
+   ],
+   "speedrunner": [
+     "miner. strip mine, go"
+   ],
+   "hoarder": [
+     "miner. i count every ore"
+   ],
+   "helper": [
+     "im a miner! i keep the smith in iron",
+     "miner. i dig up what the town needs"
+   ],
+   "pvp_sweat": [
+     "miner. i find dias, you dont",
+     "i mine. best pick in town"
+   ],
+   "hermit": [
+     "miner. i prefer it down there",
+     "i mine. its quiet down there."
+   ],
+   "newbie": [
+     "im a miner!! i always bring torches now",
+     "miner!! i got lost down there once"
+   ],
+   "casual": [
+     "miner lol. i just dig",
+     "i mine ngl its dark down there"
    ]
   },
   "town.talk.job.builder": {
@@ -819,10 +2591,51 @@
     "i build",
     "builder. half these houses are mine",
     "i put up the houses",
-    "town builder"
+    "town builder",
+    "builder",
+    "im a builder",
+    "i build for the town",
+    "i do the building",
+    "houses, walls, whatever's needed",
+    "i build things here",
+    "builder. always something to put up",
+    "i lay the blocks",
+    "building. planks and stone",
+    "builder. i raise the houses",
+    "i make the town bigger",
+    "builder. you build?",
+    "block by block. builder"
    ],
    "builder": [
-    "builder. obviously"
+    "builder. obviously",
+    "builder. and i care how it looks",
+    "builder. no dirt huts on my watch"
+   ],
+   "homebody": [
+     "builder. i make houses into homes"
+   ],
+   "speedrunner": [
+     "builder. fast builds only"
+   ],
+   "helper": [
+     "im a builder! i put up homes for everyone",
+     "builder. happy to give building tips"
+   ],
+   "pvp_sweat": [
+     "builder. my builds beat yours",
+     "i build. best houses here ez"
+   ],
+   "hermit": [
+     "builder. dont touch anything.",
+     "i build. then i leave."
+   ],
+   "newbie": [
+     "im a builder!! my roofs are getting better",
+     "builder!! i still mess up the corners"
+   ],
+   "casual": [
+     "builder lol. i place blocks for a living",
+     "i build ngl its satisfying"
    ]
   },
   "town.talk.job.woodcutter": {
@@ -830,7 +2643,46 @@
     "i chop wood",
     "woodcutter",
     "i bring in the logs",
-    "trees, all day"
+    "trees, all day",
+    "im a woodcutter",
+    "town woodcutter",
+    "i cut trees",
+    "i fell trees for the town",
+    "axe work. woodcutter",
+    "logs. i bring them in",
+    "i chop, i replant, i chop again",
+    "woodcutter. the town burns through wood",
+    "i keep the town in planks",
+    "lumber. thats my job",
+    "woodcutter. got a good axe?",
+    "i do the chopping",
+    "woodcutter. oak, birch, whatever grows"
+   ],
+   "speedrunner": [
+     "woodcutter. chop fast"
+   ],
+   "hoarder": [
+     "woodcutter. i count every log"
+   ],
+   "helper": [
+     "im a woodcutter! i bring logs for everyone",
+     "woodcutter. i keep the builders stocked"
+   ],
+   "pvp_sweat": [
+     "woodcutter. axe crits hit hard btw",
+     "i chop wood. axe diff"
+   ],
+   "hermit": [
+     "woodcutter. axe. trees.",
+     "i chop. trees dont talk."
+   ],
+   "newbie": [
+     "im a woodcutter!! i always leave floating trees tho",
+     "woodcutter!! i chop trees!!"
+   ],
+   "casual": [
+     "woodcutter lol. i punch trees professionally",
+     "i chop wood ngl its relaxing"
    ]
   },
   "town.talk.job.none": {
@@ -839,16 +2691,55 @@
     "bit of everything",
     "no real job, i help out",
     "whatever needs doing",
-    "i do my own thing"
+    "i do my own thing",
+    "no job really",
+    "nothing official",
+    "i dont have one",
+    "i help where i can",
+    "odd jobs",
+    "this and that",
+    "no set job. i live here",
+    "just a townsperson",
+    "nothing in particular",
+    "i pitch in when needed",
+    "still figuring that out",
+    "no job. why, you hiring?",
+    "nothing fancy. i get by"
    ],
    "hermit": [
-    "i keep to myself."
+    "i keep to myself.",
+    "no job. no boss."
    ],
    "newbie": [
-    "i dont have a job yet!!"
+    "i dont have a job yet!!",
+    "um nothing yet!! im still learning"
    ],
    "pvp_sweat": [
-    "i fight when theres fighting"
+    "i fight when theres fighting",
+    "no job. too good for one lol"
+   ],
+   "homebody": [
+     "i just like living here. thats enough"
+   ],
+   "speedrunner": [
+     "no job. slows me down"
+   ],
+   "bandit": [
+     "i find my own work"
+   ],
+   "hoarder": [
+     "no job. i collect things"
+   ],
+   "nomad": [
+     "no job. i dont stay still long enough"
+   ],
+   "helper": [
+     "no set job, i just help whoever needs it",
+     "i help out wherever im needed!"
+   ],
+   "casual": [
+     "no job lol. just vibing",
+     "nothing rn ngl. bit of this, bit of that"
    ]
   },
   "town.talk.tour.no": {
@@ -856,10 +2747,55 @@
     "id rather not",
     "not for you",
     "ask someone else",
-    "no"
+    "no",
+    "not today",
+    "i dont know you well enough",
+    "find someone else",
+    "no, sorry",
+    "rather not",
+    "im not showing you around",
+    "maybe when the town trusts you more",
+    "nope",
+    "not me. ask another",
+    "i dont think so",
+    "no. look around yourself",
+    "youre on your own",
+    "not till i know you better"
    ],
    "hermit": [
-    "no."
+    "no.",
+    "no. go alone."
+   ],
+   "nomad": [
+     "find your own way. its more fun"
+   ],
+   "hoarder": [
+     "no. i dont show people where things are"
+   ],
+   "homebody": [
+     "id rather stay put, sorry"
+   ],
+   "speedrunner": [
+     "no. no time"
+   ],
+   "bandit": [
+     "no. dont push it"
+   ],
+   "helper": [
+     "sorry, i cant right now. maybe once folks know you better",
+     "id like to, but not yet. sorry"
+   ],
+   "pvp_sweat": [
+     "nah. not your tour guide",
+     "no lol. walk yourself"
+   ],
+   "newbie": [
+     "um i dont think i should!!",
+     "sorry!! im not allowed i think"
+   ],
+   "casual": [
+     "nah id rather not",
+     "lol no. find it yourself"
    ]
   },
   "town.talk.take.where": {
@@ -867,14 +2803,100 @@
     "take you where?",
     "where to?",
     "to what",
-    "where do you wanna go"
+    "where do you wanna go",
+    "where exactly?",
+    "take you to what?",
+    "which place?",
+    "where?",
+    "you didnt say where",
+    "to where tho",
+    "where is it you want?",
+    "name the place",
+    "whats the place called?",
+    "i dont know where you mean",
+    "the stall? the smith? the plaza?",
+    "lead you where",
+    "say again, where?",
+    "where are you trying to get to?"
+   ],
+   "bandit": [
+     "where. and whats in it for me"
+   ],
+   "nomad": [
+     "where to? ive walked most of it"
+   ],
+   "speedrunner": [
+     "where. quick"
+   ],
+   "helper": [
+     "which place are you looking for?",
+     "where do you need to get to? the stall, the smith?"
+   ],
+   "pvp_sweat": [
+     "where? use your words lol",
+     "take you where, noob"
+   ],
+   "hermit": [
+     "where. say it",
+     "... to where"
+   ],
+   "newbie": [
+     "um where?? i didnt get that",
+     "to where!! tell me"
+   ],
+   "casual": [
+     "where to lol",
+     "uh where tho"
    ]
   },
   "town.talk.take.none": {
    "any": [
     "we dont have one of those",
     "nothing like that here yet",
-    "not built yet"
+    "not built yet",
+    "we dont have that here",
+    "theres none here",
+    "none in this town",
+    "dont think we have one",
+    "nobody's built one yet",
+    "not here, sorry",
+    "this town doesnt have one",
+    "we havent got one yet",
+    "nothing like that round here",
+    "cant take you to what isnt there",
+    "none that i know of",
+    "not in this town. maybe one day",
+    "we're missing that one"
+   ],
+   "nomad": [
+     "not here. other towns might"
+   ],
+   "speedrunner": [
+     "none. next"
+   ],
+   "builder": [
+     "havent built one. its on my list",
+     "none yet. the town needs one tbh"
+   ],
+   "helper": [
+     "sorry, we dont have one here yet",
+     "none here, sorry! anything else youre looking for?"
+   ],
+   "pvp_sweat": [
+     "we dont have one. small town L",
+     "none here lol. go build one"
+   ],
+   "hermit": [
+     "none here.",
+     "dont have one."
+   ],
+   "newbie": [
+     "um i dont think we have one!!",
+     "we dont have that yet!! sorry"
+   ],
+   "casual": [
+     "we dont have one lol",
+     "nah none here ngl"
    ]
   },
   "town.talk.take.yes": {
@@ -883,19 +2905,55 @@
     "ok this way",
     "come on",
     "follow me, its not far",
-    "ok, keep up"
+    "ok, keep up",
+    "this way",
+    "alright, follow",
+    "sure, come with me",
+    "yep, ill take you",
+    "ok, stay close",
+    "can do. this way",
+    "ill show you. come on",
+    "right, lets go",
+    "sure. its this way",
+    "ok walk with me",
+    "easy. follow me there",
+    "yeah ok, come along",
+    "ill walk you over",
+    "lets go then"
    ],
    "hermit": [
-    "fine. follow"
+    "fine. follow",
+    "this way. keep quiet"
    ],
    "helper": [
-    "of course! this way"
+    "of course! this way",
+    "happy to! stay close",
+    "sure thing! ill walk you there"
    ],
    "speedrunner": [
-    "ok fast. go"
+    "ok fast. go",
+    "go go. follow"
    ],
    "newbie": [
-    "ok!! follow me"
+    "ok!! follow me",
+    "ok!! i think i know the way!!"
+   ],
+   "bandit": [
+     "fine. this way. no funny business"
+   ],
+   "homebody": [
+     "of course, its just a little walk"
+   ],
+   "nomad": [
+     "sure, i know the way. o7"
+   ],
+   "pvp_sweat": [
+     "fine. try to keep up lol",
+     "follow. dont fall behind noob"
+   ],
+   "casual": [
+     "sure lol, come on",
+     "ye follow me"
    ]
   }
  }
