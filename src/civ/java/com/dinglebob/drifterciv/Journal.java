@@ -192,6 +192,8 @@ public final class Journal {
 	private static final int MOST = 200;
 
 	private static final Map<UUID, Known> known = new HashMap<>();
+	/** The tick each player last turned to a page of the Chronicle. */
+	private static final Map<UUID, Integer> turned = new HashMap<>();
 	private static boolean dirty;
 
 	static void register() {
@@ -201,8 +203,16 @@ public final class Journal {
 		PayloadTypeRegistry.playC2S().register(Open.TYPE, Open.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(Open.TYPE, (open, context) -> {
 			ServerPlayer player = context.player();
-			context.server().execute(() -> ServerPlayNetworking.send(player, Annals.page(player, open.id().length() > 80 ? "" : open.id())));
+			context.server().execute(() -> {
+				// (A page at a time: one who asks faster than a hand turns them waits.)
+				int tick = context.server().getTickCount();
+				Integer last = turned.put(player.getUUID(), tick);
+				if (last == null || tick != last) {
+					ServerPlayNetworking.send(player, Annals.page(player, open.id().length() > 80 ? "" : open.id()));
+				}
+			});
 		});
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> turned.clear());
 		ServerPlayNetworking.registerGlobalReceiver(Ask.TYPE, (ask, context) -> {
 			ServerPlayer player = context.player();
 			context.server().execute(() -> ServerPlayNetworking.send(player, of(player)));

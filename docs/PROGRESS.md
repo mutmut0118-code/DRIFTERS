@@ -3378,6 +3378,67 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.47: the chronicle revamp, part 3 of the "RPG profile" idea** (the user, 2026-11-12: "Your guess is right";
+  "would love to see images, like player heads, banners of the nation, (again everything vanilla)"; "you can have like
+  an expanded EXPANDED entry, like quotes from interviews, biographies about people who fallen, how the war started,
+  etc; you have creative freedom"; of scrolling: "keep the scrolling for the new chronicle articles but just keep that
+  fix as well"). Design: docs/superpowers/specs/2026-11-12-chronicle-revamp-design.md.
+  - **The annals (`Annals`, saved "drifter_civ_annals" v1):** what a history book would keep, as stories that grow: a
+    war (the quarrel before it, who struck first, the old grudge, its battles, towns taken, its dead by name, its
+    peace), a nation fallen or founded, a rising, a town abandoned, a leader killed, a leader overthrown, someone gone
+    for good, a player's big deed. Fed by the summary's far news (`History.tell` now says what kind of thing each
+    telling is), the towns' own wars and peaces (`Diplomacy.begin`, `peace`), their days on paper and deaths in front of
+    a player (`TownAway`), coups and votes after a rising (`Unrest`, `Politics`), and `PLAYER_DEED`. The flat
+    `Chronicle` stays as the full log (`/drifterciv chronicle`, the written book).
+  - **What a player knows:** each player's own. A story is theirs once they're in a town that knows of it (its own,
+    its power's, a power it's at war or allied with, one seated within the news' reach) within the last hundred days
+    (`TOLD_DAYS`), as of that day: later turns reach them when they're next somewhere that knows. A power's written
+    past is theirs from their first visit to one of its towns (a citizen's own nation's from the start); their own
+    deeds at once. Nobody has to say it in chat.
+  - **The journal's Chronicle bookmark:** what they know, the latest first, under "This year", "Last year", "Earlier",
+    then "Before your time" (the pasts they know). A line opens a page (`Journal.Page`, asked for when turned to and
+    built then for that player, `Journal.Open`).
+  - **Pages:** a front page (headline in capitals, where it was heard and how long ago between double rules, the
+    powers' banners as the banner items, the story so far, the fallen as heads from their own skins, a boxed quote if
+    someone told the player in chat); **How it began** (each ruler with their banner and nature in words, the grudge,
+    the quarrel, who struck first, the fighting turn by turn); **Voices** (the quote, and up to three remarks from
+    named people of the town that told it, each by their nature: its leader, a careful one, a bold one, one who lost a
+    friend; `chronicle.voice.*` in town.json; picked once and kept); **a life** (a head, their work and town, their
+    nature in words, the other stories they're in, what they were to the player, how they died, where they lie, those
+    they left); **a nation** (its banner, its ruler, its towns the player's been to, its wars and friends the player
+    knows of, its past from the written history).
+  - **In the client (`JournalScreen`):** a page of the Chronicle has both pages of the book, in print about 7 in 10 of
+    the book's (in whole screen pixels); its left and right pages scroll each on its own with the mouse over them, and
+    so do the journal's own left page and list now; "scroll for more" sits at the middle of the page's foot, off the
+    curled corner (the user: "blended into the edge"). Links, heads and banners are clicked through; "< Back" or the
+    right button goes back.
+  - **API 11:** the world's record of a Drifter keeps its skin (`DrifterRecord.skinTexture()`, `realSkin()`), for a
+    head when it isn't about (or is gone).
+  - **The morning's chat summary is off unless switched on** (`/drifterciv chronicle summary true`); the old flag is let go.
+  - **Debug (op):** `/drifterciv annals` (every story), `annals learn` (the nearest town tells you now), `annals all`
+    (you know everything: for looking at pages), `annals page <id>` (a page as text).
+  - **Rulings:** (1) people of towns not built are names only, a free town shows its leader's head, banners are one
+    plain colour (the design's settled calls). (2) Time is "today", "three days ago", "some weeks ago", "this year",
+    "last year" (a year: the festivals' 60 days). (3) An older world: only the wars on now are given a story (from the
+    summary's ties: "have been at war a while"); what happened before the update stays in the flat log. (4) A face
+    nobody recorded (someone gone before this version) is a blank square. (5) Routine things are left out: pacts, a
+    ruler dying in bed, a town joining a nation, re-elections.
+  - **Tested:** headless: the annals filling over 100 and 200 days (wars from the summary with their battles and towns
+    taken, a leader killed on paper), kept across a restart, `plan check` consistent. Dev client at 1280x720: walked
+    into a town, the bookmark's list, a war's front page, How it began, Voices, a leader's death with the words a
+    townsperson really said, a life, a nation's page (docs/superpowers/shots/chronicle-*.png).
+  - **Review (one fresh reviewer, whole change), fixed:** a war ended by conquest (or with no peace told) stayed "still
+    being fought" for ever and collected later deaths; a war's fallen and their lives showed people who died after the
+    player last heard of it (each of the fallen has their day now); a conquered nation lost its name and banner in its
+    own stories (kept on the story now); a death in front of the player never joined the war it was part of, nor was a
+    leader's told as a leader's; a rising made a second, wrongly worded war; "Died of drowned"; a peace between towns
+    of one power could close another war; an unopposed winner after a rising wasn't kept; pages asked for faster than
+    one a tick are dropped; a citizen from before the annals gets their nation's past.
+    **Deferred minors:** How it began and a nation's page show the ruler as they are now, not as the player last
+    heard; in a 100-day skip everything is stamped the day it's caught up on ("today").
+  - **Not tested:** clicking through by hand (the tour turns pages by code, the click maths was only read); the
+    per-page scrolling by hand; two players; a war's fallen with heads (no built town lost anyone in a war in the test
+    worlds after the annals were added).
 - **0.23.46: the main line with the talk side branch merged** (the user, 2026-11-12: "make sure side 2 is merged before
   you work on chronicle revamp"): 0.23.45 plus claude/serene-galileo-af4f3d (0.23.44-side.2: talking with Drifters,
   batch 1, docs/PLAYER_TALK.md). Conflicts only in TESTING.md (both kept) and the version. Booted headless.

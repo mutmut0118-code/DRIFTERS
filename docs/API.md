@@ -331,6 +331,12 @@ An addon adds its own things to ask through the chat handler above, and these:
 `/drifter hear <text>` (debug): the nearest Drifter hears it as if a player beside it had typed it (the player running
 it; from the console, a stand-in player), for testing a talk without a client.
 
+## A Drifter's skin on its record (API 11)
+
+`DrifterRecord.skin()` keeps what a Drifter looks like while it isn't loaded (or is gone): `skinTexture()` (its skin's
+texture, as `DrifterEntity.getSkinTexture()`) and `realSkin()` (the real player's skin it wears, as
+`getRealSkin()`; empty: none). Empty on records from before API 11 until the Drifter is next loaded.
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

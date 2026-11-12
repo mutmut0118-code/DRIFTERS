@@ -239,7 +239,14 @@ final class TownAway {
 			long day = Chronicle.day(server);
 			String name = drifter.getName().getString();
 			String cause = cause(source, drifter);
-			Annals.death(server, town, drifter.getUUID(), name, cause, false, true);
+			// (Killed by one of a power its own is at war with: one of that war's fallen. Its leader: told as that.)
+			String told = cause;
+			Town theirs = source.getEntity() instanceof DrifterEntity killer ? Diplomacy.townOf(killer.getUUID()) : null;
+			if (theirs != null && Annals.atWar(WorldPlan.powerOf(town), WorldPlan.powerOf(theirs))) {
+				told = "fighting " + WorldPlan.powerName(WorldPlan.powerOf(theirs));
+			}
+
+			Annals.death(server, town, drifter.getUUID(), name, told, drifter.getUUID().equals(town.leader), true);
 			vacate(town, drifter.getUUID());
 			TownGraves.add(town, name, day, cause);
 			town.away.fates.add(new Fate(drifter.getUUID(), name, "gone", day, cause));

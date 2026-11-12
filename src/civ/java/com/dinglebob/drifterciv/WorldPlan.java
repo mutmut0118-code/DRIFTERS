@@ -572,6 +572,9 @@ final class WorldPlan {
 
 	// ----- Powers, for the annals (a nation of the plan or one formed in play, a free town) -----
 
+	/** What a power nobody can name any more is called. */
+	static final String FORGOTTEN = "a town since forgotten";
+
 	/** The power a town is of: its nation (the plan's, or one formed in play), or itself. */
 	static UUID powerOf(Town town) {
 		Place place = place(town.id);
@@ -598,7 +601,7 @@ final class WorldPlan {
 		}
 
 		Town town = Diplomacy.byId(power.toString());
-		return town != null ? town.name : "a town since forgotten";
+		return town != null ? town.name : FORGOTTEN;
 	}
 
 	/** A nation's banner colour (the dye's id), or null: a free town. */

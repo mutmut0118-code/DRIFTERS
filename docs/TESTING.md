@@ -3668,3 +3668,25 @@ Drifters now hold a conversation. Test with a few of them around, in a town if y
       at once: a screenshot, as before.
 
 Quick try without waiting for them: stand by one and run `/drifter hear <anything>` (it hears it as if you'd typed it).
+
+## 0.23.47: the Chronicle in your journal (new)
+
+- [ ] **The bookmark.** Press J: a fifth bookmark, Chronicle. In a new world it says to walk into a town. Walk into
+      one (stand in it a few seconds), open the journal again: its nation's past is under "Before your time", and any
+      war or death that town knows of is listed above, the latest first.
+- [ ] **A front page.** Click a war: a headline, where you heard it and how long ago, the two banners, the story so
+      far, and (if people of built towns died in it) their heads under "The fallen". "How it began" and "Voices" are
+      links at the end; a head opens that person's life; a banner opens the nation's page if you know its past.
+- [ ] **Back and scrolling.** "< Back" (or the right mouse button) goes back a page at a time. With the mouse over
+      the left page the wheel scrolls only the left page; over the right page, only the right. The same now on the
+      journal's other bookmarks. The "scroll for more" hint is in the middle of the page's foot, not on the corner.
+- [ ] **Only what you'd know.** Wars between nations whose towns you've never been near aren't listed. Go to a town
+      of one of them and come back to the journal: now it is. (To see everything while testing:
+      `/drifterciv annals all`; to list every story the world has: `/drifterciv annals`.)
+- [ ] **A death told and quoted.** With permanent death on, leave a town, `/drifterciv away kill` (from far off or in
+      spectator), skip a day, walk back in: someone tells you. The Chronicle has "... died"; its front page shows
+      their head and, in a box, the words that person said to you.
+- [ ] **The morning lines are gone.** No "Day N:" list in chat each morning. (`/drifterciv chronicle summary true`
+      brings it back.)
+- [ ] **Nothing odd.** A head that's the wrong person, a banner the wrong colour, a link that leads to "Nothing's
+      known of this", text off the page: tell me which page.

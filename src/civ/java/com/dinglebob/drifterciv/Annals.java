@@ -55,7 +55,11 @@ final class Annals {
 	private static final int SAVE_VERSION = 1;
 
 	/** Someone in a story: who (null: only a name, a person of a town not made), their name, what they were to it. */
-	record Person(@Nullable UUID id, String name, String role) {
+	record Person(@Nullable UUID id, String name, String role, long day) {
+		/** One there from the story's start (the day: -1, always known with it). */
+		Person(@Nullable UUID id, String name, String role) {
+			this(id, name, role, -1L);
+		}
 	}
 
 	/** A turn in a story: the day, its kind ("battle", "took", "began", ...), and the words. */
@@ -74,6 +78,9 @@ final class Annals {
 		long last;
 		String title = "";
 		final List<UUID> powers = new ArrayList<>();
+		/** Its powers' names and banner colours as they were (a nation since fallen is still named and flown in its story). */
+		final Map<UUID, String> names = new HashMap<>();
+		final Map<UUID, Integer> colours = new HashMap<>();
 		/** The town it's about most (null: none: a war between powers). */
 		@Nullable UUID town;
 		String townName = "";
@@ -194,6 +201,15 @@ final class Annals {
 		for (UUID power : powers) {
 			if (power != null && !e.powers.contains(power)) {
 				e.powers.add(power);
+				String name = WorldPlan.powerName(power);
+				if (!name.equals(WorldPlan.FORGOTTEN)) {
+					e.names.put(power, name);
+				}
+
+				Integer colour = WorldPlan.powerColour(power);
+				if (colour != null) {
+					e.colours.put(power, colour);
+				}
 			}
 		}
 
@@ -217,6 +233,17 @@ final class Annals {
 		e.last = Chronicle.day(server);
 		e.beats.add(new Beat(e.last, what, text));
 		dirty = true;
+	}
+
+	/** A power's name as its story has it. */
+	private static String name(Event e, UUID power) {
+		String kept = e.names.get(power);
+		return kept != null ? kept : WorldPlan.powerName(power);
+	}
+
+	/** Are these two at war, by the annals? */
+	static boolean atWar(UUID a, UUID b) {
+		return !a.equals(b) && war(a, b) != null;
 	}
 
 	/** The war on between these two (the latest not over), or null. */
@@ -275,9 +302,16 @@ final class Annals {
 			}
 			case "battle", "leaderfell", "took", "burned", "conquered" -> {
 				if (a != null && b != null) {
-					beat(server, warOrNew(server, a, b, null), what, text);
+					Event war = warOrNew(server, a, b, null);
+					beat(server, war, what, text);
 					if (what.equals("conquered")) {
-						add(server, "fallen", text.contains(":") ? text.substring(0, text.indexOf(':')) : text, null, a, b).beats.add(new Beat(today, what, text));
+						// (A nation conquered whole: its war is over, and its fall a story of its own, named and flown as it was.)
+						war.over = true;
+						Event fall = add(server, "fallen", text.contains(":") ? text.substring(0, text.indexOf(':')) : text, null, a, b);
+						fall.beats.add(new Beat(today, what, text));
+						fall.names.putAll(war.names);
+						fall.colours.putAll(war.colours);
+						fall.over = true;
 					}
 				}
 			}
@@ -288,7 +322,13 @@ final class Annals {
 					e.over = true;
 				}
 			}
-			case "rose" -> add(server, "rising", text, null, powers).beats.add(new Beat(today, what, text));
+			case "rose" -> {
+				add(server, "rising", text, null, powers).beats.add(new Beat(today, what, text));
+				// (A rising is a war from that day: begun here, not found later as one "on a while".)
+				if (a != null && b != null && war(a, b) == null) {
+					beat(server, warOrNew(server, a, b, a), "began", text);
+				}
+			}
 			case "freed" -> add(server, "freed", text, null, powers).beats.add(new Beat(today, what, text));
 			case "founded" -> add(server, "nation", text.contains(",") ? text.substring(0, text.indexOf(',')) : text, null, powers).beats.add(new Beat(today, what, text));
 			case "abandoned" -> add(server, "abandoned", text.contains(";") ? text.substring(0, text.indexOf(';')) : text, null, powers).beats.add(new Beat(today, what, text));
@@ -311,7 +351,7 @@ final class Annals {
 
 	/** Peace made between two made towns' powers by their own diplomacy. */
 	static void peaceMade(MinecraftServer server, Town x, Town y) {
-		Event e = war(WorldPlan.powerOf(x), WorldPlan.powerOf(y));
+		Event e = WorldPlan.powerOf(x).equals(WorldPlan.powerOf(y)) ? null : war(WorldPlan.powerOf(x), WorldPlan.powerOf(y));
 		if (e != null) {
 			beat(server, e, "peace", WorldPlan.powerName(e.powers.get(0)) + " and " + WorldPlan.powerName(e.powers.get(1)) + " made peace");
 			e.over = true;
@@ -326,12 +366,17 @@ final class Annals {
 		UUID own = WorldPlan.powerOf(town);
 		String line = town.lines.get(id);
 		String role = (leader ? "leader" : line == null || line.isEmpty() ? "one" : article(line)) + " of " + town.name;
-		Person person = new Person(id, name, role + "|" + cause + "|" + (gone ? "gone" : "back"));
+		Person person = new Person(id, name, role + "|" + cause + "|" + (gone ? "gone" : "back"), Chronicle.day(server));
 		Event in = null;
 		if (!leader && cause.startsWith("fighting")) {
+			// (The war against whoever it died fighting, if it's told; else the latest its power is in.)
+			boolean named = false;
 			for (Event e : events.values()) {
-				if (e.kind.equals("war") && !e.over && e.powers.contains(own)) {
+				if (e.kind.equals("war") && !e.over && e.powers.contains(own) && !named) {
 					in = e;
+					for (UUID power : e.powers) {
+						named |= !power.equals(own) && cause.contains(name(e, power));
+					}
 				}
 			}
 		}
@@ -506,6 +551,12 @@ final class Annals {
 				}
 			}
 
+			for (UUID power : e.powers) {
+				if (!power.equals(own)) {
+					enemy = name(e, power);
+				}
+			}
+
 			List<String> lines = CivLines.bell("chronicle.voice." + kind + "." + mood, List.of(), "town", town.name, "who", fallen.isEmpty() ? null : fallen,
 				"enemy", enemy.isEmpty() ? null : enemy);
 			lines = new ArrayList<>(lines);
@@ -559,6 +610,12 @@ final class Annals {
 			boolean on = e.kind.equals("war") && !overAsOf(e, s);
 			String right = on ? "at war" : e.kind.equals("deed") ? "yours" : ago(today, at);
 			lines.add(new Journal.Line(e.title, right, on ? Journal.BAD : e.kind.equals("deed") ? Journal.GOOD : Journal.FAINT, List.of("@page:e:" + e.id)));
+		}
+
+		// (A citizen from before the annals: their nation's past is theirs.)
+		Nations.Nation theirs = Citizens.nation(player.getUUID());
+		if (theirs != null) {
+			citizen(player.getUUID(), theirs.id);
 		}
 
 		Set<UUID> known2 = pasts.getOrDefault(player.getUUID(), Set.of());
@@ -640,10 +697,16 @@ final class Annals {
 		return skin.isEmpty() ? "-" : "s" + skin;
 	}
 
-	private static Journal.El banners(List<UUID> powers, Set<UUID> known) {
+	/** A power's picture as its story has it. */
+	private static String picture(Event e, UUID power) {
+		Integer colour = e.colours.get(power);
+		return colour != null ? "b" + colour : picture(power);
+	}
+
+	private static Journal.El banners(Event e, Set<UUID> known) {
 		List<String> more = new ArrayList<>();
-		for (UUID power : powers) {
-			more.add(picture(power) + "\t" + cap(shortName(WorldPlan.powerName(power))) + "\t" + (WorldPlan.nation(power) != null && known.contains(power) ? "n:" + power : ""));
+		for (UUID power : e.powers) {
+			more.add(picture(e, power) + "\t" + cap(shortName(name(e, power))) + "\t" + (WorldPlan.nation(power) != null && known.contains(power) ? "n:" + power : ""));
 		}
 
 		return el(Journal.BANNERS, "", "", 0, more);
@@ -736,7 +799,7 @@ final class Annals {
 		els.add(el(Journal.DATELINE, e.kind.equals("deed") ? "you were there" : s.where.isEmpty() ? "" : "heard in " + s.where, ago(today, e.day), 0, List.of()));
 		els.add(RULE);
 		if (!e.powers.isEmpty() && !e.kind.equals("deed")) {
-			els.add(banners(e.powers, pasts.getOrDefault(player.getUUID(), Set.of())));
+			els.add(banners(e, pasts.getOrDefault(player.getUUID(), Set.of())));
 			els.add(THIN);
 		}
 
@@ -764,7 +827,8 @@ final class Annals {
 		}
 
 		els.add(BREAK);
-		List<Person> fallen = e.people.stream().filter(person -> person.id != null).toList();
+		// (Only those gone by the day they last heard of it.)
+		List<Person> fallen = e.people.stream().filter(person -> person.id != null && person.day <= s.asOf).toList();
 		if (!fallen.isEmpty()) {
 			els.add(sub(e.kind.equals("war") ? "The fallen" : e.kind.equals("deed") ? "Who" : "Who it was"));
 			els.add(heads(fallen, true));
@@ -846,9 +910,9 @@ final class Annals {
 				: seat == null ? "" : seat.leader;
 			String skin = made == null ? "" : skin(made.leader);
 			DrifterRecord record = made == null || made.leader == null ? null : DrifterApi.record(made.leader);
-			String what = "rules " + shortName(WorldPlan.powerName(power)) + ". " + (record != null ? nature(record)
+			String what = "rules " + shortName(name(e, power)) + ". " + (record != null ? nature(record)
 				: seat != null ? nature(seat.aggression, seat.warmth, seat.ambition) : "");
-			els.add(el(Journal.PERSON, skin, ruler.isEmpty() ? cap(WorldPlan.powerName(power)) : ruler, 0, List.of(picture(power), what)));
+			els.add(el(Journal.PERSON, skin, ruler.isEmpty() ? cap(name(e, power)) : ruler, 0, List.of(picture(e, power), what)));
 		}
 
 		els.add(THIN);
@@ -861,7 +925,7 @@ final class Annals {
 			els.add(text(sentence(quarrel.text) + " (" + ago(today, quarrel.day) + ")"));
 		}
 
-		els.add(text(e.by == null ? "Nobody now says who struck first." : cap(WorldPlan.powerName(e.by)) + " struck first."));
+		els.add(text(e.by == null ? "Nobody now says who struck first." : cap(name(e, e.by)) + " struck first."));
 		els.add(BREAK);
 		els.add(sub("The fighting"));
 		int shown = 0;
@@ -901,7 +965,7 @@ final class Annals {
 			}
 
 			for (Person person : e.people) {
-				if (id.equals(person.id)) {
+				if (id.equals(person.id) && person.day <= mine.get(e.id).asOf) {
 					if (as == null || person.role.split("\\|", -1).length > 1 && !person.role.split("\\|", -1)[1].isEmpty()) {
 						as = person;
 						in = e;
@@ -920,7 +984,8 @@ final class Annals {
 		String[] role = as.role.split("\\|", -1);
 		final String theirName = as.name;
 		String cause = role.length > 1 ? role[1] : "";
-		boolean gone = role.length > 2 && role[2].equals("gone") || record != null && record.status() == DrifterRecord.Status.GONE;
+		// (As the story they know has it: not what's become of them since.)
+		boolean gone = role.length > 2 && role[2].equals("gone");
 		els.add(RULE);
 		els.add(el(Journal.PERSON, skin(id), as.name.toUpperCase(Locale.ROOT), 0, List.of("", role[0])));
 		els.add(RULE);
@@ -952,8 +1017,9 @@ final class Annals {
 		els.add(BREAK);
 		if (!cause.isEmpty()) {
 			els.add(sub(gone ? "The end" : "What happened"));
-			els.add(text(sentence((cause.startsWith("fighting") || cause.startsWith("killed") ? (cause.startsWith("killed") ? "Was " : "Died ") : "Died of ") + cause) + " ("
-				+ ago(today, in.last) + ")"));
+			String how = cause.startsWith("killed") ? "Was " + cause : cause.startsWith("fighting") ? "Died " + cause
+				: cause.startsWith("a ") || cause.startsWith("an ") ? "Died of " + cause : cap(cause);
+			els.add(text(sentence(how) + " (" + ago(today, as.day >= 0 ? as.day : in.day) + ")"));
 			if (!gone) {
 				els.add(text("And came back."));
 			}
@@ -1149,10 +1215,17 @@ final class Annals {
 
 				p.putString("Name", person.name);
 				p.putString("Role", person.role);
+				p.putLong("Day", person.day);
 				people.add(p);
 			}
 
 			t.put("People", people);
+			CompoundTag names = new CompoundTag();
+			e.names.forEach((power, name) -> names.putString(power.toString(), name));
+			t.put("Names", names);
+			CompoundTag colours = new CompoundTag();
+			e.colours.forEach((power, colour) -> colours.putInt(power.toString(), colour));
+			t.put("Colours", colours);
 			t.putBoolean("Over", e.over);
 			if (e.by != null) {
 				t.putUUID("By", e.by);
@@ -1255,7 +1328,18 @@ final class Annals {
 
 			for (Tag p : t.getList("People", Tag.TAG_COMPOUND)) {
 				CompoundTag person = (CompoundTag)p;
-				e.people.add(new Person(person.hasUUID("Id") ? person.getUUID("Id") : null, person.getString("Name"), person.getString("Role")));
+				e.people.add(new Person(person.hasUUID("Id") ? person.getUUID("Id") : null, person.getString("Name"), person.getString("Role"),
+					person.contains("Day") ? person.getLong("Day") : -1L));
+			}
+
+			for (UUID power : e.powers) {
+				if (t.getCompound("Names").contains(power.toString())) {
+					e.names.put(power, t.getCompound("Names").getString(power.toString()));
+				}
+
+				if (t.getCompound("Colours").contains(power.toString())) {
+					e.colours.put(power, t.getCompound("Colours").getInt(power.toString()));
+				}
 			}
 
 			e.over = t.getBoolean("Over");
@@ -1322,6 +1406,18 @@ final class Annals {
 	static void catchUp(MinecraftServer server) {
 		if (WorldPlan.history == null) {
 			return;
+		}
+
+		// A war the summary has ended with no peace told (a free town taken, a nation gone): over in its story too.
+		for (Event e : events.values()) {
+			if (e.kind.equals("war") && !e.over && e.powers.size() == 2) {
+				History.Ties ties = WorldPlan.history.ties.get(History.key(e.powers.get(0), e.powers.get(1)));
+				boolean gone = WorldPlan.powerName(e.powers.get(0)).equals(WorldPlan.FORGOTTEN) || WorldPlan.powerName(e.powers.get(1)).equals(WorldPlan.FORGOTTEN);
+				if (ties != null && !ties.war && e.last < Chronicle.day(server) || gone) {
+					e.over = true;
+					dirty = true;
+				}
+			}
 		}
 
 		for (Map.Entry<String, History.Ties> entry : WorldPlan.history.ties.entrySet()) {

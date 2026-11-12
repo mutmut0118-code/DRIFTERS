@@ -219,6 +219,11 @@ final class Politics {
 			// (The leader stepped down; one stood.)
 			UUID one = standing.get(0);
 			Chronicle.add(server, "town", name(group, one) + " is the new leader of " + town.name + " (nobody stood against it)");
+			if (risen) {
+				Annals.local(server, "overthrown", town, name(group, town.leader) + " voted out in " + town.name, "The people of " + town.name + " rose up against "
+					+ name(group, town.leader) + ", and " + name(group, one) + " leads it now", one, "the new leader");
+			}
+
 			town.leader = one;
 			town.leaderSince = day;
 			Unrest.newLeader(town, null, one);

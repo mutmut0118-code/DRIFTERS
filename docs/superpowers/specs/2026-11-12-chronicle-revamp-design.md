@@ -131,3 +131,14 @@ The builder's calls:
 - **Banners are one plain colour,** as nations have today (the mockups' patterns were decoration). Patterned nation
   banners would change the banners standing in towns too: a small job of its own, later.
 - **A free town shows its leader's head** where a nation would show its banner.
+
+## Settled while building (0.23.47)
+
+- **Pages are asked for one at a time** and built for the asking player then; a page's left and right pages hold
+  different things (the page's break parts them) and scroll each on its own (the user: "keep the scrolling for the new
+  chronicle articles but just keep that fix as well").
+- **The print of a page is smaller than the book's** (about 7 in 10), so a front page holds its story.
+- **Old worlds:** only the wars on now get a story; the rest of the old log isn't turned into stories.
+- **Left out as routine:** pacts, a ruler dying in bed, a town joining a nation, re-elections.
+- **Voices** are picked once, when the player learns of the story in a town, from that town's living people (its
+  leader first), by their recorded nature; they aren't said in chat.

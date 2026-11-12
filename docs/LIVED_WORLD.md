@@ -1378,3 +1378,8 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   at the town's edge (for deaths in front of the player too, from now on). Nothing on screen: the town's people tell
   you when you walk back in, and a friend's fate reaches the journal then. Details in docs/PROGRESS.md (0.23.44).
   Next: part 3 (the town itself changes) when the user says; then the chronicle revamp and quests.
+- 2026-11-12 (0.23.47): **the chronicle revamp** (RPG profile part 3): the journal has a Chronicle bookmark of what a
+  history book would keep (wars, towns taken, nations, leaders killed or overthrown, people gone for good, the player's
+  deeds), only what the player would know (told by the towns they walk into), each opening as a front page with
+  banners and heads, and on to how it began, voices, a life and a nation's page. Details in docs/PROGRESS.md (0.23.47).
+  Next by the user's order: A10 part 3 or quests, when they say.
