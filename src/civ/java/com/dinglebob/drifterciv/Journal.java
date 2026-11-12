@@ -623,7 +623,7 @@ public final class Journal {
 		}
 
 		if (criminal.fine > 0) {
-			parts.add("a fine of " + criminal.fine + (criminal.fine == 1 ? " emerald" : " emeralds") + " owed");
+			parts.add("a fine of " + DrifterApi.moneyWords(criminal.fine) + " owed");
 		}
 
 		if (criminal.wantedUntil > 0) {

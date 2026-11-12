@@ -85,7 +85,7 @@ final class Escort extends Encounter {
 		Escort escort = new Escort(player, village, player.position(), pay, random.nextBoolean() ? 0.35 + random.nextDouble() * 0.3 : -1.0);
 		DrifterEntity traveller = EncounterSpawner.spawn(level, spot, Archetype.NOMAD, drifter -> {
 			EncounterSpawner.traits(drifter, 0.3, 0.1, 0.8, 0.2);
-			drifter.getInventory().add(new ItemStack(Items.EMERALD, pay));
+			com.dinglebob.drifter.trade.Money.addTo(drifter.getInventory(), pay);
 			drifter.getInventory().add(new ItemStack(Items.BREAD, 6));
 			drifter.getInventory().add(new ItemStack(Items.WOODEN_SWORD));
 		});
@@ -309,7 +309,7 @@ final class Escort extends Encounter {
 					say(drifter, line(drifter, "escort.arrived", "player", this.playerName));
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
-						if (stack.is(Items.EMERALD)) {
+						if ((stack.is(Items.EMERALD) || com.dinglebob.drifter.trade.Money.isCoin(stack))) {
 							drifter.tossForward(stack.split(stack.getCount()));
 						}
 					}

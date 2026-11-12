@@ -138,7 +138,7 @@ public final class TownMoneyGoals {
 			TownWork town = drifter.getTownWork();
 			BlockPos till = town == null ? null : town.till();
 			if (till == null || Schedule.isNight(drifter) || context.threat().urgent() || drifter.level().getGameTime() - this.triedAt < AGAIN
-				|| town.taxOwed(drifter) <= 0 || drifter.getInventory().count(stack -> stack.is(Items.EMERALD)) == 0 || !drifter.blockPosition().closerThan(till, 96.0)) {
+				|| town.taxOwed(drifter) <= 0 || Money.carriedEmeralds(drifter) == 0 || !drifter.blockPosition().closerThan(till, 96.0)) {
 				return 0.0;
 			}
 
@@ -167,17 +167,28 @@ public final class TownMoneyGoals {
 
 			this.triedAt = drifter.level().getGameTime();
 			int owed = town.taxOwed(drifter);
-			int pays = Math.min(owed, drifter.getInventory().count(stack -> stack.is(Items.EMERALD)));
-			int before = drifter.getInventory().count(stack -> stack.is(Items.EMERALD));
-			return new ChestErrand(drifter, till, ContainerTask.Mode.PUT, stack -> stack.is(Items.EMERALD), "its tax", pays) {
+			// (With Numismatic Overhaul it pays in silver, ten to an emerald's worth, changed from what it has: six emeralds'
+			// worth a trip at most, a stack of silver. Else in emeralds, as ever.)
+			net.minecraft.world.item.Item silver = Money.silverCoin();
+			long perEmerald = Money.EMERALD_BRONZE / Money.SILVER;
+			boolean coins = silver != null && Money.coins(drifter) >= Money.EMERALD_BRONZE;
+			int pays = coins ? (int)Math.min(Math.min(owed, 6), Money.coins(drifter) / Money.EMERALD_BRONZE)
+				: Math.min(owed, drifter.getInventory().count(stack -> stack.is(Items.EMERALD)));
+			if (coins) {
+				Money.makeChange(drifter, silver, (int)(pays * perEmerald));
+			}
+
+			int before = Money.carriedEmeralds(drifter);
+			return new ChestErrand(drifter, till, ContainerTask.Mode.PUT, stack -> coins ? stack.is(silver) : stack.is(Items.EMERALD), "its tax",
+				coins ? (int)(pays * perEmerald) : pays) {
 				@Override
 				protected Status next() {
 					Status status = super.next();
 					if (status != Status.RUNNING) {
-						int paid = before - this.drifter.getInventory().count(stack -> stack.is(Items.EMERALD));
+						int paid = before - Money.carriedEmeralds(this.drifter);
 						if (paid > 0) {
 							town.taxPaid(this.drifter, paid);
-							this.think("paid " + paid + " emerald" + (paid == 1 ? "" : "s") + " of tax into the town's till");
+							this.think("paid " + Money.words(paid) + " of tax into the town's till");
 						}
 					}
 

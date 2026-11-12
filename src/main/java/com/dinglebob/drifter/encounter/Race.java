@@ -74,7 +74,7 @@ final class Race extends Encounter {
 		Race race = new Race(player, top, bet);
 		DrifterEntity racer = EncounterSpawner.spawn(level, spot, Archetype.SPEEDRUNNER, drifter -> {
 			EncounterSpawner.traits(drifter, 0.7, 0.3, 0.3, 0.2);
-			drifter.getInventory().add(new ItemStack(Items.EMERALD, bet));
+			com.dinglebob.drifter.trade.Money.addTo(drifter.getInventory(), bet);
 			drifter.getInventory().add(new ItemStack(Items.BREAD, 4));
 		});
 		if (racer == null) {
@@ -220,7 +220,7 @@ final class Race extends Encounter {
 				.now(() -> {
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
-						if (stack.is(Items.EMERALD)) {
+						if ((stack.is(Items.EMERALD) || com.dinglebob.drifter.trade.Money.isCoin(stack))) {
 							drifter.tossForward(stack.split(stack.getCount()));
 						}
 					}

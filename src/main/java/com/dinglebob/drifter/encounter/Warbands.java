@@ -321,7 +321,7 @@ final class Warbands extends Encounter {
 				boolean any = false;
 				for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 					ItemStack stack = drifter.getInventory().getItem(slot);
-					if (stack.is(Items.EMERALD)) {
+					if ((stack.is(Items.EMERALD) || com.dinglebob.drifter.trade.Money.isCoin(stack))) {
 						drifter.tossForward(stack.split(stack.getCount()));
 						any = true;
 					}

@@ -3570,7 +3570,8 @@ public final class TownBuilder {
 				for (DrifterEntity one : this.people) {
 					this.store.forEach(chest -> DrifterApi.rememberChest(one, chest));
 					if (one.getUUID().equals(town.keeper)) {
-						one.getInventory().add(new ItemStack(Items.EMERALD, 8));
+						// (Its float: eight emeralds' worth, in coins when Numismatic Overhaul is here.)
+						DrifterApi.moneyStacks(8).forEach(one.getInventory()::add);
 						// (A guard or the leader keeping the stall keeps the town's uniform: no apron over its chest.)
 						if (!guards.contains(one.getUUID()) && !one.getUUID().equals(group.leader)) {
 							DrifterApi.wearApron(one);

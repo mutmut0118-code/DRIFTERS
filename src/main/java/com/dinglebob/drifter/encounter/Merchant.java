@@ -123,7 +123,7 @@ final class Merchant extends Encounter {
 				}
 			}
 
-			drifter.getInventory().add(new ItemStack(Items.EMERALD, 4 + random.nextInt(8)));
+			com.dinglebob.drifter.trade.Money.addTo(drifter.getInventory(), 4 + random.nextInt(8));
 			drifter.getInventory().add(new ItemStack(Items.BREAD, 4));
 			drifter.getInventory().add(new ItemStack(Items.IRON_SWORD));
 		});
@@ -256,7 +256,7 @@ final class Merchant extends Encounter {
 				int[] price = PRICES.get(kind.getItem());
 				int have = inventory.count(s -> ItemStack.isSameItemSameComponents(s, kind));
 				if (have >= price[1]) {
-					offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, price[0]), Optional.empty(), kind.copyWithCount(price[1]), 0, have / price[1], 0, 0.0F));
+					offers.add(new MerchantOffer(cost(price[0]), Optional.empty(), kind.copyWithCount(price[1]), 0, have / price[1], 0, 0.0F));
 				}
 			}
 
@@ -299,7 +299,7 @@ final class Merchant extends Encounter {
 				}
 			}
 
-			inventory.add(new ItemStack(Items.EMERALD, offer.getCostA().getCount()));
+			inventory.add(offer.getCostA().copy());
 			think(this.drifter, "sold " + sold.getCount() + " " + sold.getHoverName().getString().toLowerCase(java.util.Locale.ROOT) + " for "
 				+ offer.getCostA().getCount() + " emeralds");
 		}
@@ -331,5 +331,10 @@ final class Merchant extends Encounter {
 		public boolean isClientSide() {
 			return this.drifter.level().isClientSide;
 		}
+	}
+	/** A price of this many emeralds: in emeralds, or with Numismatic Overhaul in its coins. */
+	private static ItemCost cost(int emeralds) {
+		ItemStack money = com.dinglebob.drifter.trade.Money.priceStack(emeralds * com.dinglebob.drifter.trade.Money.EMERALD_POINTS);
+		return new ItemCost(money.getItem(), money.getCount());
 	}
 }

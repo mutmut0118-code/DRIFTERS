@@ -173,7 +173,7 @@ public final class SoldierKit {
 		inventory.add(wear(new ItemStack(quality == Quality.MILITIA ? Items.STONE_PICKAXE : Items.IRON_PICKAXE), random));
 		inventory.add(new ItemStack(random.nextBoolean() ? Items.COBBLESTONE : Items.DIRT, 16 + random.nextInt(17)));
 		if (role == Role.CAPTAIN) {
-			inventory.add(new ItemStack(Items.EMERALD, 4 + random.nextInt(7) + 4 * quality.ordinal()));
+			com.dinglebob.drifter.trade.Money.addTo(inventory, 4 + random.nextInt(7) + 4 * quality.ordinal());
 		}
 	}
 

@@ -385,6 +385,11 @@ final class TownChests {
 			if ((roll -= entry.weight) <= 0) {
 				Item item = item(entry.id);
 				int count = Math.min(item.getDefaultMaxStackSize(), entry.min + random.nextInt(entry.max - entry.min + 1));
+				// (Emeralds kept as money: coins of that worth when Numismatic Overhaul is here.)
+				if (item == net.minecraft.world.item.Items.EMERALD && com.dinglebob.drifter.api.DrifterApi.coins()) {
+					return com.dinglebob.drifter.api.DrifterApi.money(count * 6.0);
+				}
+
 				return new ItemStack(item, count);
 			}
 		}

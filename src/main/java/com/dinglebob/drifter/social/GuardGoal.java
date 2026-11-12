@@ -116,12 +116,13 @@ public final class GuardGoal extends Goals.Goal {
 					return Status.SUCCESS;
 				}
 
-				int emeralds = this.drifter.getInventory().count(stack -> stack.is(Items.EMERALD));
+				// (What it's handed counts by its worth: emeralds, or Numismatic Overhaul's coins at an emerald's worth each thousand bronze.)
+				int emeralds = com.dinglebob.drifter.trade.Money.carriedEmeralds(this.drifter);
 				if (this.told) {
 					int paid = emeralds - this.before;
 					if (paid >= arrest.fine()) {
 						ChatLines.speak(this.drifter, Lines.pick(this.drifter, "guard.paid", "player", arrest.name()));
-						this.think(arrest.name() + " paid the fine: " + paid + " emerald" + (paid == 1 ? "" : "s"));
+						this.think(arrest.name() + " paid the fine: " + com.dinglebob.drifter.trade.Money.words(paid));
 						town.arrested(this.drifter, arrest.player(), paid, false);
 						return Status.SUCCESS;
 					}
@@ -150,7 +151,7 @@ public final class GuardGoal extends Goals.Goal {
 				this.toldAt = this.now();
 				this.before = emeralds;
 				ChatLines.speak(this.drifter, Lines.pick(this.drifter, "guard.demand", "player", arrest.name(), "fine", arrest.fine(), "crime", arrest.crime()));
-				this.think("told " + arrest.name() + " to pay " + arrest.fine() + " emeralds for " + arrest.crime());
+				this.think("told " + arrest.name() + " to pay " + com.dinglebob.drifter.trade.Money.words(arrest.fine()) + " for " + arrest.crime());
 				return this.begin(new LookAtTask(this.drifter, player.getEyePosition(), 20));
 			}
 		};

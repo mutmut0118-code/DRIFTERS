@@ -3396,6 +3396,44 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.50: the economy on coins (quests, stage 0)** (the user, 2026-11-12: "make it compatible with numismatic
+  overhauls when it comes to giving emeralds ... the whole economy should center around NO if its installed"; "think of
+  bronze more like pennies, silver coins as dollars 10s or 20s, and gold coins as like 100 bills ... its very easy to get
+  bronze coins, making it extremely easy to trade with drifters"; of the scale: "Yes, that scale"). Design:
+  docs/superpowers/specs/2026-11-12-quests-design.md ("Settled after the builder's check").
+  - **The scale (`Money.EMERALD_BRONZE` = 1,000):** an emerald's worth is 1,000 bronze (10 silver), as Numismatic
+    Overhaul's own villagers have it (they buy an emerald for 1,000 and a diamond for 3,000, sell an iron chestplate at
+    3,200; a pillager drops about 75, an outpost's chest holds 1,500 to 4,000). It was 50: twenty times too cheap, so
+    one pillager's drop bought an emerald and a half of goods from a Drifter.
+  - **The mod's own prices (`CoinPrices`, from its villager_trades data, 0.3.5: 145 things sold, 43 bought):** a stall
+    sells and buys at that price where there is one, moved by the town's supply and demand as before; never paying
+    more than half of what it sells a thing for. Not listed: three times the mod's buying price if it has only that;
+    food at a tenth of its worth (the level of the mod's bread and meat); the rest by its worth at the new scale.
+    With stand-in coins a stall had bread at 20 bronze, steak 63, a carrot 4, coal 50, a torch 13, an iron ingot 2
+    silver.
+  - **Sums in emeralds' worth, moved as coins (`Money.words`, `stacks`, `held`, `take`, `put`; API 12
+    `DrifterApi.moneyWords`, `moneyStacks`, `moneyHeld`, `moneyTake`, `moneyPut`, `inCoins`, `listedPoints`):** what's
+    saved (a tax, a fine, a tribute, the price of a peace, a till) stays counted in emeralds' worth; with the mod it's
+    coins that move: a town's till (`Diplomacy.till`: its coins first, changed as need be; emeralds already in an older
+    till still count), a Drifter paying its tax (silver, six emeralds' worth a trip), a fine handed to a guard, a
+    keeper's float, a ready-made chest's treasure, an encounter's purse and pay (escort, race, merchant, thief, a
+    soldier's kit). Said and written in coins: any "N emeralds" in a spoken line or a chronicle entry becomes "N0
+    silver" (`Money.inCoins`, in `ChatLines.speak` and `Chronicle.add`), and the laws, fines and wages name coins.
+  - **Fixed in passing:** a town told a player their fine at a sixth of its size (`TownTalk`: emeralds passed as
+    points).
+  - **Without the mod nothing changes** (checked: a stall's prices in emeralds as before).
+  - **Tested:** Numismatic Overhaul can't be loaded in a development game (its code doesn't remap: "getItems"
+    conflict), so the coin logic was run headless with a debug switch, `DRIFTER_COINS_TEST=1`: a brick, a nether brick
+    and a prismarine shard stand in for bronze, silver and gold. Seen: a townsperson "paid 30 silver of tax into the
+    town's till", a law "a tax of 30 silver a household", a notice "buying 24 stone bricks for 30 [silver]", stalls'
+    prices as above, `plan check` consistent. **Not tested: the real mod** (only in the user's game), a player paying
+    a fine in coins, the encounters' pay.
+  - **Rulings:** (1) with the mod, an older world's tills keep their emeralds and they still count as money.
+    (2) Bountiful's board pool still names emeralds (that mod's own data). (3) A price is still one stack of one coin
+    (64 silver, then gold rounded), so a dear thing's price is rounded to whole gold.
+  - **Next:** stage 1 (the Quests page, bring something, carry word, see to the dead), then stage 2; and the user's
+    question of how shops beat looting (three picks proposed: new against battered gear, blood goods recognised, things
+    only money buys) waits for their answer.
 - **0.23.47: the chronicle revamp, part 3 of the "RPG profile" idea** (the user, 2026-11-12: "Your guess is right";
   "would love to see images, like player heads, banners of the nation, (again everything vanilla)"; "you can have like
   an expanded EXPANDED entry, like quotes from interviews, biographies about people who fallen, how the war started,

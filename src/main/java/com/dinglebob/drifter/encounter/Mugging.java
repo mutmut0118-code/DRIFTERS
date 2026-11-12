@@ -65,7 +65,7 @@ final class Mugging extends Encounter {
 
 	/** What it has got so far: emeralds and gold one each, a diamond three. */
 	private static int value(DrifterEntity drifter) {
-		return carried(drifter, s -> s.is(Items.EMERALD)) + carried(drifter, s -> s.is(Items.GOLD_INGOT)) + 3 * carried(drifter, s -> s.is(Items.DIAMOND));
+		return (int)(com.dinglebob.drifter.trade.Money.coins(drifter) / com.dinglebob.drifter.trade.Money.EMERALD_BRONZE) + carried(drifter, s -> s.is(Items.EMERALD)) + carried(drifter, s -> s.is(Items.GOLD_INGOT)) + 3 * carried(drifter, s -> s.is(Items.DIAMOND));
 	}
 
 	@Override

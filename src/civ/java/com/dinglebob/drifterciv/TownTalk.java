@@ -187,7 +187,7 @@ final class TownTalk {
 			} else if (criminal != null && criminal.exiledUntil > 0) {
 				say(drifter, player, "town.talk.wanted.exiled", null, "crime", crime(criminal.crime), "days", Math.max(2, criminal.exiledUntil - day));
 			} else if (criminal != null && criminal.fine > 0) {
-				say(drifter, player, "town.talk.wanted.fine", null, "crime", crime(criminal.crime), "fine", TownNotices.describe(DrifterApi.money(criminal.fine)));
+				say(drifter, player, "town.talk.wanted.fine", null, "crime", crime(criminal.crime), "fine", DrifterApi.moneyWords(criminal.fine));
 			} else {
 				say(drifter, player, standing == TownReputation.Standing.WELCOME ? "town.talk.wanted.liked" : "town.talk.wanted.no", null);
 			}

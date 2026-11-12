@@ -61,7 +61,7 @@ final class Thief extends Encounter {
 		DrifterEntity thief = EncounterSpawner.spawn(level, from, Archetype.NOMAD, drifter -> {
 			EncounterSpawner.traits(drifter, 0.3, 0.2, 0.7, 0.2);
 			drifter.getInventory().add(new ItemStack(Items.GOLD_INGOT, 3 + random.nextInt(4)));
-			drifter.getInventory().add(new ItemStack(Items.EMERALD, 2 + random.nextInt(4)));
+			com.dinglebob.drifter.trade.Money.addTo(drifter.getInventory(), 2 + random.nextInt(4));
 			if (random.nextInt(3) == 0) {
 				drifter.getInventory().add(new ItemStack(Items.DIAMOND));
 			}
@@ -213,7 +213,7 @@ final class Thief extends Encounter {
 					// Half of what it got back (gold and emeralds), from its own hands.
 					for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
 						ItemStack stack = drifter.getInventory().getItem(slot);
-						if ((stack.is(Items.GOLD_INGOT) || stack.is(Items.EMERALD) || stack.is(Items.DIAMOND)) && stack.getCount() > 0) {
+						if ((stack.is(Items.GOLD_INGOT) || (stack.is(Items.EMERALD) || com.dinglebob.drifter.trade.Money.isCoin(stack)) || stack.is(Items.DIAMOND)) && stack.getCount() > 0) {
 							int half = Math.max(1, stack.getCount() / 2);
 							drifter.tossForward(stack.split(half));
 						}

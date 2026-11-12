@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 11;
+	public static final int API_VERSION = 12;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -1546,6 +1546,48 @@ public final class DrifterApi {
 	/** What a stack of money is worth in points (0: not money). */
 	public static double moneyWorth(net.minecraft.world.item.ItemStack stack) {
 		return com.dinglebob.drifter.trade.Money.worth(stack);
+	}
+
+	// ----- Sums in emeralds' worth (a till, a tax, a fine: coins with Numismatic Overhaul, an emerald's worth 1,000 bronze) -----
+
+	/** This many emeralds' worth in words: "3 emeralds", or with coins "30 silver", "1 gold and 20 silver". */
+	public static String moneyWords(long emeralds) {
+		return com.dinglebob.drifter.trade.Money.words(emeralds);
+	}
+
+	/** This many emeralds' worth as stacks to hand over: coins with Numismatic Overhaul, else emeralds. */
+	public static java.util.List<net.minecraft.world.item.ItemStack> moneyStacks(long emeralds) {
+		return com.dinglebob.drifter.trade.Money.stacks(emeralds);
+	}
+
+	/** Words that name a sum in emeralds ("a fine of 6 emeralds"), said in coins when that mod is here ("a fine of 60 silver"). */
+	public static String inCoins(String text) {
+		return com.dinglebob.drifter.trade.Money.inCoins(text);
+	}
+
+	/**
+	 * What a stall sells ({@code sells}) or pays for one of these, in points, by Numismatic Overhaul's own prices; null:
+	 * that mod isn't here, or it has no price for this (then it's priced by its worth).
+	 */
+	@Nullable
+	public static Double listedPoints(net.minecraft.world.item.Item item, boolean sells) {
+		Double bronze = sells ? com.dinglebob.drifter.trade.CoinPrices.sells(item) : com.dinglebob.drifter.trade.CoinPrices.buys(item);
+		return bronze == null ? null : Double.valueOf(bronze * com.dinglebob.drifter.trade.Money.BRONZE_POINTS);
+	}
+
+	/** The money in a chest, in whole emeralds' worth (its emeralds, and its coins when that mod is here). */
+	public static int moneyHeld(net.minecraft.world.Container chest) {
+		return com.dinglebob.drifter.trade.Money.held(chest);
+	}
+
+	/** Up to this many emeralds' worth out of a chest (coins first, changed as need be; then emeralds): how many came out. */
+	public static int moneyTake(net.minecraft.world.Container chest, int emeralds) {
+		return com.dinglebob.drifter.trade.Money.take(chest, emeralds);
+	}
+
+	/** Up to this many emeralds' worth into a chest (coins when that mod is here, else emeralds): how many went in. */
+	public static int moneyPut(net.minecraft.world.Container chest, int emeralds) {
+		return com.dinglebob.drifter.trade.Money.put(chest, emeralds);
 	}
 
 	/** Prices are in Numismatic Overhaul coins (that mod is here), not emeralds. */

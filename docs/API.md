@@ -337,6 +337,20 @@ it; from the console, a stand-in player), for testing a talk without a client.
 texture, as `DrifterEntity.getSkinTexture()`) and `realSkin()` (the real player's skin it wears, as
 `getRealSkin()`; empty: none). Empty on records from before API 11 until the Drifter is next loaded.
 
+## Sums of money (API 12)
+
+Money is emeralds, or Numismatic Overhaul's coins when that mod is here (an emerald's worth is 1,000 bronze: 10
+silver). Sums an addon keeps (a tax, a fine, a tribute) are counted in emeralds' worth and moved through these:
+
+| Call | What it does |
+| --- | --- |
+| `DrifterApi.moneyWords(emeralds)` | The sum in words: "3 emeralds", or "30 silver", "1 gold and 20 silver". |
+| `DrifterApi.moneyStacks(emeralds)` | The sum as stacks to hand over (the fewest coins, or emeralds). |
+| `DrifterApi.moneyHeld(chest)` | The money in a chest, in whole emeralds' worth (emeralds, and coins). |
+| `DrifterApi.moneyTake(chest, emeralds)` / `moneyPut(chest, emeralds)` | Up to that much out of, or into, a chest; how much moved. Coins are changed as need be; nothing is made or lost. |
+| `DrifterApi.inCoins(text)` | Words that name a sum in emeralds ("a fine of 6 emeralds"), in coins when that mod is here. |
+| `DrifterApi.listedPoints(item, sells)` | What a stall sells or pays for one, in points, by that mod's own prices; null if it has none. |
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

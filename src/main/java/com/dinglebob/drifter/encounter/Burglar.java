@@ -54,7 +54,7 @@ final class Burglar extends Encounter {
 
 	/** Worth stealing. */
 	static boolean valuable(ItemStack stack) {
-		return stack.is(Items.DIAMOND) || stack.is(Items.EMERALD) || stack.is(Items.GOLD_INGOT) || stack.is(Items.IRON_INGOT)
+		return stack.is(Items.DIAMOND) || stack.is(Items.EMERALD) || com.dinglebob.drifter.trade.Money.isCoin(stack) || stack.is(Items.GOLD_INGOT) || stack.is(Items.IRON_INGOT)
 			|| stack.is(Items.NETHERITE_INGOT) || stack.is(Items.NETHERITE_SCRAP) || stack.is(Items.GOLDEN_APPLE) || stack.is(Items.ENCHANTED_GOLDEN_APPLE)
 			|| stack.is(Items.ENDER_PEARL) || stack.is(Items.RAW_GOLD) || stack.is(Items.LAPIS_LAZULI) || stack.is(Items.ENCHANTED_BOOK) || stack.isEnchanted()
 			|| stack.is(Items.DIAMOND_BLOCK) || stack.is(Items.EMERALD_BLOCK) || stack.is(Items.GOLD_BLOCK);

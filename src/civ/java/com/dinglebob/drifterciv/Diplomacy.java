@@ -989,49 +989,17 @@ final class Diplomacy {
 		}
 
 		int done = move(chest, count);
-		int holds = 0;
-		for (int i = 0; i < chest.getContainerSize(); i++) {
-			if (chest.getItem(i).is(net.minecraft.world.item.Items.EMERALD)) {
-				holds += chest.getItem(i).getCount();
-			}
-		}
-
-		town.away.tillSeen = holds;
+		town.away.tillSeen = DrifterApi.moneyHeld(chest);
 		return done;
 	}
 
-	/** Emeralds into this chest (count over 0) or out of it (under 0): how many were. */
+	/**
+	 * Money into this chest (count over 0) or out of it (under 0), in emeralds' worth: how much was. Emeralds, or with
+	 * Numismatic Overhaul its coins (an emerald's worth a thousand bronze: the user, 2026-11-12, "the whole economy should
+	 * center around NO if its installed").
+	 */
 	private static int move(net.minecraft.world.Container chest, int count) {
-		int done = 0;
-		if (count < 0) {
-			for (int i = 0; i < chest.getContainerSize() && done < -count; i++) {
-				var stack = chest.getItem(i);
-				if (stack.is(net.minecraft.world.item.Items.EMERALD)) {
-					int take = Math.min(stack.getCount(), -count - done);
-					stack.shrink(take);
-					done += take;
-				}
-			}
-		} else {
-			for (int i = 0; i < chest.getContainerSize() && done < count; i++) {
-				var stack = chest.getItem(i);
-				if (stack.isEmpty()) {
-					int put = Math.min(64, count - done);
-					chest.setItem(i, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.EMERALD, put));
-					done += put;
-				} else if (stack.is(net.minecraft.world.item.Items.EMERALD) && stack.getCount() < 64) {
-					int put = Math.min(64 - stack.getCount(), count - done);
-					stack.grow(put);
-					done += put;
-				}
-			}
-		}
-
-		if (done > 0) {
-			chest.setChanged();
-		}
-
-		return done;
+		return count < 0 ? DrifterApi.moneyTake(chest, -count) : DrifterApi.moneyPut(chest, count);
 	}
 
 	/** The town whose group this is, or null. */

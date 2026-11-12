@@ -403,7 +403,7 @@ final class Politics {
 		parts.add("no stealing");
 		parts.add("no killing");
 		if (town.laws.contains(TAX)) {
-			parts.add("a tax of " + town.tax + " emerald" + (town.tax == 1 ? "" : "s") + " a household every " + TAX_EVERY + " days");
+			parts.add("a tax of " + DrifterApi.moneyWords(town.tax) + " a household every " + TAX_EVERY + " days");
 		}
 
 		if (town.laws.contains(FARMS)) {

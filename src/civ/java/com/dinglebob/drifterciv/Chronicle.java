@@ -198,7 +198,8 @@ public final class Chronicle {
 			return;
 		}
 
-		Entry entry = new Entry(day(server), server.overworld().getGameTime(), kind, text);
+		// (A sum named in emeralds is written in coins when Numismatic Overhaul is here.)
+		Entry entry = new Entry(day(server), server.overworld().getGameTime(), kind, DrifterApi.inCoins(text));
 		entries.add(entry);
 		if (unseen) {
 			untold.add(entry);

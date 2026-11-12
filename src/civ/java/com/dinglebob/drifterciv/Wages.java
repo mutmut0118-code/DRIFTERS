@@ -40,8 +40,8 @@ final class Wages {
 		Unrest.wagesPaid(town, drifter, points);
 		if (server != null) {
 			int emeralds = (int)Math.round(points / 6.0);
-			Chronicle.add(server, "town", drifter.getName().getString() + " was paid " + (emeralds >= 1 ? emeralds + (emeralds == 1 ? " emerald's" : " emeralds'")
-				: "a little") + " worth of wages in " + town.name);
+			Chronicle.add(server, "town", drifter.getName().getString() + " was paid " + (emeralds >= 1 ? com.dinglebob.drifter.api.DrifterApi.moneyWords(emeralds) : "a little")
+				+ " in wages in " + town.name);
 			Towns.save(server);
 		}
 	}

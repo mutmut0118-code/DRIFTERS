@@ -54,6 +54,9 @@ public final class ChatLines {
 			return;
 		}
 
+		// (A sum named in emeralds is said in coins when Numismatic Overhaul is here.)
+		text = com.dinglebob.drifter.trade.Money.inCoins(text);
+
 		lastLine.put(drifter.getUUID(), drifter.level().getGameTime());
 		send(drifter, text);
 	}

@@ -3703,3 +3703,20 @@ Quick try without waiting for them: stand by one and run `/drifter hear <anythin
 
 - [ ] **More kinds of names.** With real usernames off, `/drifter spawnmany 50` then `/drifter list`: names like Bristol89,
       NeilC14, sparrowOwO, 4Creek4, STRIDERWHISPERER, the_real_..., lonelytrumpettt among the old kinds.
+
+## 0.23.50: coins at their real worth (with Numismatic Overhaul) (new)
+
+Only matters with Numismatic Overhaul installed (it is in DRIFTER TEST). Without it, everything is in emeralds as before.
+
+- [ ] **Prices.** Open a town keeper's shop: prices are in coins and no longer cheap. Bread is a couple of dozen
+      bronze, a steak about sixty, an iron ingot a couple of silver; armour and tools are tens of silver. A pillager's
+      drop (about 75 bronze) should buy a few loaves, not an emerald's worth of goods.
+- [ ] **Selling.** Sell something to the keeper: it pays about half or less of what it would sell the same thing for.
+- [ ] **A town's money is coins.** `/drifterciv town` near a town and its chronicle: taxes, fines, tribute and wages
+      are named in silver and gold ("a tax of 30 silver a household"). Look in a town's till chest after a few days:
+      coins, not emeralds (an older world's till may still hold emeralds too; they still count).
+- [ ] **A fine.** Get fined in a town; the guard names it in coins; throw that many coins at the guard (take them out
+      of your purse first) and it's paid.
+- [ ] **Said in coins.** An escort or a race offers its pay in coins ("60 silver"), and pays in coins.
+- [ ] **Anything odd.** A price that's absurd either way (a bucket for pennies, a carrot for silver), a Drifter
+      saying "emeralds" for a sum, a payment that never arrives: tell me the item or the line.

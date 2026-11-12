@@ -241,7 +241,7 @@ final class EncounterSpawner {
 	/** Something worth having for a thank-you (a traveller's): a few emeralds or gold, now and then a golden apple. */
 	static ItemStack valuable(RandomSource random) {
 		return switch (random.nextInt(5)) {
-			case 0, 1 -> new ItemStack(Items.EMERALD, 3 + random.nextInt(5));
+			case 0, 1 -> com.dinglebob.drifter.trade.Money.priceStack((3 + random.nextInt(5)) * com.dinglebob.drifter.trade.Money.EMERALD_POINTS);
 			case 2 -> new ItemStack(Items.GOLD_INGOT, 2 + random.nextInt(4));
 			case 3 -> new ItemStack(Items.GOLDEN_APPLE);
 			default -> new ItemStack(Items.DIAMOND, 1 + random.nextInt(2));

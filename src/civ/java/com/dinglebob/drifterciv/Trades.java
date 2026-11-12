@@ -820,7 +820,7 @@ final class Trades {
 					continue;
 				}
 
-				ShopOffer offer = Market.trade(item, Market.price(keeper, item) * BUYS_AT, 0, false);
+				ShopOffer offer = Market.trade(item, Market.buys(keeper, item), 0, false);
 				if (offer != null) {
 					ItemStack money = offer.goods();
 					int times = keeper.getInventory().count(stack -> stack.is(money.getItem())) / money.getCount();

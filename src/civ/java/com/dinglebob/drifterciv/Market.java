@@ -254,7 +254,7 @@ public final class Market {
 			// Selling: what it took from the store to sell, as much as it carries.
 			for (Item item : this.stock(keeper).keySet()) {
 				int carried = keeper.getInventory().count(stack -> stack.is(item));
-				ShopOffer offer = trade(item, price(keeper, item) * SELLS_AT * standing, carried, true);
+				ShopOffer offer = trade(item, sells(keeper, item) * standing, carried, true);
 				if (offer != null) {
 					offers.add(offer);
 				}
@@ -266,7 +266,7 @@ public final class Market {
 					continue;
 				}
 
-				ShopOffer offer = trade(item, price(keeper, item) * BUYS_AT, 0, false);
+				ShopOffer offer = trade(item, buys(keeper, item), 0, false);
 				if (offer != null) {
 					ItemStack money = offer.goods();
 					int has = keeper.getInventory().count(stack -> stack.is(money.getItem()));
@@ -335,6 +335,41 @@ public final class Market {
 	 * then by what's been selling (B4: each sale puts it up a little, a day without settles it back; goods nobody buys go
 	 * down), and what the town makes itself is cheaper there (a mining town's iron, a farming town's bread).
 	 */
+	/**
+	 * What its stall sells one for, in points: its price marked up; with Numismatic Overhaul, that mod's own price for it
+	 * where it has one (bread pennies, a diamond axe about a gold), dearer or cheaper by the town's supply and demand.
+	 */
+	static double sells(DrifterEntity keeper, Item item) {
+		Double listed = DrifterApi.listedPoints(item, true);
+		double worth = DrifterApi.worth(new ItemStack(item));
+		if (listed != null && worth > 0) {
+			return Math.max(0.0005, listed * price(keeper, item) / worth);
+		}
+
+		// (Not on that mod's list. Something it only lists a buying price for: three times that. Food: at its food's level,
+		// a tenth of its worth, so a carrot isn't dearer than bread.)
+		Double paid = DrifterApi.listedPoints(item, false);
+		if (paid != null && worth > 0) {
+			return Math.max(0.0005, paid * COIN_RESALE * price(keeper, item) / worth);
+		}
+
+		return price(keeper, item) * SELLS_AT * (DrifterApi.coins() && new ItemStack(item).has(net.minecraft.core.component.DataComponents.FOOD) ? COIN_FOOD : 1.0);
+	}
+
+	/** With Numismatic Overhaul: food that mod doesn't price sells at this share of its worth (its bread and meat are about that). */
+	private static final double COIN_FOOD = 0.1;
+	/** With Numismatic Overhaul: a thing that mod only buys is sold at this many times what it pays. */
+	private static final double COIN_RESALE = 3.0;
+
+	/** What its stall pays for one, in points: its price marked down; with Numismatic Overhaul, that mod's own where it has one. */
+	static double buys(DrifterEntity keeper, Item item) {
+		Double listed = DrifterApi.listedPoints(item, false);
+		double worth = DrifterApi.worth(new ItemStack(item));
+		// (Never more than half of what it'd sell it for.)
+		return listed == null || worth <= 0 ? Math.min(price(keeper, item) * BUYS_AT, sells(keeper, item) * 0.5)
+			: Math.max(0.0005, Math.min(listed * price(keeper, item) / worth, sells(keeper, item) * 0.5));
+	}
+
 	static double price(DrifterEntity keeper, Item item) {
 		int supply = supply(keeper, item);
 		double factor = Math.max(0.5, Math.min(1.6, 1.6 - 1.1 * supply / (supply + 48.0)));
