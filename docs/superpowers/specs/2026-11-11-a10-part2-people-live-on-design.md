@@ -146,3 +146,18 @@ The builder's calls:
   its work finds its chests as they were (the town's property passing on).
 - **The ten-to-twenty-day newcomer pace is for towns the player is away from.** In front of the player, arrivals keep
   today's pace.
+
+## Settled while building (0.23.44)
+
+- **Taxes aren't collected on paper.** A person not loaded has pockets nobody can count, so collecting would make
+  emeralds. What's owed adds up as before and is paid when they're loaded. The till itself does pay and receive its
+  dues on paper, out of what it was last seen to hold.
+- **Friendships:** D2's own cooling (days apart, a setting) is unchanged; a town's days on paper cool nothing more.
+- **The living catch up as before** (ten days at most of eating, gathering and gear).
+- **Losses part 1 counted before this version are let go.**
+- **A fighter is a guard** (the town's line of work); 85 in 100 of a battle's dead are guards while it has any.
+- **A grave** is a mossy cobblestone block with an oak sign on the side facing the town and coarse dirt before it,
+  in rows of four, in a patch found on open level ground just outside its houses; leaves over it are cut back. It's
+  put up by the game the morning after, not built by a Drifter's hands.
+- **Told on walking in:** the latest three things since the player was last in the town, one at a time, by whoever of
+  its people is nearest; someone who died and came back says so themself.

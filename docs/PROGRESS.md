@@ -3378,6 +3378,65 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.44: A10 part 2, a built town's people live on while you're away** (the user, 2026-11-11: "Yes, part 2";
+  "leaders can die as well but very rare (like an assassination)"; "it should be a different system because i will be
+  playing with perm death, so while making this account for all death types (respawn, lives, permanent)"). Design:
+  docs/superpowers/specs/2026-11-11-a10-part2-people-live-on-design.md; plan:
+  docs/superpowers/plans/2026-11-11-a10-part2-people-live-on.md.
+  - **Why:** in a made town nobody was near, everything stopped: its people froze, a "death" while away only emptied
+    their pockets, nobody arrived, votes needed loaded people, and the losses part 1 counted were a number nothing read.
+  - **A day on paper (`TownAway`):** each game day a made town with no player near (part 1's reach: its land + 192
+    blocks, spectators don't count) has a day from what's saved: the summary's losses become deaths (its guards mostly,
+    never its leader); very rarely its leader is killed (`ASSASSIN_CHANCE` 1 in 2,500 a day, more in a revolt or a war)
+    and is out of office in every death setting; now and then someone leaves (more when unhappy, never below 4 people);
+    an empty house draws a newcomer (about 1 day in 15; a content town more, none at war, in revolt or unhappy). In
+    front of a player `TownLife` decides as before (it now runs only while someone's near).
+  - **A real death (`AwayDeaths`, API 9 `DrifterApi.dieAway`):** by the world's rule, decided at once from the
+    Drifter's record: respawn and lives left: it comes back, at its bed with nothing, a death more behind it, and
+    remembers; permanent or its last life: gone for good, out of its group now, removed when it's next loaded. Catch-up
+    rolls no death of its own for a town's people any more (`awayDeathsDecidedBy`).
+  - **What's done at once and what waits (the ledger, `Town.away`):** who's of the town, whose house, who leads, the
+    chronicle and the record are changed on what's saved; a newcomer (named on the day it came) is made in its house,
+    a leaver's home let go and a grave dug when the town's ground is loaded (`TownAway.arrive`).
+  - **Votes and risings among people not loaded (`Politics`, `Unrest`):** they stand and vote by what the world's
+    record has of them (traits, whom they trust); a new leader's laws are laid down whether it's loaded or not. This
+    also ends the old loop where a far town "rose up" every day with nobody able to stand.
+  - **Graves (`TownGraves`):** a graveyard on open ground by the town's edge (leaves over a stone cut back): a mossy
+    stone, a sign ("Here lies", the name, what of), turned earth; for every townsperson gone for good from this version
+    on, in front of a player or away, put up the day after at the earliest. A leader's monument is still built too.
+  - **Finding out:** nothing on screen; these chronicle lines stay out of the morning's chat (`Chronicle.unseen`, also
+    for a far town's votes). Walking in, one of its people tells you what became of whom since you were last there
+    (`town.lost`, `town.lost.friend`, `town.lost.back`, `town.lost.me`, `town.left`, `town.newcomer` in town.json; the
+    latest three); a friend gone or left is marked in the journal then, not before.
+  - **Money and stores:** the till pays and takes its dues on paper out of what it was last seen to hold and no more,
+    done to the chest itself when it's loaded (`Diplomacy.till`, `TownAway.paperTill`: no emerald made); its stores
+    are up by what its farmers brought and down by what its people ate (less at war), as bread in and food out of its
+    store chests on arrival, within 256 items.
+  - **Debug (op):** `/drifterciv away` (the nearest town's ledger), `away day [n]`, `away kill|leave|newcomer|assassinate`.
+  - **Rulings:** (1) taxes aren't collected on paper: what's owed is paid by each of its people when they're loaded, as
+    before (collecting on paper would make emeralds for those with none). (2) Friendships still cool by D2's own rule
+    (days apart, a setting); the town's days on paper cool nothing further. (3) The living catch up as before (ten
+    days at most). (4) Losses part 1 counted before this version are let go, not made deaths. (5) On paper a town is never fought
+    down past its leader and one more (the design let it die out: with nobody it couldn't be come back to; part 3 can
+    turn it into a ruin). (6) A grave appears the
+    next morning even if a player is looking; it isn't built by hand.
+  - **Tested:** headless: each kind of day forced and natural, in lives and permanent death; a restart with the ledger
+    half done (newcomer made, graves dug, the dead removed after it); votes and a rising settled among unloaded
+    people; `plan check` consistent throughout; 300 days of permanent death with five towns: the town at war lost 9 for good,
+    2 left and 5 came (21 people down to 12, with its graveyard two rows deep); the towns at peace lost or gained one or two. Dev client: leaving, things
+    happening on paper, coming back: the town's people said who died and who left, by nickname; the newcomer stood in
+    its house; the graveyard (docs/superpowers/shots/a10p2_graves.png).
+  - **Review (one fresh reviewer, whole change), fixed:** its stores' change was wiped before its chests were ever
+    loaded; a town fought down to its leader and one lost its group for good (now never past its leader and one
+    more); a newcomer nearest the player announced its own death; with its guards dead every further loss was an
+    ordinary person (now mostly nobody's); later rows of graves weren't checked for roads and houses; a full yard kept
+    the town busy for ever; a death while away is saved at once and done the tick its Drifter loads; a newcomer who
+    never came isn't told of. Tuned after the long run: people leave less often (36 leavers to 16 newcomers before).
+    **Deferred minors:** emeralds taken from a till in the seconds before it unloads can still be paid out on paper;
+    a friend who only left shows as "Gone" in the journal, as one who died does (with why); a newcomer only takes a
+    whole empty house, never a spare room, so a town of shared houses settles toward one household a house.
+  - **Not tested:** a friend's death told in the gentler words and marked in the journal (the code path ran, no
+    friend was made in the test); respawn (bed) mode by hand (lives covers the same path); two players.
 - **0.23.43: A10 part 1, the world's history never stops** (the user, 2026-11-11: A10 before the chronicle revamp and
   quests; split in four parts, "yes, that's the right split and order"; "yes, that's the pace i want, keep it
   configurable"; no message on your screen, "yes, that's right, no exceptions"). Design:

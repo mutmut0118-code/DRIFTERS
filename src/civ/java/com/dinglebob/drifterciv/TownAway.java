@@ -42,8 +42,8 @@ final class TownAway {
 	private static final double ASSASSIN_REVOLT = 6.0;
 	private static final double ASSASSIN_WAR = 2.0;
 	/** A day's chance one of its people leaves; times this for each who's unhappy with its leader. */
-	private static final double LEAVE_CHANCE = 1.0 / 60.0;
-	private static final double LEAVE_UNHAPPY = 3.0;
+	private static final double LEAVE_CHANCE = 1.0 / 150.0;
+	private static final double LEAVE_UNHAPPY = 2.0;
 	/** A day's chance a newcomer comes to a house standing empty (about one in fifteen days); content, more; unhappy, none. */
 	private static final double ARRIVE_CHANCE = 1.0 / 15.0;
 	private static final double ARRIVE_CONTENT = 1.5;
@@ -330,6 +330,11 @@ final class TownAway {
 			}
 
 			Fate fate = queue.removeFirst();
+			if (fate.id.equals(speaker.getUUID()) && !fate.kind.equals("died")) {
+				// (Its own coming or going: not for it to tell.)
+				continue;
+			}
+
 			if (fate.id.equals(speaker.getUUID())) {
 				// (Its own death: it tells of it itself.)
 				com.dinglebob.drifter.social.ChatLines.speak(speaker, CivLines.pick(speaker, "town.lost.me", "i died out there while you were gone. " + fate.cause,
@@ -435,6 +440,7 @@ final class TownAway {
 			return false;
 		}
 
+		boolean any = false;
 		for (BlockPos pos : town.store) {
 			if (whole == 0) {
 				break;
@@ -443,6 +449,8 @@ final class TownAway {
 			if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof net.minecraft.world.Container chest)) {
 				continue;
 			}
+
+			any = true;
 
 			for (int i = 0; i < chest.getContainerSize() && whole != 0; i++) {
 				var stack = chest.getItem(i);
@@ -464,7 +472,11 @@ final class TownAway {
 			chest.setChanged();
 		}
 
-		// (What there was no room for, or nothing left to eat: let go.)
+		// (None of its stores loaded: another time. What there was no room for, or nothing left to eat: let go.)
+		if (!any) {
+			return false;
+		}
+
 		ledger.food = 0;
 		return true;
 	}
@@ -570,6 +582,12 @@ final class TownAway {
 			}
 
 			("guard".equals(town.lines.get(id)) ? fighters : others).add(id);
+		}
+
+		// (A town is never fought down past its leader and one more on paper: with fewer it's no town to come back to.
+		// Its fighters all dead, the battle's losses are mostly nobody's: ordinary folk die only seldom.)
+		if (fighters.size() + others.size() < 2 || fighters.isEmpty() && random.nextDouble() >= 1.0 - FIGHTER_SHARE) {
+			return null;
 		}
 
 		List<UUID> from = !fighters.isEmpty() && (others.isEmpty() || random.nextDouble() < FIGHTER_SHARE) ? fighters : others;
@@ -770,6 +788,7 @@ final class TownAway {
 			Town.Plot plot = town.plots.stream().filter(p -> p.origin.equals(one.house)).findFirst().orElse(null);
 			if (plot == null || !plot.built || plot.owner != null) {
 				// (Its house gone, or someone's since: it never came.)
+				ledger.fates.removeIf(fate -> fate.kind.equals("came") && fate.name.equals(one.name));
 				it.remove();
 				changed = true;
 				continue;
@@ -788,6 +807,7 @@ final class TownAway {
 			changed = true;
 			DrifterApi.notABandit(made);
 			if (!TownLife.movesIn(server, level, town, group, made, plot, null, null)) {
+				ledger.fates.removeIf(fate -> fate.kind.equals("came") && fate.name.equals(one.name));
 				made.discard();
 				continue;
 			}

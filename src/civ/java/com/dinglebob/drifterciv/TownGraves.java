@@ -75,7 +75,12 @@ final class TownGraves {
 		Direction along = out.getClockWise();
 		boolean any = false;
 		int slot = (int)town.graves.stream().filter(grave -> grave.stone != null).count();
-		for (int i = 0; i < town.graves.size() && slot < MOST * 2; i++) {
+		java.util.Set<Long> roads = new java.util.HashSet<>();
+		for (long column : town.roadColumns) {
+			roads.add(column);
+		}
+
+		for (int i = 0; i < town.graves.size() && slot < MOST; i++) {
 			Grave grave = town.graves.get(i);
 			if (grave.stone != null || grave.day >= today) {
 				continue;
@@ -83,11 +88,17 @@ final class TownGraves {
 
 			// The next free place in the rows that'll take a stone (skipping any that's turned bad: a tree grown, water).
 			BlockPos at = null;
-			while (at == null && slot < MOST * 2) {
+			while (at == null && slot < MOST) {
 				BlockPos column = town.yard.relative(along, (slot % ROW) * 2).relative(out, (slot / ROW) * 3);
 				slot++;
-				if (!level.isLoaded(column)) {
+				if (!level.isLoaded(column) || !level.isLoaded(column.offset(-2, 0, -2)) || !level.isLoaded(column.offset(2, 0, 2))) {
 					return any;
+				}
+
+				// (Rows past the first two weren't looked at when the yard was found: no stone on a road, a house, a field.)
+				if (roads.contains(BlockPos.asLong(column.getX(), 0, column.getZ())) || TownBuilder.built(level, column.getX(), column.getZ())
+					|| !inNoPlot(town, column.getX(), column.getZ())) {
+					continue;
 				}
 
 				at = ground(level, column.getX(), column.getZ(), town.yard.getY());
@@ -97,10 +108,20 @@ final class TownGraves {
 				break;
 			}
 
+			final BlockPos stoneAt = at;
+			if (town.graves.stream().anyMatch(other -> stoneAt.equals(other.stone))) {
+				continue;
+			}
+
 			stone(level, at, out.getOpposite(), grave);
 			town.graves.set(i, new Grave(grave.name, grave.day, grave.cause, at));
 			any = true;
 			DrifterCivilizations.LOGGER.info("[graves] {}: a stone for {} at {}", town.name, grave.name, at.toShortString());
+		}
+
+		// (Its yard full: those without a stone go unmarked, their names in the chronicle.)
+		if (slot >= MOST) {
+			any |= town.graves.removeIf(grave -> grave.stone == null && grave.day < today);
 		}
 
 		return any;

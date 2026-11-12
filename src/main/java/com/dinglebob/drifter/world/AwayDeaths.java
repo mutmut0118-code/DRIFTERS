@@ -64,7 +64,7 @@ public final class AwayDeaths {
 		ServerLifecycleEvents.SERVER_STOPPING.register(AwayDeaths::save);
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> pending.clear());
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
-			if (!pending.isEmpty() && server.getTickCount() % 5 == 0) {
+			if (!pending.isEmpty()) {
 				sweep(server);
 			}
 
@@ -112,7 +112,8 @@ public final class AwayDeaths {
 		}
 
 		pending.add(new Entry(id, cause, !back, server.overworld().getGameTime()));
-		dirty = true;
+		// (Kept with the world at once: its group and record are, and a save between would leave it alive with nothing owed.)
+		save(server);
 		Drifter.LOGGER.info("[Drifter] {} died while away ({}): {}", record.name(), cause, back ? "it comes back" : "gone for good");
 		sweep(server);
 		return back ? DrifterApi.AwayDeath.BACK : DrifterApi.AwayDeath.GONE;
@@ -146,8 +147,8 @@ public final class AwayDeaths {
 			}
 
 			it.remove();
-			dirty = true;
 			apply(drifter, entry);
+			save(server);
 		}
 	}
 

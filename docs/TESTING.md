@@ -3582,3 +3582,31 @@ Both jars in, as always. Nothing pops up on your screen for any of this: you fin
       own)".
 - [ ] **An older world.** Open a world from before this version: no errors, `/drifterciv plan check` consistent, wars
       that were on are still on.
+
+## 0.23.44: a town's people live on while you're away (A10 part 2) (new)
+
+Both jars in. Nothing here pops up on your screen: you find out in the town. Pick how deaths work first:
+`/drifter config respawn permadeath` (or `lives`, or `bed`).
+
+- [ ] **Leave and come back.** Stand in a town a minute, then go far away (300 blocks past its last house is plenty),
+      skip time (`/time add 2400000`, wait two minutes), and walk back in. One of its people near you says what
+      happened since: who died and of what, who left, who's new. `/drifterciv chronicle` has it all by name.
+- [ ] **The quick way to make things happen** (cheats on, standing far from the town or in spectator mode, so it's
+      "away"): `/drifterciv away kill` (someone dies as in a far battle), `/drifterciv away leave`,
+      `/drifterciv away newcomer` (needs an empty house), `/drifterciv away assassinate` (its leader).
+      `/drifterciv away` shows the town's ledger.
+- [ ] **Permanent death.** After a kill, that person is gone when you come back; the next morning there's a mossy
+      stone with a sign ("Here lies", their name) in a small graveyard at the edge of town. A newcomer takes the empty
+      house after a while and stands in it when you arrive.
+- [ ] **Lives or respawn.** The person who died is back in their house with empty pockets; with lives, one fewer
+      (`/drifter info` near them). They tell you about it themselves.
+- [ ] **A friend.** Make a friend in a town, go away, kill them on paper (permanent death), come back: someone tells
+      you, more gently, and the journal (J) shows them as gone and why. Before you're back in the town, the journal
+      still shows them as you knew them.
+- [ ] **A leader killed.** `/drifterciv away assassinate`: the chronicle says "was killed by an unknown hand", someone
+      leads till the vote next morning, a vote is held even with nobody there, and the old leader (if they came back)
+      isn't leader.
+- [ ] **Far towns vote.** After a long skip, `/drifterciv chronicle` shows far towns electing leaders with real
+      tallies; none of it appears in the morning chat summary.
+- [ ] **Nothing odd.** A dead person standing in town, a town emptied for no reason, a grave in a silly place (in a
+      road, on a roof), emeralds missing from a town's till: tell me the town and what you saw.
