@@ -43,7 +43,7 @@ final class TownLife {
 	/** A day's chance a newcomer comes up the road (with a house empty and the days gone by). */
 	private static final double ARRIVAL_CHANCE = 0.3;
 	/** How well it gets on with the town's people it knows, on average, to move in; below this, a fallen-out one. */
-	private static final double GETS_ON = 15.0;
+	static final double GETS_ON = 15.0;
 	private static final double FALLEN_OUT = 5.0;
 
 	/** Once a day, in the morning. */
@@ -324,7 +324,7 @@ final class TownLife {
 	}
 
 	/** How well the town's people who know it get on with it (their trust in it, on average), or NaN if none know it yet. */
-	private static double trustOf(DrifterGroups.Group group, DrifterEntity one, MinecraftServer server) {
+	static double trustOf(DrifterGroups.Group group, DrifterEntity one, MinecraftServer server) {
 		double sum = 0;
 		int known = 0;
 		for (UUID id : group.members) {
@@ -341,7 +341,7 @@ final class TownLife {
 
 	/** A house that's up with nobody in it, nearest the middle. */
 	@Nullable
-	private static Town.Plot emptyHouse(Town town) {
+	static Town.Plot emptyHouse(Town town) {
 		Town.Plot best = null;
 		for (Town.Plot plot : town.plots) {
 			if (plot.built && plot.owner == null && plot.residents.isEmpty() && (best == null || plot.origin.distSqr(town.center) < best.origin.distSqr(town.center))) {
@@ -354,7 +354,7 @@ final class TownLife {
 
 	/** A house with a room to spare (more rooms than people in it). */
 	@Nullable
-	private static Town.Plot spareRoom(ServerLevel level, Town town) {
+	static Town.Plot spareRoom(ServerLevel level, Town town) {
 		for (Town.Plot plot : town.plots) {
 			if (!plot.built || plot.owner == null) {
 				continue;

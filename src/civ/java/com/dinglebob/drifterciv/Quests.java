@@ -51,7 +51,9 @@ import net.minecraft.world.level.saveddata.SavedData;
  * what the world asks of a player, from what's happening in it, asked in person and in words, answered with a yes or a no
  * in chat or on the journal's Quests page, paid with real things the giver has. Stage 1's kinds: bring something (a town at
  * war short of iron or food; a town clean out of something), carry word (to a named person in another town: a letter if the
- * giver has paper, else by word of mouth), see to the dead (a flower on a grave). A friend's favor ({@link FriendPerks}) and
+ * giver has paper, else by word of mouth), see to the dead (a flower on a grave). Stage 2's: find someone (a wanderer
+ * brought to a town with a house standing empty, who moves in by the town's own rule), deal with someone (a Bandit about the
+ * town, killed: no crime there, its leader having asked). A friend's favor ({@link FriendPerks}) and
  * a town's notices ({@link TownNotices}) are shown with them, done as they always were. Each player has their own; five open
  * at most; an offer lapses after a day at no cost; a word given and not kept costs a little trust.
  */
@@ -74,7 +76,7 @@ final class Quests {
 		long id;
 		UUID player;
 		String playerName = "";
-		/** "bring", "word", "dead"; "favor" and "notice" only as a record of one done. */
+		/** "bring", "word", "dead", "find", "deal"; "favor" and "notice" only as a record of one done. */
 		String kind = "";
 		UUID giver;
 		String giverName = "";
@@ -97,7 +99,7 @@ final class Quests {
 		int given;
 		/** What they'd pay, in emeralds' worth (0: thanks alone). */
 		int pay;
-		/** Carry word: to whom, of where; a letter (else by word of mouth). */
+		/** Carry word: to whom, of where; a letter (else by word of mouth). Deal with someone: whom ({@code to}, {@code toName}). */
 		@Nullable
 		UUID to;
 		String toName = "";
@@ -110,7 +112,7 @@ final class Quests {
 		/** Where (the other town, the grave). */
 		@Nullable
 		BlockPos at;
-		/** See to the dead: whose grave. Bring, in a war: the enemy. A record: its title. */
+		/** See to the dead: whose grave. Bring, in a war: the enemy. Find someone: who came, once they have. A record: its title. */
 		String about = "";
 		boolean war;
 		/** Trust the giver has yet to lose over it (it wasn't about when it ended). */
@@ -233,6 +235,18 @@ final class Quests {
 	private static final int SHORT_DAYS = 4;
 	private static final int WORD_DAYS = 5;
 	private static final int DEAD_DAYS = 10;
+	private static final int FIND_DAYS = 10;
+	private static final int DEAL_DAYS = 7;
+	/** Find someone, deal with someone: what's paid (emeralds' worth), by how close they are (liked; a friend or its nation's own). */
+	private static final int[] FIND_PAY = {6, 6, 10};
+	private static final int[] DEAL_PAY = {10, 10, 16};
+	/** A Bandit this near a town is its to be rid of (as its board's warning has it); one brought to a town is this near them. */
+	private static final double BANDIT_NEAR = 300.0;
+	private static final double BROUGHT = 16.0;
+	/** Find someone: the one brought was following them this lately (ticks). */
+	private static final long FOLLOWED_LATELY = 20L * 60 * 2;
+	private static final double FIND_TRUST = 10.0;
+	private static final double DEAL_TRUST = 12.0;
 	/** Carry word: how far a person knows someone (blocks), a leader; its pay (emeralds' worth) and what each 300 blocks adds. */
 	private static final double PERSON_KNOWS = 1500.0;
 	private static final double LEADER_KNOWS = 3000.0;
@@ -283,6 +297,34 @@ final class Quests {
 				}
 			}
 		});
+		// Someone a leader wanted dealt with, dead: by them (or with them near), it's done; otherwise it's no longer needed.
+		net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {
+			MinecraftServer server = victim.getServer();
+			if (!(victim instanceof DrifterEntity dead) || server == null) {
+				return;
+			}
+
+			for (Quest q : quests.values()) {
+				if (q.kind.equals("deal") && (q.state == OFFERED || q.state == TAKEN) && dead.getUUID().equals(q.to)) {
+					ServerPlayer player = server.getPlayerList().getPlayer(q.player);
+					// (By their hand: the blow, or the fight that led to it.)
+					boolean theirs = player != null && (source.getEntity() == player || dead.getKillCredit() == player);
+					if (theirs) {
+						q.state = READY;
+						q.end = q.toName + " is dead.";
+					} else {
+						close(q, LAPSED, q.toName + " is dead, and not by your doing. It isn't needed now.", server.overworld().getGameTime());
+					}
+
+					state(server).setDirty();
+				}
+			}
+		});
+		// (Its leader asked for it: none of the town holds it against them, seen or heard of. Others who liked the dead still do.)
+		DrifterApi.setSanctionedKill((witness, killer, victim) -> {
+			Town town = Diplomacy.townOf(witness.getUUID());
+			return town != null && lawful(town, killer, victim);
+		});
 		ServerLifecycleEvents.SERVER_STARTED.register(Quests::state);
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			quests.clear();
@@ -308,7 +350,7 @@ final class Quests {
 				return 1;
 			}).then(Commands.literal("offer").executes(ctx -> debugOffer(ctx.getSource(), null))
 				.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
-					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("war", "short", "word", "dead"), builder))
+					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("war", "short", "word", "dead", "find", "deal"), builder))
 					.executes(ctx -> debugOffer(ctx.getSource(), com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind")))))
 			.then(Commands.literal("page").then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -339,17 +381,34 @@ final class Quests {
 			.then(Commands.literal("go").then(Commands.argument("id", com.mojang.brigadier.arguments.LongArgumentType.longArg()).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Quest q = quests.get(com.mojang.brigadier.arguments.LongArgumentType.getLong(ctx, "id"));
-				if (q == null || q.at == null) {
+				DrifterEntity to = q == null || q.to == null ? null : TownFounding.loaded(player.server, q.to);
+				if (q == null || q.at == null && to == null) {
 					return 0;
 				}
 
-				DrifterEntity to = q.to == null ? null : TownFounding.loaded(player.server, q.to);
 				BlockPos at = to != null ? to.blockPosition() : q.kind.equals("dead") ? q.at.above()
 					: player.serverLevel().getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, q.at);
 				player.teleportTo(player.serverLevel(), at.getX() + 0.5, at.getY(), at.getZ() + 0.5, player.getYRot(), player.getXRot());
 				ctx.getSource().sendSuccess(() -> Component.literal("Debug: at " + at.toShortString() + (to != null ? ", by " + q.toName : "")), false);
 				return 1;
 			})))
+			// (Testing: the nearest Drifter with no town counts as following them along just now, as if asked to and walking behind.)
+			.then(Commands.literal("follow").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				DrifterEntity nearest = null;
+				for (DrifterEntity one : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(12.0), d -> d.isAlive()
+					&& DrifterApi.group(d.getUUID()) == null)) {
+					nearest = nearest == null || one.distanceToSqr(player) < nearest.distanceToSqr(player) ? one : nearest;
+				}
+
+				if (nearest != null) {
+					nearest.getSocial().watcher().following(player);
+				}
+
+				String name = nearest == null ? "nobody without a town near" : nearest.getName().getString() + " counts as following you";
+				ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + name), false);
+				return nearest == null ? 0 : 1;
+			}))
 			.then(Commands.literal("back").then(Commands.argument("id", com.mojang.brigadier.arguments.LongArgumentType.longArg()).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				Quest q = quests.get(com.mojang.brigadier.arguments.LongArgumentType.getLong(ctx, "id"));
@@ -496,6 +555,10 @@ final class Quests {
 			return true;
 		}
 
+		if (q.state == TAKEN && q.kind.equals("find")) {
+			return brought(server, q, player, now);
+		}
+
 		if (q.state == READY) {
 			DrifterEntity giver = TownFounding.loaded(server, q.giver);
 			if (giver != null && giver.level() == player.level() && giver.distanceToSqr(player) <= NEAR * NEAR && sees(giver, player, now) && !TalkApi.talking(giver)) {
@@ -512,6 +575,73 @@ final class Quests {
 		// look up.)
 		long seen = TalkApi.lastSeen(drifter, player.getUUID());
 		return seen >= 0 && now - seen <= SEEN_NOW || drifter.distanceToSqr(player) <= 5.0 * 5.0 && drifter.hasLineOfSight(player);
+	}
+
+	/**
+	 * Find someone: a wanderer who has followed them into the town (asked to, "follow me", and still at it or only just
+	 * stopped; on the town's land, near them; no home, no town, no Bandit) is taken in, unless the town's people who know it
+	 * have something against it, while there's still a house or a room ({@link TownLife}). Done then; they've
+	 * only to tell whoever asked.
+	 */
+	private static boolean brought(MinecraftServer server, Quest q, ServerPlayer player, long now) {
+		Town town = q.town == null ? null : Diplomacy.byId(q.town.toString());
+		com.dinglebob.drifter.world.DrifterGroups.Group group = town == null || town.group == null ? null : DrifterApi.groupById(town.group);
+		if (town == null || group == null || !town.dimension.equals(player.level().dimension().location().toString())
+			|| Math.hypot(player.getX() - town.center.getX(), player.getZ() - town.center.getZ()) > town.land()) {
+			return false;
+		}
+
+		ServerLevel level = player.serverLevel();
+		Town.Plot empty = TownLife.emptyHouse(town);
+		Town.Plot spare = empty == null ? TownLife.spareRoom(level, town) : null;
+		if (empty == null && spare == null || group.members.size() >= TownLife.MOST_PEOPLE) {
+			close(q, LAPSED, q.townName + " has nowhere left to put anyone. It isn't needed now.", now);
+			return true;
+		}
+
+		for (DrifterEntity one : level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(BROUGHT), d -> d.isAlive() && !d.isTemporary())) {
+			if (DrifterApi.group(one.getUUID()) != null || DrifterApi.bandit(one) || TalkApi.hostileOnSight(one) || settled(one)
+				|| now - TalkApi.lastFollowed(one, q.player) > FOLLOWED_LATELY
+				|| Math.hypot(one.getX() - town.center.getX(), one.getZ() - town.center.getZ()) > town.land()) {
+				continue;
+			}
+
+			// (Brought by someone the town asked: taken in unless its people who know them have something against them. Not the
+			// town's rule for one who just turns up, who must be liked already: a stranger they've only glanced at is no reason.)
+			double trust = TownLife.trustOf(group, one, server);
+			if (!Double.isNaN(trust) && trust < 0.0) {
+				continue;
+			}
+
+			if (TownLife.movesIn(server, level, town, group, one, empty, spare, "brought by " + q.playerName)) {
+				q.about = one.getName().getString();
+				q.state = READY;
+				q.end = q.about + " has moved in.";
+				Towns.save(server);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/** It has a place of its own already: a house in a town, or a hut or a house it built (not just a spot it has in mind). */
+	private static boolean settled(DrifterEntity one) {
+		Home home = DrifterApi.home(one);
+		return home != null && (home.noHut || home.hutBuilt || home.houseBuilt);
+	}
+
+	/** Did this town's leader ask this player to deal with this one (so that killing them is no crime there)? */
+	static boolean lawful(Town town, UUID player, UUID dead) {
+		for (Quest q : quests.values()) {
+			// (While it's asked and not yet settled up; and never one of the town's own, should they have come to live there since.)
+			if (q.kind.equals("deal") && q.open() && q.player.equals(player) && town.id.equals(q.town) && dead.equals(q.to)) {
+				com.dinglebob.drifter.world.DrifterGroups.Group group = DrifterApi.group(dead);
+				return group == null || !group.id.equals(town.group);
+			}
+		}
+
+		return false;
 	}
 
 	/** A flower growing by this stone. */
@@ -563,7 +693,8 @@ final class Quests {
 
 			// Whoever asked is gone: their town honours what was asked for it; what was their own ends with them.
 			DrifterRecord giver = DrifterApi.record(q.giver);
-			if (giver == null || giver.status() == DrifterRecord.Status.GONE) {
+			// (No record yet: one only just come into the world, not one gone from it. None for long, and not about: gone.)
+			if (giver != null ? giver.status() == DrifterRecord.Status.GONE : now - q.asked > 1200L && TownFounding.loaded(server, q.giver) == null) {
 				Town town = q.town == null ? null : Diplomacy.byId(q.town.toString());
 				DrifterRecord next = null;
 				if (q.forTown && town != null) {
@@ -615,6 +746,17 @@ final class Quests {
 						changed = true;
 						continue;
 					}
+				}
+			}
+
+			// (Whoever was to be dealt with, gone for good some other way.)
+			if (q.kind.equals("deal") && q.state != READY) {
+				DrifterRecord target = q.to == null ? null : DrifterApi.record(q.to);
+				// (No record yet: one only just come into the world, not one gone from it.)
+				if (target != null && target.status() == DrifterRecord.Status.GONE) {
+					close(q, LAPSED, q.toName + " is gone, and not by your doing. It isn't needed now.", now);
+					changed = true;
+					continue;
 				}
 			}
 
@@ -705,7 +847,7 @@ final class Quests {
 		for (DrifterEntity giver : about) {
 			// (As it would start any talk: not asleep, busy talking or at odds with them, they not mid-talk or with a question
 			// of someone else's still to answer.)
-			if (only == null && (!sees(giver, player, now) || !TalkApi.freeToTalk(giver, player)) || TalkApi.talking(giver)
+			if (only == null && (!sees(giver, player, now) || !TalkApi.freeToTalk(giver, player) || TalkApi.talking(giver))
 				|| Diplomacy.townOf(giver.getUUID()) != town || DrifterApi.trustInPlayer(giver, id) < ASKS) {
 				if (only != null) {
 					DrifterCivilizations.LOGGER.info("[quests] debug: {} wouldn't ask (talking {}, of this town {}, trust {})", giver.getName().getString(),
@@ -732,7 +874,7 @@ final class Quests {
 			int level = bond != null && bond.friend() || theirs != null && its != null && theirs.id.equals(its.id) ? 2
 				: DrifterApi.trustInPlayer(giver, id) >= LIKES || standing == TownReputation.Standing.WELCOME ? 1 : 0;
 			boolean speaksForTown = giver.getUUID().equals(town.leader) || giver.getUUID().equals(town.keeper);
-			List<String> kinds = new ArrayList<>(List.of("word", "dead", "short"));
+			List<String> kinds = new ArrayList<>(List.of("word", "dead", "short", "find", "deal"));
 			Collections.shuffle(kinds, new java.util.Random(now + giver.getId()));
 			// (A town at war asks for what the war needs before anything else.)
 			kinds.add(0, "war");
@@ -745,6 +887,9 @@ final class Quests {
 					case "war" -> speaksForTown ? bring(server, town, giver, player, level, true) : null;
 					case "short" -> speaksForTown ? bring(server, town, giver, player, level, false) : null;
 					case "word" -> word(server, town, giver, player, level);
+					// (Big things: asked of someone liked, a friend, one of its own. Testing: of anyone.)
+					case "find" -> speaksForTown && (level >= 1 || only != null) ? find(server, town, giver, player, level) : null;
+					case "deal" -> giver.getUUID().equals(town.leader) && (level >= 1 || only != null) ? deal(server, town, giver, player, level) : null;
 					// (A kindness: asked of someone they like. Testing: of anyone.)
 					default -> level >= 1 || only != null ? dead(server, town, giver, player) : null;
 				};
@@ -966,6 +1111,106 @@ final class Quests {
 		return null;
 	}
 
+	/** Find someone: a town with a house standing empty wants someone to live in it. */
+	@Nullable
+	private static Quest find(MinecraftServer server, Town town, DrifterEntity giver, ServerPlayer player, int level) {
+		if (TownLife.emptyHouse(town) == null) {
+			return null;
+		}
+
+		for (Quest other : quests.values()) {
+			if (other.open() && other.kind.equals("find") && town.id.equals(other.town)) {
+				return null;
+			}
+		}
+
+		Quest q = new Quest();
+		q.kind = "find";
+		q.forTown = true;
+		q.pay = Math.min(FIND_PAY[level], has(server, town, giver, true));
+		q.due = Friends.now() + FIND_DAYS * DAY;
+		long day = Chronicle.day(server);
+		String lost = town.lastLeft != null && day - town.lastLeftDay <= 30 ? town.lastLeft + " left, and their house stands empty. " : "A house in "
+			+ town.name + " stands empty. ";
+		q.why = lost + town.name + " wants someone to live in it and take up work.";
+		String pay = q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it";
+		q.said = CivLines.pick(giver, "quest.ask.find", "we've a house standing empty and work going. if you meet someone with no home, bring them to us? " + pay,
+			"player", TalkApi.callName(giver, player), "town", town.name, "pay", pay);
+		return q;
+	}
+
+	/**
+	 * Deal with someone: a Bandit about the town whom one of its people has seen and knows for who they are (its senses'
+	 * own word), of no town and nobody's hidden crook, and not one it has asked about before.
+	 */
+	@Nullable
+	private static Quest deal(MinecraftServer server, Town town, DrifterEntity giver, ServerPlayer player, int level) {
+		ServerLevel world = TownLife.level(server, town);
+		if (world == null) {
+			return null;
+		}
+
+		for (DrifterEntity one : world.getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(town.center).inflate(BANDIT_NEAR, 64, BANDIT_NEAR),
+			d -> d.isAlive() && !d.isTemporary())) {
+			// (Not one who lives in a town, its own or another's: a crook nobody knows for one.)
+			if (!DrifterApi.bandit(one) || DrifterApi.group(one.getUUID()) != null) {
+				continue;
+			}
+
+			boolean crook = false;
+			for (Town other : Towns.all()) {
+				crook |= other.crooks.contains(one.getUUID());
+			}
+
+			// (Nor one this town has asked about before, done or not: back from the dead, they're not paid for twice.)
+			boolean already = false;
+			for (Quest other : quests.values()) {
+				already |= other.kind.equals("deal") && one.getUUID().equals(other.to) && town.id.equals(other.town);
+			}
+
+			if (crook || already || !known(server, town, one)) {
+				continue;
+			}
+
+			Quest q = new Quest();
+			q.kind = "deal";
+			q.forTown = true;
+			q.to = one.getUUID();
+			q.toName = one.getName().getString();
+			q.pay = Math.min(DEAL_PAY[level], has(server, town, giver, true));
+			q.due = Friends.now() + DEAL_DAYS * DAY;
+			double dx = one.getX() - town.center.getX();
+			double dz = one.getZ() - town.center.getZ();
+			String way = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? "east" : "west") : (dz > 0 ? "south" : "north");
+			q.toRole = way;
+			q.why = q.toName + " is a bandit, about to the " + way + " of " + town.name + ", and its people aren't safe on the roads.";
+			String pay = q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it";
+			q.said = CivLines.pick(giver, "quest.ask.deal", "there's a bandit called " + q.toName + " out " + way + " of here. deal with them and " + pay,
+				"player", TalkApi.callName(giver, player), "who", q.toName, "way", way, "town", town.name, "pay", pay);
+			return q;
+		}
+
+		return null;
+	}
+
+	/** Has one of this town's people (loaded) seen this one and known them for who they are? */
+	private static boolean known(MinecraftServer server, Town town, DrifterEntity one) {
+		com.dinglebob.drifter.world.DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+		if (group == null) {
+			return false;
+		}
+
+		for (UUID id : group.members) {
+			DrifterEntity member = TownFounding.loaded(server, id);
+			var seen = member == null ? null : member.getSenses().awarenessOf(one);
+			if (seen != null && seen.identified) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** What it could pay with, in whole emeralds' worth: its own money, and (asking for the town) the till's. */
 	private static int has(MinecraftServer server, Town town, DrifterEntity giver, boolean till) {
 		int has = DrifterApi.moneyHeld(giver.getInventory());
@@ -1156,7 +1401,13 @@ final class Quests {
 				: "thank you. really", "player", TalkApi.callName(giver, player),
 				"dead", q.about, "who", q.toName);
 		TalkApi.sayTo(giver, player, thanks);
-		DrifterApi.addTrustInPlayer(giver, q.player, name, q.kind.equals("bring") ? BRING_TRUST : q.kind.equals("word") ? WORD_TRUST : DEAD_TRUST);
+		DrifterApi.addTrustInPlayer(giver, q.player, name, switch (q.kind) {
+			case "bring" -> BRING_TRUST;
+			case "word" -> WORD_TRUST;
+			case "find" -> FIND_TRUST;
+			case "deal" -> DEAL_TRUST;
+			default -> DEAD_TRUST;
+		});
 		if (q.kind.equals("dead")) {
 			TalkApi.addFamiliarity(giver, q.player, name, DEAD_FAMILIARITY);
 		}
@@ -1164,6 +1415,8 @@ final class Quests {
 		String did = switch (q.kind) {
 			case "bring" -> "brought " + q.townName + " the " + things(q.count, item(q.item)) + " it needed" + (q.war ? " for its war with " + q.about : "");
 			case "word" -> "carried " + (q.letter ? "a letter" : "word") + " from " + q.giverName + " of " + q.townName + " to " + q.toName + " of " + q.toTown;
+			case "find" -> "brought " + q.about + " to live in " + q.townName;
+			case "deal" -> "dealt with the bandit " + q.toName + " for " + q.townName;
 			default -> "laid a flower on " + q.about + "'s grave in " + q.townName + " for " + q.giverName;
 		};
 		if (q.forTown && town != null) {
@@ -1172,7 +1425,7 @@ final class Quests {
 			Towns.save(server);
 		}
 
-		if (q.kind.equals("bring") && (q.war || q.count >= BIG)) {
+		if (q.kind.equals("bring") && (q.war || q.count >= BIG) || q.kind.equals("find") || q.kind.equals("deal")) {
 			Annals.deed(server, player, did, giver);
 		}
 
@@ -1236,6 +1489,8 @@ final class Quests {
 			case "bring" -> capital(plural(name(item(q.item)))) + " for " + q.townName + (q.war ? "'s war" : "");
 			case "word" -> (q.letter ? "A letter for " : "Word for ") + q.toName + " in " + q.toTown;
 			case "dead" -> "A flower for " + q.about + "'s grave";
+			case "find" -> "Someone new for " + q.townName;
+			case "deal" -> "Deal with " + q.toName;
 			default -> q.about;
 		};
 	}
@@ -1481,6 +1736,28 @@ final class Quests {
 					}
 				}
 			}
+			case "find" -> {
+				els.add(el(Journal.ITEM, "minecraft:oak_door", "Someone to live in " + q.townName, Journal.PLAIN, q.about.isEmpty()
+					? List.of("A wanderer with no home and no town", "Not a bandit, nor someone who lives elsewhere") : List.of(q.about + " came")));
+				if (q.state == OFFERED || q.state == TAKEN) {
+					els.add(text("Get to know one, ask them to come with you (say \"follow me\" to them; they follow a few minutes, so ask again on a long road), and "
+						+ "walk them into " + q.townName + ". If its people take to them, they'll be given the house. Then tell " + q.giverName + ".", Journal.FAINT));
+				}
+			}
+			case "deal" -> {
+				List<String> more = new ArrayList<>(List.of("A bandit"));
+				if (q.open()) {
+					more.add("Last seen to the " + q.toRole + " of " + q.townName);
+				}
+
+				els.add(el(Journal.ITEM, "minecraft:iron_sword", "Deal with " + q.toName, Journal.PLAIN, more));
+				if (q.state == OFFERED || q.state == TAKEN) {
+					els.add(text("Kill them. Then tell " + q.giverName + ".", Journal.FAINT));
+					// (Never led into trouble unwarned.)
+					els.add(text(q.townName + "'s leader has asked it: nobody of " + q.townName + " will hold it against you. Anyone else who sees it and liked them will.",
+						Journal.BAD));
+				}
+			}
 			default -> {
 				List<String> more = new ArrayList<>(List.of("In " + q.townName + "'s graveyard"));
 				if (q.at != null) {
@@ -1608,7 +1885,7 @@ final class Quests {
 		Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
 		Quest q = town == null ? null : ask(player.server, town, player, player.server.overworld().getGameTime(), kind == null ? "" : kind);
 		if (q == null && kind == null && town != null) {
-			for (String one : List.of("war", "short", "word", "dead")) {
+			for (String one : List.of("war", "short", "word", "dead", "find", "deal")) {
 				q = q != null ? q : ask(player.server, town, player, player.server.overworld().getGameTime(), one);
 			}
 		}
@@ -1620,6 +1897,7 @@ final class Quests {
 
 		source.sendSuccess(() -> Component.literal(asked == null ? "Debug: nobody near had that to ask (a townsperson within 64 blocks who doesn't mind you? "
 			+ "war: a town at war, its leader or keeper; short: its leader or keeper; word: another town in reach; dead: a grave, and they like you; "
+			+ "find: its leader or keeper, a house standing empty; deal: its leader, a Bandit within 300 blocks; "
 			+ "the log says who wouldn't and why)"
 			: "Debug: #" + asked.id + " " + title(asked) + ", asked by " + asked.giverName), false);
 		return asked == null ? 0 : 1;

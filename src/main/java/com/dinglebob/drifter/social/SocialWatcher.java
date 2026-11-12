@@ -104,6 +104,8 @@ public class SocialWatcher {
 		boolean warningIgnored;
 		/** "Follow me": crouched twice near it, facing it (then walks off); and where they were then. */
 		long invitedAt = Long.MIN_VALUE / 2;
+		/** When it was last following them along (not saved: a walk under way). */
+		long followingAt = Long.MIN_VALUE / 2;
 		@Nullable
 		Vec3 invitedFrom;
 		/**
@@ -210,6 +212,17 @@ public class SocialWatcher {
 	/** They told it to stop following. */
 	public void toldToStop(Player player) {
 		this.watch(player).toldToStopAt = this.now();
+	}
+
+	/** It's following them along now (its "follow me" activity, each step of it). */
+	public void following(Player player) {
+		this.watch(player).followingAt = this.now();
+	}
+
+	/** When it was last following them along (game time), or a time long gone. */
+	public long lastFollowed(java.util.UUID player) {
+		Watch w = this.watches.get(player);
+		return w == null ? Long.MIN_VALUE / 2 : w.followingAt;
 	}
 
 	/** They told it to stop since this time. */
@@ -978,6 +991,11 @@ public class SocialWatcher {
 		// was the one it was after (a thief it was chasing, found in an encounter test: the owner took the thief's death
 		// for a friend's): then the player stopped its attacker.
 		if (victim instanceof DrifterEntity) {
+			// (Asked for by those it answers to, an addon says: a town's leader wanted this one dealt with. Nothing held against them.)
+			if (com.dinglebob.drifter.api.DrifterApi.sanctionedKill(this.drifter, player.getUUID(), victim.getUUID())) {
+				return;
+			}
+
 			var pursuit = this.drifter.getDrifterBrain().pursuit();
 			this.record(player, pursuit != null && pursuit.target == victim ? SocialEvent.KILLED_ATTACKER : SocialEvent.KILLED_FRIEND, 0.0);
 			return;

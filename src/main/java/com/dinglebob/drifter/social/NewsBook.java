@@ -212,7 +212,9 @@ public final class NewsBook {
 				}
 
 				// The one who killed it: thought the less of (much less by a friend of the dead, and again when it's for good).
-				if (news.other() != null && !news.other().equals(this.drifter.getUUID())) {
+				if (news.other() != null && !news.other().equals(this.drifter.getUUID())
+					// (Not for a killing those it answers to asked for: an addon's say.)
+					&& !(news.weight() > 0.0 && news.about() != null && com.dinglebob.drifter.api.DrifterApi.sanctionedKill(this.drifter, news.other(), news.about()))) {
 					double scale = worth * (friend ? 2.0 : 0.5) * (gone ? 2.0 : 1.0);
 					boolean byPlayer = news.weight() > 0.0;
 					Relationship r = byPlayer ? this.drifter.getSocial().getOrMeet(news.other(), news.otherName())

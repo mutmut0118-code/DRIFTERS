@@ -262,6 +262,12 @@ final class Justice {
 				return;
 			}
 
+			// (Its leader asked them to deal with this one: no crime here. Quests, stage 2; the user, 2026-11-12: "a leader's
+			// ask makes it lawful in that town, for that person only".)
+			if (playerKiller != null && Quests.lawful(town, playerKiller.getUUID(), dead.getUUID())) {
+				return;
+			}
+
 			// Those of the town who saw it: the killer in sight just now, near; or close enough to hear it, knowing who.
 			List<DrifterEntity> witnesses = new ArrayList<>();
 			long now = level.getGameTime();

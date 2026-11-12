@@ -579,6 +579,7 @@ public final class FriendlyGoals {
 						return Status.SUCCESS;
 					}
 
+					this.drifter.getSocial().watcher().following(player);
 					return this.begin(NavigateTask.follow(this.drifter, player, 3.0));
 				}
 			};

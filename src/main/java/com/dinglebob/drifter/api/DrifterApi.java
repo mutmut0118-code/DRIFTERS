@@ -1548,6 +1548,28 @@ public final class DrifterApi {
 		return com.dinglebob.drifter.trade.Money.worth(stack);
 	}
 
+	// ----- A killing that was asked for (API 13) -----
+
+	/** Was this player's killing of this Drifter asked for by those this witness answers to (so it holds nothing against them)? */
+	@FunctionalInterface
+	public interface SanctionedKill {
+		boolean sanctioned(DrifterEntity witness, java.util.UUID killer, java.util.UUID victim);
+	}
+
+	private static SanctionedKill sanctionedKill = (witness, killer, victim) -> false;
+
+	/**
+	 * An addon's say on which killings by a player a Drifter holds nothing against them for, seen or heard of (a town whose
+	 * leader asked for it). The game's own rules still apply to everyone else who saw it.
+	 */
+	public static void setSanctionedKill(SanctionedKill hook) {
+		sanctionedKill = hook;
+	}
+
+	public static boolean sanctionedKill(DrifterEntity witness, java.util.UUID killer, java.util.UUID victim) {
+		return sanctionedKill.sanctioned(witness, killer, victim);
+	}
+
 	// ----- Sums in emeralds' worth (a till, a tax, a fine: coins with Numismatic Overhaul, an emerald's worth 1,000 bronze) -----
 
 	/** This many emeralds' worth in words: "3 emeralds", or with coins "30 silver", "1 gold and 20 silver". */

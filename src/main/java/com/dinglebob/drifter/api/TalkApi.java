@@ -288,6 +288,11 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.talk.PlayerChats.free(drifter, player);
 	}
 
+	/** When it was last following this player along, asked to ("follow me"): game time, or a time long gone (API 13). */
+	public static long lastFollowed(DrifterEntity drifter, UUID player) {
+		return drifter.getSocial().watcher().lastFollowed(player);
+	}
+
 	/** Hostile on sight by nature: a Bandit (now), or a delver. */
 	public static boolean hostileOnSight(DrifterEntity drifter) {
 		return drifter.getSocial().disposition() == com.dinglebob.drifter.social.Disposition.BANDIT || drifter.isDelver();

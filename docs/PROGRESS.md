@@ -3396,6 +3396,46 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.52: quests, stage 2: find someone, deal with someone** (the design's second stage, approved with it; built
+  while the user was away). `Quests.java`; lines in `drifter_chat/quests.json`.
+  - **Find someone (`find`):** a town's leader or keeper, of someone they like (or a friend, or one of its nation's own),
+    with a house standing empty (one such ask at a time per town): bring a wanderer to live in it. Done (`Quests.brought`)
+    when a Drifter with no town, no built place of its own and no Bandit, who has been following the player along within
+    the last two minutes (asked to: "follow me"; `TalkApi.lastFollowed`, API 13), is on the town's land near them: it's
+    taken in there and then (`TownLife.movesIn`, "brought by <player>"), unless the town's people who know it have
+    something against it. Then back to whoever asked: 6 emeralds' worth from the till (10 for a friend or one of its own),
+    ten days, a deed in the Chronicle. Ends unneeded if the house fills first.
+  - **Deal with someone (`deal`):** a town's leader, of someone they like: a Bandit loaded within 300 blocks whom one of
+    the town's people has seen and knows for who they are (its senses' word), of no town, nobody's hidden crook, and not
+    one that town has asked about before. Done when they die by the player's hand (the blow, or the kill's credit); dead
+    some other way, it ends unneeded at no cost. 10 emeralds' worth (16), seven days, a deed in the Chronicle.
+  - **"No crime there":** the town's people hold nothing against the player for it, seen or heard of
+    (`DrifterApi.setSanctionedKill`, API 13, asked in `SocialWatcher.sawDeath` and `NewsBook`: without it every witness of
+    a player killing any Drifter, a Bandit too, lost 30 trust in them); and `Justice` leaves it be (`Quests.lawful`, while
+    the quest is open and the dead isn't one of the town's own). The page says so before a yes, and that anyone else who
+    sees it and liked them will hold it against them.
+  - **Tested** in the dev client (save quest2): find asked aloud, taken, a wanderer following (by the debug
+    `/drifterciv quest follow`: the nearest townless Drifter counts as following) given the empty house, thanks on
+    return; a real "follow me" answered ("lead the way", "following Tester4 for a while") in an earlier run; deal asked
+    once a townsperson had recognised the bandit and not before, taken, the bandit struck by the player and killed
+    (credit theirs): ready, thanks on return; killed by a townsperson instead: "not by your doing", no pay. **Not
+    tested:** a wanderer walked in from far off by a real player; pay from a till with money in it for these two (the
+    leader's till was empty: thanks only); how witnesses of other towns take the killing; respawn modes.
+  - **Review** (one fresh reviewer; fixed): the asking town's witnesses each lost 30 trust for the killing they asked
+    for (critical); the lawful check stayed on a year after the quest was done; standing near while guards killed the
+    bandit counted; any wanderer the player walked past completed a find; the leader knew a bandit nobody had seen, by
+    name and coordinates (now: seen and known by one of its people; a direction, no coordinates); another town's hidden
+    crook could be named; a Drifter with its own built place could be taken; a bandit back from the dead could be paid
+    for again; a giver with no record yet was taken for gone (found in testing: a newly spawned one).
+  - **Rulings:** (1) "dealt with" means killed by the player; driven off or brought to justice isn't built. (2) Only
+    Bandits are asked about: a town doesn't know its hidden crook, and a wanted Drifter of another town would make the
+    player a killer there. (3) A brought wanderer is taken in unless disliked, not by the stricter rule for one who just
+    turns up (liked already): a glance from a townsperson was enough to refuse them. (4) The ask is for an empty house,
+    not for a named vacant trade: the town's lines of work fill themselves by need once someone lives there.
+  - **Deferred minors:** in respawn modes the bandit comes back (the town won't pay for them twice); one open ask per
+    bandit per town across all players; the quest is ready the moment of the death, not when a townsperson hears of it;
+    "someone who lives in another town says no" is silent (they're just not taken).
+  - **Next:** the user's answers on the shops design; A10 part 3 on their word.
 - **0.23.51: quests, stage 1 (RPG profile part 4)** (the user, 2026-11-12: "quests"; away while it was built: "wil be afk
   si keep workin"). Design: docs/superpowers/specs/2026-11-12-quests-design.md. `Quests.java` (saved
   "drifter_civ_quests", version 1), `drifter_talk/quests.json` (the one talk a quest is asked in), `drifter_chat/quests.json`

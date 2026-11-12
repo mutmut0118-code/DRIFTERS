@@ -335,6 +335,12 @@ it; from the console, a stand-in player), for testing a talk without a client.
 (neither in a talk, no question waiting on the player, it not asleep, sparring or at odds with them, they not in an
 encounter)? Ask before `startTalk` with a topic of your own (the addon's quests do).
 
+`TalkApi.lastFollowed(drifter, player)` (API 13): when it was last following this player along, asked to ("follow me").
+
+`DrifterApi.setSanctionedKill(hook)` (API 13): the addon's say on which killings by a player a witness holds nothing
+against them for, seen or heard of (`(witness, killer, victim) -> true`: a town whose leader asked for it; the addon's
+"deal with someone" quest). Everyone else who saw it still judges it as ever.
+
 ## A Drifter's skin on its record (API 11)
 
 `DrifterRecord.skin()` keeps what a Drifter looks like while it isn't loaded (or is gone): `skinTexture()` (its skin's

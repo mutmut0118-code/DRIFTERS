@@ -53,6 +53,56 @@
         "i miss {dead}. if you're passing the graveyard, would you leave a flower for me?"
       ]
     },
+    "quest.ask.find": {
+      "any": [
+        "{player}, we've a house standing empty and work going begging. if you meet someone with no home, would you bring them here? {pay}",
+        "we're short of people. you travel: if you find someone looking for a place, bring them to {town}? {pay}",
+        "theres an empty house here and nobody to live in it. know anyone who needs a home? bring them and {pay}",
+        "{town} needs another pair of hands. find us someone without a town and {pay}",
+        "{player} you meet all sorts out there. if one of them wants a home, walk them here? {pay}"
+      ]
+    },
+    "quest.ask.deal": {
+      "any": [
+        "{player}, there's a bandit called {who} out {way} of here. my people aren't safe. deal with them and {pay}",
+        "a bandit, {who}, has been seen {way} of town. i want them gone. will you do it? {pay}",
+        "i'll say it plainly. {who} is a bandit, out {way}, and i want them dead. {pay}",
+        "{who} is robbing people {way} of {town}. nobody here will blame you for what you do. {pay}",
+        "we cant spare the guards to go after {who}, out {way}. you could. {pay}"
+      ]
+    },
+    "quest.yes.find": {
+      "any": [
+        "good. anyone decent will do",
+        "thank you. bring them to me when you find one",
+        "i knew youd know someone. thank you",
+        "thats a help. no bandits mind"
+      ]
+    },
+    "quest.yes.deal": {
+      "any": [
+        "good. be careful with that one",
+        "thank you. come back and tell me when its done",
+        "then its settled. mind yourself",
+        "nobody here will hold it against you. go"
+      ]
+    },
+    "quest.thanks.find": {
+      "any": [
+        "they've settled in already. thank you, here",
+        "a new neighbour! thank you {player}, as promised",
+        "the house has a light in it again. here, you earned this",
+        "you found us someone. the town thanks you"
+      ]
+    },
+    "quest.thanks.deal": {
+      "any": [
+        "its done? good. the roads are safer. here",
+        "thank you {player}. the town wont forget it. as promised",
+        "so thats the end of {who}. here, every bit",
+        "you did what we couldnt. take this"
+      ]
+    },
     "quest.yes.bring": {
       "any": [
         "thank you. just throw it over when you have it",

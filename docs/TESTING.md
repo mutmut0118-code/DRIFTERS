@@ -3750,3 +3750,16 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
 - [ ] **A town at war** should ask for iron or food "for the war", paying about double. I couldn't test this one.
 - [ ] **Anything odd.** Asked too often, asked by someone asleep or far away, a reward that never arrives, a quest that
       can't be finished: tell me what the page said.
+
+## 0.23.52: two more quests (new)
+
+- [ ] **Find someone.** A town with an empty house: its leader or shopkeeper (who likes you, or you're of its nation)
+      may ask you to bring someone to live there (`/drifterciv quest offer find`). Find a Drifter with no town, get to
+      know them, say `follow me` to them, and walk them into the town. Once you're both in it they're given the house
+      (the chronicle says "brought by" you). Go back to whoever asked for thanks and pay.
+- [ ] **Deal with someone.** A town whose people have seen a bandit about: its leader may ask you to deal with them
+      (`/drifterciv quest offer deal`). The page names them and which way they were seen, and warns that only this town
+      won't hold it against you. Kill them yourself, go back to the leader. Nobody of that town should be angry with you
+      or call the guards for it.
+- [ ] If someone else kills the bandit first, the quest just ends ("not by your doing"), no pay, nothing held against
+      you.
