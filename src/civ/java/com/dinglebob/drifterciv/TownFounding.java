@@ -145,6 +145,8 @@ public final class TownFounding {
 				Towns.all().forEach(town -> TownHistory.applyPending(server, town));
 				// Comings and goings (milestone 23 C3): once a day, someone may leave, someone may move in.
 				List.copyOf(Towns.all()).forEach(town -> TownLife.check(server, town));
+				// Nobody near: its days on paper (A10 part 2); what they left to do, where its ground's loaded.
+				List.copyOf(Towns.all()).forEach(town -> TownAway.check(server, town));
 				// Its events (C4): market day, a fishing contest.
 				Towns.all().forEach(town -> TownEvents.check(server, town));
 				// Its culture (C6): festivals.
@@ -195,7 +197,15 @@ public final class TownFounding {
 					}
 				});
 				Towns.all().forEach(town -> {
-					boolean politics = Politics.check(server, town);
+					// (Nobody near: its votes and risings are written down, not told in the morning's chat. A10 part 2.)
+					Chronicle.unseen = town.spawned && !TownAway.watched(server, town);
+					boolean politics;
+					try {
+						politics = Politics.check(server, town);
+					} finally {
+						Chronicle.unseen = false;
+					}
+
 					if (Justice.check(server, town) || politics) {
 						Towns.save(server);
 					}

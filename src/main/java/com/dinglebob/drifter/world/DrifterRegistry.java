@@ -194,6 +194,14 @@ public final class DrifterRegistry {
 		}
 	}
 
+	/** It died while away ({@link AwayDeaths}): one death more on its record, and gone for good if this was its last. */
+	static void diedAway(UUID id, boolean gone) {
+		DrifterRecord old = records.get(id);
+		if (old != null) {
+			setStatus(id, gone ? DrifterRecord.Status.GONE : old.status(), old.deaths() + 1);
+		}
+	}
+
 	/** Back from the dead: alive again (its full record follows within the minute). */
 	public static void respawned(DrifterEntity drifter) {
 		remember(drifter, true, true);

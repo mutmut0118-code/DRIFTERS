@@ -407,7 +407,8 @@ public final class CatchUp {
 				drifter.giveExperiencePoints(xp);
 				report.xp += xp;
 			}
-			if (random.nextDouble() < deathChance(drifter, r, stage, slice)) {
+			// (One whose deaths while away are decided elsewhere, a town's: none rolled here.)
+			if (!AwayDeaths.decidedElsewhere(drifter) && random.nextDouble() < deathChance(drifter, r, stage, slice)) {
 				die(drifter, report);
 			}
 

@@ -37,7 +37,7 @@ final class TownLife {
 	/** The fewest a town keeps: nobody leaves below this. */
 	private static final int FEWEST = 4;
 	/** A city takes nobody past this many people. */
-	private static final int MOST_PEOPLE = 100;
+	static final int MOST_PEOPLE = 100;
 	/** Days between newcomers come up the road (at least). */
 	private static final int ARRIVAL_DAYS = 3;
 	/** A day's chance a newcomer comes up the road (with a house empty and the days gone by). */
@@ -53,7 +53,8 @@ final class TownLife {
 		}
 
 		ServerLevel level = level(server, town);
-		if (level == null || !level.isLoaded(town.center)) {
+		// (Nobody near: its comings and goings are on paper, TownAway's.)
+		if (level == null || !level.isLoaded(town.center) || !TownAway.watched(server, town)) {
 			return;
 		}
 
@@ -284,8 +285,8 @@ final class TownLife {
 	}
 
 	/** It's one of the town now: in its group, in the house (or the room). */
-	private static boolean movesIn(MinecraftServer server, ServerLevel level, Town town, DrifterGroups.Group group, DrifterEntity one, @Nullable Town.Plot empty,
-		@Nullable Town.Plot spare, String how) {
+	static boolean movesIn(MinecraftServer server, ServerLevel level, Town town, DrifterGroups.Group group, DrifterEntity one, @Nullable Town.Plot empty,
+		@Nullable Town.Plot spare, @Nullable String how) {
 		Town.Plot plot = empty != null ? empty : spare;
 		Home home = DrifterApi.moveIntoHouse(one, plot.planId, plot.origin, plot.rotation, town.store);
 		if (home == null) {
@@ -306,6 +307,12 @@ final class TownLife {
 		}
 
 		DrifterApi.knowsBox(one, new net.minecraft.world.level.levelgen.structure.BoundingBox(town.center).inflatedBy(8));
+		// (A newcomer who came while nobody was near: told of the day it came, TownAway.)
+		if (how == null) {
+			DrifterApi.think(one, "moved to " + town.name + " a while back");
+			return true;
+		}
+
 		town.newest = name;
 		town.newestDay = Chronicle.day(server);
 		DrifterApi.think(one, "moved to " + town.name + ": " + how);
@@ -382,7 +389,7 @@ final class TownLife {
 	}
 
 	@Nullable
-	private static ServerLevel level(MinecraftServer server, Town town) {
+	static ServerLevel level(MinecraftServer server, Town town) {
 		for (ServerLevel one : server.getAllLevels()) {
 			if (one.dimension().location().toString().equals(town.dimension)) {
 				return one;

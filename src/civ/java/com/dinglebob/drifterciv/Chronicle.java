@@ -182,12 +182,25 @@ public final class Chronicle {
 		return server.overworld().getDayTime() / 24000L + 1;
 	}
 
+	/**
+	 * What's added while this is set happened where nobody was (a town's day on paper, A10 part 2): written down as ever,
+	 * left out of the morning's chat (the user: no message on your screen; "you hear it in towns").
+	 */
+	static boolean unseen;
+	/** Those entries, till the morning they'd have been told (not saved: after a restart they're told once). */
+	private static final java.util.Set<Entry> untold = new java.util.HashSet<>();
+
 	public static void add(@Nullable MinecraftServer server, String kind, String text) {
 		if (server == null || quiet && !kind.equals("town")) {
 			return;
 		}
 
-		entries.add(new Entry(day(server), server.overworld().getGameTime(), kind, text));
+		Entry entry = new Entry(day(server), server.overworld().getGameTime(), kind, text);
+		entries.add(entry);
+		if (unseen) {
+			untold.add(entry);
+		}
+
 		if (entries.size() > MOST) {
 			entries.subList(0, entries.size() - MOST).clear();
 		}
@@ -224,7 +237,8 @@ public final class Chronicle {
 
 		// (Not the news from afar: nobody's told of that the morning after. They hear it in towns. A10 part 1.)
 		List<Entry> lines = new ArrayList<>(day(ended));
-		lines.removeIf(entry -> entry.text().startsWith(History.AFAR));
+		lines.removeIf(entry -> entry.text().startsWith(History.AFAR) || untold.contains(entry));
+		untold.removeIf(entry -> entry.day() <= ended);
 		if (lines.isEmpty()) {
 			return;
 		}

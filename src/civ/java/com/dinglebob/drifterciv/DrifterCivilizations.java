@@ -88,6 +88,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		FriendCommands.register();
 		Journal.register();
 		Citizens.register();
+		TownAway.register();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registries, environment) -> dispatcher.register(Commands.literal("drifterciv")
 			.executes(ctx -> {
 				ctx.getSource().sendSuccess(() -> Component.literal("Drifter: Civilizations " + version() + " on Drifter " + DrifterApi.version()

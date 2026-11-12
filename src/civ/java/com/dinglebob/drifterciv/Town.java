@@ -169,6 +169,11 @@ public final class Town {
 	/** Comings and goings (milestone 23 C3, {@link TownLife}): the day it last looked, the newest of its people and the latest
 	 * to leave (and the days), the day a newcomer last came up its road. */
 	public long lifeDay = -1;
+	/** Its days while nobody's near (A10 part 2): what they decided and what's still to do when its ground is loaded. */
+	final TownAway.Ledger away = new TownAway.Ledger();
+	/** Its graves (those of its people gone for good), and its graveyard's first stone's place (null: none yet). */
+	final List<TownGraves.Grave> graves = new ArrayList<>();
+	BlockPos yard;
 	@Nullable
 	public String newest;
 	public long newestDay = -100;
@@ -418,6 +423,12 @@ public final class Town {
 			tag.putLong("BountyBoard", this.bountyBoard.asLong());
 		}
 		tag.putLong("LifeDay", this.lifeDay);
+		tag.put("Away", this.away.save());
+		tag.put("Graves", TownGraves.save(this));
+		if (this.yard != null) {
+			tag.put("Yard", net.minecraft.nbt.NbtUtils.writeBlockPos(this.yard));
+		}
+
 		if (this.newest != null) {
 			tag.putString("Newest", this.newest);
 		}
@@ -617,6 +628,9 @@ public final class Town {
 		town.boardDay = tag.contains("BoardDay") ? tag.getLong("BoardDay") : -1;
 		town.bountyBoard = tag.contains("BountyBoard") ? BlockPos.of(tag.getLong("BountyBoard")) : null;
 		town.lifeDay = tag.contains("LifeDay") ? tag.getLong("LifeDay") : -1;
+		town.away.load(tag.getCompound("Away"));
+		TownGraves.load(town, tag.getList("Graves", net.minecraft.nbt.Tag.TAG_COMPOUND));
+		town.yard = net.minecraft.nbt.NbtUtils.readBlockPos(tag, "Yard").orElse(null);
 		town.newest = tag.contains("Newest") ? tag.getString("Newest") : null;
 		town.newestDay = tag.contains("NewestDay") ? tag.getLong("NewestDay") : -100;
 		town.lastLeft = tag.contains("LastLeft") ? tag.getString("LastLeft") : null;
