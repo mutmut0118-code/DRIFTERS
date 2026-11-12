@@ -1,0 +1,105 @@
+# Stairs home, far (0.23.44-side.1): the same with each path search reaching only 32 blocks, so the way back up its
+# stairs is out of one search's reach and it must go back along its own trail (look for "going back the way it came").
+# Stairs home: a Drifter digs a staircase down, a tunnel on, and a tunnel back under where it started,
+# then is sent back up to the top. It should walk back along its tunnel and up its own stairs, not dig a shaft straight
+# up (the user's town, 2026-11-12). Deep flat world: run/server.properties level-type=minecraft:flat with ~100 stone layers.
+# The "Successfully filled" counts: air, then cobblestone in the area, before the walk home; cobblestone again after it
+# (a shaft dug up leaves a pillar of its cobblestone). The positions after GOING_HOME should follow the tunnel and stairs.
+until Done_( 900
+wait 10
+gamerule doDaylightCycle false
+gamerule doWeatherCycle false
+time set 1000
+forceload add -32 -32 176 32
+wait 5
+execute positioned 0 41 0 run drifter spawn Digger
+wait 2
+tp @e[type=drifter:drifter,limit=1] 0 41 0 -90 0
+execute positioned 0 41 0 run drifter stop
+execute positioned 0 41 0 run drifter tier full
+drifter giveall iron_pickaxe
+drifter giveall iron_pickaxe
+drifter giveall torch 64
+drifter giveall cooked_beef 16
+drifter giveall cobblestone 64
+wait 2
+tp @e[type=drifter:drifter,limit=1] 0 41 0 -90 0
+execute positioned 0 41 0 run drifter tunnel 120 -15
+sprint 7000
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+execute as @e[type=drifter:drifter] at @s run tp @s ~ ~ ~ -90 0
+execute as @e[type=drifter:drifter] at @s run drifter tunnel 25
+sprint 2400
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+execute as @e[type=drifter:drifter] at @s run tp @s ~ ~ ~ 0 0
+execute as @e[type=drifter:drifter] at @s run drifter tunnel 4
+sprint 600
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+execute as @e[type=drifter:drifter] at @s run tp @s ~ ~ ~ 90 0
+execute as @e[type=drifter:drifter] at @s run drifter tunnel 80
+sprint 6000
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+fill -3 -35 -2 85 -17 6 cave_air replace air
+fill -3 -35 -2 85 -17 6 air replace cave_air
+fill -3 -16 -2 85 2 6 cave_air replace air
+fill -3 -16 -2 85 2 6 air replace cave_air
+fill -3 3 -2 85 21 6 cave_air replace air
+fill -3 3 -2 85 21 6 air replace cave_air
+fill -3 22 -2 85 40 6 cave_air replace air
+fill -3 22 -2 85 40 6 air replace cave_air
+fill -3 -35 -2 85 -17 6 cobblestone replace cobblestone
+fill -3 -16 -2 85 2 6 cobblestone replace cobblestone
+fill -3 3 -2 85 21 6 cobblestone replace cobblestone
+fill -3 22 -2 85 40 6 cobblestone replace cobblestone
+drifter config path 32
+say GOING_HOME
+execute as @e[type=drifter:drifter] at @s run drifter goto 0 41 0
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+sprint 200
+execute as @e[type=drifter:drifter] run data get entity @s Pos
+execute as @e[type=drifter:drifter] at @s run drifter task
+execute as @e[type=drifter:drifter] at @s run drifter thoughts
+fill -3 -35 -2 85 -17 6 cobblestone replace cobblestone
+fill -3 -16 -2 85 2 6 cobblestone replace cobblestone
+fill -3 3 -2 85 21 6 cobblestone replace cobblestone
+fill -3 22 -2 85 40 6 cobblestone replace cobblestone
+execute as @e[type=drifter:drifter] at @s run drifter task
+drifter config path 64
+stop

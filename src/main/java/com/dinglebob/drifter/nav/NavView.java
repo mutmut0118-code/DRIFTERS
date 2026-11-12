@@ -133,8 +133,13 @@ public final class NavView {
 		return false;
 	}
 
-	/** It's underground right now (unseen cells near its level count as rock). */
+	/** It's underground right now (unseen cells count as rock). */
 	private final boolean underground;
+
+	/** It's underground right now (unseen cells count as rock). */
+	public boolean underground() {
+		return this.underground;
+	}
 	/** In the Nether: what it hasn't seen there is caverns and lava seas, no ground to guess from. */
 	private final boolean lavaWorld;
 
@@ -311,7 +316,10 @@ public final class NavView {
 			// Underground, unseen means rock as far as it can tell (a player down a mine expects stone, not open air): planned
 			// as stone to dig, so a route follows its known tunnels or digs honestly, instead of hoping for air and replanning
 			// at every wall (found in testing: "found stone where it expected open space" fifteen times, then giving up).
-			if (this.underground && pos.getY() <= this.feet.getY() + 3) {
+			// Above it too, all the way up: it was only up to three blocks over its feet, and higher the ground guess below
+			// took the floor of its own tunnel for the ground, so the rock over a mine looked like open air a few blocks up:
+			// every route home dug a shaft straight up beside its stairs (the user's town, 2026-11-12).
+			if (this.underground) {
 				return new Cell(Kind.SOLID, this.rockSeconds, false, false);
 			}
 

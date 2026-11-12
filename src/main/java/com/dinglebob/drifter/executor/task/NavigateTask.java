@@ -600,9 +600,98 @@ public class NavigateTask extends Task {
 			}
 		}
 
+		// Back the way it came (see Retrace): a stretch of its own trail at a time, then it plans the rest from there.
+		if (this.retraceLeg != null) {
+			Status walking = this.retraceLeg.tick();
+			if (walking == Status.RUNNING) {
+				return Status.RUNNING;
+			}
+
+			String why = walking == Status.SUCCESS ? null : this.retraceLeg.failureReason();
+			this.retraceLeg.stop();
+			this.retraceLeg = null;
+			if (why == null && this.retrace != null) {
+				this.retrace.poll();
+			} else {
+				// Its way back is blocked (or caved in): the plain route from here, digging if it must.
+				this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "couldn't go back the way it came (" + why + "): the plain way from here");
+				this.retrace = null;
+			}
+
+			if (this.retrace != null && !this.retrace.isEmpty()) {
+				this.retraceLeg = this.leg(this.retrace.peek());
+				return Status.RUNNING;
+			}
+
+			this.retrace = null;
+			this.path = List.of();
+			if (this.search != null) {
+				this.search.cancel();
+				this.search = null;
+			}
+		}
+
 		Status status = this.tickSteps();
 		this.stayAfloat();
 		return status;
+	}
+
+	/**
+	 * Going back the way it came (see {@link com.dinglebob.drifter.nav.Retrace}): the stops still to walk to, nearest first,
+	 * and the walk to the next one under way.
+	 */
+	@Nullable
+	private java.util.ArrayDeque<BlockPos> retrace;
+	@Nullable
+	private NavigateTask retraceLeg;
+	/** Times it went back the way it came on this trip (a few at most: each is a long walk). */
+	private int retraces;
+	private static final int MAX_RETRACES = 3;
+	/** This walk is itself a stretch of going back the way it came (it doesn't go back again inside it). */
+	private boolean isRetraceLeg;
+	/** How near a stop on its trail it must get. */
+	private static final double RETRACE_STOP_RADIUS = 1.5;
+
+	private NavigateTask leg(BlockPos stop) {
+		NavigateTask leg = new NavigateTask(this.drifter, Vec3.atBottomCenterOf(stop), RETRACE_STOP_RADIUS, "go back the way it came", this.pace);
+		leg.isRetraceLeg = true;
+		return leg;
+	}
+
+	/**
+	 * Underground with a route that runs out short of the goal and digs (a shaft up, a tunnel): if the way it came is well
+	 * cheaper than digging straight there, it goes back along its trail instead (the user's town, 2026-11-12). Players
+	 * walk back out of their mine along their own tunnel and up their own stairs.
+	 */
+	private boolean tryRetrace() {
+		if (this.isRetraceLeg || this.follow || this.retraces >= MAX_RETRACES || !this.partial || !this.search.underground()) {
+			return false;
+		}
+
+		boolean digs = false;
+		for (PathStep step : this.path) {
+			if (!step.digs().isEmpty()) {
+				digs = true;
+				break;
+			}
+		}
+
+		if (!digs) {
+			return false;
+		}
+
+		java.util.ArrayDeque<BlockPos> stops = com.dinglebob.drifter.nav.Retrace.plan(this.drifter.getMemory().trailCopy(), this.feet(),
+			this.plannedTarget, Math.max(this.radius, 0.5), com.dinglebob.drifter.DrifterConfig.pathRange());
+		if (stops == null || stops.isEmpty()) {
+			return false;
+		}
+
+		this.retraces++;
+		this.retrace = stops;
+		this.retraceLeg = this.leg(stops.peek());
+		this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "going back the way it came (" + stops.size()
+			+ " stretches, to " + stops.peekLast().toShortString() + ") rather than digging through");
+		return true;
 	}
 
 	/** Riding first, if this is a long trip and its own saddled horse is right here. */
@@ -760,6 +849,11 @@ public class NavigateTask extends Task {
 	private Status tickSteps() {
 		if (this.atGoal()) {
 			if (!this.follow) {
+				// Where it got to goes on its trail too (a walk of one step, a stair dug, never got there otherwise).
+				if (this.drifter.onGround()) {
+					this.drifter.getMemory().onTrail(this.feet());
+				}
+
 				return Status.SUCCESS;
 			}
 
@@ -957,6 +1051,13 @@ public class NavigateTask extends Task {
 
 		this.path = new ArrayList<>(this.search.result());
 		this.partial = status == PathSearch.Status.PARTIAL;
+		if (this.tryRetrace()) {
+			this.search = null;
+			this.path = List.of();
+			this.releaseKeys();
+			return Status.RUNNING;
+		}
+
 		this.search = null;
 		this.index = this.nearestStep();
 		this.drifter.setDebugPath(this.path, 0);
@@ -2472,6 +2573,11 @@ public class NavigateTask extends Task {
 		if (this.boat != null) {
 			this.boat.stop();
 			this.boat = null;
+		}
+
+		if (this.retraceLeg != null) {
+			this.retraceLeg.stop();
+			this.retraceLeg = null;
 		}
 
 		if (this.search != null) {

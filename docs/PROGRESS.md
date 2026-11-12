@@ -5975,3 +5975,44 @@ alerts, begging, shopkeeping, etc ... like 50 more variations of each line".
   warnings, no whim warnings, every sampled kind said a new line. Not checked in a real game yet.
 - Seen while writing (left as it was): `Warbands` picks `war.rally` with the word `army`, but the rally lines use
   `{enemy}`, so warband captains only get the rally lines without a fill word.
+
+## Side session: out of a mine by its own stairs, not a shaft up (0.23.44-side.1)
+
+The user (2026-11-12, a screenshot of a forest town): Drifters climbing back out of a mine or cave dug straight up through
+the rock instead of walking back along their tunnel and up the stairs they had cut; in a town that left one-block shafts
+next to and through the staircase (one came up under a sign).
+
+- **Why (found with a headless test, `tools/smoke-stairs-home.txt`: a staircase down, a tunnel on and back under the top
+  of the stairs, then `drifter goto` the top).** Three things together:
+  1. Underground, cells it hasn't seen counted as rock only up to three blocks over its feet. Higher, the surface's
+     "guess the ground" rule (milestone 20) took the floor of its own tunnel for the ground, so the rock over a mine looked
+     like open air a few blocks up: every route home was "dig two blocks, then pillar up through air", and when the air
+     turned out to be rock it dug on, a few blocks per route.
+  2. A search that runs out of nodes or reach ended at the cell nearest the goal, however dear to reach: straight up.
+  3. The walk back along its own tunnel and up its own stairs often goes outside the box one search looks in (64 blocks),
+     so no search could find it. And its trail (the cells it walked, `DrifterMemory`) had none of its stairs or tunnels:
+     each stair is a walk of one step that ends as it gets there, before the step is put on the trail.
+- **Fix.**
+  - `NavView`: underground, unseen is rock at every height (still not in the Nether).
+  - `PathSearch`: a partial route ends where `h + g / k` is least (k = 3, 5, 10; at least 5 blocks out and 3 nearer the
+    goal), Baritone's way; the nearest cell only when none does. Underground, a route that runs out short and digs gets a
+    second pass over open ground only (half the nodes): the walk back through its tunnels if one is in reach, unless it
+    costs more than digging the straight line (`DIG_WAY_PER_BLOCK`, 3 s a block).
+  - `NavigateTask` + new `nav/Retrace`: underground, with a route that runs out short and digs, it searches its trail as a
+    map (cells that touch are a walk it made) for the spot that costs least (the walk back there plus digging straight on
+    from it). If that's under 0.8 of digging straight from here, it goes back along the trail, a stretch at a time (each
+    inside one search's reach). A stretch that fails: the plain route from there. At most 3 a walk. Thought: "going back
+    the way it came (N stretches, to x, y, z) rather than digging through". A quick check first skips the trail search
+    when no cell of it could pay (it runs on the server thread).
+  - `DrifterMemory.onTrail`: where a walk ends goes on its trail too (trail only, not the worn-path count), so its stairs
+    and tunnels are on it (they also count as its own trails for the pathfinder's discount now).
+- **Digging up stays** where there's no way out: shut in a pocket of rock 65 blocks down, it digs up to the surface.
+- **Tested (headless, deep flat world):** before the fix it pillared straight up from under the top of its stairs, two
+  blocks every 10 s. After: with the usual 64-block reach it walked the tunnel and up its stairs (about 40 s); with the
+  reach cut to 32 (`tools/smoke-stairs-home-far.txt`, the way back out of reach) it went back along its trail in 6
+  stretches, round the tunnel and up the stairs. The sealed pocket: dug up. `./gradlew build` passes.
+- **Not tested:** a real town mine with many Drifters (the user's game), a mining trip's own way home end to end (it uses
+  the same walk, so it gets the fix), and a long real game for any slowdown (the trail search is skipped unless it could
+  pay, and runs only underground on routes that dig).
+- Seen while testing (left as it was): in the test log a digging Drifter keeps "hearing building or mining ahead, about 1
+  block away", which is its own digging.
