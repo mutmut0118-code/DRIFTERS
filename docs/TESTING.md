@@ -3631,3 +3631,10 @@ up their stairs; they still dig up when there's truly no other way out.
       dug and closed) and `/drifter goto` somewhere on the surface: it digs its way up.
 - [ ] **Nothing odd elsewhere.** Drifters exploring caves, digging their mines and walking about the surface behave as
       before. If one walks a long way round where a few blocks of digging would plainly be quicker, tell me where.
+
+## 0.23.45: the journal fits the window (new)
+
+- [ ] **Bigger book.** Press J: the book fills most of the window. Resize the window, or change Video Settings → GUI
+      Scale: the book stays about the same share of the window and the text grows or shrinks with it.
+- [ ] **Text inside the page.** The lines on the left page (Citizen of ..., Wanted in ...) start inside the paper, not
+      on its ragged edge. Clicking bookmarks, a line, "< Back" and your name still lands where you click.

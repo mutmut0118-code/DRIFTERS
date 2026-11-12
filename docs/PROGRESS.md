@@ -3378,6 +3378,13 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.45: the journal fits the window** (the user, 2026-11-12: "the journal needs to be a bit bigger in scale (the
+  book texture being auto scale) while the text is a bit smaller or bigger depending on the scale"; "text looks janky on
+  edge"). `JournalScreen.zoom()`: the open book with its bookmarks fills 92 in 100 of the window at most, whatever the GUI
+  scale setting, in steps of a whole screen pixel (sharp letters); everything on it is laid out at its own size and drawn
+  scaled together, the mouse scaled back. The left page's text moved 7 pixels in (`LEFT_SHIFT`): it's the right page
+  mirrored and its paper starts further right, so lines began on its ragged edge. With the stairs-home side branch
+  (0.23.44-side.1, claude/zen-stonebraker-a8d2b8) merged in. Checked in the dev client at 854x480, 1280x720, 1600x900.
 - **0.23.44: A10 part 2, a built town's people live on while you're away** (the user, 2026-11-11: "Yes, part 2";
   "leaders can die as well but very rare (like an assassination)"; "it should be a different system because i will be
   playing with perm death, so while making this account for all death types (respawn, lives, permanent)"). Design:
