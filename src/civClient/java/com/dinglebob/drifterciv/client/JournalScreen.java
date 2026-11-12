@@ -71,12 +71,31 @@ final class JournalScreen extends Screen {
 
 	// ----- Where things are -----
 
+	/** The open book with its bookmarks fills this share of the window, at most. */
+	private static final double FILLS = 0.92;
+	/** The book is never drawn smaller or bigger than this many times its own size. */
+	private static final float SMALLEST = 0.5F;
+	private static final float BIGGEST = 4.0F;
+
+	/**
+	 * How much bigger than its own size the book and everything on it are drawn (the user, 2026-11-12: "the journal needs
+	 * to be a bit bigger in scale (the book texture being auto scale) while the text is a bit smaller or bigger depending
+	 * on the scale"): as big as fits the window, whatever the GUI scale setting, in steps of a whole screen pixel so its
+	 * letters stay sharp.
+	 */
+	private float zoom() {
+		double fits = Math.min(this.width * FILLS / (2.0 * (COVER_RIGHT - COVER_LEFT)), this.height * FILLS / (COVER_BOTTOM + TAB_HEIGHT + 4.0));
+		double gui = this.minecraft == null ? 1.0 : Math.max(1.0, this.minecraft.getWindow().getGuiScale());
+		double snapped = Math.floor(fits * gui) / gui;
+		return (float)Math.max(SMALLEST, Math.min(BIGGEST, snapped > 0 ? snapped : fits));
+	}
+
 	private int middle() {
-		return this.width / 2;
+		return (int)(this.width / this.zoom()) / 2;
 	}
 
 	private int top() {
-		return Math.max(TAB_HEIGHT + 2, (this.height - COVER_BOTTOM) / 2 + TAB_HEIGHT / 2);
+		return Math.max(TAB_HEIGHT + 2, ((int)(this.height / this.zoom()) - COVER_BOTTOM) / 2 + TAB_HEIGHT / 2);
 	}
 
 	private int rightText() {
@@ -90,8 +109,14 @@ final class JournalScreen extends Screen {
 		return mouseX >= left - 2 && mouseX < left + width + 2 && mouseY >= y - 2 && mouseY < y + 11;
 	}
 
+	/**
+	 * (The left page is the right one mirrored, drawn so its stitching meets the other's: its paper starts and ends
+	 * further right than a plain mirror would have it. The user, 2026-11-12: "text looks janky on edge".)
+	 */
+	private static final int LEFT_SHIFT = 7;
+
 	private int leftText() {
-		return this.middle() - INSET - TEXT_WIDTH;
+		return this.middle() - INSET - TEXT_WIDTH + LEFT_SHIFT;
 	}
 
 	/** Each bookmark's left edge and width, along the top from the left page's corner. */
@@ -113,6 +138,16 @@ final class JournalScreen extends Screen {
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		super.render(graphics, mouseX, mouseY, partialTick);
+		// (Everything on the book is laid out at its own size and drawn bigger or smaller together: the mouse is where it'd
+		// be at that size.)
+		float zoom = this.zoom();
+		graphics.pose().pushPose();
+		graphics.pose().scale(zoom, zoom, 1.0F);
+		this.book(graphics, (int)(mouseX / zoom), (int)(mouseY / zoom));
+		graphics.pose().popPose();
+	}
+
+	private void book(GuiGraphics graphics, int mouseX, int mouseY) {
 		int middle = this.middle();
 		int top = this.top();
 
@@ -163,8 +198,13 @@ final class JournalScreen extends Screen {
 
 		y += 12;
 		if (this.minecraft != null && this.minecraft.player != null) {
-			InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + TEXT_WIDTH / 2 - 26, y, x + TEXT_WIDTH / 2 + 26, y + 62, 27, 0.0625F, mouseX, mouseY,
-				this.minecraft.player);
+			// (Drawn in the window's own measure: it cuts itself off at a box given in that.)
+			float zoom = this.zoom();
+			graphics.pose().pushPose();
+			graphics.pose().scale(1.0F / zoom, 1.0F / zoom, 1.0F);
+			InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, (int)((x + TEXT_WIDTH / 2 - 26) * zoom), (int)(y * zoom),
+				(int)((x + TEXT_WIDTH / 2 + 26) * zoom), (int)((y + 62) * zoom), (int)(27 * zoom), 0.0625F, mouseX * zoom, mouseY * zoom, this.minecraft.player);
+			graphics.pose().popPose();
 		}
 
 		y += 66;
@@ -287,6 +327,12 @@ final class JournalScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		float zoom = this.zoom();
+		return this.clicked(mouseX / zoom, mouseY / zoom, button);
+	}
+
+	/** A click, where it'd be with the book at its own size. */
+	private boolean clicked(double mouseX, double mouseY, int button) {
 		int top = this.top();
 		if (button == 1 && this.open >= 0) {
 			this.back();
@@ -294,7 +340,7 @@ final class JournalScreen extends Screen {
 		}
 
 		if (button != 0) {
-			return super.mouseClicked(mouseX, mouseY, button);
+			return false;
 		}
 
 		if (this.overName((int)mouseX, (int)mouseY)
@@ -325,7 +371,7 @@ final class JournalScreen extends Screen {
 				return true;
 			}
 
-			return super.mouseClicked(mouseX, mouseY, button);
+			return false;
 		}
 
 		if (mouseX >= x && mouseX < x + TEXT_WIDTH && mouseY >= y - 1) {
@@ -352,7 +398,7 @@ final class JournalScreen extends Screen {
 			}
 		}
 
-		return super.mouseClicked(mouseX, mouseY, button);
+		return false;
 	}
 
 	/** Where the list was scrolled to when a line was opened (to come back to). */
