@@ -3378,6 +3378,19 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.48: more kinds of Drifter usernames, from real players' names** (the user, 2026-11-12, with two /drifter lists
+  of real accounts from the experimental real usernames: "take inspo from these usernames ... to add more username
+  variation"). `identity.Usernames`: shapes from 100 to 159 of a roll (the old ones 0 to 99, now about five in eight): short
+  made-up handles (bhub0, qvrxz), a letter held (Blispyy, lonelytrumpettt), little phrases and sentences (the_real_yosh,
+  YourLocalCanada_, NoBurrowNoLife, IwontCarryYou, SleepingOnTheJob, idk/just/user_, -ify, -god, -omg), channel tags
+  (Playz, Gamings, daily, Talks, PvP_YT), emoticons (O_o, QWQ, OwO, _o7), names from round the world and country tags
+  (MinhAinoVN, Ines_TR), digits both ends (4Creek4), mobs (STRIDERWHISPERER, piglinqueen), a name and an initial (NeilC14),
+  a name and two initials (GageAX), Name-The-thing (JackThePanda), places (Bristol89, Yorkguy95, Oslo_Bruno), a vowel as x
+  (Olivx_Aspen), double underscores, four digits, initials in underscores (_H_R_C_), now and then just a number; l and t
+  as digits too. Lists in `drifter_names/real.json` (a datapack can add more). Banned parts add "ihate", "binladen",
+  "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
+  every shape seen.
+
 - **0.23.47: the chronicle revamp, part 3 of the "RPG profile" idea** (the user, 2026-11-12: "Your guess is right";
   "would love to see images, like player heads, banners of the nation, (again everything vanilla)"; "you can have like
   an expanded EXPANDED entry, like quotes from interviews, biographies about people who fallen, how the war started,

@@ -3698,3 +3698,8 @@ Quick try without waiting for them: stand by one and run `/drifter hear <anythin
 - [ ] **It can warm up.** Say "sorry" (or "jk" after a threat): if it accepts, the rest of the talk is normal.
 - [ ] **Grieving.** After one of its friends dies, talk to it: quiet, sad answers.
 - [ ] **"you?"** When it asks "good, you?", answer "im chillin" or "not great": it answers that.
+
+## 0.23.48: usernames (new)
+
+- [ ] **More kinds of names.** With real usernames off, `/drifter spawnmany 50` then `/drifter list`: names like Bristol89,
+      NeilC14, sparrowOwO, 4Creek4, STRIDERWHISPERER, the_real_..., lonelytrumpettt among the old kinds.
