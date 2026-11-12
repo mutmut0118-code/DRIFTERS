@@ -6079,3 +6079,23 @@ refusal didn't record one. Two of the seven line writers were cut off by a usage
 unreviewed by them (the checker passed all but 18, which were dropped).
 
 **Checked**: build; headless `tools/smoke-playertalk.txt` (41 messages, all answered, no warnings). See TESTING.md.
+
+## Player talk: a talk keeps its mood (0.23.46-side.1)
+
+The user (2026-11-12, a screenshot of 0.23.46): one that greeted them "oh. its you. hi" then answered "you okay?" with a
+friendly "good, you?", "im chillin" got "huh", and "awesome" got "get lost" from one that had just offered a tour. "i
+actually want the mood to keep going ... anything that isnt friendly"; and the back-off mode: "yea override it".
+
+- **A talk has a mood, set as it starts and kept** (`PlayerConvo.tone`): **cold** when it's wary of them (warning them
+  off its house, keeping clear), trusts them below 0, was insulted or threatened by them in the last day, or is angry
+  or frustrated; **down** when it's grieving; else as before. In a cold or down talk every reply comes from that kind's
+  `.cold` / `.down` lines when it has them (`drifter_chat/convo_tone.json`: 57 kinds, 382 lines: greetings, how are
+  you, what are you doing, the glue, the fallback, goodbyes...), else its usual ones. A cold one offers no tour. An
+  apology it accepts or a "jk" it takes warms the talk back up.
+- **Back-off mode no longer ends the talk**: only a real enemy (hostile, fleeing, after them, hit by them in the last
+  half minute, trust under -40) gets "get lost". One merely warning them off its place talks, coldly.
+- **"im good", "im chillin", "not bad", "all good"...** and "not great", "been better"... are answers to its "you?".
+
+**Checked**: build; headless `tools/smoke-playertalk.txt` (a threat, then a new talk: "oh. its you", "fine.", "if you say
+so", "none of your business"). Not yet seen in a real game. More cold and down lines, and more kinds with them, would
+help; the usual lines still show for kinds that have none.

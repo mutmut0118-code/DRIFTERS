@@ -1,6 +1,6 @@
 # Every chat line a Drifter says
 
-Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 18339 lines in the chat data, 3496 in whims, and 2957 answer phrases they understand).
+Everything Drifters say in chat, when they say it, and what you can say to them (generated from the data files; 18721 lines in the chat data, 3496 in whims, and 3011 answer phrases they understand).
 
 Lines come from `data/drifter/drifter_chat/*.json` (a datapack can add more: files add to each other) and the whims' own files. They're written the way players type in Minecraft chat (the user's guidebooks "How Minecraft Players Chat" and "The Science of Gamer Text Chat"): lowercase, no final period, clipped words (dias, obby, coords), rituals (o/, wb, rip, gg, gn, o7), and each personality its own voice. `/drifter config chat false` turns all of it off.
 
@@ -12981,6 +12981,8 @@ Other encounters are answered by doing, not typing: hit a duellist to accept, th
 - **threat** (21): im gonna kill you · im going to kill you · ill kill you · youre dead · you are dead · watch your back or · im coming for you · ill end you · prepare to die · you will die · ill burn your house · ill burn your house down · im gonna burn your house · ill take everything · say goodbye · say your prayers · ill destroy you · im gonna hurt you · your days are numbered · ill blow up your house · im gonna grief you
 - **threat_all** (24): im gonna kill all of you · im going to kill all of you · ill kill you all · ill kill all of you · everyone is going to die · you are all going to die · youre all dead · you will all die · ill burn this town · ill burn this town down · im gonna destroy this town · this town is going to burn · ill kill everyone · im gonna kill everyone · everyone here is going to die · ill destroy this place · a raid is coming for you all · none of you will survive · this town is finished · ill raid this town · im going to raid this town · say goodbye to your town · everyone dies · war is coming for this town
 - **jk** (21): jk · just kidding · im joking · im kidding · i was joking · i was kidding · just a joke · it was a joke · lol relax · relax · chill it was a joke · only joking · kidding · j k · calm down it was a joke · i didnt mean it · i take it back · no offense · just messing · im just messing with you · just playing
+- **im_good** (36): im good · im fine · im ok · im okay · im alright · im chillin · im chilling · chillin · chilling · just chillin · just chilling · im vibing · vibing · just vibing · all good · all good here · not bad · not too bad · pretty good · doing good · doing well · doing fine · doing alright · im great · im doing good · im doing great · good thanks · fine thanks · good ty · cant complain · same old · im well · doing ok · im doing ok · good good · living the dream
+- **im_bad** (18): not great · not good · im not good · im not ok · been better · ive been better · pretty bad · bad day · having a bad day · rough day · not so good · terrible · awful · could be better · im tired · im exhausted · im sad · im not great
 - **me** (22): whats my name · what is my name · do you remember me · remember me · do you know me · you know me · u know me · who am i · know who i am · do you know who i am · you remember me · u remember me · forgot me · did you forget me · whats my nickname · what do you call me · what do u call me · say my name · who * am i · what * my name · you * know * who i am · remember * me
 - **opinion** (46): what do you think of · what do you think about · what do u think of · what do u think about · what you think of · what you think about · thoughts on · do you like · do u like · you like · how do you feel about · how do u feel about · do you trust · do u trust · you trust · are we friends · are we cool · are we good · we cool · we good · we friends · do you hate · do u hate · you hate · is he nice · is she nice · are they nice · whats your opinion on · opinion on · your opinion of · rate · think * of me · think * about me · feel * about me · opinion * me · think * of him · think * of her · think * about him · think * about her · think * of them · think * about them · you * hate me · you * trust me · we * friends · we * cool · rate me
 - **where_is** (14): where is · wheres · where s · have you seen · you seen · u seen · seen · know where · where did · whered · where can i find · any sign of · where went · where are they
@@ -15755,6 +15757,372 @@ The crier hands a copy of the paper to a player who came to the plaza.
 - **PvP sweat:** not worth my time rn · cuz i said no. simple
 - **newbie:** i just dont wanna!! sorry · um... i dont feel like it today
 - **casual:** idk just not feeling it lol · meh. lazy day ngl
+
+#### `convo.im_good`
+
+
+
+- **everyone:** nice · good · good to hear · glad to hear it · same here · love that · good stuff · thats the way
+- **casual:** nice lol · vibes
+- **newbie:** yay!! · me too!!
+- **hermit:** good. · mm
+- **PvP sweat:** cool · good. stay sharp
+- **helper:** glad to hear it! · good! shout if that changes
+
+#### `convo.im_bad`
+
+
+
+- **everyone:** oof, what happened · ah. rough one? · sorry to hear that · that bad huh · hang in there · it'll pass
+- **casual:** oof · rip, what happened
+- **newbie:** oh no!! why · aw :(
+- **hermit:** hm. happens · mm
+- **PvP sweat:** unlucky · shake it off
+- **helper:** oh no, anything i can do? · sorry to hear that! want some food?
+
+#### `convo.im_good.cold`
+
+
+
+- **everyone:** ok · good for you · sure · mhm · right · if you say so
+- **hermit:** ok.
+- **PvP sweat:** cool. and?
+
+#### `convo.im_bad.cold`
+
+
+
+- **everyone:** ok · not my problem · hm · happens · right
+- **hermit:** ok.
+
+#### `greet_back.cold`
+
+
+
+- **everyone:** oh. its you · what · hi. · ...hi · yeah? · what do you want · oh. hi · you again
+- **hermit:** what. · ...
+- **newbie:** oh... hi · um. hi
+- **PvP sweat:** what · sup.
+- **hoarder:** hi. hands where i can see them
+- **helper:** oh. hi · hello.
+- **casual:** oh. hey · sup i guess
+
+#### `you_welcome.cold`
+
+
+
+- **everyone:** yeah · sure · mhm · ok
+- **hermit:** mm.
+
+#### `bye_back.cold`
+
+
+
+- **everyone:** bye · finally · ok bye · good · later.
+- **hermit:** bye.
+- **PvP sweat:** cya. dont come back
+
+#### `convo.unknown.cold`
+
+
+
+- **everyone:** what · ? · what do you want · make sense · what are you on about · huh. no
+- **hermit:** what.
+- **PvP sweat:** what. speak up
+
+#### `convo.unknown_again.cold`
+
+
+
+- **everyone:** are you done · i dont have time for this · ok. whatever · right. bye then
+- **hermit:** ...enough.
+
+#### `convo.ack.cold`
+
+
+
+- **everyone:** yeah · mhm · ok · right · so? · and?
+- **hermit:** mm.
+
+#### `convo.laugh.cold`
+
+
+
+- **everyone:** whats funny · glad youre having fun · ha. · mhm · not that funny
+- **hermit:** ...
+- **PvP sweat:** what are you laughing at
+
+#### `convo.nice.cold`
+
+
+
+- **everyone:** ok · sure · glad you approve · mhm · right · if you say so
+- **hermit:** ok.
+- **PvP sweat:** ik
+
+#### `convo.wow.cold`
+
+
+
+- **everyone:** yes · yes really · thats what i said · believe it or dont
+- **hermit:** yes.
+
+#### `convo.agree.cold`
+
+
+
+- **everyone:** sure · ok · mhm · great · if you say so
+- **hermit:** mm.
+
+#### `convo.sympathy.cold`
+
+
+
+- **everyone:** dont · save it · im fine · didnt ask · ok
+- **hermit:** dont.
+
+#### `convo.pushback.cold`
+
+
+
+- **everyone:** thats all youre getting · what did you expect · take it or leave it · yes. thats it
+- **hermit:** yes.
+
+#### `convo.met.cold`
+
+
+
+- **everyone:** {player}. ok · ok, {player} · noted · {player}. fine · right. {player}
+- **hermit:** ok.
+- **hoarder:** {player}. ill remember that face
+
+#### `convo.met_hi.cold`
+
+
+
+- **everyone:** hi. · yeah, hi · ok
+- **hermit:** hi.
+
+#### `convo.new_yes.cold`
+
+
+
+- **everyone:** ok. dont cause trouble · new. right. mind the rules · welcome i guess · then learn where you shouldnt be · ok. keep out of peoples houses
+- **hermit:** ok.
+- **hoarder:** new. the chests are not public
+- **PvP sweat:** new. dont try anything
+
+#### `convo.new_no.cold`
+
+
+
+- **everyone:** ok · whatever · fine · dont know you
+- **hermit:** ok.
+
+#### `convo.tips.cold`
+
+
+
+- **everyone:** figure it out · dont die. thats the tip · stay out of other peoples stuff · ask someone else
+- **hermit:** dont die.
+
+#### `convo.gtg.cold`
+
+
+
+- **everyone:** im done here · ok. going · enough talk · bye · got things to do
+- **hermit:** going.
+
+#### `convo.gtg_doing.cold`
+
+
+
+- **everyone:** enough. i need to {doing} · done talking. got to {doing} · bye. busy
+- **hermit:** busy. bye
+
+#### `convo.why.dunno.cold`
+
+
+
+- **everyone:** because · why do you care · i dont have to explain · just because · none of your business
+- **hermit:** because.
+
+#### `convo.why.nothing.cold`
+
+
+
+- **everyone:** why what · what · ?
+- **hermit:** what.
+
+#### `convo.talk_to_me.cold`
+
+
+
+- **everyone:** about what · no · ive got nothing to say to you · what is there to say · why would i
+- **hermit:** no.
+
+#### `convo.you_there.cold`
+
+
+
+- **everyone:** what · yes. what · im here. unfortunately · what now
+- **hermit:** what.
+
+#### `convo.wait_up.cold`
+
+
+
+- **everyone:** what · what now · make it quick · fine. what
+- **hermit:** what.
+
+#### `convo.stay.cold`
+
+
+
+- **everyone:** why should i · for a minute. thats it · fine. be quick · i dont take orders
+- **hermit:** ...fine.
+
+#### `convo.look.cold`
+
+
+
+- **everyone:** ok · and? · seen it · so? · great
+- **hermit:** and.
+
+#### `convo.have.yes.cold`
+
+
+
+- **everyone:** maybe. why · what if i do · yes. no you cant have it · why. what do you want with it
+- **hermit:** yes. no.
+
+#### `convo.have.no.cold`
+
+
+
+- **everyone:** no · no. and if i did · nope · why are you asking
+- **hermit:** no.
+
+#### `convo.today.nothing.cold`
+
+
+
+- **everyone:** nothing you need to know · minding my business · work · why
+- **hermit:** work.
+
+#### `convo.mood.fine.cold`
+
+
+
+- **everyone:** nothing. except you · you tell me · im fine. leave it · nothing · you. standing there
+- **hermit:** you.
+
+#### `convo.mood.angry.cold`
+
+
+
+- **everyone:** you tell me · take a guess · bad day. dont make it worse · dont
+- **hermit:** you.
+
+#### `convo.friends.soon.cold`
+
+
+
+- **everyone:** no · lol no · not happening · try being nice first · after what you did?
+- **hermit:** no.
+
+#### `convo.news.none.cold`
+
+
+
+- **everyone:** nothing for you · ask someone else · no · why would i tell you
+- **hermit:** no.
+
+#### `convo.danger.none.cold`
+
+
+
+- **everyone:** it was fine till you showed up · you tell me · depends what youre planning · safe enough
+- **hermit:** fine.
+
+#### `convo.food.where.cold`
+
+
+
+- **everyone:** not from me · find your own · go hunt · not my problem
+- **hermit:** hunt.
+
+#### `greet_back.down`
+
+
+
+- **everyone:** hey · hi · oh. hey · hi... · hey {player}
+- **hermit:** ...
+- **newbie:** hi :(
+- **helper:** oh, hi
+
+#### `convo.unknown.down`
+
+
+
+- **everyone:** hm? · sorry, what · what · sorry. miles away
+- **hermit:** ...
+
+#### `convo.ack.down`
+
+
+
+- **everyone:** yeah · mhm · yeah... · anyway
+- **hermit:** mm.
+
+#### `convo.laugh.down`
+
+
+
+- **everyone:** heh · yeah · mm · i needed that
+- **hermit:** heh.
+
+#### `convo.nice.down`
+
+
+
+- **everyone:** thanks · yeah · ty · means a lot
+- **hermit:** ty.
+
+#### `convo.im_good.down`
+
+
+
+- **everyone:** good · glad one of us is · thats good · good for you. really
+- **hermit:** good.
+
+#### `convo.im_bad.down`
+
+
+
+- **everyone:** same · yeah. me too · know the feeling · rough all round then
+- **hermit:** same.
+
+#### `convo.today.nothing.down`
+
+
+
+- **everyone:** not much. not a good day · didnt feel like doing much · nothing really
+- **hermit:** nothing.
+
+#### `convo.gtg.down`
+
+
+
+- **everyone:** anyway. see you · i should go · ok. later · thanks for stopping
+- **hermit:** bye.
+
+#### `convo.talk_to_me.down`
+
+
+
+- **everyone:** not much to say today · sure. about what · i can try · ok. you start
+- **hermit:** ...about what
 
 #### `shop.buy`
 
