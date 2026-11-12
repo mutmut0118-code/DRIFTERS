@@ -5975,3 +5975,13 @@ alerts, begging, shopkeeping, etc ... like 50 more variations of each line".
   warnings, no whim warnings, every sampled kind said a new line. Not checked in a real game yet.
 - Seen while writing (left as it was): `Warbands` picks `war.rally` with the word `army`, but the rally lines use
   `{enemy}`, so warband captains only get the rally lines without a fill word.
+
+## Player talk: design catalogue (2026-11-12, design only)
+
+After playing 0.23.41-side.1 the user sent 24 screenshots of talks with Drifters that went nowhere (a Drifter opens,
+then drops it; the wrong one answers; parts of names don't work; they walk off; their own chatter buries the
+player's) and asked for "a HUGE highly detailed list of almost EVERY possible thing a player could ask from a drifter
+(only for design)". That's `docs/PLAYER_TALK.md`: about 510 meanings in ten groups, each with how players type it, what
+a good Drifter does, whether it's understood today, and a priority; section 0 is how talking itself should work
+(addressing, talking mode, never silent), section K a build order (fallback and talking mode first, then 86 high-value
+topics). **Nothing is built; the user said not to act yet.** Wait for their go-ahead and their pick of topics.
