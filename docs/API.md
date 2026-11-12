@@ -313,6 +313,24 @@ paper):
 | `DrifterApi.newName(server)` | A username no Drifter has, as a new one picks its own. |
 | `DrifterApi.spawnAs(level, feet, username)` | As `spawn`, with that username as its own (not a name given to it). |
 
+## A talk with a player (API 10, docs/PLAYER_TALK.md)
+
+A player can hold a conversation with a Drifter: it stops, faces them and answers whatever they type (`PlayerConvo`).
+An addon adds its own things to ask through the chat handler above, and these:
+
+| Call | What it does |
+| --- | --- |
+| `TalkApi.better(text, current, mine...)` | Which of the addon's own meanings (the `answers` of its chat files) a message has, if its phrase says at least as much as the one Drifter took it for (`current`, the handler's `intent`); else null. Use it first in a chat handler. |
+| `TalkApi.answer(drifter, player, key, then, words...)` | Its answer in the talk: a line of that kind from the chat data in its voice, with its own facts as words (what it did lately, its town...) and the ones given; said after a moment's typing, then `then` runs. Keeps the talk going (it stays and waits for the next message). False: it has no such line. |
+| `TalkApi.registerConvoFacts((drifter, player, words) -> ...)` | More words for every line in a talk (`{town}`, `{leader}`). |
+| `TalkApi.registerPlaces(drifter -> map)` | The places it could show someone, by what they are (`shop`, `smith`, `plaza`, `well`, `board`, `mine`, `fire`, `farm`, `pen`, `store`: each has a `convo.tour.<what>` line said there). |
+| `TalkApi.tour(drifter, player)` | "Show me around": it leads them to each of those places in turn (the nearest first), waiting when they fall behind. |
+| `TalkApi.leadTo(drifter, player, pos, lineKey, what)` | It leads them to one place and says that line there. |
+| `TalkApi.registerThreatened((drifter, player, all) -> ...)` | A player threatened it (or everyone) in chat. |
+
+`/drifter hear <text>` (debug): the nearest Drifter hears it as if a player beside it had typed it (the player running
+it; from the console, a stand-in player), for testing a talk without a client.
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

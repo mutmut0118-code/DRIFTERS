@@ -923,13 +923,33 @@ public class SocialWatcher {
 			return true;
 		}
 
+		String plain = unstretched(lower);
 		for (String word : text.trim().split("[^a-z0-9]+")) {
-			if (word.length() >= NAME_PART && !EVERYDAY.contains(word) && lower.contains(word)) {
+			if (word.length() < NAME_PART || EVERYDAY.contains(word)) {
+				continue;
+			}
+
+			// (As typed, with stretched letters once ("froggg"), or a slip on the end ("cookiew").)
+			String once = unstretched(word);
+			if (lower.contains(word) || once.length() >= NAME_PART && plain.contains(once)
+				|| word.length() >= 6 && lower.contains(word.substring(0, word.length() - 1))) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/** A word with each run of the same letter once ("froggg" and "frog" alike). */
+	private static String unstretched(String word) {
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < word.length(); i++) {
+			if (i == 0 || word.charAt(i) != word.charAt(i - 1)) {
+				out.append(word.charAt(i));
+			}
+		}
+
+		return out.toString();
 	}
 
 	/** A player lit a fire or poured lava close to its home, where it could tell. */

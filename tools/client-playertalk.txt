@@ -1,0 +1,31 @@
+wait 200
+cmd gamemode creative @p
+cmd time set 6000
+cmd drifter thoughts log true
+cmd execute as @p at @p run drifter spawn Froggy
+wait 100
+chat hello frog
+wait 60
+cmd execute as @e[type=drifter:drifter,name=Froggy] at @s run drifter brain
+wait 40
+chat what are you up to
+wait 100
+cmd execute as @e[type=drifter:drifter,name=Froggy] at @s run drifter brain
+chat thats cool
+wait 100
+chat why
+wait 100
+chat i like your hat
+wait 100
+cmd execute as @e[type=drifter:drifter,name=Froggy] at @s run drifter brain
+chat wait here
+wait 300
+cmd execute as @e[type=drifter:drifter,name=Froggy] at @s run drifter brain
+chat blorp
+wait 100
+chat bye
+wait 200
+cmd execute as @e[type=drifter:drifter,name=Froggy] at @s run drifter brain
+wait 600
+cmd execute as @e[type=drifter:drifter,name=Froggy] at @s run drifter brain
+quit

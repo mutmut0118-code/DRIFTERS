@@ -88,7 +88,8 @@ public final class Typing {
 
 	/** This part, maybe with a typo; and the word to fix it with, if it fixes it (else null). */
 	private static String[] typo(DrifterEntity drifter, String text, RandomSource random) {
-		if (random.nextDouble() > chance(drifter)) {
+		// (Not in a headline or anything with numbers or a list in it: a slip there reads as wrong news.)
+		if (random.nextDouble() > chance(drifter) || text.length() > 70 || text.contains(": ") || text.chars().anyMatch(Character::isDigit)) {
 			return new String[] {text, null};
 		}
 
@@ -124,7 +125,8 @@ public final class Typing {
 		int i = 1 + random.nextInt(word.length() - 1);
 		return switch (random.nextInt(4)) {
 			case 0 -> i < word.length() - 1 ? word.substring(0, i) + word.charAt(i + 1) + word.charAt(i) + word.substring(i + 2) : word;
-			case 1 -> word.substring(0, i) + word.substring(i + 1);
+			// (A letter dropped from a short word is too often another word: "facts", "fats".)
+			case 1 -> word.length() >= 6 ? word.substring(0, i) + word.substring(i + 1) : word;
 			case 2 -> word.substring(0, i) + word.charAt(i) + word.substring(i);
 			default -> {
 				char near = neighbour(word.charAt(i), random);

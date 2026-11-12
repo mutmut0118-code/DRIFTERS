@@ -88,7 +88,10 @@ public final class DrifterCommands {
 					"n", 3, "stake", 3, "bet", 4, "count", 3, "demand", 5, "thief", "Bob", "victim", "Bob", "army", "the Reds", "target", "Bob", "crime", "murder",
 					"reward", 5, "place", "Oakvale", "friend", "Bob", "town", "Oakvale", "years", "3 years", "given", 2, "why", "the raiders",
 					"news", "bandits seen near Oakvale", "where", "by the river", "them", "Pinewood", "enemy", "Pinewood", "victim_caps", "BOB",
-					"leader", "Bob", "warning", "bandits on the north road", "fine", "3 emeralds", "amount", "5 emeralds");
+					"leader", "Bob", "warning", "bandits on the north road", "fine", "3 emeralds", "amount", "5 emeralds", "item", "bread", "last", "its fine",
+					"insult", "a noob", "doing", "gather wood", "dist", 120, "ore", "iron", "built", "a wall", "mob", "zombie", "close_call", "nearly blew up",
+					"traded_with", "Bob", "news_who", "Bob", "news_what", "found diamonds", "laws", "no stealing, no killing", "days", 12, "goods",
+					"bread, torches");
 				if (line == null) {
 					ctx.getSource().sendFailure(Component.literal("No lines for " + key + " (see docs/CHAT_LINES.md)"));
 					return 0;
@@ -97,6 +100,24 @@ public final class DrifterCommands {
 				com.dinglebob.drifter.social.ChatLines.speak(drifter, line);
 				return 1;
 			}))));
+		// Debug: the nearest Drifter hears this as if a player by it had typed it in chat (the player running it; from the
+		// console, a stand-in player beside it: for headless tests of the talk with players).
+		root.then(Commands.literal("hear").then(Commands.argument("text", StringArgumentType.greedyString()).executes(ctx -> {
+			DrifterEntity drifter = nearest(ctx.getSource());
+			String text = StringArgumentType.getString(ctx, "text");
+			net.minecraft.server.level.ServerPlayer player = ctx.getSource().getPlayer();
+			if (player == null) {
+				player = net.fabricmc.fabric.api.entity.FakePlayer.get((net.minecraft.server.level.ServerLevel)drifter.level());
+				net.minecraft.world.phys.Vec3 by = drifter.position().add(drifter.getViewVector(1.0F).multiply(2.0, 0.0, 2.0));
+				player.moveTo(by.x, drifter.getY(), by.z, drifter.getYRot() + 180.0F, 0.0F);
+			}
+
+			boolean answered = com.dinglebob.drifter.social.talk.PlayerTalk.heard(player, text);
+			String meaning = com.dinglebob.drifter.social.talk.PlayerTalk.meaning(text);
+			ctx.getSource().sendSuccess(() -> Component.literal("\"" + text + "\": " + (answered ? "answered" : "not taken as said to it") + " (meaning: " + meaning
+				+ ")"), false);
+			return 1;
+		})));
 		// Conversations between Drifters (the dynamic chat): the nearest two talk now (on this topic, or one that suits them).
 		root.then(Commands.literal("talk")
 			.executes(ctx -> talk(ctx, null))

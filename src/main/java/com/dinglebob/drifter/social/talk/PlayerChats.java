@@ -62,6 +62,7 @@ public final class PlayerChats {
 		final Set<String> world;
 		int turn;
 		long nextAt;
+		final long since;
 		/** It said something (a topic whose lines didn't fit says nothing, and asks nothing). */
 		boolean said;
 
@@ -74,6 +75,7 @@ public final class PlayerChats {
 			Heard.addPlayerFacts(drifter, player, this.a, this.b);
 			this.world = Facts.world(drifter, player);
 			this.nextAt = now + 5;
+			this.since = now;
 		}
 	}
 
@@ -129,7 +131,7 @@ public final class PlayerChats {
 
 	private static void lookForOpening(ServerLevel level, ServerPlayer player, long now) {
 		if (now - lastPlayer.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_PLAYER)
-			|| openings.stream().anyMatch(opening -> opening.player == player)
+			|| openings.stream().anyMatch(opening -> opening.player == player) || PlayerConvo.talking(player)
 			|| com.dinglebob.drifter.encounter.Encounters.active(player.getUUID()) != null) {
 			return;
 		}
@@ -201,6 +203,11 @@ public final class PlayerChats {
 
 	/** Its next line (turns that don't come up skipped); false when it has said its piece. */
 	private static boolean step(Opening opening, long now) {
+		// (They've answered already: the rest of its piece is left unsaid, "im frog btw" after "hey frog".)
+		if (opening.said && PlayerConvo.saidSince(opening.player, opening.drifter, opening.since)) {
+			return false;
+		}
+
 		while (opening.turn < opening.topic.turns().size()) {
 			Topics.Turn turn = opening.topic.turns().get(opening.turn++);
 			if (!turn.by().equals("a") || opening.drifter.getRandom().nextDouble() > turn.chance()
@@ -221,6 +228,7 @@ public final class PlayerChats {
 				opening.drifter.getCamera().lookAt(opening.player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
 				ChatLines.to(opening.drifter, opening.player);
 				ChatLines.speak(opening.drifter, line);
+				PlayerConvo.opened(opening.player, opening.drifter, opening.topic.id(), line, now);
 				opening.said = true;
 				opening.nextAt = now + Math.min(120, 30 + line.length() * 2) + opening.drifter.getRandom().nextInt(20);
 				return true;
@@ -289,7 +297,7 @@ public final class PlayerChats {
 	/** Up to {@code most} who know them and see them say this, one after another; false when fewer than two would. */
 	private static boolean round(ServerLevel level, ServerPlayer player, String key, int most, long now) {
 		List<DrifterEntity> round = new ArrayList<>(level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(ROUND_RANGE), drifter -> {
-			if (!drifter.isAlive() || drifter.isTemporary() || drifter.encounter() != null) {
+			if (!drifter.isAlive() || drifter.isTemporary() || drifter.encounter() != null || drifter.isSleeping()) {
 				return false;
 			}
 
@@ -348,6 +356,11 @@ public final class PlayerChats {
 		}
 
 		DrifterEntity bystander = by.get(speaker.getRandom().nextInt(by.size()));
+		// (A player talking with the speaker: a bystander's bit now and then, not every time.)
+		if (other instanceof ServerPlayer talker && PlayerConvo.talking(talker) && bystander.getRandom().nextDouble() < 0.6) {
+			return;
+		}
+
 		if (bystander.getRandom().nextDouble() > DrifterConfig.chatty(0.2 + 0.5 * bystander.getPersonality().get(Trait.SOCIABILITY))) {
 			return;
 		}

@@ -626,7 +626,7 @@
         "im not looking for trouble",
         "not near my farm",
         "this is my home, please go",
-        "please leave my animals alone"
+        "please keep your distance"
       ],
       "hermit": [
         "leave",
@@ -1104,7 +1104,6 @@
         "o/ quick"
       ],
       "miner": [
-        "yo, im underground but hi",
         "o/ from y -40"
       ]
     },

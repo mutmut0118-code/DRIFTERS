@@ -210,7 +210,7 @@ public final class ChatReplies {
 	/** Drifters near this one (or player), the nearest first; {@code friendly}: only those who don't mind a player. */
 	private static List<DrifterEntity> near(ServerLevel level, LivingEntity center, double range, boolean friendly) {
 		List<DrifterEntity> drifters = new ArrayList<>(level.getEntitiesOfClass(DrifterEntity.class, center.getBoundingBox().inflate(range),
-			drifter -> drifter.isAlive() && !drifter.isTemporary() && drifter.encounter() == null));
+			drifter -> drifter.isAlive() && !drifter.isTemporary() && drifter.encounter() == null && !(friendly && drifter.isSleeping())));
 		if (friendly && center instanceof ServerPlayer player) {
 			drifters.removeIf(drifter -> Mode.atOdds(drifter, player));
 		}

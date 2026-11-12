@@ -67,7 +67,9 @@ public final class PlayerTalk {
 	/** What this message would be, said to a Drifter (what it asks, or a word about someone), or null (the debug command). */
 	@Nullable
 	public static String meaning(String text) {
-		return Lines.answer(text, ALL);
+		String old = Lines.answer(text, ALL);
+		String mine = PlayerConvo.intent(text, old);
+		return mine != null ? mine : old;
 	}
 
 	/** How far it hears someone talking to it without its name: looking at it, or the only one this close. */
@@ -136,7 +138,17 @@ public final class PlayerTalk {
 			String yes = Lines.answer(text, "yes", "no", "ready");
 			if (yes != null) {
 				asked.remove(player.getUUID());
+				PlayerConvo.touch(player, question.drifter(), now, true);
 				answered(question, player, !yes.equals("no"), now);
+				return true;
+			}
+
+			// (A middle answer is an answer too: "kinda", "maybe", "idk".)
+			if (intent == null && Lines.answer(text, "unsure", "middle") != null) {
+				asked.remove(player.getUUID());
+				PlayerConvo.touch(player, question.drifter(), now, true);
+				focus.put(player.getUUID(), new Focus(question.drifter().getUUID(), now + FOCUS, -1));
+				reply(question.drifter(), "convo.asked.middle", null, "player", Heard.callName(question.drifter(), player));
 				return true;
 			}
 		}
@@ -146,6 +158,16 @@ public final class PlayerTalk {
 		DrifterEntity drifter = addressee(player, text, focused, now, Telling.aboutOthers(intent));
 		if (drifter == null) {
 			return false;
+		}
+
+		// What it is of the newer things to say to one (docs/PLAYER_TALK.md): a topic that says more than the older intent
+		// found, or the glue of a talk ("lol", "why") when nothing else is meant.
+		String mine = PlayerConvo.intent(text, intent);
+		// (Its own question still open: a "why" or a "kinda" is about that, below.)
+		// Asleep, in a fight, something it won't answer: a word, and that's all.
+		if (drifter.encounter() == null && PlayerConvo.gate(drifter, player, text, intent, mine, now)) {
+			talkedTo(drifter, player, now);
+			return true;
 		}
 
 		// "can i have something" ... "bread": the item, a moment later.
@@ -169,16 +191,21 @@ public final class PlayerTalk {
 		}
 
 		// (An addon's turn first: a talk it's holding with them, a question it answers itself.)
-		if (com.dinglebob.drifter.api.TalkApi.chatHandled(player, drifter, text, intent)) {
-			focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
-			drifter.getSocial().watcher().spokenTo(player);
+		if (com.dinglebob.drifter.api.TalkApi.chatHandled(player, drifter, text, mine != null ? mine : intent)) {
+			talkedTo(drifter, player, now);
+			return true;
+		}
+
+		// One of the newer things: answered there.
+		if (mine != null && !itemAnswer) {
+			talkedTo(drifter, player, now);
+			PlayerConvo.handle(drifter, player, text, mine, now);
 			return true;
 		}
 
 		// Something they tell it ("call me X", "my base is at ...", "going mining"): it remembers, and answers.
 		if (Telling.told(drifter, player, text, intent, now)) {
-			focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
-			drifter.getSocial().watcher().spokenTo(player);
+			talkedTo(drifter, player, now);
 			return true;
 		}
 
@@ -188,12 +215,23 @@ public final class PlayerTalk {
 		}
 
 		if (intent == null) {
-			return false;
+			// Nothing it knows how to answer: it still says something (a ritual said to it, a shrug, a question back).
+			talkedTo(drifter, player, now);
+			PlayerConvo.handle(drifter, player, text, null, now);
+			return true;
 		}
 
 		// (Still waiting when this answers "what do you need?", so give knows it asked already.)
+		talkedTo(drifter, player, now);
 		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, itemAnswer ? focused.wantsItemUntil() : -1));
-		drifter.getSocial().watcher().spokenTo(player);
+		if (MOVES.contains(intent)) {
+			PlayerConvo.moving(player);
+		}
+
+		if (intent.equals("stop")) {
+			GuideGoal.stop(drifter);
+		}
+
 		answer(drifter, player, intent, text, now);
 		// Someone standing by may add their bit ("lmao", "ooh fight", "me too pls").
 		if (Lines.has("chime." + intent)) {
@@ -206,6 +244,23 @@ public final class PlayerTalk {
 		return true;
 	}
 
+	/** Things asked of it that have it moving (it doesn't stand and wait for the next message). */
+	private static final java.util.Set<String> MOVES = java.util.Set.of("follow", "come", "help", "team", "give", "duel");
+
+	/** They said something to it: it's the one they're talking with, and it turns to them and waits (talking mode). */
+	private static void talkedTo(DrifterEntity drifter, ServerPlayer player, long now) {
+		Focus was = focus.get(player.getUUID());
+		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, was != null && was.drifter().equals(drifter.getUUID()) ? was.wantsItemUntil() : -1));
+		drifter.getSocial().watcher().spokenTo(player);
+		PlayerConvo.touch(player, drifter, now, true);
+	}
+
+	/** They're not talking with anyone now ("not you"). */
+	static void unfocus(ServerPlayer player) {
+		focus.remove(player.getUUID());
+		asked.remove(player.getUUID());
+	}
+
 	/** It asked them this (phase 3): their next yes or no is the answer. */
 	static void ask(DrifterEntity drifter, ServerPlayer player, Topics.Question question, Object[] vars, long now, String topic) {
 		asked.put(player.getUUID(), new Asked(drifter, question, vars, now + ANSWER_WITHIN, topic));
@@ -216,6 +271,7 @@ public final class PlayerTalk {
 	static void focusOn(ServerPlayer player, DrifterEntity drifter, long now) {
 		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
 		answeredAt.put(drifter.getUUID(), now);
+		PlayerConvo.touch(player, drifter, now, false);
 	}
 
 	/** Their answer to its question: it says what it says to a yes or a no, and does what a yes means. */
@@ -235,8 +291,14 @@ public final class PlayerTalk {
 					RequestGoal.ask(drifter, RequestGoal.Kind.GIVE, player, food, 2);
 				}
 			};
+			case "duel" -> () -> duel(drifter, player, drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName()));
+			case "tour" -> () -> PlayerConvo.tour(drifter, player);
 			default -> null;
 		};
+		if (then != null) {
+			PlayerConvo.moving(player);
+		}
+
 		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
 		if (line != null) {
 			answeredAt.put(drifter.getUUID(), now);
@@ -367,7 +429,24 @@ public final class PlayerTalk {
 
 		// The only one close by.
 		List<DrifterEntity> close = near.stream().filter(drifter -> drifter.distanceTo(player) <= ONLY_ONE).toList();
-		return close.size() == 1 ? close.get(0) : about;
+		if (close.size() == 1) {
+			return close.get(0);
+		}
+
+		// Said to all of them ("you guys", "anyone"): the most talkative of those close who doesn't mind them answers.
+		if (about == null && PlayerConvo.toEveryone(text)) {
+			DrifterEntity talker = null;
+			for (DrifterEntity drifter : near) {
+				if (drifter.distanceTo(player) <= LOOKED_AT && drifter.encounter() == null && !drifter.isSleeping() && !Mode.atOdds(drifter, player)
+					&& (talker == null || drifter.getPersonality().get(Trait.SOCIABILITY) > talker.getPersonality().get(Trait.SOCIABILITY))) {
+					talker = drifter;
+				}
+			}
+
+			return talker;
+		}
+
+		return about;
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -503,6 +582,12 @@ public final class PlayerTalk {
 
 		// (Without its progress or counts: "gather birch log (0/3)", "craft oak planks x3".)
 		String doing = activity.describe().replaceAll("\\s*\\(.*\\)$", "").replaceAll("\\s+x\\d+$", "").toLowerCase(Locale.ROOT);
+		// (Standing and talking with a player: what it was doing before they spoke.)
+		if (doing.startsWith("talk with ") || doing.startsWith("look for ")) {
+			return PlayerConvo.wasDoing(drifter);
+		}
+
+		PlayerConvo.doingNow(drifter, doing.isBlank() || doing.equals("idle") ? null : doing);
 		return doing.isBlank() || doing.equals("idle") ? null : doing;
 	}
 
@@ -731,7 +816,7 @@ public final class PlayerTalk {
 	 * whose every telling word they said (the one with the most such words: "golden apple" over "apple").
 	 */
 	@Nullable
-	private static String named(String text) {
+	static String named(String text) {
 		java.util.Set<String> said = new java.util.HashSet<>();
 		for (String word : Lines.normalize(text).trim().split(" ")) {
 			if (!word.isBlank()) {
@@ -824,17 +909,19 @@ public final class PlayerTalk {
 	// ---------------------------------------------------------------------------------------------
 
 	/** Its answer, said once it's "typed" (longer lines later); then what it said it'd do, if anything. */
-	static void reply(DrifterEntity drifter, String key, @Nullable Runnable then, Object... vars) {
+	static boolean reply(DrifterEntity drifter, String key, @Nullable Runnable then, Object... vars) {
 		String line = Lines.pick(drifter, key, vars);
 		long now = drifter.level().getGameTime();
-		answeredAt.put(drifter.getUUID(), now);
 		if (line == null) {
 			if (then != null) {
 				then.run();
 			}
 
-			return;
+			return false;
 		}
+
+		answeredAt.put(drifter.getUUID(), now);
+		PlayerConvo.said(drifter, key, line);
 
 		long at = now + 15 + Math.min(80, line.length() * 2) + drifter.getRandom().nextInt(15);
 		// (Where something is, to a friend: whispered, if an addon says so.)
@@ -852,6 +939,7 @@ public final class PlayerTalk {
 
 		replies.add(new Reply(drifter, line, at, then, whisperTo));
 		replyAt.put(drifter.getUUID(), at);
+		return true;
 	}
 
 	private static String[] concat(String[]... lists) {

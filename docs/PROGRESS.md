@@ -3378,6 +3378,9 @@ Tested (headless): three Drifters teamed up at once (debug) on deep flat ground:
 The plan and its own progress: docs/LIVED_WORLD.md (phases A to D; decisions 1 to 11, the last two the user's for steep
 Tectonic terrain: towns on the flattest ground to hand, easy to get round without pillaring or bridging).
 
+- **0.23.46: the main line with the talk side branch merged** (the user, 2026-11-12: "make sure side 2 is merged before
+  you work on chronicle revamp"): 0.23.45 plus claude/serene-galileo-af4f3d (0.23.44-side.2: talking with Drifters,
+  batch 1, docs/PLAYER_TALK.md). Conflicts only in TESTING.md (both kept) and the version. Booted headless.
 - **0.23.45: the journal fits the window** (the user, 2026-11-12: "the journal needs to be a bit bigger in scale (the
   book texture being auto scale) while the text is a bit smaller or bigger depending on the scale"; "text looks janky on
   edge"). `JournalScreen.zoom()`: the open book with its bookmarks fills 92 in 100 of the window at most, whatever the GUI
@@ -5983,6 +5986,16 @@ alerts, begging, shopkeeping, etc ... like 50 more variations of each line".
 - Seen while writing (left as it was): `Warbands` picks `war.rally` with the word `army`, but the rally lines use
   `{enemy}`, so warband captains only get the rally lines without a fill word.
 
+## Player talk: design catalogue (2026-11-12, design only)
+
+After playing 0.23.41-side.1 the user sent 24 screenshots of talks with Drifters that went nowhere (a Drifter opens,
+then drops it; the wrong one answers; parts of names don't work; they walk off; their own chatter buries the
+player's) and asked for "a HUGE highly detailed list of almost EVERY possible thing a player could ask from a drifter
+(only for design)". That's `docs/PLAYER_TALK.md`: about 510 meanings in ten groups, each with how players type it, what
+a good Drifter does, whether it's understood today, and a priority; section 0 is how talking itself should work
+(addressing, talking mode, never silent), section K a build order (fallback and talking mode first, then 86 high-value
+topics). **Nothing is built; the user said not to act yet.** Wait for their go-ahead and their pick of topics.
+
 ## Side session: out of a mine by its own stairs, not a shaft up (0.23.44-side.1)
 
 The user (2026-11-12, a screenshot of a forest town): Drifters climbing back out of a mine or cave dug straight up through
@@ -6023,3 +6036,46 @@ next to and through the staircase (one came up under a sign).
   pay, and runs only underground on routes that dig).
 - Seen while testing (left as it was): in the test log a digging Drifter keeps "hearing building or mining ahead, about 1
   block away", which is its own digging.
+
+## Player talk, batch 1 (0.23.44-side.2)
+
+The user (2026-11-12) picked "Build batch 1" of docs/PLAYER_TALK.md. Built:
+
+- **Talking mode** (`ListenGoal`, `PlayerConvo`): a Drifter a player speaks to stops, turns to them and waits about 22
+  seconds for the next message (each one renews it; "wait here" holds it 90 seconds); danger, sleep and a fight come
+  first. When the talk dies down after a few exchanges it says it's off ("anyway, gotta gather wood").
+- **Never silent**: anything said to it that it can't place gets a reply (`convo.unknown`), as do the glue of a talk
+  ("lol", "thats cool", "same", "why", "wdym", "nvm", "you there?", "not you", "kinda") and the chat rituals said to one
+  by name ("hi dani", "thank you mayorcanvas": that one answers, not whoever is nearest).
+- **Its own questions take answers**: "hey, new here?" takes "i am" / "no" / "hi im muto"; "you any good at pvp?" takes
+  "kinda" (a duel offer). A reply to its opener stops the rest of its piece ("im frog btw").
+- **Others keep it down** near a player's talk: Drifter-to-Drifter talks pause, whims and reactions hold, nobody opens a
+  new talk with that player, bystanders chime in less. A Drifter mid-talk with another breaks off for the player.
+- **Asleep / fighting / rude**: "zzz" (wakes for a friend's "wake up", a warning or a call for help); "busy!!"; a slur
+  gets a flat "nah" once and nothing more.
+- **New things to ask and tell** (main mod): do you have X, compliments on what it's really wearing ("what hat lol"),
+  is this your house, nice house, show me your house (it leads the way: `GuideGoal`), what did you do today, are you
+  good at pvp, what's wrong, who is X, why don't you like me, wanna be friends, where's food (offers its own), is it
+  safe / what's dangerous, any news / what happened, im new / any tips, im hurt / lost / scared, "dont go in the mine"
+  (remembered, told to the next who asks), stay, look at this, lets go mining / lets kill mobs (it teams up for 15
+  minutes when it knows them, has the tool and isn't hurt), behind you!, truce, here take this, can i come in, can i
+  sleep here, threats (trust down, fear by bravery; a town hears of "ill kill you all"), jk, sorry.
+- **About the town** (addon, `TownTalk`): what's this place, who runs it, the rules, how many live here, its story,
+  where the stall / smith / enchanter / plaza / well / board / mine / fire are, where can i sleep, what's for sale, any
+  work, am i wanted, what's going on today, what's your job, show me around (a walk round the town's places with a line
+  at each) and take me to X.
+- **Smaller fixes**: stretched or slipped names call it ("froggg", "cookiew"); sleeping Drifters don't answer "hi" or
+  join gm/gn rounds; no typos in headlines or lines with numbers, no dropped letters in short words; the weather small
+  talk only when it isn't raining; "this game is fun" and a line claiming to be underground removed.
+- Lines: `drifter_chat/convo.json` (55 meanings, 172 kinds) and `drifter_civ/drifter_chat/town_talk.json` (21 meanings,
+  48 kinds); about 7,700 lines. API 10 (docs/API.md: "A talk with a player"). `/drifter hear <text>` (debug) says
+  something to the nearest Drifter as a stand-in player, for headless tests (`tools/smoke-playertalk.txt`).
+
+**Not done from batch 1** (still open): role words as names ("guard", "smith"); two names in one message; a gift thrown
+mid-fight isn't picked up till after; walking into its house unasked gets no reaction; a told danger isn't avoided,
+only passed on; prices by chat ("how much is X"); "what happened here" doesn't read the town's chronicle; a named
+Drifter that's dead isn't explained by the others. `why` guesses its reason from the moment (night, busy) when the
+refusal didn't record one. Two of the seven line writers were cut off by a usage limit: their lines were merged
+unreviewed by them (the checker passed all but 18, which were dropped).
+
+**Checked**: build; headless `tools/smoke-playertalk.txt` (41 messages, all answered, no warnings). See TESTING.md.

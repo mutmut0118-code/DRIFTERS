@@ -26,7 +26,7 @@
   {
    "id": "friends_small_weather_small",
    "weight": 0.6,
-   "needs": [],
+   "needs": ["!rain", "!thunder", "outside"],
    "tags": [
     "small_talk"
    ],

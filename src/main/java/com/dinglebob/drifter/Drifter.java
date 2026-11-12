@@ -76,6 +76,7 @@ public class Drifter implements ModInitializer {
 		com.dinglebob.drifter.social.talk.Spar.register();
 		com.dinglebob.drifter.social.CrookGoal.Brawl.register();
 		com.dinglebob.drifter.social.talk.PlayerChats.register();
+		com.dinglebob.drifter.social.talk.PlayerConvo.register();
 		MobTargeting.register();
 		com.dinglebob.drifter.perception.CreatureHearing.register();
 		com.dinglebob.drifter.world.AnimalTempting.register();
