@@ -158,7 +158,19 @@ also be a very big sum; the whole economy should center around NO if its install
   (a town's till, tax, wages, tribute and the price of a peace, fines, notices' pay, what a ready-made town's chests
   hold) deals in coins instead. **(builder's call: this is its own piece of work, done first, as stage 0, since quest
   rewards are paid from the same tills.)**
-- **"A very big sum":** to be asked: see the question in chat.
+- **The coin scale (the user: "think of bronze more like pennies, silver coins as dollars 10s or 20s, and gold coins as
+  like 100 bills ... its very easy to get bronze coins, making it extremely easy to trade with drifters"; of the
+  proposal: "Yes, that scale"):** read from the mod's own data (0.3.5): a pillager drops about 75 bronze, a dungeon
+  chest holds 500 to 2,000, an outpost chest 1,500 to 4,000; a villager buys an emerald for 1,000 and a diamond for
+  3,000, sells bread at 18 each, an iron chestplate at 3,200, a diamond axe at 10,000, a totem at 40,000. Drifter had
+  an emerald's worth at about 50 bronze: twenty times too cheap.
+  - **An emerald's worth is 1,000 bronze (10 silver).** Every price, wage, tax, tribute, fine and quest reward in
+    coins scales from that.
+  - **Where the mod lists its own price for an item, Drifters follow it** (bread stays pennies, a diamond axe about a
+    gold), so a Drifter and a villager don't disagree wildly on the same thing.
+  - **Quest rewards land in silver and gold:** a board's wool a few silver, iron for a war tens of silver, dealing
+    with a crook a gold or more.
+  - Without the mod nothing changes: emeralds as now.
 
 The builder's calls:
 
