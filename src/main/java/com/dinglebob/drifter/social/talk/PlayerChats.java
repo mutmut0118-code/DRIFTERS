@@ -129,7 +129,7 @@ public final class PlayerChats {
 
 	private static void lookForOpening(ServerLevel level, ServerPlayer player, long now) {
 		if (now - lastPlayer.getOrDefault(player.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_PLAYER)
-			|| openings.stream().anyMatch(opening -> opening.player == player)
+			|| openings.stream().anyMatch(opening -> opening.player == player) || PlayerConvo.talking(player)
 			|| com.dinglebob.drifter.encounter.Encounters.active(player.getUUID()) != null) {
 			return;
 		}
@@ -221,6 +221,7 @@ public final class PlayerChats {
 				opening.drifter.getCamera().lookAt(opening.player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
 				ChatLines.to(opening.drifter, opening.player);
 				ChatLines.speak(opening.drifter, line);
+				PlayerConvo.opened(opening.player, opening.drifter, opening.topic.id(), line, now);
 				opening.said = true;
 				opening.nextAt = now + Math.min(120, 30 + line.length() * 2) + opening.drifter.getRandom().nextInt(20);
 				return true;
@@ -348,6 +349,11 @@ public final class PlayerChats {
 		}
 
 		DrifterEntity bystander = by.get(speaker.getRandom().nextInt(by.size()));
+		// (A player talking with the speaker: a bystander's bit now and then, not every time.)
+		if (other instanceof ServerPlayer talker && PlayerConvo.talking(talker) && bystander.getRandom().nextDouble() < 0.6) {
+			return;
+		}
+
 		if (bystander.getRandom().nextDouble() > DrifterConfig.chatty(0.2 + 0.5 * bystander.getPersonality().get(Trait.SOCIABILITY))) {
 			return;
 		}

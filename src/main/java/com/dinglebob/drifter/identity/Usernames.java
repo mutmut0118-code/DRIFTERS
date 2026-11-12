@@ -317,4 +317,22 @@ public final class Usernames {
 	private static String capital(String word) {
 		return word.isEmpty() ? word : Character.toUpperCase(word.charAt(0)) + word.substring(1);
 	}
+
+	/** Banned name parts that are only swearing or game talk in chat (a Drifter doesn't mind those). */
+	private static final Set<String> MILD = Set.of("fuck", "shit", "bitch", "dick", "cock", "kill_", "murder", "suicide", "isis", "twat", "wank", "boob",
+		"tits", "cum", "anal", "sex", "coon", "nude");
+	/** Short ones that are parts of ordinary words ("grape"): only as a word of their own. */
+	private static final Set<String> WHOLE = Set.of("rape", "fag", "kkk");
+
+	/** This chat message has a slur or worse in it (a Drifter won't answer it, nor say it back). */
+	public static boolean rude(String text) {
+		String lower = " " + text.toLowerCase(Locale.ROOT).replaceAll("[^a-z]+", " ") + " ";
+		for (String part : lists.bannedParts()) {
+			if (!MILD.contains(part) && (WHOLE.contains(part) ? lower.contains(" " + part + " ") : lower.contains(part))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

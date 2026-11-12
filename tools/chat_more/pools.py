@@ -14,6 +14,8 @@ CHAT_FILES = {
     'encounters': 'src/main/resources/data/drifter/drifter_chat/encounters.json',
     'rounds': 'src/main/resources/data/drifter/drifter_chat/rounds.json',
     'alerts': 'src/main/resources/data/drifter/drifter_chat/alerts.json',
+    'convo': 'src/main/resources/data/drifter/drifter_chat/convo.json',
+    'town_talk': 'src/civ/resources/data/drifter_civ/drifter_chat/town_talk.json',
     'friends': 'src/civ/resources/data/drifter_civ/drifter_chat/friends.json',
     'town': 'src/civ/resources/data/drifter_civ/drifter_chat/town.json',
 }

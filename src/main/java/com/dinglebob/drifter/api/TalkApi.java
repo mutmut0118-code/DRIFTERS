@@ -83,6 +83,84 @@ public final class TalkApi {
 		whisperRule = rule;
 	}
 
+	/** Places it could show a player round (a town's: "shop", "smith", "plaza", "well", "board", "mine", "fire"...), by what they are. */
+	@FunctionalInterface
+	public interface Places {
+		Map<String, net.minecraft.core.BlockPos> places(DrifterEntity drifter);
+	}
+
+	/** More words for its lines in a talk with a player (its town, its leader, its job...). */
+	@FunctionalInterface
+	public interface ConvoFacts {
+		void facts(DrifterEntity drifter, ServerPlayer player, Map<String, Object> words);
+	}
+
+	/** A player threatened it ({@code all}: everyone) in chat. */
+	@FunctionalInterface
+	public interface Threatened {
+		void threatened(DrifterEntity drifter, ServerPlayer player, boolean all);
+	}
+
+	private static Places placesOf = drifter -> Map.of();
+	private static ConvoFacts convoFacts = (drifter, player, words) -> {
+	};
+	private static Threatened threatened = (drifter, player, all) -> {
+	};
+
+	public static void registerPlaces(Places places) {
+		placesOf = places;
+	}
+
+	public static void registerConvoFacts(ConvoFacts facts) {
+		convoFacts = facts;
+	}
+
+	public static void registerThreatened(Threatened hook) {
+		threatened = hook;
+	}
+
+	public static Map<String, net.minecraft.core.BlockPos> places(DrifterEntity drifter) {
+		return placesOf.places(drifter);
+	}
+
+	public static void convoFacts(DrifterEntity drifter, ServerPlayer player, Map<String, Object> words) {
+		convoFacts.facts(drifter, player, words);
+	}
+
+	public static void threatened(DrifterEntity drifter, ServerPlayer player, boolean all) {
+		threatened.threatened(drifter, player, all);
+	}
+
+	/**
+	 * In a talk with a player (docs/PLAYER_TALK.md): its answer, a line of this kind from the chat data, with its own
+	 * facts as words (and {@code more}: name, value...), said after a moment; then {@code then}. False: no such line.
+	 */
+	public static boolean answer(DrifterEntity drifter, ServerPlayer player, String key, @Nullable Runnable then, Object... more) {
+		return com.dinglebob.drifter.social.talk.PlayerConvo.answer(drifter, player, key, then, more);
+	}
+
+	/** It leads this player to these places in turn (what's said at each: a chat line's key), as "show me around". */
+	public static void lead(DrifterEntity drifter, ServerPlayer player, java.util.List<com.dinglebob.drifter.social.talk.GuideGoal.Stop> stops, String what) {
+		com.dinglebob.drifter.social.talk.GuideGoal.lead(drifter, player, stops, what);
+		com.dinglebob.drifter.social.talk.PlayerConvo.nowMoving(player);
+	}
+
+	/**
+	 * Which of {@code mine} (an addon's own things to ask) this message is, if its phrase says more than the one
+	 * {@code current} (what Drifter took it for) matched; else null.
+	 */
+	@Nullable
+	public static String better(String text, @Nullable String current, String... mine) {
+		String intent = com.dinglebob.drifter.social.Lines.answer(text, mine);
+		if (intent == null || current == null) {
+			return intent;
+		}
+
+		String a = com.dinglebob.drifter.social.Lines.phrase(text, intent);
+		String b = com.dinglebob.drifter.social.Lines.phrase(text, current);
+		return a != null && (b == null || a.length() >= b.length()) ? intent : null;
+	}
+
 	// (Drifter's side: where the hooks are asked.)
 
 	public static boolean chatHandled(ServerPlayer player, DrifterEntity drifter, String text, @Nullable String intent) {

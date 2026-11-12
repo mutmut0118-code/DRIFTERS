@@ -198,6 +198,12 @@ public final class Conversations {
 				continue;
 			}
 
+			// (A player near is talking with someone else: these two keep it down, so their lines don't land as answers.)
+			if (now >= talk.nextAt && PlayerConvo.hush(talk.a, now)) {
+				talk.nextAt = now + 60 + talk.a.getRandom().nextInt(60);
+				continue;
+			}
+
 			// (One busy with something types as it works, as players do; one that's free walks over and faces the other.)
 			if (now >= talk.nextAt && !carryOn(talk, now)) {
 				it.remove();
@@ -217,7 +223,7 @@ public final class Conversations {
 	/** Two near this player who'd talk, if any, start (one conversation within earshot of a player at a time). */
 	private static void lookForTalk(ServerLevel level, ServerPlayer player, long now) {
 		double range = DrifterConfig.chatRange();
-		if (talks.stream().anyMatch(talk -> talk.a.level() == level && talk.a.distanceTo(player) <= range)) {
+		if (PlayerConvo.talking(player) || talks.stream().anyMatch(talk -> talk.a.level() == level && talk.a.distanceTo(player) <= range)) {
 			return;
 		}
 
@@ -633,6 +639,17 @@ public final class Conversations {
 		}
 
 		return fitting.isEmpty() ? null : fitting.get(fitting.size() - 1);
+	}
+
+	/** A player spoke to this one mid-talk: the talk breaks off (to be picked up later), and it turns to the player. */
+	static void interrupt(DrifterEntity drifter, long now) {
+		Talk talk = of(drifter);
+		if (talk != null) {
+			talks.remove(talk);
+			if (talk.lines > 0 && !talk.closed && talk.interest >= MIN_INTEREST) {
+				pending.put(pair(talk.a, talk.b), new Pending(talk.topic.id(), now));
+			}
+		}
 	}
 
 	/** Cut short (a fight, one walking off): it might say so, and they'll pick it up when they next meet. */
