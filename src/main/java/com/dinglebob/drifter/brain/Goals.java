@@ -936,13 +936,15 @@ public final class Goals {
 		@Override
 		public double urgency(Context context) {
 			DrifterEntity drifter = context.drifter();
-			if (Schedule.isNight(drifter) || context.threat().urgent() || wanted(drifter) == null) {
+			var wares = wanted(drifter);
+			if (Schedule.isNight(drifter) || context.threat().urgent() || wares == null) {
 				return 0.0;
 			}
 
 			// (Its day's work: below a one-off for its town and keeping its shop, about its other chores; found in testing, at 0.4
-			// a smith tended the town's farm most of the day.)
-			return 0.5;
+			// a smith tended the town's farm most of the day. Something ordered and paid for (API 15: pressing) comes before its
+			// own wants: found in testing, it made itself a scythe of the iron first.)
+			return wares.pressing() ? 0.74 : 0.5;
 		}
 	}
 

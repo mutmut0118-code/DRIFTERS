@@ -82,6 +82,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownNotices.register();
 		TownServices.register();
 		BloodGoods.register();
+		Orders.register();
 		Friends.register();
 		FriendTalk.register();
 		FriendPerks.register();

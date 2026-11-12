@@ -1555,6 +1555,7 @@ final class Quests {
 		List<Journal.Line> lines = new ArrayList<>();
 		group(lines, "Offered", offered);
 		group(lines, "Your word given", given);
+		group(lines, "Ordered", Orders.lines(player));
 		group(lines, "On the boards", boards);
 		group(lines, "Done", done);
 		return new Journal.Tab("Quests", lines, "Nobody's asked anything of you yet. Get to know people; they will.");

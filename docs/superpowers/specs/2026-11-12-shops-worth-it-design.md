@@ -5,7 +5,7 @@ taken as they stand:** no extra damage to looted gear, the mild version of blood
 the money-only things. The user's words are quoted; everything marked **(my call)** was a proposal and is now agreed.
 
 **Built so far:** parts 1 and 2 in 0.23.53 (see docs/PROGRESS.md for what was built and how it differs in detail).
-Part 3 (made to order, then a hired sword, then buying off a bounty) follows, one version each.
+Part 3: made to order in 0.23.54; a hired sword, then buying off a bounty, follow, one version each.
 
 ## Why
 

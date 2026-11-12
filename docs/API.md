@@ -355,6 +355,9 @@ smithing table; the town changes the piece when it's handed back.
 `DrifterApi.wearsTrim(stack, uniform)` and `DrifterApi.trim(registries, stack, uniform)` (API 14): does this piece
 carry that uniform's trim; put that uniform's trim on it.
 
+`TownWork.Wares(items, count, what, pressing)` (API 15): `pressing` true for things ordered and paid for: it makes them
+before its own wants (the three-argument form is as before, not pressing).
+
 ## A Drifter's skin on its record (API 11)
 
 `DrifterRecord.skin()` keeps what a Drifter looks like while it isn't loaded (or is gone): `skinTexture()` (its skin's

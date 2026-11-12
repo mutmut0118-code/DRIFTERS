@@ -1,0 +1,109 @@
+{
+  "_comment": "Made to order (Orders.java): asking a smith to make something. 'answers': what players type. 'lines': {player} is what it calls you, {what} the piece, {pay} a price (the whole, or what's still owed), {half} the half to pay first, {goods} what it makes.",
+  "answers": {
+    "order": [
+      "make me",
+      "can you make me",
+      "could you make me",
+      "can you make",
+      "forge me",
+      "craft me",
+      "i want to order",
+      "id like to order",
+      "i would like to order",
+      "can i order",
+      "i need you to make",
+      "make one for me",
+      "can you forge",
+      "will you make me",
+      "i want you to make"
+    ]
+  },
+  "lines": {
+    "order.quote": {
+      "any": [
+        "{what}? {pay}. half now, {half}, the rest when you fetch it",
+        "i can make you {what} for {pay}. throw me {half} and ill start",
+        "{what}, sure. {pay} all told, {half} up front",
+        "thatll be {pay} for {what}. {half} now and its yours in a day or two"
+      ]
+    },
+    "order.quote.trim": {
+      "any": [
+        "{what} in our colours? {pay}. half now, {half}, the rest when you fetch it",
+        "i can do {what} with our trim for {pay}. {half} up front",
+        "{what}, trimmed like the guards wear. {pay}, and {half} to start"
+      ]
+    },
+    "order.what": {
+      "any": [
+        "make you what? i do {goods}",
+        "what do you want made? i can do {goods}",
+        "say which. i make {goods}"
+      ]
+    },
+    "order.notsmith": {
+      "any": [
+        "im no smith. ask at the smithy",
+        "not me, you want the smith for that",
+        "i dont make things like that. the smith does"
+      ]
+    },
+    "order.no": {
+      "any": [
+        "im not making anything for you",
+        "no. not for you",
+        "find someone else"
+      ]
+    },
+    "order.already": {
+      "any": [
+        "im still on your {what}. one thing at a time",
+        "your {what} isnt done yet. come back later",
+        "ive got your {what} to make first"
+      ]
+    },
+    "order.ready": {
+      "any": [
+        "your {what} is ready. {pay} more and its yours",
+        "ive got your {what} here. {pay} to pay still"
+      ]
+    },
+    "order.more": {
+      "any": [
+        "{pay} more and ill start on it",
+        "thats not the half. {pay} more",
+        "need {pay} more before i start"
+      ]
+    },
+    "order.placed": {
+      "any": [
+        "right, {what}. come back in a day or two",
+        "ok {player}, ill get on with your {what}. give me a day or two",
+        "{what} it is. ill put it by for you when its done"
+      ]
+    },
+    "order.cant": {
+      "any": [
+        "sorry, i couldnt get what it takes for the {what}. heres your money",
+        "no luck with your {what}, i never got the stuff for it. take your money back",
+        "i couldnt make the {what} in the end. heres what you paid"
+      ]
+    },
+    "order.done.pay": {
+      "any": [
+        "your {what} is ready. {pay} more and its yours",
+        "{player}! your {what} is done. {pay} to pay",
+        "ive got your {what} put by. {pay} and you can have it"
+      ]
+    },
+    "order.done": {
+      "any": [
+        "here it is, {player}. made it myself",
+        "your {what}. good as it gets",
+        "there you go, one {what}. look after it",
+        "all yours {player}. fresh off the anvil"
+      ]
+    }
+  }
+}

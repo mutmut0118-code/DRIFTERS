@@ -3396,6 +3396,38 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.54: made to order** (shops worth more than looting, part 3, the first of the things only money buys; the
+  user: "Yes, go on"). `Orders.java`, saved "drifter_civ_orders" v1; lines and phrases in `drifter_chat/orders.json`.
+  API 15 (`TownWork.Wares.pressing`).
+  - **How it goes:** say to a town's smith "make me an iron chestplate" (any of the things it makes or sells; "in your
+    colours" for its town's trim on armour). It names the price (its shop's, in whole pieces of money) and the half to
+    pay first. Throw it the half: the order's placed. It makes the piece the way it makes anything it sells, before
+    its shelf stock and before its own wants (`Wares.pressing`: urgency 0.74), from its own iron or what you throw it
+    (diamonds for a diamond piece). The moment it has one new in its pockets it's put by for you (out of its pockets:
+    never sold, never worn), with the trim asked for and "Made by <smith> of <town>". Come by: it says what's still to
+    pay; pay, and it's thrown to you. The journal's Quests page lists it under "Ordered".
+  - **Ends:** asked and not paid for in two minutes: forgotten (what was thrown is handed back if you're by). Not made
+    in 7 days: it says so and gives the deposit back when you come by (after 21 it's let go). Made and not fetched in
+    10 days: a plain one back in its stock, the deposit its own. The smith dying: what it had put by falls with its
+    things. A smith no more: the piece its own again, the money back if you're by. One order a player with each smith.
+  - **Tested** in the dev client (a10p2_g, an outsider): "make me a sandwich" (it says what it makes); an iron
+    chestplate in its colours: quoted, "1 emerald more", placed, put by (a piece slipped into its pockets by the debug
+    `/drifterciv order stock`), "put by, 1 emerald and you can have it", paid, handed over in the town's trim with its
+    maker's line; an iron helmet with iron given it: it forged the helmet itself, put it by and handed it over; "you
+    make me laugh" is not an order. After the last fix (put by the moment it's made), replayed: forged once, put by the next tick, handed over. **Not tested:** a diamond piece with diamonds brought; the 7 and 10 day
+    ends, refunds, a smith dying with a piece put by; two players; the journal's "Ordered" lines seen on screen;
+    coins; saving and loading with an order open.
+  - **Review** (one fresh reviewer; fixed): money thrown while the smith had someone else's job in hand was
+    swallowed; asking again wiped a part payment; refunds were in whole emeralds only (coins' change kept); a piece
+    put by vanished if the smith died or was gone; "you make me laugh" got an answer about orders; a smith that
+    changed trade kept the deposit; a bad saved order lost the rest.
+  - **Rulings:** (1) No extra charge for an order, and no discount for bringing the materials: the price is its
+    shop's. (2) The trim is free with the order. (3) Paying over the price gives no change (as a thrown gift).
+    (4) An order takes any new plain one it carries, its own unused one too: it makes itself another.
+  - **Deferred minors:** with Numismatic Overhaul, prices over 64 of a coin round to the next coin up or down
+    (`Money.priceStack`); the days are by the world's clock, so `/time set` skews them; a name with a hyphen or
+    apostrophe can't be ordered by saying it; plurals aren't understood.
+  - **Next:** a hired sword, then buying off a bounty.
 - **0.23.53: shops worth more than looting, parts 1 and 2** (design `docs/superpowers/specs/2026-11-12-shops-worth-it-design.md`,
   the user: "Yes, those three", then "Yes, build it" to my three recommendations). API 14.
   - **New against battered (part 1).**

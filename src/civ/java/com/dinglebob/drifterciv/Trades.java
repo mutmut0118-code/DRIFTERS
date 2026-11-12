@@ -547,6 +547,19 @@ final class Trades {
 			}
 		}
 
+		// What's been ordered of it and not made yet (Orders) comes first, before its shelf: those alone, till they're made.
+		// (Found in testing, 0.23.54: with iron for one thing it made a pickaxe and shears, the cheapest of what it was short
+		// of, and the helmet ordered and paid for waited.)
+		List<Item> ordered = Orders.wanted(drifter).stream().filter(item -> forSale(drifter, item) < 1).toList();
+		if (!ordered.isEmpty()) {
+			int carried = 0;
+			for (Item item : ordered) {
+				carried += drifter.getInventory().count(stack -> stack.is(item));
+			}
+
+			return new TownWork.Wares(ordered, carried + 1, "an order to fill", true);
+		}
+
 		return short_.isEmpty() ? null : new TownWork.Wares(short_, have + batch, line.name().equals("smith") ? "tools to sell" : "things to sell");
 	}
 
@@ -728,6 +741,50 @@ final class Trades {
 
 	static void wareEnchanted(DrifterEntity drifter, boolean done) {
 		enchantNext.put(drifter.getUUID(), drifter.level().getGameTime() + (done ? ENCHANTS_EVERY : ENCHANT_REST));
+	}
+
+	/** What a trade's Drifter makes or sells (an order can be for any of them), or none. */
+	static List<Item> makes(Town town, DrifterEntity drifter) {
+		String name = town.lines.get(drifter.getUUID());
+		Line line = name == null ? null : line(name);
+		return line == null || line.shop() == null ? List.of() : sells(line, drifter);
+	}
+
+	/** One new plain one of these out of its pockets (beyond its own), or empty: put by for an order. */
+	static ItemStack takeNew(DrifterEntity drifter, Item item) {
+		if (forSale(drifter, item) < 1) {
+			return ItemStack.EMPTY;
+		}
+
+		ItemStack plain = new ItemStack(item);
+		var pockets = drifter.getInventory();
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+			if (ItemStack.isSameItemSameComponents(pockets.getItem(slot), plain)) {
+				return pockets.removeItem(slot, 1);
+			}
+		}
+
+		return ItemStack.EMPTY;
+	}
+
+	/**
+	 * As {@link #takeNew}, for an order: any new plain one in its pockets, its own included (what was ordered and paid for
+	 * comes before the one it keeps for itself: it makes itself another).
+	 */
+	static ItemStack takeNewAny(DrifterEntity drifter, Item item) {
+		ItemStack plain = new ItemStack(item);
+		var pockets = drifter.getInventory();
+		for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+			if (ItemStack.isSameItemSameComponents(pockets.getItem(slot), plain)) {
+				return pockets.removeItem(slot, 1);
+			}
+		}
+
+		return ItemStack.EMPTY;
+	}
+
+	static void madeBy(ItemStack goods, DrifterEntity keeper, Town town) {
+		made(goods, keeper, town);
 	}
 
 	/** Gear a shop made: "Made by Ansel of Hollowbrook" under its name (for the feel of owning it; it does nothing). */

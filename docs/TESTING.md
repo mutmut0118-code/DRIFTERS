@@ -3784,3 +3784,16 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
       and it comes back as plain armour with a different trim. To the shopkeeper of a town at war with the dead
       one's town: it buys it.
 - [ ] New towns only: townspeople's armour and weapons are part worn, not brand new.
+
+## 0.23.54: made to order (new)
+
+- [ ] **Order a piece.** Stand by a town's smith and say `make me an iron chestplate` (or any tool, weapon or armour
+      it makes; add `in your colours` for the town's trim). It names the price and the half to pay first.
+- [ ] **Pay the half.** Throw it that much money. It says it'll get on with it. Your journal's Quests page shows it
+      under "Ordered" ("being made").
+- [ ] **Fetch it.** Come back later (it needs the iron, and time; throw it ingots if you want it sooner). When it's
+      made, the smith tells you what's still to pay as you come by. Throw the rest: it throws you the piece, brand
+      new, with "Made by ..." under its name (and the trim, if you asked).
+- [ ] Say `make me something` to a smith: it lists what it makes. Say it to someone who isn't a smith: they send you
+      to the smithy.
+- [ ] (`/drifterciv order` lists the open orders.)

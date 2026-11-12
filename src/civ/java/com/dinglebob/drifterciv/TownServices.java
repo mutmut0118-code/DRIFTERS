@@ -296,6 +296,12 @@ final class TownServices {
 		drifter.tossForward(stack).setTarget(player.getUUID());
 	}
 
+	/** Money this player throws it now goes toward a job of theirs it's waiting to be paid for. */
+	static boolean takesMoney(DrifterEntity drifter, Player player) {
+		Job job = jobs.get(drifter.getUUID());
+		return job != null && job.player.equals(player.getUUID()) && !job.working && job.back == null;
+	}
+
 	/** It has a player's things in hand for a job. */
 	static boolean busy(DrifterEntity drifter) {
 		return jobs.containsKey(drifter.getUUID());

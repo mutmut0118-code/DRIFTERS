@@ -298,7 +298,10 @@ public interface TownWork {
 	 * Things to make: any of {@code items} till it carries {@code count} of them in all (the cheapest to make first), and
 	 * what they are for its thoughts ("tools to sell").
 	 */
-	record Wares(java.util.List<net.minecraft.world.item.Item> items, int count, String what) {
+	record Wares(java.util.List<net.minecraft.world.item.Item> items, int count, String what, boolean pressing) {
+		public Wares(java.util.List<net.minecraft.world.item.Item> items, int count, String what) {
+			this(items, count, what, false);
+		}
 	}
 
 	/** A banner of this colour (a banner item, e.g. {@code Items.RED_BANNER}) to stand at {@code spot}, and why (its thought). */
