@@ -59,7 +59,7 @@ public final class PlayerConvo {
 	static final String[] GLUE = {"laugh", "nice", "wow", "agree", "doubt", "sympathy", "ack", "pushback", "why", "wdym", "nvm", "talk_to_me",
 		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "everyone"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
-	private static final Set<String> WEAK = Set.of("who_is", "have", "look");
+	private static final Set<String> WEAK = Set.of("who_is", "look");
 	/** Asked while it sleeps or fights, these still get through. */
 	private static final Set<String> PRESSING = Set.of("warning", "offer", "truce", "wake_up", "help");
 
@@ -328,7 +328,7 @@ public final class PlayerConvo {
 
 			String mine = Lines.phrase(text, topic);
 			String theirs = Lines.phrase(text, old);
-			return mine != null && (theirs == null || mine.length() > theirs.length()) ? topic : null;
+			return mine != null && (theirs == null || mine.length() >= theirs.length()) ? topic : null;
 		}
 
 		return old == null ? Lines.answer(text, GLUE) : null;
@@ -1192,6 +1192,14 @@ public final class PlayerConvo {
 	public static void ask(DrifterEntity drifter, ServerPlayer player, String does, String noKey) {
 		long now = drifter.level().getGameTime();
 		PlayerTalk.ask(drifter, player, new Topics.Question(Map.of(), does, Lines.voices(noKey)), vars(drifter, player), now, does);
+	}
+
+	/** For an addon: {@link #tour}, as its answer to them. */
+	public static void showRound(DrifterEntity drifter, ServerPlayer player) {
+		long now = drifter.level().getGameTime();
+		touch(player, drifter, now, true);
+		PlayerTalk.focusOn(player, drifter, now);
+		tour(drifter, player);
 	}
 
 	/** Shows them round: the places an addon knows of (a town's), one after another. */

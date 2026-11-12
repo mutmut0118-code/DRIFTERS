@@ -67,7 +67,9 @@ final class FriendTalk {
 
 	static void register() {
 		DrifterEvents.PLAYER_ANSWERED.register(FriendTalk::answered);
-		TalkApi.registerChatHandler(FriendTalk::heard);
+		// (About its town first: TownTalk; then what a friend says.)
+		TalkApi.registerChatHandler((player, drifter, text, intent) -> TownTalk.heard(player, drifter, text, intent) || heard(player, drifter, text, intent));
+		TownTalk.register();
 	}
 
 	private static String pair(UUID drifter, UUID player) {

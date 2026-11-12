@@ -1,0 +1,87 @@
+# Talking with a player (docs/PLAYER_TALK.md batch 1), headless: /drifter hear says things to the nearest Drifter as a
+# stand-in player beside it. Each reply comes a second or two later.
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+drifter spawn Alice
+drifter giveall iron_sword
+drifter giveall stone_pickaxe
+drifter giveall bread 6
+wait 2
+drifter hear hello alice
+wait 4
+drifter hear hi im new here
+wait 4
+drifter hear thats cool
+wait 4
+drifter hear why
+wait 4
+drifter hear wdym
+wait 4
+drifter hear lol
+wait 4
+drifter hear do you have any bread
+wait 4
+drifter hear i like your sword
+wait 4
+drifter hear i like your hat
+wait 4
+drifter hear is this your house
+wait 4
+drifter hear what did you do today
+wait 4
+drifter hear are you good at pvp
+wait 4
+drifter hear kinda
+wait 4
+drifter hear whats wrong
+wait 4
+drifter hear wanna be friends
+wait 4
+drifter hear where can i get food
+wait 4
+drifter hear any news
+wait 4
+drifter hear is it safe here
+wait 4
+drifter hear dont go in the mine theres a dungeon down there
+wait 4
+drifter hear whats dangerous around here
+wait 4
+drifter hear lets go mining
+wait 4
+drifter hear why
+wait 4
+drifter hear lets kill mobs
+wait 4
+drifter hear wait here
+wait 4
+drifter hear look at this
+wait 4
+drifter hear watch out behind you
+wait 4
+drifter hear can i come in
+wait 4
+drifter hear im gonna kill all of you
+wait 4
+drifter hear jk
+wait 4
+drifter hear sorry
+wait 4
+drifter hear what about you alice do you wanna kill mobs
+wait 4
+drifter hear asdfgh qwerty
+wait 4
+drifter hear blorp
+wait 4
+drifter hear not you
+wait 4
+drifter hear wyd
+wait 4
+drifter hear thank you alice
+wait 4
+drifter hear bye
+wait 4
+execute as @e[type=drifter:drifter] at @s run drifter brain
+stop

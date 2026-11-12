@@ -139,10 +139,16 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.talk.PlayerConvo.answer(drifter, player, key, then, more);
 	}
 
-	/** It leads this player to these places in turn (what's said at each: a chat line's key), as "show me around". */
-	public static void lead(DrifterEntity drifter, ServerPlayer player, java.util.List<com.dinglebob.drifter.social.talk.GuideGoal.Stop> stops, String what) {
-		com.dinglebob.drifter.social.talk.GuideGoal.lead(drifter, player, stops, what);
+	/** It leads this player to a place (walking ahead, waiting for them), and says a line of this kind there. */
+	public static void leadTo(DrifterEntity drifter, ServerPlayer player, net.minecraft.core.BlockPos to, String lineKey, String what) {
+		com.dinglebob.drifter.social.talk.GuideGoal.lead(drifter, player, java.util.List.of(new com.dinglebob.drifter.social.talk.GuideGoal.Stop(to, lineKey, 5.0)),
+			what);
 		com.dinglebob.drifter.social.talk.PlayerConvo.nowMoving(player);
+	}
+
+	/** It shows this player round: each of {@link #registerPlaces its places} in turn, a line at each ("show me around"). */
+	public static void tour(DrifterEntity drifter, ServerPlayer player) {
+		com.dinglebob.drifter.social.talk.PlayerConvo.showRound(drifter, player);
 	}
 
 	/**

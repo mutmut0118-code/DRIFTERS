@@ -67,7 +67,9 @@ public final class PlayerTalk {
 	/** What this message would be, said to a Drifter (what it asks, or a word about someone), or null (the debug command). */
 	@Nullable
 	public static String meaning(String text) {
-		return Lines.answer(text, ALL);
+		String old = Lines.answer(text, ALL);
+		String mine = PlayerConvo.intent(text, old);
+		return mine != null ? mine : old;
 	}
 
 	/** How far it hears someone talking to it without its name: looking at it, or the only one this close. */

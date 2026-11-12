@@ -1,0 +1,902 @@
+{
+ "_comment": "Asking a townsperson about its town (docs/PLAYER_TALK.md section D, batch 1; TownTalk.java). 'answers': the phrases players type (the longest phrase found wins, against Drifter's own too). 'lines': its answers by voice. {player} is what it calls them, {town} its town, {leader} its leader; some kinds fill more: {laws}, {count}, {days}, {what} and {way} (a place and which way), {goods} and {who} (the stall), {crime} {fine} (the law). Started by tools/chat_more/town_talk_seed.py; more lines added with merge.py.",
+ "answers": {
+  "town_name": [
+   "what is this place",
+   "whats this place",
+   "what town is this",
+   "whats this town called",
+   "what is this town called",
+   "where am i",
+   "what is this town",
+   "name of this town",
+   "whats the name of this place",
+   "what do you call this place",
+   "which town is this"
+  ],
+  "town_leader": [
+   "who runs this town",
+   "who runs this place",
+   "whos the leader",
+   "who is the leader",
+   "whos in charge",
+   "who is in charge",
+   "whos the mayor",
+   "who is the mayor",
+   "whos the king",
+   "who leads this town",
+   "who is your leader",
+   "whos your leader",
+   "who rules here",
+   "who is the boss here",
+   "wheres the leader",
+   "wheres the mayor",
+   "do you have a leader"
+  ],
+  "town_rules": [
+   "what are the rules",
+   "any rules",
+   "whats not allowed",
+   "what are the laws",
+   "any laws",
+   "what cant i do here",
+   "rules here",
+   "what are the rules here",
+   "is stealing allowed",
+   "whats illegal",
+   "what is illegal here",
+   "what happens if i steal",
+   "do you have laws"
+  ],
+  "town_people": [
+   "how many people live here",
+   "how many live here",
+   "how big is this town",
+   "how many of you are there",
+   "how many people are here",
+   "how many people in this town",
+   "whats the population"
+  ],
+  "town_story": [
+   "tell me about this town",
+   "whats the story of this town",
+   "who founded this town",
+   "how old is this town",
+   "when was this town founded",
+   "tell me about this place",
+   "whats this towns story",
+   "history of this town",
+   "how long has this town been here",
+   "who built this town"
+  ],
+  "where_shop": [
+   "wheres the shop",
+   "where is the shop",
+   "wheres the stall",
+   "where is the stall",
+   "wheres the market",
+   "where is the market",
+   "where can i buy stuff",
+   "where can i buy things",
+   "where do i buy",
+   "where can i trade",
+   "is there a shop",
+   "wheres the store",
+   "where can i sell stuff",
+   "where can i sell",
+   "where do i sell",
+   "wheres the trader",
+   "where to buy"
+  ],
+  "where_smith": [
+   "wheres the smith",
+   "where is the smith",
+   "wheres the blacksmith",
+   "where is the blacksmith",
+   "who fixes tools",
+   "where can i repair",
+   "where can i fix my",
+   "is there a smith",
+   "who repairs stuff",
+   "where do i get armor",
+   "where can i get tools fixed",
+   "wheres the smithy"
+  ],
+  "where_enchanter": [
+   "wheres the enchanter",
+   "where is the enchanter",
+   "who enchants stuff",
+   "where can i enchant",
+   "is there an enchanter",
+   "who can enchant my",
+   "where do i enchant"
+  ],
+  "where_plaza": [
+   "wheres the plaza",
+   "where is the plaza",
+   "wheres the town square",
+   "where is the square",
+   "wheres the middle of town",
+   "wheres the center of town"
+  ],
+  "where_well": [
+   "wheres the well",
+   "where is the well",
+   "where can i get water",
+   "is there a well"
+  ],
+  "where_board": [
+   "wheres the notice board",
+   "where is the notice board",
+   "wheres the board",
+   "where is the board",
+   "wheres the bounty board",
+   "where are the notices",
+   "where are the bounties",
+   "where do i find jobs"
+  ],
+  "where_mine": [
+   "wheres the mine",
+   "where is the mine",
+   "wheres the town mine",
+   "is there a mine",
+   "where do you mine",
+   "where do you guys mine"
+  ],
+  "where_fire": [
+   "wheres the fire",
+   "wheres the campfire",
+   "where is the town fire",
+   "where does everyone hang out",
+   "where do people hang out"
+  ],
+  "where_sleep": [
+   "where can i sleep",
+   "where do i sleep",
+   "is there an inn",
+   "any spare bed",
+   "is there a spare bed",
+   "where can i stay",
+   "where do i stay",
+   "is there a bed for me",
+   "any empty houses",
+   "is there an empty house",
+   "somewhere to sleep",
+   "a place to sleep",
+   "where can i spend the night",
+   "is there a hotel",
+   "anywhere to sleep"
+  ],
+  "what_sell": [
+   "what do you sell",
+   "what does the shop sell",
+   "whats for sale",
+   "anything for sale",
+   "what you got for sale",
+   "whats in stock",
+   "what can i buy here",
+   "what can i buy",
+   "what does the stall sell",
+   "what are you selling",
+   "got anything good for sale"
+  ],
+  "any_work": [
+   "any work",
+   "got a job for me",
+   "any jobs",
+   "how can i earn money",
+   "how do i earn money",
+   "any bounties",
+   "any notices",
+   "need anything done",
+   "is there work",
+   "can i work here",
+   "got any work",
+   "how do i make money",
+   "any quests",
+   "got a quest",
+   "anything i can do for you",
+   "how can i help the town",
+   "how do i get emeralds"
+  ],
+  "am_wanted": [
+   "am i wanted",
+   "am i in trouble",
+   "why are the guards after me",
+   "do i have a fine",
+   "how much is my fine",
+   "whats my fine",
+   "am i banned",
+   "am i exiled",
+   "am i welcome here",
+   "does the town like me",
+   "whats my standing",
+   "am i a criminal",
+   "are the guards after me",
+   "can i come back",
+   "how long am i banned"
+  ],
+  "whats_on": [
+   "whats going on",
+   "whats going on today",
+   "why is everyone at the plaza",
+   "whats the bell for",
+   "why is the bell ringing",
+   "whats happening",
+   "whats the occasion",
+   "why is everyone running",
+   "whats the alarm",
+   "why is there an alarm",
+   "is today special",
+   "is there a festival",
+   "is it market day",
+   "whats everyone doing",
+   "why are people gathering",
+   "what is happening"
+  ],
+  "tour": [
+   "show me around",
+   "can you show me around",
+   "show me round",
+   "give me a tour",
+   "show me the town",
+   "can i get a tour",
+   "tour of the town",
+   "can you give me a tour",
+   "show me this place",
+   "wanna show me around",
+   "want to show me around",
+   "could you show me around",
+   "tour pls",
+   "show me where everything is"
+  ],
+  "take_me": [
+   "take me to",
+   "lead me to",
+   "bring me to",
+   "can you take me to",
+   "walk me to",
+   "show me the way to",
+   "show me to",
+   "guide me to",
+   "show me where the",
+   "take me to the"
+  ],
+  "your_job": [
+   "are you a guard",
+   "whats your job",
+   "what is your job",
+   "what do you do here",
+   "do you work",
+   "what do you do for work",
+   "are you the smith",
+   "are you a farmer",
+   "are you the leader",
+   "are you the mayor",
+   "are you a miner",
+   "are you the shopkeeper",
+   "do you have a job",
+   "what do you do around here",
+   "whats your role",
+   "what are you here",
+   "are you a builder",
+   "are you a guard here"
+  ]
+ },
+ "lines": {
+  "town.talk.name": {
+   "any": [
+    "this is {town}",
+    "{town}. welcome",
+    "youre in {town}",
+    "its called {town}",
+    "{town}, best town around"
+   ],
+   "hermit": [
+    "{town}."
+   ],
+   "newbie": [
+    "its {town}!! i live here"
+   ],
+   "helper": [
+    "this is {town}! welcome"
+   ],
+   "pvp_sweat": [
+    "{town}. dont start anything"
+   ],
+   "nomad": [
+    "{town}. nice place to stop a while"
+   ]
+  },
+  "town.talk.leader": {
+   "any": [
+    "{leader} runs things",
+    "thatd be {leader}",
+    "{leader}'s the leader",
+    "{leader}. usually round the plaza",
+    "{leader}, for now"
+   ],
+   "hermit": [
+    "{leader}."
+   ],
+   "newbie": [
+    "{leader}!! theyre really nice"
+   ],
+   "pvp_sweat": [
+    "{leader}. id do it better"
+   ],
+   "bandit": [
+    "{leader}. for now"
+   ],
+   "helper": [
+    "{leader} is our leader! want me to point them out?"
+   ]
+  },
+  "town.talk.leader.me": {
+   "any": [
+    "that would be me",
+    "me, actually",
+    "youre talking to them",
+    "i run this place",
+    "me. be nice"
+   ],
+   "hermit": [
+    "me."
+   ],
+   "newbie": [
+    "me!! i know right"
+   ],
+   "pvp_sweat": [
+    "me. so behave"
+   ]
+  },
+  "town.talk.leader.none": {
+   "any": [
+    "nobody right now",
+    "we dont have one atm",
+    "no leader at the moment",
+    "its... complicated right now"
+   ]
+  },
+  "town.talk.rules": {
+   "any": [
+    "simple: {laws}",
+    "the rules: {laws}",
+    "{laws}. thats about it",
+    "basically {laws}",
+    "{laws}. break them and the guards come"
+   ],
+   "hermit": [
+    "{laws}."
+   ],
+   "pvp_sweat": [
+    "{laws}. try it and see"
+   ],
+   "helper": [
+    "just {laws}! easy"
+   ],
+   "bandit": [
+    "{laws}. officially"
+   ]
+  },
+  "town.talk.rules.none": {
+   "any": [
+    "not really any rules",
+    "no real laws yet",
+    "just dont be a jerk",
+    "nothing written down lol"
+   ]
+  },
+  "town.talk.people": {
+   "any": [
+    "{count} of us",
+    "{count} or so",
+    "theres {count} of us now",
+    "{count}, give or take",
+    "hard to say, {count} maybe"
+   ],
+   "hermit": [
+    "{count}. too many"
+   ],
+   "newbie": [
+    "{count}!! and me"
+   ]
+  },
+  "town.talk.story": {
+   "any": [
+    "{town}'s been here {days} days now",
+    "founded {days} days ago",
+    "weve been at it {days} days",
+    "{days} days old and still standing",
+    "started as a few huts {days} days back"
+   ],
+   "builder": [
+    "{days} days of building. you should have seen it at the start"
+   ],
+   "hermit": [
+    "{days} days. it was quieter before"
+   ],
+   "homebody": [
+    "{days} days. feels like home now"
+   ]
+  },
+  "town.talk.story.new": {
+   "any": [
+    "its brand new, we just founded it",
+    "we only just started this place",
+    "barely a few days old",
+    "new town, still building"
+   ]
+  },
+  "town.talk.where": {
+   "any": [
+    "{what}'s {way} of here",
+    "{way}, cant miss it",
+    "head {way} for {what}",
+    "{what}? {way}",
+    "go {way}, youll see {what}"
+   ],
+   "hermit": [
+    "{way}."
+   ],
+   "helper": [
+    "{what} is {way} of here! want me to take you?"
+   ],
+   "speedrunner": [
+    "{way}. go"
+   ],
+   "newbie": [
+    "um i think {what} is {way}"
+   ]
+  },
+  "town.talk.where.here": {
+   "any": [
+    "{what}'s right here",
+    "youre standing next to it lol",
+    "right there",
+    "just here, look",
+    "this is it"
+   ],
+   "hermit": [
+    "here."
+   ],
+   "newbie": [
+    "its right here!!"
+   ],
+   "pvp_sweat": [
+    "right in front of you bro"
+   ]
+  },
+  "town.talk.where.none": {
+   "any": [
+    "we dont have one yet",
+    "no such thing here yet",
+    "not built yet",
+    "this town doesnt have that",
+    "we dont have {what} yet"
+   ]
+  },
+  "town.talk.sleep.empty": {
+   "any": [
+    "theres an empty house {way} of here",
+    "try the empty place {way}",
+    "nobody's using the house {way}, should be fine",
+    "theres a free house {way}"
+   ],
+   "helper": [
+    "theres an empty house {way}! you can use that"
+   ],
+   "hermit": [
+    "empty house. {way}."
+   ]
+  },
+  "town.talk.sleep.none": {
+   "any": [
+    "every house is taken, sorry",
+    "no spare beds that i know of",
+    "nowhere free rn",
+    "bring your own bed lol",
+    "ask a friend for their spare bed"
+   ],
+   "helper": [
+    "no empty houses right now, sorry! maybe a friend has a spare bed"
+   ],
+   "hermit": [
+    "no."
+   ]
+  },
+  "town.talk.sells": {
+   "any": [
+    "{who} sells {goods}",
+    "the stall has {goods} today",
+    "{goods}, ask {who}",
+    "mostly {goods} at the stall",
+    "{who}'s got {goods}"
+   ]
+  },
+  "town.talk.sells.mine": {
+   "any": [
+    "i got {goods}",
+    "today its {goods}",
+    "{goods}. right click me to trade",
+    "selling {goods}, good prices",
+    "{goods}, take a look"
+   ],
+   "hoarder": [
+    "{goods}. no discounts"
+   ],
+   "helper": [
+    "{goods}! have a look"
+   ],
+   "pvp_sweat": [
+    "{goods}. buy or move along"
+   ]
+  },
+  "town.talk.sells.nothing": {
+   "any": [
+    "stall's empty today",
+    "nothing in stock rn",
+    "sold out, come back tomorrow",
+    "not much today"
+   ]
+  },
+  "town.talk.sells.no_stall": {
+   "any": [
+    "we dont have a stall yet",
+    "no shop here yet",
+    "the keeper's not around",
+    "no market yet, still building"
+   ]
+  },
+  "town.talk.work.notice": {
+   "any": [
+    "{who} wants {what}, its on the board",
+    "theres a notice up for {what}",
+    "someone needs {what}, pays well",
+    "check the board, {who} is after {what}",
+    "bring {who} {what} and you get paid"
+   ],
+   "helper": [
+    "yes! {who} needs {what}, itd really help"
+   ],
+   "hermit": [
+    "{what}. for {who}. board."
+   ]
+  },
+  "town.talk.work.none": {
+   "any": [
+    "nothing on the board rn",
+    "no work today",
+    "not that i know of",
+    "check the board later",
+    "all quiet, no notices"
+   ]
+  },
+  "town.talk.wanted.yes": {
+   "any": [
+    "yes. for {crime}. id leave",
+    "the guards want you for {crime}",
+    "you? yeah, {crime}. {days} more days",
+    "wanted for {crime}. run"
+   ],
+   "hermit": [
+    "yes. go."
+   ],
+   "pvp_sweat": [
+    "wanted for {crime}. guards will love this"
+   ],
+   "helper": [
+    "yes... for {crime}. you should go before they see you"
+   ],
+   "newbie": [
+    "yes!! for {crime}!! why did you do that"
+   ]
+  },
+  "town.talk.wanted.exiled": {
+   "any": [
+    "youre banned for {crime}, {days} more days",
+    "exiled. {days} days left",
+    "you shouldnt be here. {crime}",
+    "{days} more days of exile for you"
+   ]
+  },
+  "town.talk.wanted.fine": {
+   "any": [
+    "you owe {fine} for {crime}",
+    "theres a fine, {fine}. pay a guard",
+    "{fine} for {crime}. throw it to a guard",
+    "pay your {fine} and its forgotten"
+   ]
+  },
+  "town.talk.wanted.no": {
+   "any": [
+    "no, youre fine",
+    "nope, clean record",
+    "not that ive heard",
+    "youre good",
+    "no trouble that i know of"
+   ],
+   "hermit": [
+    "no."
+   ],
+   "pvp_sweat": [
+    "not yet lol"
+   ],
+   "bandit": [
+    "not yet"
+   ]
+  },
+  "town.talk.wanted.liked": {
+   "any": [
+    "wanted? people like you here",
+    "no lol, youre welcome here",
+    "youre one of the good ones",
+    "nah, the town likes you"
+   ],
+   "helper": [
+    "no way! everyone likes you here"
+   ]
+  },
+  "town.talk.unwelcome": {
+   "any": [
+    "not talking to you",
+    "ask someone else",
+    "you should go",
+    "i dont have anything to say to you",
+    "leave"
+   ],
+   "hermit": [
+    "go."
+   ],
+   "pvp_sweat": [
+    "get out"
+   ],
+   "helper": [
+    "i cant help you. sorry"
+   ]
+  },
+  "town.talk.on.alarm": {
+   "any": [
+    "the alarm! somethings wrong",
+    "bells ringing, trouble",
+    "alarm. stay inside or grab a sword",
+    "trouble in town, careful"
+   ],
+   "newbie": [
+    "THE ALARM!!",
+    "somethings attacking!!"
+   ],
+   "pvp_sweat": [
+    "alarm. finally some action"
+   ]
+  },
+  "town.talk.on.festival": {
+   "any": [
+    "its {what}!",
+    "{what} today, everyone's at the plaza",
+    "{what}. come celebrate",
+    "festival day, {what}"
+   ],
+   "hermit": [
+    "{what}. too loud"
+   ],
+   "newbie": [
+    "its {what}!! come on"
+   ]
+  },
+  "town.talk.on.market": {
+   "any": [
+    "market day",
+    "its market day, best prices",
+    "market's on, go have a look",
+    "market day, the stall's busy"
+   ]
+  },
+  "town.talk.on.contest": {
+   "any": [
+    "fishing contest today",
+    "its the fishing contest, most fish by evening wins",
+    "everyone's fishing, contest day"
+   ]
+  },
+  "town.talk.on.nothing": {
+   "any": [
+    "nothing special",
+    "just a normal day",
+    "the usual",
+    "nothing really",
+    "quiet day"
+   ],
+   "hermit": [
+    "nothing."
+   ],
+   "casual": [
+    "nothing lol"
+   ]
+  },
+  "town.talk.job.keeper": {
+   "any": [
+    "i keep the stall",
+    "im the shopkeeper",
+    "i run the market stall",
+    "stall keeper. buy something"
+   ],
+   "hoarder": [
+    "i keep the stall. and count every coin"
+   ]
+  },
+  "town.talk.job.leader": {
+   "any": [
+    "i run this town",
+    "im the leader",
+    "leader. someone has to",
+    "i lead {town}"
+   ]
+  },
+  "town.talk.job.guard": {
+   "any": [
+    "im a guard",
+    "guard. i keep watch over the town",
+    "i guard {town}",
+    "yep, town guard",
+    "guard duty"
+   ],
+   "pvp_sweat": [
+    "guard. best job here",
+    "i get paid to fight. yes"
+   ],
+   "hermit": [
+    "guard."
+   ]
+  },
+  "town.talk.job.smith": {
+   "any": [
+    "im the smith",
+    "i make tools and armor",
+    "smith. bring iron",
+    "blacksmith, repairs too"
+   ],
+   "miner": [
+    "smith. i mine my own iron too"
+   ]
+  },
+  "town.talk.job.enchanter": {
+   "any": [
+    "im the enchanter",
+    "i enchant things, for a price",
+    "enchanter. bring levels worth of emeralds",
+    "i do the enchanting here"
+   ]
+  },
+  "town.talk.job.farmer": {
+   "any": [
+    "i farm",
+    "farmer. wheat mostly",
+    "i grow the food",
+    "i work the fields"
+   ],
+   "homebody": [
+    "i farm! best job"
+   ]
+  },
+  "town.talk.job.fisher": {
+   "any": [
+    "i fish",
+    "fisher. down by the water",
+    "i catch the fish",
+    "fishing all day"
+   ]
+  },
+  "town.talk.job.fletcher": {
+   "any": [
+    "i make bows and arrows",
+    "fletcher",
+    "im the fletcher, arrows mostly",
+    "bows and arrows, thats me"
+   ]
+  },
+  "town.talk.job.hunter": {
+   "any": [
+    "i hunt",
+    "hunter. meat and leather",
+    "i bring in the meat",
+    "out hunting most days"
+   ]
+  },
+  "town.talk.job.miner": {
+   "any": [
+    "i mine",
+    "miner. iron and coal mostly",
+    "im down the mine most days",
+    "town miner"
+   ],
+   "miner": [
+    "miner. best job there is"
+   ]
+  },
+  "town.talk.job.builder": {
+   "any": [
+    "i build",
+    "builder. half these houses are mine",
+    "i put up the houses",
+    "town builder"
+   ],
+   "builder": [
+    "builder. obviously"
+   ]
+  },
+  "town.talk.job.woodcutter": {
+   "any": [
+    "i chop wood",
+    "woodcutter",
+    "i bring in the logs",
+    "trees, all day"
+   ]
+  },
+  "town.talk.job.none": {
+   "any": [
+    "i just live here",
+    "bit of everything",
+    "no real job, i help out",
+    "whatever needs doing",
+    "i do my own thing"
+   ],
+   "hermit": [
+    "i keep to myself."
+   ],
+   "newbie": [
+    "i dont have a job yet!!"
+   ],
+   "pvp_sweat": [
+    "i fight when theres fighting"
+   ]
+  },
+  "town.talk.tour.no": {
+   "any": [
+    "id rather not",
+    "not for you",
+    "ask someone else",
+    "no"
+   ],
+   "hermit": [
+    "no."
+   ]
+  },
+  "town.talk.take.where": {
+   "any": [
+    "take you where?",
+    "where to?",
+    "to what",
+    "where do you wanna go"
+   ]
+  },
+  "town.talk.take.none": {
+   "any": [
+    "we dont have one of those",
+    "nothing like that here yet",
+    "not built yet"
+   ]
+  },
+  "town.talk.take.yes": {
+   "any": [
+    "sure, follow me",
+    "ok this way",
+    "come on",
+    "follow me, its not far",
+    "ok, keep up"
+   ],
+   "hermit": [
+    "fine. follow"
+   ],
+   "helper": [
+    "of course! this way"
+   ],
+   "speedrunner": [
+    "ok fast. go"
+   ],
+   "newbie": [
+    "ok!! follow me"
+   ]
+  }
+ }
+}
