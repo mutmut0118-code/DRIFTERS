@@ -239,6 +239,7 @@ final class TownAway {
 			long day = Chronicle.day(server);
 			String name = drifter.getName().getString();
 			String cause = cause(source, drifter);
+			Annals.death(server, town, drifter.getUUID(), name, cause, false, true);
 			vacate(town, drifter.getUUID());
 			TownGraves.add(town, name, day, cause);
 			town.away.fates.add(new Fate(drifter.getUUID(), name, "gone", day, cause));
@@ -284,6 +285,8 @@ final class TownAway {
 				continue;
 			}
 
+			// (What the town knows of the world is theirs to know now too: their Chronicle.)
+			Annals.visit(server, player, town);
 			String key = town.id + "/" + player.getUUID();
 			Long last = town.away.seenBy.get(player.getUUID());
 			long now = server.overworld().getGameTime();
@@ -354,6 +357,9 @@ final class TownAway {
 				default -> CivLines.pick(speaker, "town.newcomer", fate.name + " moved in while you were gone", "player", name, "who", fate.name);
 			};
 			com.dinglebob.drifter.social.ChatLines.speak(speaker, line);
+			if (fate.kind.equals("gone") || fate.kind.equals("died")) {
+				Annals.quoted(player, fate.id, speaker, line);
+			}
 		}
 
 		return changed;
@@ -625,10 +631,12 @@ final class TownAway {
 			Unrest.killed(town, group);
 			TownGraves.add(town, name, day, leader ? "killed by an unknown hand" : cause);
 			town.away.fates.add(new Fate(id, name, "gone", day, leader ? "killed by an unknown hand" : cause));
+			Annals.death(server, town, id, name, leader ? "killed by an unknown hand" : cause, leader, true);
 			Chronicle.add(server, leader ? "town" : "war", who + how);
 		} else {
 			Chronicle.toldLeaving.remove(id);
 			town.away.fates.add(new Fate(id, name, "died", day, leader ? "killed by an unknown hand" : cause));
+			Annals.death(server, town, id, name, leader ? "killed by an unknown hand" : cause, leader, false);
 			Chronicle.add(server, leader ? "town" : "war", who + how + ", and came back");
 		}
 

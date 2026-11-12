@@ -234,6 +234,8 @@ final class Unrest {
 		String oldName = name(group, old);
 		ChatLines.speak(usurper, Lines.pick(usurper, "unrest.coup", "leader", oldName, "town", town.name));
 		Chronicle.add(server, "town", usurper.getName().getString() + " seized power in " + town.name + ": " + oldName + " is leader no more");
+		Annals.local(server, "overthrown", town, oldName + " overthrown in " + town.name, usurper.getName().getString() + " seized power in " + town.name + ": "
+			+ oldName + " is leader no more", usurper.getUUID(), "the new leader");
 		DrifterApi.think(usurper, "took over " + town.name + " from " + oldName);
 		DrifterEntity deposed = TownFounding.loaded(server, old);
 		if (deposed != null) {

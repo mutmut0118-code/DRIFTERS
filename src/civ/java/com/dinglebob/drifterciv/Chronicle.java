@@ -58,7 +58,7 @@ public final class Chronicle {
 	private static int trades;
 	private static int news;
 	private static long today = -1;
-	private static boolean summary = true;
+	private static boolean summary;
 	/** While a town is being made at once (testing): its people's homes and joining aren't news, the founding is. */
 	static boolean quiet;
 	private static boolean dirty;
@@ -154,6 +154,9 @@ public final class Chronicle {
 				String who = name(drifter);
 				String what = deed.what.replaceAll("\\bits\\b", who + "'s").replaceAll("\\bit\\b", who);
 				add(drifter.getServer(), "deed", player.getGameProfile().getName() + " " + what);
+				if (player instanceof net.minecraft.server.level.ServerPlayer one && drifter.getServer() != null) {
+					Annals.deed(drifter.getServer(), one, what, drifter);
+				}
 			}
 		});
 		DrifterEvents.TRADED.register((asker, giver, paid, got) -> {
@@ -321,7 +324,8 @@ public final class Chronicle {
 		groupNames.clear();
 		CompoundTag tag = state(server).tag;
 		// Version 1 is the first format.
-		summary = !tag.contains("Summary") || tag.getBoolean("Summary");
+		// (Off unless switched on since the journal's Chronicle: the old "Summary" flag, on by default, is let go.)
+		summary = tag.getBoolean("MorningSummary");
 		for (Tag t : tag.getList("Entries", Tag.TAG_COMPOUND)) {
 			CompoundTag e = (CompoundTag)t;
 			entries.add(new Entry(e.getLong("Day"), e.getLong("Time"), e.getString("Kind"), e.getString("Text")));
@@ -351,7 +355,7 @@ public final class Chronicle {
 	private static void save(MinecraftServer server) {
 		CompoundTag tag = new CompoundTag();
 		tag.putInt("Version", SAVE_VERSION);
-		tag.putBoolean("Summary", summary);
+		tag.putBoolean("MorningSummary", summary);
 		ListTag list = new ListTag();
 		for (Entry entry : entries) {
 			CompoundTag e = new CompoundTag();

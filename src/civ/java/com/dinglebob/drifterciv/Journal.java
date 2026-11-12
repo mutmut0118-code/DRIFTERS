@@ -73,6 +73,92 @@ public final class Journal {
 		}
 	}
 
+	/** What a page of the Chronicle is made of (the chronicle revamp): see {@link El}. */
+	public static final int HEADLINE = 0;
+	public static final int DATELINE = 1;
+	public static final int RULE = 2;
+	public static final int THIN = 3;
+	public static final int TEXT = 4;
+	public static final int SUB = 5;
+	public static final int BANNERS = 6;
+	public static final int HEADS = 7;
+	public static final int PERSON = 8;
+	public static final int QUOTE = 9;
+	public static final int LINK = 10;
+	public static final int BREAK = 11;
+
+	/**
+	 * One thing on a page, top to bottom: a headline ({@code a}), a dateline ({@code a} left, {@code b} right), a double
+	 * rule, a thin one, text ({@code a}, its ink), a small heading, banners ({@code more}: each "picture, tab, caption, tab,
+	 * page"), heads ({@code more}: each "skin, tab, name, tab, page, tab, caption"), a person ({@code a} skin, {@code b}
+	 * name, {@code more}: their power's picture, then a line about them), a quote ({@code a} the words, {@code b} who,
+	 * {@code more}: their skin), a link ({@code a} the words, {@code b} the page), a break (the rest on the right page).
+	 * A picture: "b" and a dye's id (a banner), "s" and a skin (a head), "-" (none). A skin: a Drifter's skin texture and
+	 * the real player's skin it wears, as the world's record keeps them ("": none known).
+	 */
+	public record El(int type, String a, String b, int ink, List<String> more) {
+		static final StreamCodec<RegistryFriendlyByteBuf, El> CODEC = StreamCodec.composite(ByteBufCodecs.VAR_INT, El::type, ByteBufCodecs.STRING_UTF8, El::a,
+			ByteBufCodecs.STRING_UTF8, El::b, ByteBufCodecs.VAR_INT, El::ink, ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), El::more, El::new);
+	}
+
+	/** A page of the Chronicle, sent when it's turned to. A line of a bookmark opens one by a detail of "@page:" and its id. */
+	public record Page(String id, List<El> els) implements CustomPacketPayload {
+		public static final Type<Page> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "journal_page"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, Page> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, Page::id,
+			El.CODEC.apply(ByteBufCodecs.list()), Page::els, Page::new);
+
+		@Override
+		public Type<Page> type() {
+			return TYPE;
+		}
+	}
+
+	/** A client turning to a page. */
+	public record Open(String id) implements CustomPacketPayload {
+		public static final Type<Open> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "journal_open"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, Open> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, Open::id, Open::new);
+
+		@Override
+		public Type<Open> type() {
+			return TYPE;
+		}
+	}
+
+	/** A page as plain lines (for tests). */
+	public static List<String> text(Page page) {
+		List<String> out = new ArrayList<>();
+		for (El el : page.els()) {
+			switch (el.type()) {
+				case HEADLINE -> out.add("== " + el.a() + " ==");
+				case DATELINE -> out.add(el.a() + " / " + el.b());
+				case RULE, THIN -> {
+				}
+				case BANNERS -> out.add("[banners] " + String.join("; ", el.more().stream().map(one -> one.replace('\t', ',')).toList()));
+				case HEADS -> out.add("[heads] " + String.join("; ", el.more().stream().map(one -> one.split("\t", -1).length > 1 ? one.split("\t", -1)[1]
+					+ (one.split("\t", -1)[0].isEmpty() ? " (no skin)" : "") : one).toList()));
+				case PERSON -> out.add("[person] " + el.b() + (el.a().isEmpty() ? " (no skin)" : "") + ": " + String.join(" / ", el.more()));
+				case QUOTE -> out.add("\"" + el.a() + "\" - " + el.b());
+				case LINK -> out.add("-> " + el.a() + " [" + el.b() + "]");
+				case BREAK -> out.add("--- right page ---");
+				default -> out.add(el.a());
+			}
+		}
+
+		return out;
+	}
+
+	/** Has this player met this Drifter (by their journal)? */
+	static boolean met(UUID player, UUID drifter) {
+		Known mine = known.get(player);
+		return mine != null && mine.met.containsKey(drifter);
+	}
+
+	/** Has this player been to this town (by their journal)? */
+	static boolean been(UUID player, UUID town) {
+		Known mine = known.get(player);
+		return mine != null && mine.been.containsKey(town);
+	}
+
 	/** A client asking for its player's journal. */
 	public record Ask() implements CustomPacketPayload {
 		public static final Type<Ask> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "journal_ask"));
@@ -111,6 +197,12 @@ public final class Journal {
 	static void register() {
 		PayloadTypeRegistry.playS2C().register(Book.TYPE, Book.CODEC);
 		PayloadTypeRegistry.playC2S().register(Ask.TYPE, Ask.CODEC);
+		PayloadTypeRegistry.playS2C().register(Page.TYPE, Page.CODEC);
+		PayloadTypeRegistry.playC2S().register(Open.TYPE, Open.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(Open.TYPE, (open, context) -> {
+			ServerPlayer player = context.player();
+			context.server().execute(() -> ServerPlayNetworking.send(player, Annals.page(player, open.id().length() > 80 ? "" : open.id())));
+		});
 		ServerPlayNetworking.registerGlobalReceiver(Ask.TYPE, (ask, context) -> {
 			ServerPlayer player = context.player();
 			context.server().execute(() -> ServerPlayNetworking.send(player, of(player)));
@@ -273,7 +365,8 @@ public final class Journal {
 			people(server, player, mine, bonds, friendsOn, now),
 			towns(server, player, standings, heardOf, friendTowns, bonds, day, bounty),
 			law(player, towns, day, bounty),
-			favors(bonds, friendsOn, now)));
+			favors(bonds, friendsOn, now),
+			Annals.tab(player)));
 	}
 
 	private static Tab people(MinecraftServer server, ServerPlayer player, Known mine, List<Friends.Bond> bonds, boolean friendsOn, long now) {

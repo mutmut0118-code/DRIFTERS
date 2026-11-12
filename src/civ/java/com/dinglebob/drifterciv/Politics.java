@@ -212,6 +212,7 @@ final class Politics {
 		List<UUID> standing = List.copyOf(town.candidates);
 		town.candidates.clear();
 		town.nextElection = day + EVERY;
+		boolean risen = town.revolt;
 		town.revolt = false;
 		town.away.barred = null;
 		if (standing.size() == 1 && !standing.get(0).equals(town.leader)) {
@@ -276,6 +277,12 @@ final class Politics {
 			choices.forEach((voter, choice) -> Unrest.change(town, voter, choice.equals(town.leader) ? 10.0 : 0.0));
 		} else {
 			Chronicle.add(server, "town", name(group, winner) + " was elected leader of " + town.name + ", in place of " + name(group, town.leader) + " (" + tally + ")");
+			// (Voted out after its people rose up: the annals keep that; a quiet change of leader they don't.)
+			if (risen) {
+				Annals.local(server, "overthrown", town, name(group, town.leader) + " voted out in " + town.name, "The people of " + town.name + " rose up against "
+					+ name(group, town.leader) + " and voted in " + name(group, winner), winner, "the new leader");
+			}
+
 			town.leader = winner;
 			town.leaderSince = day;
 			Unrest.newLeader(town, choices, winner);

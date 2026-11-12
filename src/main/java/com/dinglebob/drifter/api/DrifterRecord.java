@@ -21,7 +21,19 @@ import net.minecraft.world.level.Level;
  */
 public record DrifterRecord(UUID id, String name, Status status, ResourceKey<Level> level, BlockPos lastPos, long lastSeen, long firstSeen,
 	@Nullable ResourceLocation homeDimension, @Nullable BlockPos home, @Nullable BlockPos bed, @Nullable UUID group, int stage, int deaths,
-	String archetype, String disposition, Map<String, Double> traits, Map<UUID, Double> drifterTrust, Map<UUID, Double> playerTrust) {
+	String archetype, String disposition, Map<String, Double> traits, Map<UUID, Double> drifterTrust, Map<UUID, Double> playerTrust, String skin) {
+
+	/** Its skin's texture (API 11: for a picture of it when it isn't about, a head in an addon's book). */
+	public String skinTexture() {
+		int bar = this.skin.indexOf('|');
+		return bar < 0 ? this.skin : this.skin.substring(0, bar);
+	}
+
+	/** The real player's skin it wears, as Drifters keep it (empty: none; then {@link #skinTexture} is what it looks like). */
+	public String realSkin() {
+		int bar = this.skin.indexOf('|');
+		return bar < 0 ? "" : this.skin.substring(bar + 1);
+	}
 
 	public enum Status {
 		/** In the world (loaded or not). */
@@ -35,12 +47,12 @@ public record DrifterRecord(UUID id, String name, Status status, ResourceKey<Lev
 	/** The same Drifter, last seen here and now. */
 	public DrifterRecord seenAt(ResourceKey<Level> level, BlockPos pos, long time) {
 		return new DrifterRecord(this.id, this.name, Status.ALIVE, level, pos, time, this.firstSeen, this.homeDimension, this.home, this.bed, this.group,
-			this.stage, this.deaths, this.archetype, this.disposition, this.traits, this.drifterTrust, this.playerTrust);
+			this.stage, this.deaths, this.archetype, this.disposition, this.traits, this.drifterTrust, this.playerTrust, this.skin);
 	}
 
 	/** The same Drifter, with this status (and death count). */
 	public DrifterRecord withStatus(Status status, int deaths) {
 		return new DrifterRecord(this.id, this.name, status, this.level, this.lastPos, this.lastSeen, this.firstSeen, this.homeDimension, this.home, this.bed,
-			this.group, this.stage, deaths, this.archetype, this.disposition, this.traits, this.drifterTrust, this.playerTrust);
+			this.group, this.stage, deaths, this.archetype, this.disposition, this.traits, this.drifterTrust, this.playerTrust, this.skin);
 	}
 }

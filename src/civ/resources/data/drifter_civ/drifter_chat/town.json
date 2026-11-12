@@ -61,6 +61,156 @@
         "{who} came up the road a while back"
       ]
     },
+    "chronicle.voice.war.leader": {
+      "any": [
+        "they started it. we finish it",
+        "{town} will hold. it always has",
+        "we didnt want this war with {enemy}. we will win it anyway",
+        "every one of us is needed now"
+      ]
+    },
+    "chronicle.voice.war.careful": {
+      "any": [
+        "we should never have marched",
+        "nothing good comes of fighting {enemy}",
+        "i keep my door barred at night now",
+        "this war will cost us more than it wins",
+        "i just want it over"
+      ]
+    },
+    "chronicle.voice.war.proud": {
+      "any": [
+        "{enemy} picked the wrong town",
+        "let them come",
+        "we beat them before, we can do it again",
+        "about time someone stood up to {enemy}",
+        "i would go tomorrow if they asked"
+      ]
+    },
+    "chronicle.voice.war.grieving": {
+      "any": [
+        "{who} should be here",
+        "i dont care who wins anymore. {who} is gone",
+        "ask me about the war after you bring {who} back",
+        "we were going fishing this week, {who} and me"
+      ]
+    },
+    "chronicle.voice.war.plain": {
+      "any": [
+        "prices are up since the war started",
+        "the guards are gone half the time now",
+        "everyone has an opinion on {enemy}. i just work",
+        "you hear something new about it every day",
+        "hope it ends before winter"
+      ]
+    },
+    "chronicle.voice.peace.leader": {
+      "any": [
+        "its over. we rebuild",
+        "peace with {enemy}. lets keep it",
+        "we buried enough. no more"
+      ]
+    },
+    "chronicle.voice.peace.careful": {
+      "any": [
+        "finally. i can sleep",
+        "peace is peace. i will take it",
+        "lets not do that again"
+      ]
+    },
+    "chronicle.voice.peace.proud": {
+      "any": [
+        "we should have finished it",
+        "{enemy} got off lightly",
+        "peace for now"
+      ]
+    },
+    "chronicle.voice.peace.grieving": {
+      "any": [
+        "peace wont bring {who} back",
+        "too late for {who}",
+        "they made peace. {who} is still in the ground"
+      ]
+    },
+    "chronicle.voice.peace.plain": {
+      "any": [
+        "good. the roads are safe again",
+        "maybe prices come down now",
+        "it went on too long"
+      ]
+    },
+    "chronicle.voice.death.leader": {
+      "any": [
+        "{who} was one of ours. the town remembers",
+        "we lost a good one in {who}",
+        "{who} will have a stone. i will see to it"
+      ]
+    },
+    "chronicle.voice.death.careful": {
+      "any": [
+        "could have been any of us",
+        "it makes you think, {who} going like that",
+        "i stay inside the walls now"
+      ]
+    },
+    "chronicle.voice.death.proud": {
+      "any": [
+        "{who} went out standing up",
+        "{who} never ran from anything",
+        "there are worse ways to go"
+      ]
+    },
+    "chronicle.voice.death.grieving": {
+      "any": [
+        "i still set a place for {who}",
+        "{who} was my friend. thats all i have to say",
+        "i walk past {who}s house every morning",
+        "best friend i had in this town"
+      ]
+    },
+    "chronicle.voice.death.plain": {
+      "any": [
+        "{who} owed me 3 emeralds. keep them",
+        "strange not seeing {who} around",
+        "{who} always said hi",
+        "i didnt know {who} well. still"
+      ]
+    },
+    "chronicle.voice.other.leader": {
+      "any": [
+        "{town} has seen worse and stood",
+        "we take it as it comes",
+        "write it down. people forget"
+      ]
+    },
+    "chronicle.voice.other.careful": {
+      "any": [
+        "i dont like change",
+        "we will see what comes of it",
+        "best keep your head down"
+      ]
+    },
+    "chronicle.voice.other.proud": {
+      "any": [
+        "good. things needed shaking up",
+        "about time",
+        "{town} doesnt bow to anyone"
+      ]
+    },
+    "chronicle.voice.other.grieving": {
+      "any": [
+        "hard to care about any of it lately",
+        "ask someone else"
+      ]
+    },
+    "chronicle.voice.other.plain": {
+      "any": [
+        "big news for a small town",
+        "everyone was talking about it for days",
+        "i heard it at the well",
+        "didnt change my day much"
+      ]
+    },
     "town.greet.home": {
       "any": [
         "hey {player}, good to have you home",

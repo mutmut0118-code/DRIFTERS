@@ -171,7 +171,8 @@ public final class DrifterRegistry {
 		return new DrifterRecord(drifter.getUUID(), drifter.getName().getString(), DrifterRecord.Status.ALIVE, drifter.level().dimension(), drifter.blockPosition(),
 			now, old != null ? old.firstSeen() : now, home == null ? null : home.dimension, home == null ? null : home.center, bed, group == null ? null : group.id,
 			lookAtWorld ? com.dinglebob.drifter.brain.Strategist.stage(drifter) : old != null ? old.stage() : 0, drifter.deaths(), drifter.getPersonality().archetype().name().toLowerCase(Locale.ROOT),
-			drifter.getSocial().disposition().name().toLowerCase(Locale.ROOT), traits, closest(drifter.getBonds().all()), closest(drifter.getSocial().all()));
+			drifter.getSocial().disposition().name().toLowerCase(Locale.ROOT), traits, closest(drifter.getBonds().all()), closest(drifter.getSocial().all()),
+			drifter.getSkinTexture() + "|" + drifter.getRealSkin());
 	}
 
 	/** The closest few, by how strongly it feels about them either way. */
@@ -309,6 +310,7 @@ public final class DrifterRegistry {
 			tag.put("Traits", doubles(r.traits()));
 			tag.put("Drifters", byId(r.drifterTrust()));
 			tag.put("Players", byId(r.playerTrust()));
+			tag.putString("Skin", r.skin());
 			list.add(tag);
 		}
 
@@ -356,7 +358,7 @@ public final class DrifterRegistry {
 				seen, tag.contains("FirstSeen") ? tag.getLong("FirstSeen") : seen, homeLevel, homeLevel == null ? null : BlockPos.of(tag.getLong("Home")),
 				tag.contains("Bed") ? BlockPos.of(tag.getLong("Bed")) : null, tag.hasUUID("Group") ? tag.getUUID("Group") : null, tag.getInt("Stage"),
 				tag.getInt("Deaths"), tag.getString("Archetype"), tag.getString("Disposition"), traits, ids(tag.getCompound("Drifters")),
-				ids(tag.getCompound("Players"))));
+				ids(tag.getCompound("Players")), tag.getString("Skin")));
 		}
 
 		// Worlds from before the directory: the ones loaded now are filled in within seconds.

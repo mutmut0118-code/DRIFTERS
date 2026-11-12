@@ -331,6 +331,7 @@ public final class Citizens {
 
 			if (nation != null) {
 				who.nation = nation.id;
+				Annals.citizen(player.getUUID(), nation.id);
 				who.nationName = nation.name;
 				who.home = home(nation);
 				who.homeName = name(who.home);

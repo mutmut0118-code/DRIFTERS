@@ -873,6 +873,10 @@ final class Diplomacy {
 	}
 
 	static void begin(MinecraftServer server, Town x, Town y, Relation r, long day, String news) {
+		if (news.equals("war")) {
+			Annals.warBegan(server, x, y);
+		}
+
 		r.pacts.clear();
 		r.war = true;
 		r.warSinceDay = day;
@@ -892,6 +896,7 @@ final class Diplomacy {
 	/** The war over: a peace pact, a truce, and {@code payer} owing the other this much (0: a white peace). */
 	static void peace(MinecraftServer server, Town x, Town y, Relation r, @Nullable Town payer, int amount) {
 		long day = Chronicle.day(server);
+		Annals.peaceMade(server, x, y);
 		// (The side that didn't pay won: a monument to it, C6.)
 		if (payer != null) {
 			TownCulture.won(payer == x ? y : x, payer);

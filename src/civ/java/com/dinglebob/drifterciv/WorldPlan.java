@@ -570,6 +570,80 @@ final class WorldPlan {
 	/** A made town counts as watched with a player this far past its land (about where its people are loaded and acting). */
 	static final int WATCHED = 192;
 
+	// ----- Powers, for the annals (a nation of the plan or one formed in play, a free town) -----
+
+	/** The power a town is of: its nation (the plan's, or one formed in play), or itself. */
+	static UUID powerOf(Town town) {
+		Place place = place(town.id);
+		if (history != null && place != null) {
+			return history.power(place);
+		}
+
+		Nations.Nation nation = Nations.of(town);
+		return nation != null ? nation.id : town.id;
+	}
+
+	static String powerName(UUID power) {
+		if (history != null) {
+			String name = history.name(power);
+			if (!name.equals("?")) {
+				return name;
+			}
+		}
+
+		for (Nations.Nation nation : Nations.all()) {
+			if (nation.id.equals(power)) {
+				return nation.name;
+			}
+		}
+
+		Town town = Diplomacy.byId(power.toString());
+		return town != null ? town.name : "a town since forgotten";
+	}
+
+	/** A nation's banner colour (the dye's id), or null: a free town. */
+	@Nullable
+	static Integer powerColour(UUID power) {
+		PlannedNation planned = nation(power);
+		if (planned != null) {
+			return planned.colour().getId();
+		}
+
+		for (Nations.Nation nation : Nations.all()) {
+			if (nation.id.equals(power)) {
+				return nation.colour.getId();
+			}
+		}
+
+		return null;
+	}
+
+	@Nullable
+	static Place seatOf(UUID power) {
+		return history == null ? null : history.seat(power);
+	}
+
+	static List<PlannedNation> plannedNations() {
+		return nations;
+	}
+
+	/** Would this town hear of this power's affairs (its own, one its own is at war or allied with, one seated near: as {@link #newsFor})? */
+	static boolean hears(Town town, UUID power) {
+		UUID own = powerOf(town);
+		if (own.equals(power)) {
+			return true;
+		}
+
+		if (history == null) {
+			return false;
+		}
+
+		History.Ties ties = history.ties.get(History.key(own, power));
+		Place seat = history.seat(power);
+		return ties != null && (ties.war || ties.alliance)
+			|| seat != null && Math.hypot(seat.x - town.center.getX(), seat.z - town.center.getZ()) < NEWS_REACH;
+	}
+
 	private static int awayCommand(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx, String what, int days) {
 		Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), net.minecraft.core.BlockPos.containing(ctx.getSource().getPosition()));
 		MinecraftServer server = ctx.getSource().getServer();
@@ -743,6 +817,7 @@ final class WorldPlan {
 		Nations.follow(server, places, nations);
 		nations.removeIf(nation -> history.nation(nation.id()) == null);
 		push(server, owned);
+		Annals.catchUp(server);
 	}
 
 	/** What the summary has between the pairs it rolled for, written to their made towns. */
@@ -808,7 +883,7 @@ final class WorldPlan {
 		place.nation = by.id();
 		place.conquered = true;
 		place.loyalty = -10;
-		history.tell(server, "war", by.name() + " took " + town.name + " from " + from, own, by.id());
+		history.tell(server, "war", "took", by.name() + " took " + town.name + " from " + from, own, by.id());
 		Nations.follow(server, places, nations);
 		push(server, history.owned);
 		Towns.save(server);

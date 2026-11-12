@@ -39,6 +39,11 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 
 			tourTick(client);
 		});
+		ClientPlayNetworking.registerGlobalReceiver(Journal.Page.TYPE, (page, context) -> {
+			if (context.client().screen instanceof JournalScreen screen) {
+				screen.page(page);
+			}
+		});
 		ClientPlayNetworking.registerGlobalReceiver(Journal.Book.TYPE, (book, context) -> {
 			var client = context.client();
 			if (client.screen instanceof JournalScreen screen) {
@@ -53,6 +58,11 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 						for (int line = 0; line < book.tabs().get(tab).lines().size(); line++) {
 							if (!book.tabs().get(tab).lines().get(line).detail().isEmpty()) {
 								tour.add(new int[] {tab, line});
+								// (The Chronicle: its first few stories, not only the first.)
+								if (book.tabs().get(tab).lines().get(line).detail().get(0).startsWith("@page:") && line < 6) {
+									continue;
+								}
+
 								break;
 							}
 						}
@@ -163,6 +173,8 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 	private static Citizens.Menu asked;
 	private static Journal.Book tourBook;
 	private static int tourShot;
+	private static final java.util.List<String> tourPages = new java.util.ArrayList<>();
+	private static final java.util.Set<String> tourDone = new java.util.HashSet<>();
 
 	private static void tourTick(net.minecraft.client.Minecraft client) {
 		if (tourBook == null || --tourWait > 0) {
@@ -174,6 +186,23 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 			if (tourShot > 0) {
 				net.minecraft.client.Screenshot.grab(client.gameDirectory, "journal_" + tourShot + ".png", client.getMainRenderTarget(), message -> {
 				});
+			}
+
+			// (A page of the Chronicle showing: the pages it leads on to are shot too, each once, a dozen at most.)
+			if (client.screen instanceof JournalScreen showing && showing.debugPage() != null) {
+				tourDone.add(showing.debugPage());
+				for (String link : showing.debugLinks()) {
+					if (!tourDone.contains(link) && !tourPages.contains(link) && tourDone.size() + tourPages.size() < 14) {
+						tourPages.add(link);
+					}
+				}
+
+				if (!tourPages.isEmpty()) {
+					showing.debugTurn(tourPages.remove(0));
+					tourShot++;
+					tourWait = 20;
+					return;
+				}
 			}
 
 			if (tour.isEmpty()) {
