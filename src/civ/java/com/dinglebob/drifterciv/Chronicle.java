@@ -206,7 +206,14 @@ public final class Chronicle {
 		}
 
 		if (entries.size() > MOST) {
-			entries.subList(0, entries.size() - MOST).clear();
+			// (The oldest go: but not the world's written past, the days before day 1: the journal's story is told from it.)
+			int over = entries.size() - MOST;
+			for (var each = entries.iterator(); each.hasNext() && over > 0;) {
+				if (each.next().day() >= 1) {
+					each.remove();
+					over--;
+				}
+			}
 		}
 
 		dirty = true;

@@ -3396,6 +3396,38 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.60: the story so far, as prose, in the journal; many deaths told as one** (the user, 2026-11-13: "make it
+  more prose, move it to the journal", and "when it comes to massacre, or a situation where alot of people died it tends
+  to fill up the chronicle alot, how can we solve that?"; they were away: "automatically go with your reccomendation").
+  - **The story moved:** off the start menu and the loading screen (0.23.56's button, `StoryScreen` and `Citizens.Story`
+    packet are gone; those screens are as in 0.23.55), into the journal: the Chronicle bookmark's first line, "The story
+    so far", always there, opens it (`Annals.page`, id "story").
+  - **As prose** (`Citizens.story()`): each war one passage (who began it, what fell or burned, how it ended: "a short
+    war, and soon ended in peace", "X asked for peace", "ended with X conquered"); the foundings a line each; what else
+    befell (towns abandoned, risings, alliances) a couple of lines at a time; under the same four headings, then Today.
+    More than twelve wars: the ones that changed nothing are left out, the oldest first, and it says so.
+    `/drifterciv who story` prints it (testing).
+  - **Many deaths, one story** (`Annals.death`): someone of a town gone for good the same day or the day after another
+    of that town joins that story instead of making a new one. Its title by how many: "Two died in T", "Several died in
+    T", "Many died in T" (six or more), "A massacre in T" (six or more, most by violence). Its page: how many, the three
+    commonest causes with how many each, and the heads of who it was. Deaths in a war were already the war's fallen;
+    a leader killed is still its own story.
+  - **Tested:** the journal's story page in the dev client (pictured); the story printed headless from a10p2_g; eight
+    of Hollowbrook killed at once (`/kill`): one story, "Many died in Hollowbrook", 8 people, its page seen.
+    **Not tested:** "A massacre" (deaths by a killer's hand), a world with many wars (the passages of peace, towns
+    taken and conquests were written against History.java's lines, and seen only on the 0.23.56 fresh world, in list
+    form), the review fixes below in the game.
+  - **Review** (one fresh reviewer; fixed, compiled, the story printed again): a long paragraph wasn't drawn at all (the
+    journal's page shows a passage whole or not at all): foundings a line each, loose lines two at a time; the
+    chronicle's oldest lines, the written past, were the first trimmed past 5,000, so the story would have worn away in
+    a long world: the days before day 1 are kept now; a folded story's title gave away deaths the player hadn't heard
+    of yet: titled by what they know; one death a day chained into one story for ever: within a day of the first only;
+    a story's first war could open "Then ..."; causes each with one death listed one by one.
+  - **Rulings:** (1) "Move it to the journal" taken as moved, not copied: nothing of it before the world loads now.
+    (2) Deaths fold by town and day only, whatever the cause. (3) The story is the same for everyone, and doesn't
+    count as the player knowing those events (the Chronicle's own stories still come from towns).
+  - **Deferred minors:** a war begun by a rising ("rose against") is told as a loose line, its peace not told; "there
+    were other, smaller wars" lands under the last heading; the journal's right-hand page stays empty on the story.
 - **0.23.59: every bridge straight** (the user, 2026-11-13: "do the corner bridges so all of them are straight"). Addon
   only, new worlds.
   - A crossing no one line suits is made of two (`WorldPlan.corner`): from the bank before it straight one way to a
@@ -3481,7 +3513,7 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
     their slanted crossings (their plans are saved) and their old stretches; where a new stretch meets an old dirt-path one
     the top changes there.
 
-- **0.23.56: the story so far** (the user, 2026-11-12: "there should be more lore before i load the world", then
+- **0.23.56: the story so far** (moved into the journal and rewritten in 0.23.60; the user, 2026-11-12: "there should be more lore before i load the world", then
   "World's history", "Yes, build it"). The world's written past (the chronicle's days before day 1) told as a story:
   `Citizens.story()` sends it with the first "Who are you?" (`Citizens.Story`, lines beginning # are headings). A
   button on the menu opens it (`StoryScreen`), and it's under the bar on the loading screen (`WorldBuildScreen`), both

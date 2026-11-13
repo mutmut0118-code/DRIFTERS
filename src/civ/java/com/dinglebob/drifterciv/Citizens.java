@@ -77,22 +77,6 @@ public final class Citizens {
 		}
 	}
 
-	/**
-	 * The story so far (the user, 2026-11-12: "there should be more lore before i load the world": the world's history):
-	 * the world's written past, told in order as what everyone knows, to read on the menu and the loading screen. A line
-	 * that begins with # is a heading.
-	 */
-	public record Story(List<String> lines) implements CustomPacketPayload {
-		public static final Type<Story> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "who_story"));
-		public static final StreamCodec<RegistryFriendlyByteBuf, Story> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()),
-			Story::lines, Story::new);
-
-		@Override
-		public Type<Story> type() {
-			return TYPE;
-		}
-	}
-
 	/** What they chose: a name (empty: their Minecraft name), pronouns, a nation's id (empty: none). */
 	public record Choice(String name, String pronouns, String nation) implements CustomPacketPayload {
 		public static final Type<Choice> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "who_choice"));
@@ -154,7 +138,6 @@ public final class Citizens {
 
 	static void register() {
 		PayloadTypeRegistry.playS2C().register(Menu.TYPE, Menu.CODEC);
-		PayloadTypeRegistry.playS2C().register(Story.TYPE, Story.CODEC);
 		PayloadTypeRegistry.playS2C().register(Answer.TYPE, Answer.CODEC);
 		PayloadTypeRegistry.playC2S().register(Choice.TYPE, Choice.CODEC);
 		PayloadTypeRegistry.playC2S().register(Change.TYPE, Change.CODEC);
@@ -200,7 +183,15 @@ public final class Citizens {
 				DrifterCivilizations.LOGGER.info("[who] {}: {}", player.getGameProfile().getName(), text);
 				ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(text), false);
 				return 1;
-			}).then(net.minecraft.commands.Commands.literal("again").requires(source -> source.hasPermission(2)).executes(ctx -> {
+			}).then(net.minecraft.commands.Commands.literal("story").requires(source -> source.hasPermission(2)).executes(ctx -> {
+				// (Testing: the story so far, as the journal has it, in the log too.)
+				for (String line : story()) {
+					DrifterCivilizations.LOGGER.info("[story] {}", line);
+					ctx.getSource().sendSuccess(() -> net.minecraft.network.chat.Component.literal(line), false);
+				}
+
+				return 1;
+			})).then(net.minecraft.commands.Commands.literal("again").requires(source -> source.hasPermission(2)).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				people.remove(player.getUUID());
 				DrifterApi.callPlayer(player.getUUID(), player.getGameProfile().getName(), "", "they");
@@ -226,11 +217,6 @@ public final class Citizens {
 			DrifterApi.callPlayer(id, minecraftName, who.name, who.pronouns);
 			if (!who.placed) {
 				who.chosenAt = System.currentTimeMillis();
-			}
-
-			// (Back while the world's still being built: its story to read on the loading screen.)
-			if (WorldBuild.building && WorldPlan.ready && ServerPlayNetworking.canSend(player, Story.TYPE)) {
-				ServerPlayNetworking.send(player, new Story(story()));
 			}
 
 			return;
@@ -260,9 +246,6 @@ public final class Citizens {
 		}
 
 		ServerPlayNetworking.send(player, new Menu(true, WorldBuild.building, planning, "", "they", planning ? List.of() : cards(server)));
-		if (!planning && ServerPlayNetworking.canSend(player, Story.TYPE)) {
-			ServerPlayNetworking.send(player, new Story(story()));
-		}
 	}
 
 	private static void tick(MinecraftServer server) {
@@ -682,69 +665,183 @@ public final class Citizens {
 		return text.isEmpty() ? text : Character.toUpperCase(text.charAt(0)) + text.substring(1) + (text.endsWith(".") ? "" : ".");
 	}
 
-	/** The most the story tells of (the biggest things first, if there's more than this). */
-	private static final int STORY_MOST = 26;
-	/** What the story tells of, the biggest first: each row is told only if there's room for all of it. */
-	private static final String[][] STORY_TELLS = {{" was founded, and ", " conquered ", " was burned "}, {" rose against ", " won its freedom ", " declared war on "},
-		{" took ", " was abandoned "}, {" made peace ", " became allies", " joined "}};
+	/** The most wars the story tells of: past this, the ones that changed nothing are left out, the oldest first. */
+	private static final int STORY_WARS = 12;
+
+	/** A passage of the story: when (a chronicle day), its words, whether it's a nation's founding. */
+	private record Passage(long day, String text, boolean founding, boolean small, @Nullable String a, @Nullable String b) {
+	}
 
 	/**
-	 * The world's written past as a story: its biggest things in order, under a heading for how long ago, then how things
-	 * stand today. Only what's in the chronicle of the days before day 1 (nations and wars: what everyone knows).
+	 * The world's written past as a story (the user, 2026-11-12: "more lore", "World's history"; 2026-11-13: "make it more
+	 * prose, move it to the journal"): under a heading for how long ago, the nations' foundings, each war told as one
+	 * passage (who began it, what fell or burned, how it ended), what else befell; then how things stand today. Only what's
+	 * in the chronicle of the days before day 1 (nations and wars: what everyone knows). A line that begins with # is a
+	 * heading.
 	 */
 	static List<String> story() {
-		List<Chronicle.Entry> told = new ArrayList<>();
-		for (String[] row : STORY_TELLS) {
-			List<Chronicle.Entry> more = new ArrayList<>();
-			for (Chronicle.Entry entry : Chronicle.all()) {
-				// (A town's own small past isn't the world's: but one abandoned, a ruin now, is.)
-				if (entry.day() < 1 && !entry.kind().equals("death") && (!entry.kind().equals("town") || entry.text().contains(" was abandoned "))
-					&& java.util.Arrays.stream(row).anyMatch(entry.text()::contains) && !told.contains(entry)) {
-					more.add(entry);
+		List<Chronicle.Entry> past = new ArrayList<>();
+		for (Chronicle.Entry entry : Chronicle.all()) {
+			// (A town's own small past isn't the world's: but one abandoned, a ruin now, is.)
+			if (entry.day() < 1 && !entry.kind().equals("death") && (!entry.kind().equals("town") || entry.text().contains(" was abandoned "))) {
+				past.add(entry);
+			}
+		}
+
+		String[] openers = {"%s declared war on %s.", "Then %s turned on %s.", "%s went to war with %s.", "War came again: %s against %s.", "%s marched on %s."};
+		List<Passage> passages = new ArrayList<>();
+		Set<Chronicle.Entry> used = new HashSet<>();
+		int wars = 0;
+		// (Told again each time the journal's opened: the chronicle keeps the days before day 1 for good.)
+		for (int i = 0; i < past.size(); i++) {
+			Chronicle.Entry entry = past.get(i);
+			String text = entry.text();
+			int at = text.indexOf(" declared war on ");
+			if (at < 0 || used.contains(entry)) {
+				continue;
+			}
+
+			used.add(entry);
+			String a = text.substring(0, at);
+			String b = text.substring(at + " declared war on ".length());
+			StringBuilder told = new StringBuilder();
+			boolean big = false;
+			boolean ended = false;
+			for (int j = i + 1; j < past.size() && !ended; j++) {
+				Chronicle.Entry next = past.get(j);
+				String more = next.text();
+				if (used.contains(next) || !more.contains(a) || !more.contains(b)) {
+					continue;
+				}
+
+				if (more.contains(" declared war on ")) {
+					break;
+				} else if (more.contains(" made peace ")) {
+					used.add(next);
+					ended = true;
+					String how = more.substring(more.indexOf(" made peace ") + " made peace ".length());
+					var days = DAYS_OF_WAR.matcher(how);
+					if (days.find()) {
+						int long_ = Integer.parseInt(days.group(1));
+						told.append(long_ < 60 ? " It was a short war, and soon ended in peace." : long_ < 200 ? " The war was long before peace was made."
+							: " It dragged on for years before peace was made.");
+					} else if (how.startsWith("(") && how.endsWith(" asked for it)")) {
+						told.append(" In the end ").append(how, 1, how.length() - " asked for it)".length()).append(" asked for peace.");
+					} else {
+						told.append(" ").append(sentence("They made peace " + how));
+					}
+				} else if (more.contains(" conquered ")) {
+					used.add(next);
+					ended = true;
+					big = true;
+					String won = more.substring(0, more.indexOf(" conquered "));
+					String lost = won.equals(a) ? b : a;
+					told.append(" It ended with ").append(lost).append(" conquered, its towns ").append(won).append("'s now.");
+				} else if (more.contains(" took ") && more.contains(" from ")) {
+					used.add(next);
+					big = true;
+					String won = more.substring(0, more.indexOf(" took "));
+					told.append(" ").append(sentence(more.substring(more.indexOf(" took ") + " took ".length(), more.indexOf(" from ")) + " fell to " + won));
+				} else if (more.contains(" was burned ")) {
+					used.add(next);
+					big = true;
+					told.append(" ").append(sentence(more.substring(0, more.indexOf(" was burned ")) + " was burned, and its people scattered"));
 				}
 			}
 
-			if (!told.isEmpty() && told.size() + more.size() > STORY_MOST) {
-				break;
-			}
+			// (How it opens is said as it's set in its place among the rest: a,b kept for that.)
+			passages.add(new Passage(entry.day(), told.toString().trim(), false, !big, a, b));
+		}
 
-			told.addAll(more);
+		// (Too many wars to tell: the ones that changed nothing left out, the oldest first.)
+		boolean others = false;
+		for (int i = 0; i < passages.size() && passages.size() > STORY_WARS; i++) {
+			if (passages.get(i).small()) {
+				passages.remove(i--);
+				others = true;
+			}
+		}
+
+		// What else befell, outside the wars told.
+		String[] also = {" was founded, and ", " conquered ", " was burned ", " rose against ", " won its freedom ", " was abandoned ", " became allies", " joined "};
+		for (Chronicle.Entry entry : past) {
+			if (!used.contains(entry) && java.util.Arrays.stream(also).anyMatch(entry.text()::contains)) {
+				passages.add(new Passage(entry.day(), entry.text(), entry.text().contains(" was founded, and "), false, null, null));
+			}
 		}
 
 		List<String> lines = new ArrayList<>();
-		if (told.isEmpty()) {
+		if (passages.isEmpty()) {
 			return lines;
 		}
 
-		told.sort(Comparator.comparingLong(Chronicle.Entry::day));
+		passages.sort(Comparator.comparingLong(Passage::day));
 		String[] eras = {"In the oldest days", "Long ago", "Years back", "Not long since"};
-		int era = -1;
-		StringBuilder part = new StringBuilder();
-		boolean founding = false;
-		for (Chronicle.Entry entry : told) {
-			long ago = 1 - entry.day();
-			int at = ago > History.DAYS * 3 / 4 ? 0 : ago > History.DAYS / 2 ? 1 : ago > History.DAYS / 6 ? 2 : 3;
-			if (at != era) {
-				if (part.length() > 0) {
-					lines.add(part.toString());
-					part.setLength(0);
+		for (int era = 0; era < eras.length; era++) {
+			List<String> founded = new ArrayList<>();
+			List<String> rest = new ArrayList<>();
+			StringBuilder loose = new StringBuilder();
+			int said = 0;
+			boolean warTold = false;
+			for (Passage passage : passages) {
+				long ago = 1 - passage.day();
+				int at = ago > History.DAYS * 3 / 4 ? 0 : ago > History.DAYS / 2 ? 1 : ago > History.DAYS / 6 ? 2 : 3;
+				if (at != era) {
+					continue;
 				}
 
-				era = at;
-				lines.add("#" + eras[at]);
+				var match = FOUNDED.matcher(passage.text());
+				if (passage.founding() && match.matches()) {
+					founded.add(match.group(2) + " at " + match.group(1) + ", under " + match.group(3));
+				} else if (passage.a() != null) {
+					// (A war: its own passage; what was said loose before it, first. The first of its time is told plainly.)
+					if (loose.length() > 0) {
+						rest.add(loose.toString());
+						loose.setLength(0);
+						said = 0;
+					}
+
+					String opens = sentence(String.format(openers[warTold ? 1 + wars++ % (openers.length - 1) : 0], passage.a(), passage.b()));
+					warTold = true;
+					rest.add(opens + (passage.text().isEmpty() ? "" : " " + passage.text()));
+				} else {
+					// (A few lines at a time: the journal's page shows a passage whole or not at all.)
+					if (said >= 2) {
+						rest.add(loose.toString());
+						loose.setLength(0);
+						said = 0;
+					}
+
+					loose.append(loose.length() > 0 ? " " : "").append(sentence(telling(passage.text())));
+					said++;
+				}
 			}
 
-			// (Each war its own few lines; the foundings together.)
-			if (part.length() > 0 && (entry.text().contains(" declared war on ") || founding != entry.text().contains(" was founded, and "))) {
-				lines.add(part.toString());
-				part.setLength(0);
+			if (loose.length() > 0) {
+				rest.add(loose.toString());
 			}
 
-			founding = entry.text().contains(" was founded, and ");
-			part.append(part.length() > 0 ? " " : "").append(sentence(telling(entry.text())));
+			if (founded.isEmpty() && rest.isEmpty()) {
+				continue;
+			}
+
+			lines.add("#" + eras[era]);
+			if (founded.size() == 1) {
+				lines.add(sentence(founded.get(0).replaceFirst(" at ", " was founded at ")));
+			} else if (!founded.isEmpty()) {
+				lines.add(era == 0 ? "The first nations rose in those days." : "New nations rose.");
+				for (String one : founded) {
+					lines.add(sentence(one));
+				}
+			}
+
+			lines.addAll(rest);
 		}
 
-		lines.add(part.toString());
+		if (others) {
+			lines.add("There were other, smaller wars besides, that changed nothing.");
+		}
+
 		// Today: who's at war, who's allied, what lies in ruin.
 		List<Nations.Nation> nations = Nations.all().stream().filter(nation -> living(nation) > 0).toList();
 		List<String> today = new ArrayList<>();

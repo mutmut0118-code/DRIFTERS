@@ -395,10 +395,62 @@ final class Annals {
 			return;
 		}
 
+		// (Many dying in one town within a day or two, a massacre, a plague of monsters: one story of it, not one for each;
+		// the user, 2026-11-13: "when it comes to massacre ... it tends to fill up the chronicle alot".)
+		if (!leader) {
+			Event same = null;
+			for (Event e : events.values()) {
+				if (e.kind.equals("death") && town.id.equals(e.town) && Chronicle.day(server) - e.day <= DEATHS_TOGETHER) {
+					same = e;
+				}
+			}
+
+			if (same != null) {
+				same.people.add(person);
+				beat(server, same, "died", name + " died: " + cause);
+				same.title = titleAsOf(same, Long.MAX_VALUE);
+				return;
+			}
+		}
+
 		Event e = add(server, leader ? "leader" : "death", leader ? name + " killed" : name + " died", town, own);
 		e.people.add(person);
 		e.beats.add(new Beat(e.day, leader ? "killed" : "died", leader ? name + " was killed by an unknown hand" : name + " died: " + cause));
 		e.over = true;
+	}
+
+	/** Deaths in one town this many days apart or fewer are told as one story. */
+	private static final long DEATHS_TOGETHER = 1;
+	/** This many dead in one story, most of them by violence, is a massacre. */
+	private static final int MASSACRE = 6;
+
+	/** What a beat of a death says it died of ("Ann died: killed by Bob": "killed by Bob"). */
+	private static String cause(Beat beat) {
+		int at = beat.text.indexOf(" died: ");
+		return at < 0 ? "" : beat.text.substring(at + " died: ".length());
+	}
+
+	private static boolean violent(String cause) {
+		return cause.contains("killed") || cause.contains("slain") || cause.contains("shot") || cause.contains("fighting") || cause.contains("murdered");
+	}
+
+	/**
+	 * A story's title as one who last heard of it that day knows it: several deaths told as one are named by how many
+	 * had died by then, and how (they don't know of a massacre who only heard of the first to fall).
+	 */
+	private static String titleAsOf(Event e, long asOf) {
+		if (!e.kind.equals("death") || e.people.size() < 2) {
+			return e.title;
+		}
+
+		List<Person> dead = e.people.stream().filter(person -> person.day <= asOf).toList();
+		if (dead.size() < 2) {
+			return (dead.isEmpty() ? e.people.get(0) : dead.get(0)).name + " died";
+		}
+
+		long violent = e.beats.stream().filter(beat -> beat.day <= asOf && violent(cause(beat))).count();
+		return dead.size() >= MASSACRE && violent * 2 > dead.size() ? "A massacre in " + e.townName : dead.size() >= MASSACRE ? "Many died in " + e.townName
+			: dead.size() > 2 ? "Several died in " + e.townName : "Two died in " + e.townName;
 	}
 
 	/** Something of a town's own worth keeping: its leader overthrown, it founded, it risen up. */
@@ -597,6 +649,15 @@ final class Annals {
 
 		known.sort((x, y) -> Long.compare(lastKnown(y, mine.get(y.id)), lastKnown(x, mine.get(x.id))));
 		List<Journal.Line> lines = new ArrayList<>();
+		// (The world's written past, as everyone knows it: first, always there.)
+		if (!Citizens.story().isEmpty()) {
+			lines.add(new Journal.Line("The story so far", "the world's past", Journal.PLAIN, List.of("@page:story")));
+		}
+
+		if (known.isEmpty() && !lines.isEmpty()) {
+			lines.add(new Journal.Line("Of your own time, nothing yet. Towns know what's happened: walk into one.", "", Journal.FAINT, List.of()));
+		}
+
 		String group = "";
 		for (Event e : known) {
 			Seen s = mine.get(e.id);
@@ -609,7 +670,7 @@ final class Annals {
 
 			boolean on = e.kind.equals("war") && !overAsOf(e, s);
 			String right = on ? "at war" : e.kind.equals("deed") ? "yours" : ago(today, at);
-			lines.add(new Journal.Line(e.title, right, on ? Journal.BAD : e.kind.equals("deed") ? Journal.GOOD : Journal.FAINT, List.of("@page:e:" + e.id)));
+			lines.add(new Journal.Line(titleAsOf(e, s.asOf), right, on ? Journal.BAD : e.kind.equals("deed") ? Journal.GOOD : Journal.FAINT, List.of("@page:e:" + e.id)));
 		}
 
 		// (A citizen from before the annals: their nation's past is theirs.)
@@ -757,6 +818,14 @@ final class Annals {
 						voices(els, e, s);
 					}
 				}
+			} else if (parts[0].equals("story")) {
+				els.add(RULE);
+				els.add(el(Journal.HEADLINE, "THE STORY SO FAR", "", 0, List.of()));
+				els.add(el(Journal.DATELINE, "What everyone in this world knows", "", 0, List.of()));
+				els.add(RULE);
+				for (String line : Citizens.story()) {
+					els.add(line.startsWith("#") ? sub(line.substring(1)) : text(line));
+				}
 			} else if (parts[0].equals("p") && parts.length == 2) {
 				life(els, player, UUID.fromString(parts[1]), today);
 			} else if (parts[0].equals("n") && parts.length == 2) {
@@ -795,7 +864,9 @@ final class Annals {
 		List<Beat> beats = e.beats.stream().filter(beat -> beat.day <= s.asOf).toList();
 		boolean over = overAsOf(e, s);
 		els.add(RULE);
-		els.add(el(Journal.HEADLINE, headline(e), "", 0, List.of()));
+		String known = titleAsOf(e, s.asOf);
+		els.add(el(Journal.HEADLINE, e.kind.equals("death") && !known.equals(e.title) || e.kind.equals("death") && e.people.size() > 1
+			? (known.endsWith(" died") && !known.contains(" in ") ? "A DEATH" : known.toUpperCase(Locale.ROOT)) : headline(e), "", 0, List.of()));
 		els.add(el(Journal.DATELINE, e.kind.equals("deed") ? "you were there" : s.where.isEmpty() ? "" : "heard in " + s.where, ago(today, e.day), 0, List.of()));
 		els.add(RULE);
 		if (!e.powers.isEmpty() && !e.kind.equals("deed")) {
@@ -820,6 +891,28 @@ final class Annals {
 			Beat peace = over ? beats.stream().filter(beat -> beat.what.equals("peace")).reduce((x, y) -> y).orElse(null) : null;
 			els.add(over ? text(sentence(peace != null ? peace.text : "It's over") + " (" + ago(today, e.last) + ")") : el(Journal.TEXT, "Still being fought.", "", Journal.BAD,
 				List.of()));
+		} else if (e.kind.equals("death") && beats.size() > 3) {
+			// (Many dead: how many, and of what, the commonest first; who they were is under it.)
+			Map<String, Integer> causes = new LinkedHashMap<>();
+			for (Beat beat : beats) {
+				causes.merge(cause(beat), 1, Integer::sum);
+			}
+
+			els.add(text(beats.size() + " of " + e.townName + " died within days of each other."));
+			List<Map.Entry<String, Integer>> most = new ArrayList<>(causes.entrySet());
+			most.sort((x, y) -> y.getValue() - x.getValue());
+			int others = 0;
+			for (int i = 0; i < most.size(); i++) {
+				if (i < 3 && !most.get(i).getKey().isEmpty()) {
+					els.add(text(sentence(most.get(i).getKey() + ": " + most.get(i).getValue())));
+				} else {
+					others += most.get(i).getValue();
+				}
+			}
+
+			if (others > 0) {
+				els.add(text("Other ways: " + others + "."));
+			}
 		} else {
 			for (Beat beat : beats) {
 				els.add(text(sentence(beat.text)));

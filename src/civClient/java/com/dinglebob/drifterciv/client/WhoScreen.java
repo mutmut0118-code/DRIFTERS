@@ -73,15 +73,6 @@ final class WhoScreen extends Screen {
 		this.rebuildWidgets();
 	}
 
-	/** The world's story came: its button's there now. */
-	void storyCame() {
-		this.rebuildWidgets();
-	}
-
-	private boolean story() {
-		return this.menu.first() && !DrifterCivilizationsClient.story.isEmpty();
-	}
-
 	void progress(WorldBuild.Progress progress) {
 		this.progress = progress;
 	}
@@ -142,14 +133,6 @@ final class WhoScreen extends Screen {
 			this.pronouns = (this.pronouns + 1) % PRONOUNS.length;
 			button.setMessage(this.pronounsLabel());
 		}).bounds(x, TOP + 36, LEFT_WIDTH, 20).build());
-		if (this.story()) {
-			this.addRenderableWidget(Button.builder(Component.literal("The story so far"), button -> {
-				if (this.minecraft != null) {
-					this.minecraft.setScreen(new StoryScreen(this));
-				}
-			}).bounds(x, TOP + 60, LEFT_WIDTH, 20).build());
-		}
-
 		this.begin = this.addRenderableWidget(Button.builder(Component.literal(this.menu.first() ? "Begin" : "Done"), button -> this.choose())
 			.bounds(this.width / 2 - 60, this.listBottom() + 6, 120, 20).build());
 		this.setInitialFocus(this.name);
@@ -182,8 +165,6 @@ final class WhoScreen extends Screen {
 				}
 
 				this.picked = Math.min(debugCard < 0 ? this.cards() - 1 : debugCard, this.cards() - 1);
-			} else if (this.open == debugAt + 5 && this.story()) {
-				this.minecraft.setScreen(new StoryScreen(this));
 			} else if (this.open == debugAt + 10) {
 				net.minecraft.client.Screenshot.grab(this.minecraft.gameDirectory, "who_" + (!this.menu.first() ? "change" : debugCard < 0 ? "none" : debugCard) + ".png",
 					this.minecraft.getMainRenderTarget(), message -> {
@@ -213,7 +194,7 @@ final class WhoScreen extends Screen {
 			0xA0A0A0);
 		int x = this.left();
 		graphics.drawString(this.font, "Name", x, TOP, 0xA0A0A0);
-		int y = TOP + (this.story() ? 86 : 62);
+		int y = TOP + 62;
 		if (!this.refused.isEmpty()) {
 			for (FormattedCharSequence part : this.font.split(Component.literal(this.refused), LEFT_WIDTH)) {
 				graphics.drawString(this.font, part, x, y, 0xFF5555);

@@ -3805,13 +3805,9 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
 - [ ] **Press Begin.** When the world opens it's early morning, the very start of the first day, however long you
       waited, and people and animals start moving only now.
 
-## 0.23.56: the story so far (new)
+## 0.23.56: the story so far
 
-- [ ] **Make a new world.** On "Who are you?", under the pronouns button, press **The story so far**. It tells this
-      world's past: how its nations began, their wars, towns taken or burned, and how things stand today. Scroll with
-      the mouse wheel. **Back** returns to the menu with your name and nation still as you left them.
-- [ ] **Press Begin.** While the towns are built, the same story is under the loading bar to read.
-- [ ] Each nation's card on the menu now tells a little more of its past.
+- (Moved into the journal in 0.23.60: see that section.)
 
 ## 0.23.57: the roads between towns made again (new)
 
@@ -3850,3 +3846,13 @@ In a **new world**.
 - [ ] **Every bridge is straight**: either one straight run, or two straight runs with a square corner over the water
       (about one bridge in three). None on a slant with stepped edges.
 - [ ] **One wood per bridge**, also where it touches a sandbar halfway.
+
+## 0.23.60: the story so far in the journal; many deaths told as one (new)
+
+- [ ] **Open your journal (J), the Chronicle bookmark.** Its first line is "The story so far". Click it: the world's
+      past as a short story (how the nations began, each war in a few lines, what's in ruin, how things stand today).
+      Scroll for more. The start menu and the loading screen no longer have it.
+- [ ] **Many deaths.** When several people of one town die for good on the same day (or the day after), the Chronicle
+      shows ONE line for it ("Two died in ...", "Several died in ...", "Many died in ...", or "A massacre in ..." when
+      six or more were killed), not one line each. Its page says how many, of what, and shows who they were.
+      (Remember the Chronicle only shows what you've heard: walk into the town first.)
