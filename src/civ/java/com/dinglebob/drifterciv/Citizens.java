@@ -77,6 +77,22 @@ public final class Citizens {
 		}
 	}
 
+	/**
+	 * The story so far (the user, 2026-11-12: "there should be more lore before i load the world": the world's history):
+	 * the world's written past, told in order as what everyone knows, to read on the menu and the loading screen. A line
+	 * that begins with # is a heading.
+	 */
+	public record Story(List<String> lines) implements CustomPacketPayload {
+		public static final Type<Story> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "who_story"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, Story> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()),
+			Story::lines, Story::new);
+
+		@Override
+		public Type<Story> type() {
+			return TYPE;
+		}
+	}
+
 	/** What they chose: a name (empty: their Minecraft name), pronouns, a nation's id (empty: none). */
 	public record Choice(String name, String pronouns, String nation) implements CustomPacketPayload {
 		public static final Type<Choice> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("drifter_civ", "who_choice"));
@@ -138,6 +154,7 @@ public final class Citizens {
 
 	static void register() {
 		PayloadTypeRegistry.playS2C().register(Menu.TYPE, Menu.CODEC);
+		PayloadTypeRegistry.playS2C().register(Story.TYPE, Story.CODEC);
 		PayloadTypeRegistry.playS2C().register(Answer.TYPE, Answer.CODEC);
 		PayloadTypeRegistry.playC2S().register(Choice.TYPE, Choice.CODEC);
 		PayloadTypeRegistry.playC2S().register(Change.TYPE, Change.CODEC);
@@ -211,6 +228,11 @@ public final class Citizens {
 				who.chosenAt = System.currentTimeMillis();
 			}
 
+			// (Back while the world's still being built: its story to read on the loading screen.)
+			if (WorldBuild.building && WorldPlan.ready && ServerPlayNetworking.canSend(player, Story.TYPE)) {
+				ServerPlayNetworking.send(player, new Story(story()));
+			}
+
 			return;
 		}
 
@@ -238,6 +260,9 @@ public final class Citizens {
 		}
 
 		ServerPlayNetworking.send(player, new Menu(true, WorldBuild.building, planning, "", "they", planning ? List.of() : cards(server)));
+		if (!planning && ServerPlayNetworking.canSend(player, Story.TYPE)) {
+			ServerPlayNetworking.send(player, new Story(story()));
+		}
 	}
 
 	private static void tick(MinecraftServer server) {
@@ -536,10 +561,7 @@ public final class Citizens {
 
 			lines.add(wars.isEmpty() && allies.isEmpty() ? "At peace with its neighbours."
 				: (wars.isEmpty() ? "" : "At war with " + list(wars) + ". ") + (allies.isEmpty() ? "" : "Allied with " + list(allies) + "."));
-			String past = past(nation);
-			if (past != null) {
-				lines.add(past);
-			}
+			lines.addAll(past(nation));
 
 			cards.add(new Card(nation.id.toString(), Character.toUpperCase(nation.name.charAt(0)) + nation.name.substring(1), nation.colour.getId(), lines));
 		}
@@ -589,37 +611,170 @@ public final class Citizens {
 		return allied ? "allied" : "";
 	}
 
-	/** The biggest thing in its written past (a nation formed in play has none). */
-	@Nullable
-	private static String past(Nations.Nation nation) {
-		String[] biggest = {" conquered ", " was burned ", " took ", " rose against ", " won its freedom ", " declared war ", " became allies", " was founded"};
-		String best = null;
-		int rank = biggest.length;
+	/** Its written past in a line: its founding and the biggest things since (a nation formed in play has none: empty). */
+	private static List<String> past(Nations.Nation nation) {
+		String[] biggest = {" conquered ", " was burned ", " took ", " rose against ", " won its freedom ", " declared war ", " became allies", " was founded, and "};
+		// (Its founding, and the latest two of its biggest things since, in the order they happened.)
+		Chronicle.Entry founded = null;
+		List<Chronicle.Entry> found = new ArrayList<>();
+		Map<Chronicle.Entry, Integer> ranks = new HashMap<>();
 		for (Chronicle.Entry entry : Chronicle.all()) {
 			if (entry.day() >= 1 || !entry.text().contains(nation.name)) {
 				continue;
 			}
 
-			// (The latest of the biggest kind.)
-			for (int i = 0; i <= Math.min(rank, biggest.length - 1); i++) {
+			for (int i = 0; i < biggest.length; i++) {
 				if (entry.text().contains(biggest[i])) {
-					rank = i;
-					best = entry.text();
+					if (i == biggest.length - 1) {
+						founded = founded == null ? entry : founded;
+					} else {
+						ranks.put(entry, i);
+						found.add(entry);
+					}
+
 					break;
 				}
 			}
 		}
 
-		if (best == null) {
-			return null;
+		found.sort(Comparator.<Chronicle.Entry>comparingInt(ranks::get).thenComparing(Comparator.comparingLong(Chronicle.Entry::day).reversed()));
+		List<Chronicle.Entry> told = new ArrayList<>(found.subList(0, Math.min(2, found.size())));
+		told.sort(Comparator.comparingLong(Chronicle.Entry::day));
+		if (founded != null) {
+			told.add(0, founded);
 		}
 
-		// (A founding is told short: where, not who.)
-		if (best.contains(" was founded") && best.contains(",")) {
-			best = best.substring(0, best.indexOf(','));
+		List<String> lines = new ArrayList<>();
+		for (Chronicle.Entry entry : told) {
+			String text = telling(entry.text());
+			// (A founding is told short: where, not who.)
+			if (entry == founded && text.contains(",")) {
+				text = text.substring(0, text.indexOf(','));
+			}
+
+			lines.add((lines.isEmpty() ? "Its past: " : "") + sentence(text));
 		}
 
-		return "Its past: " + best + (best.endsWith(".") ? "" : ".");
+		return lines.isEmpty() ? List.of() : List.of(String.join(" ", lines));
+	}
+
+	private static final java.util.regex.Pattern FOUNDED = java.util.regex.Pattern.compile("^(.+) was founded, and (.+) with it, (.+) its first ruler$");
+	private static final java.util.regex.Pattern DAYS_OF_WAR = java.util.regex.Pattern.compile("after (\\d+) days? of war");
+
+	/** A chronicle line as the story tells it: a founding by its nation, a war's length in words. */
+	private static String telling(String text) {
+		var founded = FOUNDED.matcher(text);
+		if (founded.matches()) {
+			return founded.group(2) + " was founded at " + founded.group(1) + ", under " + founded.group(3);
+		}
+
+		var war = DAYS_OF_WAR.matcher(text);
+		if (war.find()) {
+			int days = Integer.parseInt(war.group(1));
+			return war.replaceFirst(days < 60 ? "after a short war" : days < 200 ? "after a long war" : "after a very long war");
+		}
+
+		return text;
+	}
+
+	private static String sentence(String text) {
+		text = text.trim();
+		return text.isEmpty() ? text : Character.toUpperCase(text.charAt(0)) + text.substring(1) + (text.endsWith(".") ? "" : ".");
+	}
+
+	/** The most the story tells of (the biggest things first, if there's more than this). */
+	private static final int STORY_MOST = 26;
+	/** What the story tells of, the biggest first: each row is told only if there's room for all of it. */
+	private static final String[][] STORY_TELLS = {{" was founded, and ", " conquered ", " was burned "}, {" rose against ", " won its freedom ", " declared war on "},
+		{" took ", " was abandoned "}, {" made peace ", " became allies", " joined "}};
+
+	/**
+	 * The world's written past as a story: its biggest things in order, under a heading for how long ago, then how things
+	 * stand today. Only what's in the chronicle of the days before day 1 (nations and wars: what everyone knows).
+	 */
+	static List<String> story() {
+		List<Chronicle.Entry> told = new ArrayList<>();
+		for (String[] row : STORY_TELLS) {
+			List<Chronicle.Entry> more = new ArrayList<>();
+			for (Chronicle.Entry entry : Chronicle.all()) {
+				// (A town's own small past isn't the world's: but one abandoned, a ruin now, is.)
+				if (entry.day() < 1 && !entry.kind().equals("death") && (!entry.kind().equals("town") || entry.text().contains(" was abandoned "))
+					&& java.util.Arrays.stream(row).anyMatch(entry.text()::contains) && !told.contains(entry)) {
+					more.add(entry);
+				}
+			}
+
+			if (!told.isEmpty() && told.size() + more.size() > STORY_MOST) {
+				break;
+			}
+
+			told.addAll(more);
+		}
+
+		List<String> lines = new ArrayList<>();
+		if (told.isEmpty()) {
+			return lines;
+		}
+
+		told.sort(Comparator.comparingLong(Chronicle.Entry::day));
+		String[] eras = {"In the oldest days", "Long ago", "Years back", "Not long since"};
+		int era = -1;
+		StringBuilder part = new StringBuilder();
+		boolean founding = false;
+		for (Chronicle.Entry entry : told) {
+			long ago = 1 - entry.day();
+			int at = ago > History.DAYS * 3 / 4 ? 0 : ago > History.DAYS / 2 ? 1 : ago > History.DAYS / 6 ? 2 : 3;
+			if (at != era) {
+				if (part.length() > 0) {
+					lines.add(part.toString());
+					part.setLength(0);
+				}
+
+				era = at;
+				lines.add("#" + eras[at]);
+			}
+
+			// (Each war its own few lines; the foundings together.)
+			if (part.length() > 0 && (entry.text().contains(" declared war on ") || founding != entry.text().contains(" was founded, and "))) {
+				lines.add(part.toString());
+				part.setLength(0);
+			}
+
+			founding = entry.text().contains(" was founded, and ");
+			part.append(part.length() > 0 ? " " : "").append(sentence(telling(entry.text())));
+		}
+
+		lines.add(part.toString());
+		// Today: who's at war, who's allied, what lies in ruin.
+		List<Nations.Nation> nations = Nations.all().stream().filter(nation -> living(nation) > 0).toList();
+		List<String> today = new ArrayList<>();
+		for (int i = 0; i < nations.size(); i++) {
+			for (int j = i + 1; j < nations.size(); j++) {
+				String tie = tie(nations.get(i), nations.get(j));
+				if (tie.equals("war")) {
+					today.add(0, sentence(nations.get(i).name + " and " + nations.get(j).name + " are at war"));
+				} else if (tie.equals("allied")) {
+					today.add(sentence(nations.get(i).name + " and " + nations.get(j).name + " are allies"));
+				}
+			}
+		}
+
+		if (today.isEmpty() && nations.size() > 1) {
+			today.add("The nations are at peace.");
+		}
+
+		List<String> ruins = WorldPlan.places.stream().filter(WorldPlan.Place::ruin).map(place -> place.name).toList();
+		if (!ruins.isEmpty()) {
+			today.add(ruins.size() == 1 ? ruins.get(0) + " lies in ruin still." : "The ruins of " + list(ruins.size() > 6 ? ruins.subList(0, 6) : ruins)
+				+ (ruins.size() > 6 ? " and others" : "") + " still stand.");
+		}
+
+		if (!today.isEmpty()) {
+			lines.add("#Today");
+			lines.add(String.join(" ", today));
+		}
+
+		return lines;
 	}
 
 	private static String list(List<String> names) {

@@ -3396,6 +3396,24 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.56: the story so far** (the user, 2026-11-12: "there should be more lore before i load the world", then
+  "World's history", "Yes, build it"). The world's written past (the chronicle's days before day 1) told as a story:
+  `Citizens.story()` sends it with the first "Who are you?" (`Citizens.Story`, lines beginning # are headings). A
+  button on the menu opens it (`StoryScreen`), and it's under the bar on the loading screen (`WorldBuildScreen`), both
+  scrolling. Foundings, conquests, burnings first, then risings and wars, then towns taken or abandoned, then peace,
+  alliances, joinings, as many kinds as fit in 26 things; under "In the oldest days", "Long ago", "Years back", "Not
+  long since", each war its own few lines, a war's length in words; then "Today": who's at war, who's allied, what
+  lies in ruin. A nation's card tells its founding and its two biggest things since.
+  - **Tested** in the dev client on a fresh world: the button, the page (pictured), back to the menu with the card
+    still picked, Begin, the story under the bar on the loading screen, the world built and played.
+  - **Review** (one fresh reviewer; fixed, compiled and booted, not replayed): the world's sounds came back while the
+    story was open; an answer from the server arriving while the story was open was dropped (the menu stuck); towns
+    abandoned were never told (their kind was left out); one who'd chosen and came back mid-build got no story.
+  - **Rulings:** it's what everyone knows (nations and wars, no people's secrets) and doesn't fill the journal's
+    Chronicle, which still fills as things are learned in play.
+  - **Deferred minors:** a world with very many foundings and conquests tells them all (no cap on the first kind);
+    the addon added to a world already days old leaves its newest past out; in a very small window the story button
+    can sit over Begin; alliances and joinings run on in the paragraph of the war before them.
 - **0.23.55: the world stands still until you begin** (the user, 2026-11-12: "the world already loads before the
   loading screen ends, so when im picking towns i hear footsteps, animals, and one time i went afk and i loaded it and it
   was nighttime"). Cause: the towns are built in the running world, so it ticked behind the loading screen and the first

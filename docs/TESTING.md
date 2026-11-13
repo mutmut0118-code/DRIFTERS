@@ -3804,3 +3804,11 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
       should hear no footsteps or animals, only music and the menu's clicks.
 - [ ] **Press Begin.** When the world opens it's early morning, the very start of the first day, however long you
       waited, and people and animals start moving only now.
+
+## 0.23.56: the story so far (new)
+
+- [ ] **Make a new world.** On "Who are you?", under the pronouns button, press **The story so far**. It tells this
+      world's past: how its nations began, their wars, towns taken or burned, and how things stand today. Scroll with
+      the mouse wheel. **Back** returns to the menu with your name and nation still as you left them.
+- [ ] **Press Begin.** While the towns are built, the same story is under the loading bar to read.
+- [ ] Each nation's card on the menu now tells a little more of its past.

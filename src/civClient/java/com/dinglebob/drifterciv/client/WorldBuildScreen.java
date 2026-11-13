@@ -33,7 +33,10 @@ final class WorldBuildScreen extends Screen {
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		super.render(graphics, mouseX, mouseY, partialTick);
 		int middle = this.width / 2;
-		int top = this.height / 2 - 40;
+		// (With the world's story to read meanwhile: the bar up top, the story under it.)
+		java.util.List<String> story = DrifterCivilizationsClient.story;
+		boolean reading = !story.isEmpty() && this.height >= 200;
+		int top = reading ? 10 : this.height / 2 - 40;
 		graphics.drawCenteredString(this.font, this.title, middle, top, 0xFFFFFF);
 		graphics.drawCenteredString(this.font, Component.literal("Its nations, towns and roads, before you play"), middle, top + 14, 0xA0A0A0);
 		graphics.drawCenteredString(this.font, Component.literal(this.progress.stage()), middle, top + 40, 0xFFFFFF);
@@ -54,6 +57,19 @@ final class WorldBuildScreen extends Screen {
 
 		int seconds = this.progress.seconds();
 		graphics.drawCenteredString(this.font, Component.literal(seconds / 60 + ":" + String.format("%02d", seconds % 60)), middle, barTop + 14, 0xA0A0A0);
+		if (reading) {
+			int width = Math.min(340, this.width - 40);
+			graphics.drawString(this.font, "The story so far", middle - width / 2, barTop + 30, 0xA0A0A0);
+			this.scroll = StoryScreen.text(graphics, this.font, story, middle - width / 2, barTop + 42, width, this.height - 10, this.scroll);
+		}
+	}
+
+	private int scroll;
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		this.scroll -= (int)(scrollY * 16);
+		return true;
 	}
 
 	@Override

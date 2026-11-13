@@ -23,6 +23,9 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		net.minecraft.sounds.SoundSource.BLOCKS, net.minecraft.sounds.SoundSource.HOSTILE, net.minecraft.sounds.SoundSource.NEUTRAL,
 		net.minecraft.sounds.SoundSource.PLAYERS, net.minecraft.sounds.SoundSource.RECORDS, net.minecraft.sounds.SoundSource.VOICE};
 
+	/** The world's story so far, as the server told it with "Who are you?" (empty: none). */
+	static java.util.List<String> story = java.util.List.of();
+
 	@Override
 	public void onInitializeClient() {
 		journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(new net.minecraft.client.KeyMapping(
@@ -36,6 +39,10 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 			}
 
 			// (Asked who they are and not answered: the menu comes back if something closed it; they're held until they say.)
+			if (client.level == null) {
+				story = java.util.List.of();
+			}
+
 			if (asked != null && client.level == null) {
 				asked = null;
 			} else if (asked != null && client.screen == null) {
@@ -43,7 +50,8 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 			}
 
 			// (Behind the loading screen and the first "Who are you?" the world isn't shown: not heard either.)
-			if (client.level != null && (client.screen instanceof WorldBuildScreen || client.screen instanceof WhoScreen who && who.first())) {
+			if (client.level != null && (client.screen instanceof WorldBuildScreen || client.screen instanceof WhoScreen who && who.first()
+				|| client.screen instanceof StoryScreen reading && reading.parent instanceof WhoScreen behind && behind.first())) {
 				for (net.minecraft.sounds.SoundSource source : QUIET) {
 					client.getSoundManager().stop(null, source);
 				}
@@ -88,7 +96,9 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(WorldBuild.Progress.TYPE, (progress, context) -> {
 			var client = context.client();
 			lastProgress = progress.finished() ? null : progress;
-			if (client.screen instanceof WhoScreen who) {
+			if (client.screen instanceof StoryScreen reading && reading.parent instanceof WhoScreen who) {
+				who.progress(progress.finished() ? null : progress);
+			} else if (client.screen instanceof WhoScreen who) {
 				// (Saying who they are meanwhile: the bar's along the bottom of that.)
 				who.progress(progress.finished() ? null : progress);
 			} else if (progress.finished()) {
@@ -105,15 +115,25 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(Citizens.Menu.TYPE, (menu, context) -> {
 			var client = context.client();
 			asked = menu.first() ? menu : asked;
-			if (client.screen instanceof WhoScreen who && who.first() == menu.first()) {
+			if (client.screen instanceof StoryScreen reading && reading.parent instanceof WhoScreen who && who.first() == menu.first()) {
+				who.update(menu);
+			} else if (client.screen instanceof WhoScreen who && who.first() == menu.first()) {
 				who.update(menu);
 			} else {
 				client.setScreen(new WhoScreen(menu, menu.building() ? lastProgress : null));
 			}
 		});
+		ClientPlayNetworking.registerGlobalReceiver(Citizens.Story.TYPE, (told, context) -> {
+			story = told.lines();
+			if (context.client().screen instanceof WhoScreen who) {
+				who.storyCame();
+			}
+		});
 		ClientPlayNetworking.registerGlobalReceiver(Citizens.Answer.TYPE, (answer, context) -> {
 			var client = context.client();
-			if (client.screen instanceof WhoScreen who) {
+			// (Reading the story when the answer came: it's the menu behind's.)
+			net.minecraft.client.gui.screens.Screen at = client.screen instanceof StoryScreen reading ? reading.parent : client.screen;
+			if (at instanceof WhoScreen who) {
 				if (!answer.ok()) {
 					who.refused(answer.why());
 				} else {
