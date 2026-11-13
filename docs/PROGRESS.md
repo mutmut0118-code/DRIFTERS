@@ -3396,6 +3396,47 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.57: the roads between towns made again** (the user, 2026-11-13, with pictures: "lets revamp the roads ... the
+  path blocks are kinda janky, the grass sometimes over taking the path, bridge fences sometimes not connecting or
+  switching wood mid bridge, little divots that go up and down rapidly with the slabs ... you can tell it was terraformed
+  ... the terrain under the paths doesnt follow the rule where its 3-5 blocks of dirt then stone ... extend how long a
+  bridge can be"; their picture of the new top and of the bridge; "square the bridge"). Addon only.
+  - A new builder, `WildRoad` (`TownBuilder.highway` hands over to it; the old one kept as `oldHighway` to read).
+  - **Top:** packed mud, rooted dirt and coarse dirt, mud down the middle and coarser to the edges (`mix`), four or five
+    wide with ragged edges (`half`); smooth sandstone in a desert. Hamlets' streets the same mix (towns keep planks,
+    cities stone brick).
+  - **Heights:** worked out along its middle line, every column the height of the step it's nearest (a row across is one
+    height); a block every three where the land lets it, every two where not; smoothed; changed only when the land's 0.8
+    of a half block off (no up and down by the block); a step then a level step at least. Half blocks on Terrain Slabs'
+    packed mud, rooted dirt and coarse slabs (laid, not "generated"); whole blocks without the mod. An end is held only
+    where a stretch is laid there already (held to the ground at both ends, a stretch up a steep slope was pulled off the
+    one before it: eleven blocks' step).
+  - **Under it:** earth for three to five blocks, rock under that down to solid ground, anything open filled (`under`);
+    a fill anywhere (`GroundPlan`) is earth three to five deep, then rock.
+  - **Banks** (`GroundPlan` out in the wild): measured as the crow flies (not square), 14 out, a slope that's steeper here
+    and gentler there, its edge wandering; a tree more than six off keeps its ground and stands, a bank fells only a tree
+    whose own ground moves; plants that grew on moved ground grow on it again; a pit one column wide is filled. Roads laid
+    already are left alone (`leave`): the next stretch took their slabs for loose ground, cut them off and grassed the
+    block under, and on a steep hill built the rest of the stretch before it up as a bank.
+  - **Bridges:** a deck of planks three wide two over the water, a beam of logs each side with a fence on, a post of logs
+    with a lantern every six steps and at each end, a pier of logs on a foot of mossy stone under each post in the water,
+    braced under the beam. One wood a bridge (a stretch meeting one begun takes its wood). Water only at the road's edge is
+    left out of the road (it was a stub of bridge on the shore); water three steps across or less gets planks laid flat.
+    Up to 200 blocks of water (was 80; wider, docks and a boat).
+  - **Squared crossings** (`WorldPlan.square`, new worlds): a crossing and three points of each bank put on one line east
+    to west or north to south, the road eased over along the six points either side; left as it was where the banks would
+    be water, the bridge too long or the road moved more than 24. Seed 779: 6 squared.
+  - **Calmer ways:** each road's points smoothed once for the whole road (`Highways.smooth`).
+  - Debug: `/drifterciv plan roaddemo <length>` builds a road from the player the way they look, in stretches.
+  - Dev setup: Sodium, C2ME, Fast Noise and ZConfig in `run/mods`, Fast Better Grass on (the user asked: faster chunks,
+    grass easier to tell from dirt).
+  - Tested in the dev client on Tectonic + Terrain Slabs (pictures in `docs/shots/roads`): a river crossing, a mountain
+    climb, a squared bridge on a planned road in a new world; no column of a stretch changed by the next. Not yet looked at:
+    a hamlet's streets, a desert road, a long bridge (100+), a world without Terrain Slabs.
+  - Known: on slopes steeper than a block every two the road is narrow, in a cut, with whole-block steps; old worlds keep
+    their slanted crossings (their plans are saved) and their old stretches; where a new stretch meets an old dirt-path one
+    the top changes there.
+
 - **0.23.56: the story so far** (the user, 2026-11-12: "there should be more lore before i load the world", then
   "World's history", "Yes, build it"). The world's written past (the chronicle's days before day 1) told as a story:
   `Citizens.story()` sends it with the first "Who are you?" (`Citizens.Story`, lines beginning # are headings). A

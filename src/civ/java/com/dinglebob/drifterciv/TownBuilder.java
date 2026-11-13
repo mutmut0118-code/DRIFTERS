@@ -143,7 +143,7 @@ public final class TownBuilder {
 	}
 
 	/** The style of the town being made (set by its job each step; plains for anything else). */
-	private static Style style = Style.PLAINS;
+	static Style style = Style.PLAINS;
 	/** Its roads' and paths' blocks, and the slab for where they climb (set by its job each step: W1, by its size). */
 	private static java.util.function.Supplier<BlockState> paving = Blocks.DIRT_PATH::defaultBlockState;
 	private static BlockState pavingSlab = Blocks.COBBLESTONE_SLAB.defaultBlockState();
@@ -2285,7 +2285,13 @@ public final class TownBuilder {
 					: roll < 0.7F ? Blocks.STONE_BRICKS : roll < 0.85F ? Blocks.CRACKED_STONE_BRICKS : Blocks.MOSSY_STONE_BRICKS).defaultBlockState();
 			}
 
-			return this.households > HAMLET ? wood("planks").defaultBlockState() : Blocks.DIRT_PATH.defaultBlockState();
+			if (this.households > HAMLET) {
+				return wood("planks").defaultBlockState();
+			}
+
+			// (A hamlet's streets: the worn mix the roads between towns have; the user, 2026-11-13. Sandstone in a desert.)
+			return (this.look == Style.DESERT ? Blocks.SMOOTH_SANDSTONE : roll < 0.5F ? Blocks.PACKED_MUD : roll < 0.78F ? Blocks.ROOTED_DIRT : Blocks.COARSE_DIRT)
+				.defaultBlockState();
 		}
 
 		/**
@@ -2298,10 +2304,13 @@ public final class TownBuilder {
 			}
 
 			if (this.households <= HAMLET) {
-				var pathSlab = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
-					"terrain_slabs", "path_slab"));
-				if (pathSlab.isPresent()) {
-					return pathSlab.get().defaultBlockState();
+				if (this.look == Style.DESERT) {
+					return Blocks.SMOOTH_SANDSTONE_SLAB.defaultBlockState();
+				}
+
+				BlockState mudSlab = WildRoad.slabOf(Blocks.PACKED_MUD.defaultBlockState());
+				if (mudSlab != null) {
+					return mudSlab;
 				}
 			}
 
@@ -4532,7 +4541,7 @@ public final class TownBuilder {
 	 * Each column's ground while a town is laid out (its spots tried by the dozen; found measuring a town), forgotten for a
 	 * column as soon as a block in it changes.
 	 */
-	private static final java.util.Map<Long, Integer> GROUND = new java.util.HashMap<>();
+	static final java.util.Map<Long, Integer> GROUND = new java.util.HashMap<>();
 
 	private static void changed(int x, int z) {
 		GROUND.remove(BlockPos.asLong(x, 0, z));
@@ -4592,7 +4601,7 @@ public final class TownBuilder {
 			String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
 			boolean land = state.is(net.minecraft.tags.BlockTags.DIRT) || state.is(net.minecraft.tags.BlockTags.BASE_STONE_OVERWORLD)
 				|| state.is(net.minecraft.tags.BlockTags.SAND) || state.is(net.minecraft.tags.BlockTags.TERRACOTTA) || state.is(Blocks.GRAVEL)
-				|| state.is(Blocks.DIRT_PATH) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW) || state.is(net.minecraft.tags.BlockTags.ICE)
+				|| state.is(Blocks.DIRT_PATH) || state.is(Blocks.PACKED_MUD) || state.is(Blocks.SNOW_BLOCK) || state.is(Blocks.SNOW) || state.is(net.minecraft.tags.BlockTags.ICE)
 				|| state.is(Blocks.CLAY) || state.is(Blocks.MUD) || state.is(Blocks.CALCITE) || state.is(Blocks.POWDER_SNOW) || state.is(Blocks.MAGMA_BLOCK)
 				|| state.is(Blocks.OBSIDIAN) || state.is(Blocks.BEDROCK) || id.contains("sandstone") || id.contains("_ore") || id.startsWith("terrain_slabs:")
 				|| state.is(Blocks.MOSS_BLOCK) || state.is(Blocks.MYCELIUM) || state.is(Blocks.PODZOL) || state.is(Blocks.SMOOTH_BASALT)
@@ -4861,6 +4870,15 @@ public final class TownBuilder {
 	 * block the path when on rivers").
 	 */
 	static void highway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep, java.util.Set<Long> avoid) {
+		// (Made again, 2026-11-13: the worn mix, smooth heights, natural banks, a bridge of beams and posts.)
+		if (line.size() >= 2) {
+			WildRoad.build(level, line, keep, avoid);
+		}
+	}
+
+	/** The first making of a road between towns (a dirt path three wide), kept to read; {@link WildRoad} builds them now. */
+	@SuppressWarnings("unused")
+	private static void oldHighway(ServerLevel level, List<double[]> line, java.util.Set<Long> keep, java.util.Set<Long> avoid) {
 		if (line.size() < 2) {
 			return;
 		}
@@ -5175,7 +5193,7 @@ public final class TownBuilder {
 	}
 
 	/** This column's land loaded (read before it was, the game stopped to finish loading it). */
-	private static boolean loadedAt(ServerLevel level, int x, int z) {
+	static boolean loadedAt(ServerLevel level, int x, int z) {
 		return level.getChunkSource().getChunkNow(x >> 4, z >> 4) != null;
 	}
 
@@ -5198,7 +5216,7 @@ public final class TownBuilder {
 	 * built) cleared, and its lava filled (a road between towns climbed over a ruined portal and its pumpkin patch: the user's
 	 * picture). Anything else built is left as it is.
 	 */
-	private static void clearRuin(ServerLevel level, int x, int z) {
+	static void clearRuin(ServerLevel level, int x, int z) {
 		if (!loadedAt(level, x, z)) {
 			return;
 		}
@@ -5314,7 +5332,7 @@ public final class TownBuilder {
 	}
 
 	/** A block set with its neighbours told (fences join up, a lantern sits on its post). */
-	private static void place(ServerLevel level, BlockPos pos, BlockState state) {
+	static void place(ServerLevel level, BlockPos pos, BlockState state) {
 		level.setBlock(pos, state, Block.UPDATE_ALL);
 		changed(pos.getX(), pos.getZ());
 	}

@@ -1383,3 +1383,7 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   deeds), only what the player would know (told by the towns they walk into), each opening as a front page with
   banners and heads, and on to how it began, voices, a life and a nation's page. Details in docs/PROGRESS.md (0.23.47).
   Next by the user's order: A10 part 3 or quests, when they say.
+- 2026-11-13 (0.23.57): **the roads between towns made again** (W1 and W5 revisited; the user's pictures): a worn top of
+  packed mud, rooted dirt and coarse dirt (hamlets' streets too), smooth heights in half blocks, banks that fade into the
+  land, earth then rock under it, bridges of beams, posts, lanterns and piers squared east to west or north to south, up
+  to 200 blocks of water. Details in docs/PROGRESS.md (0.23.57).

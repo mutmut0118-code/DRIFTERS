@@ -145,7 +145,7 @@ final class WorldPlan {
 	}
 
 	/** Water a road bridges at most (blocks of it in a row); wider, a boat crossing. */
-	static final int LONG_BRIDGE = 80;
+	static final int LONG_BRIDGE = 200;
 	/** The world's past, and its present for the places nobody's near (W6, W7). */
 	@Nullable
 	static History history;
@@ -2046,6 +2046,7 @@ final class WorldPlan {
 			}
 
 			List<int[]> between = new ArrayList<>(line.subList(first, last + 1));
+			this.square(between);
 			// (A way in for each end it doesn't share: two the same way made two main roads out of the town side by side.)
 			if (this.sharedNear(between.get(0)) == null) {
 				a.gates.add(Math.atan2(between.get(0)[1] - a.z, between.get(0)[0] - a.x));
@@ -2086,6 +2087,90 @@ final class WorldPlan {
 			for (int n = 0; n < parts.size(); n++) {
 				this.pieces(a, b, parts.get(n), n == 0, n == parts.size() - 1);
 			}
+		}
+
+		/** A bridge's way is squared only if it moves the road this far sideways at most. */
+		private static final int SQUARE_MOST = 24;
+
+		/**
+		 * Its bridges squared (the user, 2026-11-13: "square the bridge"): where the way crosses water narrow enough to bridge
+		 * at a slant, the crossing and two points of each bank are put on one line east to west or north to south (a bridge
+		 * on a slant has stepped edges, its railings a zigzag), and the road eased over to it along the six points before and
+		 * after. Left as it was where the new line's banks would be water, the bridge too long, or the road moved too far.
+		 */
+		private void square(List<int[]> between) {
+			int n = between.size();
+			int k = 0;
+			while (k < n) {
+				if (this.realLand(between.get(k)[0], between.get(k)[1])[1] != 1) {
+					k++;
+					continue;
+				}
+
+				int s = k;
+				while (k < n && this.realLand(between.get(k)[0], between.get(k)[1])[1] == 1) {
+					k++;
+				}
+
+				int e = k - 1;
+				if (s > 0 && e < n - 1 && (e - s + 1) * STEP <= LONG_BRIDGE) {
+					this.squareAt(between, s, e);
+				}
+			}
+
+			for (int i = between.size() - 1; i > 0; i--) {
+				if (between.get(i)[0] == between.get(i - 1)[0] && between.get(i)[1] == between.get(i - 1)[1]) {
+					between.remove(i);
+				}
+			}
+		}
+
+		private void squareAt(List<int[]> between, int s, int e) {
+			int n = between.size();
+			int flat0 = s - 3;
+			int flat1 = e + 3;
+			int ease = Math.min(6, Math.min(flat0 - 1, n - 2 - flat1));
+			if (ease < 3) {
+				return;
+			}
+
+			int[] a = between.get(s - 1);
+			int[] b = between.get(e + 1);
+			// (0: it runs east to west, its points keep their x and take one z; 1: north to south.)
+			int along = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]) ? 0 : 1;
+			int side = 1 - along;
+			int line = Math.round((a[side] + b[side]) / 2.0F);
+			List<int[]> moved = new ArrayList<>();
+			int wet = 0;
+			for (int i = flat0 - ease; i <= flat1 + ease; i++) {
+				int[] p = between.get(i).clone();
+				double keep = i < flat0 ? (flat0 - i) / (double)(ease + 1) : i > flat1 ? (i - flat1) / (double)(ease + 1) : 0;
+				int to = (int)Math.round(line + (p[side] - line) * keep);
+				if (Math.abs(to - p[side]) > SQUARE_MOST) {
+					return;
+				}
+
+				p[side] = to;
+				boolean water = this.realLand(p[0], p[1])[1] == 1;
+				// (Its banks, and the road eased over to them, on land; the water between them no wider than a bridge.)
+				if (water && (i < s || i > e)) {
+					return;
+				}
+
+				wet += water ? 1 : 0;
+				moved.add(p);
+			}
+
+			if (wet == 0 || wet * STEP > LONG_BRIDGE) {
+				return;
+			}
+
+			for (int i = 0; i < moved.size(); i++) {
+				between.set(flat0 - ease + i, moved.get(i));
+			}
+
+			DrifterCivilizations.LOGGER.info("[plan] a bridge squared: from {}, {} to {}, {}, {} blocks of water", between.get(s - 1)[0], between.get(s - 1)[1],
+				between.get(e + 1)[0], between.get(e + 1)[1], wet * STEP);
 		}
 
 		/**

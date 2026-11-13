@@ -227,8 +227,9 @@ final class Highways {
 	/** One stretch built: its points, joined at a town's end to the nearest of the town's roads, a signpost there. */
 	private static void build(ServerLevel level, WorldPlan.Highway road, int piece, int a, int b) {
 		List<double[]> corners = new ArrayList<>();
+		List<double[]> smooth = smooth(road);
 		for (int i = a; i <= b; i++) {
-			corners.add(new double[] {road.points.get(i)[0] + 0.5, road.points.get(i)[1] + 0.5});
+			corners.add(smooth.get(i).clone());
 		}
 
 		java.util.Set<Long> townRoads = new java.util.HashSet<>();
@@ -275,6 +276,41 @@ final class Highways {
 		return "the far shore";
 	}
 
+	private static final Map<WorldPlan.Highway, List<double[]>> SMOOTH = new java.util.IdentityHashMap<>();
+
+	/**
+	 * A road's points with its small wiggles taken out (the user, 2026-11-13: "the road pathing is kinda chaotic"): each
+	 * the weighted middle of itself and the two either side (its ends where they are), worked out once for the whole road,
+	 * so its stretches meet.
+	 */
+	static List<double[]> smooth(WorldPlan.Highway road) {
+		List<double[]> known = SMOOTH.get(road);
+		if (known != null && known.size() == road.points.size()) {
+			return known;
+		}
+
+		int n = road.points.size();
+		List<double[]> out = new ArrayList<>();
+		int[] weights = {3, 2, 1};
+		for (int i = 0; i < n; i++) {
+			int reach = Math.min(2, Math.min(i, n - 1 - i));
+			double x = 0;
+			double z = 0;
+			double sum = 0;
+			for (int k = -reach; k <= reach; k++) {
+				int w = weights[Math.abs(k)];
+				x += w * (road.points.get(i + k)[0] + 0.5);
+				z += w * (road.points.get(i + k)[1] + 0.5);
+				sum += w;
+			}
+
+			out.add(new double[] {x / sum, z / sum});
+		}
+
+		SMOOTH.put(road, out);
+		return out;
+	}
+
 	/**
 	 * The columns of every planned road near this stretch (three wide, as they're built): its own stretches either side and
 	 * any other's, so no railing goes up on one.
@@ -282,10 +318,10 @@ final class Highways {
 	private static java.util.Set<Long> waysAbout(List<double[]> corners, WorldPlan.Highway own, int a, int b) {
 		int x0 = Integer.MAX_VALUE, z0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, z1 = Integer.MIN_VALUE;
 		for (double[] c : corners) {
-			x0 = Math.min(x0, (int)Math.floor(c[0]) - 24);
-			z0 = Math.min(z0, (int)Math.floor(c[1]) - 24);
-			x1 = Math.max(x1, (int)Math.floor(c[0]) + 24);
-			z1 = Math.max(z1, (int)Math.floor(c[1]) + 24);
+			x0 = Math.min(x0, (int)Math.floor(c[0]) - 40);
+			z0 = Math.min(z0, (int)Math.floor(c[1]) - 40);
+			x1 = Math.max(x1, (int)Math.floor(c[0]) + 40);
+			z1 = Math.max(z1, (int)Math.floor(c[1]) + 40);
 		}
 
 		java.util.Set<Long> ways = new java.util.HashSet<>();
@@ -296,16 +332,16 @@ final class Highways {
 					continue;
 				}
 
-				int[] p = other.points.get(i);
-				int[] q = other.points.get(i + 1);
+				double[] p = smooth(other).get(i);
+				double[] q = smooth(other).get(i + 1);
 				if (Math.max(p[0], q[0]) < x0 || Math.min(p[0], q[0]) > x1 || Math.max(p[1], q[1]) < z0 || Math.min(p[1], q[1]) > z1) {
 					continue;
 				}
 
 				int steps = Math.max(1, (int)Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1])));
 				for (int s = 0; s <= steps; s++) {
-					int x = (int)Math.floor(p[0] + 0.5 + (q[0] - p[0]) * s / (double)steps);
-					int z = (int)Math.floor(p[1] + 0.5 + (q[1] - p[1]) * s / (double)steps);
+					int x = (int)Math.floor(p[0] + (q[0] - p[0]) * s / (double)steps);
+					int z = (int)Math.floor(p[1] + (q[1] - p[1]) * s / (double)steps);
 					for (int dx = -1; dx <= 1; dx++) {
 						for (int dz = -1; dz <= 1; dz++) {
 							ways.add(BlockPos.asLong(x + dx, 0, z + dz));
@@ -435,6 +471,69 @@ final class Highways {
 			sign.setText(text, true);
 			sign.setText(text, false);
 		}
+	}
+
+	/**
+	 * Debug: a road from {@code from} the way {@code yaw} looks, bending a little as it goes, built in stretches as the
+	 * plan's roads are (each told of the others' ways), on land that's loaded. How many stretches.
+	 */
+	static int demo(ServerLevel level, net.minecraft.world.phys.Vec3 from, float yaw, int length) {
+		double heading = Math.toRadians(yaw + 90);
+		List<double[]> corners = new ArrayList<>();
+		double x = from.x;
+		double z = from.z;
+		for (int d = 0; d <= length; d += 4) {
+			corners.add(new double[] {x, z});
+			double bend = heading + 0.5 * Math.sin(d / 38.0);
+			x += Math.cos(bend) * 4;
+			z += Math.sin(bend) * 4;
+		}
+
+		List<List<double[]>> lines = new ArrayList<>();
+		for (int a = 0; a < corners.size() - 1; a += PIECE) {
+			lines.add(line(corners.subList(a, Math.min(corners.size(), a + PIECE + 1))));
+		}
+
+		WildRoad.DEBUG = true;
+		for (int i = 0; i < lines.size(); i++) {
+			java.util.Set<Long> avoid = new java.util.HashSet<>();
+			for (int k = 0; k < lines.size(); k++) {
+				if (k == i) {
+					continue;
+				}
+
+				for (double[] p : lines.get(k)) {
+					for (int dx = -1; dx <= 1; dx++) {
+						for (int dz = -1; dz <= 1; dz++) {
+							avoid.add(BlockPos.asLong((int)Math.floor(p[0]) + dx, 0, (int)Math.floor(p[1]) + dz));
+						}
+					}
+				}
+			}
+
+			TownBuilder.highway(level, lines.get(i), java.util.Set.of(), avoid);
+		}
+
+		WildRoad.DEBUG = false;
+		// What its middle three are topped with, and where it runs (to look at it).
+		Map<String, Integer> tops = new java.util.TreeMap<>();
+		StringBuilder way = new StringBuilder();
+		int step = 0;
+		for (List<double[]> part : lines) {
+			for (double[] p : part) {
+				int px = (int)Math.floor(p[0]);
+				int pz = (int)Math.floor(p[1]);
+				int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, px, pz) - 1;
+				tops.merge(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(new BlockPos(px, y, pz)).getBlock()).getPath(), 1, Integer::sum);
+				if (step++ % 16 == 0) {
+					way.append(px).append(',').append(y).append(',').append(pz).append("  ");
+				}
+			}
+		}
+
+		DrifterCivilizations.LOGGER.info("[road] demo: along its middle {}; by {}", tops, way);
+
+		return lines.size();
 	}
 
 	/** Debug: how many stretches are built of how many. */

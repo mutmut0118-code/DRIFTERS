@@ -3812,3 +3812,20 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
       the mouse wheel. **Back** returns to the menu with your name and nation still as you left them.
 - [ ] **Press Begin.** While the towns are built, the same story is under the loading bar to read.
 - [ ] Each nation's card on the menu now tells a little more of its past.
+
+## 0.23.57: the roads between towns made again (new)
+
+Best seen in a **new world** (bridges are only squared, and only reach 200 blocks, in worlds made with this version).
+With Terrain Slabs installed, as you usually play.
+
+- [ ] **Walk a road out of a town.** Its top is packed mud, rooted dirt and coarse dirt, four or five blocks wide with
+      ragged edges. No grass blocks standing on it, no holes in it.
+- [ ] **Follow it over a hill.** It climbs in even half-block steps (slabs of the same three blocks). You shouldn't need
+      to jump except on very steep ground, and it shouldn't go up and down every block.
+- [ ] **Look at the land beside it** (fly up with `/gamemode spectator` if you like). The banks should fade into the
+      land with no square edge, trees a few blocks off still standing, grass and flowers on them.
+- [ ] **Dig under it** somewhere it was built up: three to five blocks of dirt, then stone. No open cave right under it.
+- [ ] **Cross a bridge.** Straight (east to west or north to south), planks three wide, a log beam and fence each side,
+      log posts with lanterns, log piers on mossy stone in the water. One wood all the way, no gap in the railing.
+- [ ] **A hamlet's streets** use the same mud and dirt mix.
+- [ ] Anything that still looks off: a screenshot and the coordinates (F3) help most.

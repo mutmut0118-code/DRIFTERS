@@ -270,6 +270,14 @@ public final class DrifterCivilizations implements ModInitializer {
 						+ "; generated, its floor at " + floor + " and its top at " + top), false);
 					return 1;
 				}))
+				// (Debug: a road between towns from here the way the player looks, bending a little, in stretches as they're built.)
+				.then(Commands.literal("roaddemo").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("length", com.mojang.brigadier.arguments.IntegerArgumentType.integer(16, 400)).executes(ctx -> {
+						int length = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length");
+						int stretches = Highways.demo(ctx.getSource().getLevel(), ctx.getSource().getPosition(), ctx.getSource().getRotation().y, length);
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: a road " + length + " blocks long from here, in " + stretches + " stretches"), true);
+						return 1;
+					})))
 				.then(Commands.literal("roads").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					Highways.forcedNear = BlockPos.containing(ctx.getSource().getPosition());
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: roads within 1000 blocks of here are built now, a stretch at a time, player or not"),

@@ -64,7 +64,7 @@ final class TownMap {
 		int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
 		BlockPos pos = new BlockPos(x, top, z);
 		BlockState state = level.getBlockState(pos);
-		int colour = state.is(Blocks.DIRT_PATH) || state.is(Blocks.SMOOTH_SANDSTONE) && top <= level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) ? ROAD
+		int colour = state.is(Blocks.DIRT_PATH) || state.is(Blocks.PACKED_MUD) || state.is(Blocks.SMOOTH_SANDSTONE) && top <= level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) ? ROAD
 			: state.getMapColor(level, pos).col;
 		// (Shaded as a map is: lighter where the land rises to the north, darker where it falls.)
 		int north = level.getChunkSource().getChunkNow(x >> 4, (z - 1) >> 4) == null ? top : level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z - 1) - 1;

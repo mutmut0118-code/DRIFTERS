@@ -136,6 +136,29 @@ final class GroundPlan {
 		this.wild = true;
 	}
 
+	/** Out in the wild, the land's eased to a road this far out, as the crow flies. */
+	private static final int WILD_REACH = 14;
+
+	private int reach() {
+		return this.wild ? WILD_REACH : ROAD_REACH;
+	}
+
+	/**
+	 * Out in the wild, how far the land may stand off a road {@code d} out from it (the user, 2026-11-13: "when the road
+	 * terraforms, you can tell it was terraformed instead of natural terrain ... its like a square hole compared to the
+	 * terrain surrounding it"): measured as the crow flies (round its bends, not square), nothing beside it, then a slope
+	 * that's gentler here and steeper there along it (a block every two and a half to two every three), its edge wandering.
+	 * A tree standing a few blocks off it keeps its ground (and stands): its banks were a strip mown clear of trees.
+	 */
+	private int wildEase(double d, int x, int z) {
+		if (d <= 1.6) {
+			return 0;
+		}
+
+		double steep = 0.4 + 0.12 * this.wobble(x, z, 17);
+		return (int)Math.floor((d - 1.6) * steep + this.wobble(x, z, 6) * 0.5 * Math.min(1.0, d / 5.0));
+	}
+
 	private boolean standing(int x, int z) {
 		return this.spare && this.builtAt.computeIfAbsent(BlockPos.asLong(x, 0, z), key -> TownBuilder.built(this.level, x, z));
 	}
@@ -145,7 +168,7 @@ final class GroundPlan {
 		this.roads.merge(column, height, Math::max);
 		int x = BlockPos.getX(column);
 		int z = BlockPos.getZ(column);
-		this.grow(x - ROAD_REACH, z - ROAD_REACH, x + ROAD_REACH, z + ROAD_REACH);
+		this.grow(x - this.reach(), z - this.reach(), x + this.reach(), z + this.reach());
 		this.field = null;
 		this.raw.clear();
 		this.targets.clear();
@@ -220,6 +243,19 @@ final class GroundPlan {
 			known = this.raw(x, z);
 			if (!this.roads.containsKey(key) && this.padAt(x, z) == null && !this.wet(x, z)) {
 				known = this.unslot(x, z, known);
+				// (Out in the wild, a pit one column wide in a bank, the land higher all round it: filled to the lowest of them.)
+				if (this.wild && this.near(x, z)) {
+					int least = Integer.MAX_VALUE;
+					for (Direction side : Direction.Plane.HORIZONTAL) {
+						int nx = x + side.getStepX();
+						int nz = z + side.getStepZ();
+						least = this.wet(nx, nz) ? Integer.MIN_VALUE : Math.min(least, this.raw(nx, nz));
+					}
+
+					if (least > known && least != Integer.MAX_VALUE) {
+						known = least;
+					}
+				}
 			}
 
 			this.targets.put(key, known);
@@ -233,11 +269,35 @@ final class GroundPlan {
 		Integer known = this.raw.get(key);
 		if (known == null) {
 			Integer height = this.height(x, z, true);
-			known = height != null ? height : this.natural(x, z);
+			known = height != null && !this.keptTree(x, z) ? height : this.natural(x, z);
 			this.raw.put(key, known);
 		}
 
 		return known;
+	}
+
+	/** Out in the wild, a tree's trunk on this column, more than two off the road: its ground's left as it is. */
+	private boolean keptTree(int x, int z) {
+		return this.wildBank(x, z, 6) && this.known(x, z) && this.level.getBlockState(new BlockPos(x, this.natural(x, z) + 1, z)).is(BlockTags.LOGS);
+	}
+
+	/** Out in the wild, a road's bank (more than two off it): no tree's felled for it (one kept its ground and was felled by the column beside it: a pit). */
+	private boolean wildBank(int x, int z) {
+		return this.wildBank(x, z, 2);
+	}
+
+	/**
+	 * More than {@code off} from the road. (A tree keeps its ground only more than six off: nearer, its leaves reach over
+	 * the road and it's felled for that, and where it stood was a pit a block deep.)
+	 */
+	private boolean wildBank(int x, int z, int off) {
+		if (!this.wild || this.roads.isEmpty()) {
+			return false;
+		}
+
+		RoadField roads = this.field();
+		int i = roads.at(x, z);
+		return i >= 0 && Math.min(roads.loD[i], roads.hiD[i]) > off;
 	}
 
 	/**
@@ -323,7 +383,7 @@ final class GroundPlan {
 		if (withRoads && !this.roads.isEmpty()) {
 			RoadField roads = this.field();
 			int i = roads.at(x, z);
-			if (i >= 0 && roads.loD[i] <= ROAD_REACH) {
+			if (i >= 0 && roads.loD[i] <= this.reach()) {
 				any = true;
 				roadAway = Math.min(roads.loD[i], roads.hiD[i]);
 				if (roads.lo[i] > lo || roads.lo[i] == lo && roads.loD[i] < nearLo) {
@@ -428,10 +488,15 @@ final class GroundPlan {
 
 	/** A smooth wander, 0 to 2.5, for banks' edges: the same for a column whoever asks. */
 	private double wobble(int x, int z) {
-		int gx = Math.floorDiv(x, 6);
-		int gz = Math.floorDiv(z, 6);
-		double fx = (x - gx * 6) / 6.0;
-		double fz = (z - gz * 6) / 6.0;
+		return this.wobble(x, z, 6);
+	}
+
+	/** The same wander over squares {@code size} wide. */
+	private double wobble(int x, int z, int size) {
+		int gx = Math.floorDiv(x, size) + size * 1000;
+		int gz = Math.floorDiv(z, size);
+		double fx = (x - Math.floorDiv(x, size) * size) / (double)size;
+		double fz = (z - gz * size) / (double)size;
 		fx = fx * fx * (3 - 2 * fx);
 		fz = fz * fz * (3 - 2 * fz);
 		double a = Mth.lerp(fx, this.hash(gx, gz), this.hash(gx + 1, gz));
@@ -491,16 +556,18 @@ final class GroundPlan {
 			int rx = BlockPos.getX(road.getKey());
 			int rz = BlockPos.getZ(road.getKey());
 			int height = road.getValue();
-			for (int dx = -ROAD_REACH; dx <= ROAD_REACH; dx++) {
-				for (int dz = -ROAD_REACH; dz <= ROAD_REACH; dz++) {
+			int reach = this.reach();
+			for (int dx = -reach; dx <= reach; dx++) {
+				for (int dz = -reach; dz <= reach; dz++) {
 					int i = f.at(rx + dx, rz + dz);
-					if (i < 0) {
+					double far = Math.sqrt(dx * dx + dz * dz);
+					if (i < 0 || this.wild && far > reach) {
 						continue;
 					}
 
-					int d = Math.max(Math.abs(dx), Math.abs(dz));
+					int d = this.wild ? (int)Math.round(far) : Math.max(Math.abs(dx), Math.abs(dz));
 					double w = this.wobble(rx + dx, rz + dz);
-					int e = d <= 1 ? 0 : this.wild ? slope(d, ROAD_BANK, w) : (int)Math.floor((d + w) / 2.0) + terraces(d, ROAD_BANK);
+					int e = this.wild ? this.wildEase(far, rx + dx, rz + dz) : d <= 1 ? 0 : (int)Math.floor((d + w) / 2.0) + terraces(d, ROAD_BANK);
 					if (height - e > f.lo[i] || height - e == f.lo[i] && d < f.loD[i]) {
 						f.lo[i] = height - e;
 						f.loD[i] = d;
@@ -544,7 +611,7 @@ final class GroundPlan {
 		if (!this.roads.isEmpty()) {
 			RoadField roads = this.field();
 			int i = roads.at(x, z);
-			return i >= 0 && roads.loD[i] <= ROAD_REACH;
+			return i >= 0 && roads.loD[i] <= this.reach();
 		}
 
 		return false;
@@ -592,8 +659,15 @@ final class GroundPlan {
 		}
 	}
 
+	/** Columns never touched (another road's top, laid already). */
+	private final java.util.Set<Long> left = new java.util.HashSet<>();
+
+	void leave(long column) {
+		this.left.add(column);
+	}
+
 	private void column(int x, int z) {
-		if (this.wet(x, z) || this.standing(x, z)) {
+		if (this.wet(x, z) || this.standing(x, z) || this.left.contains(BlockPos.asLong(x, 0, z))) {
 			return;
 		}
 
@@ -634,6 +708,12 @@ final class GroundPlan {
 		BlockState top = this.level.getBlockState(new BlockPos(x, g, z));
 		BlockState surface = this.surface(top);
 		BlockState under = this.under(surface);
+		// (Out in the wild, what grew here grows on it again after: its banks were bare grass in a meadow of it.)
+		BlockState grew = this.level.getBlockState(new BlockPos(x, g + 1, z));
+		if (!this.wild || onRoad || grew.isAir() || !grew.getFluidState().isEmpty() || !(grew.getBlock() instanceof net.minecraft.world.level.block.BushBlock)
+			|| grew.getBlock() instanceof net.minecraft.world.level.block.DoublePlantBlock) {
+			grew = null;
+		}
 		// A slab the land had on its top (Terrain Slabs' half step): gone with the old surface (cut down, it was left floating).
 		BlockPos half = new BlockPos(x, g + 1, z);
 		BlockState halfState = this.level.getBlockState(half);
@@ -641,14 +721,20 @@ final class GroundPlan {
 			TownBuilder.set(this.level, half, Blocks.AIR.defaultBlockState());
 		}
 
+		boolean bank = this.wildBank(x, z);
 		if (this.loaded(x, z)) {
-			TownBuilder.fellIn(this.level, x, z, Math.min(g, t) + 1, Math.max(g, t) + 3);
+			// (A bank's own tree, its ground moved under it, comes down; one whose leaves only reach over it stays.)
+			TownBuilder.fellIn(this.level, x, z, bank ? g + 1 : Math.min(g, t) + 1, bank ? g + 1 : Math.max(g, t) + 3);
 		}
 
 		if (t > g) {
 			TownBuilder.buried(this.level, new BlockPos(x, g, z));
+			// (Earth for three to five blocks under its top, rock under that, as the land has it: a fill was earth all the way
+			// down; the user, 2026-11-13.)
+			int earth = 3 + (int)(this.hash(x, z) * 3);
+			BlockState deep = under.is(Blocks.DIRT) ? this.rock() : under;
 			for (int y = g + 1; y <= t; y++) {
-				TownBuilder.set(this.level, new BlockPos(x, y, z), y == t ? surface : under);
+				TownBuilder.set(this.level, new BlockPos(x, y, z), y == t ? surface : t - y <= earth ? under : deep);
 			}
 		} else if (t < g) {
 			for (int y = t + 1; y <= g; y++) {
@@ -688,7 +774,7 @@ final class GroundPlan {
 		this.sealLava(x, z, g, t);
 		// Plants left floating or buried, and room over a pad (its trees felled whole; the store's, a house's height).
 		int clear = pad != null ? pad.clear() : 2;
-		if (this.loaded(x, z)) {
+		if (this.loaded(x, z) && !bank) {
 			TownBuilder.fellIn(this.level, x, z, t + 1, t + clear);
 		}
 
@@ -705,6 +791,11 @@ final class GroundPlan {
 			this.snow(x, z, t);
 		} else if (pad == null) {
 			this.footSlab(x, z, t, onRoad);
+		}
+
+		BlockPos over = new BlockPos(x, t + 1, z);
+		if (grew != null && this.level.getBlockState(over).isAir() && grew.canSurvive(this.level, over)) {
+			TownBuilder.set(this.level, over, grew);
 		}
 	}
 
