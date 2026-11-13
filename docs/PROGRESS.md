@@ -3396,6 +3396,19 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.55: the world stands still until you begin** (the user, 2026-11-12: "the world already loads before the
+  loading screen ends, so when im picking towns i hear footsteps, animals, and one time i went afk and i loaded it and it
+  was nighttime"). Cause: the towns are built in the running world, so it ticked behind the loading screen and the first
+  "Who are you?" for as long as they were up. Now `WorldBuild` freezes it with the game's own tick freeze while a new
+  world is built (no time, nothing moving or spawning; land generation and town building go on) and lets it go as it
+  finishes (not touched if someone had frozen it themselves; let go as the server stops). The client stops the world's
+  sounds (not music or clicks) behind those two screens.
+  - **Tested:** a fresh world headless (the day's time 1 after 40 s) and in the dev client through the menu as a
+    citizen: "the world's built (110 s; the day's time 2)", then the game "running normally" and time passing; as much
+    built in the time as before (4 of 18 places, 25 of 124 stretches of road). **Not tested:** the quiet, by ear.
+  - **Not changed:** someone asked who they are in a world already built (joining a server later): the world goes on
+    there for the others; they're held and unhurt as before.
+  - **Asked for, not designed yet:** "there should be more lore before i load the world".
 - **0.23.54: made to order** (shops worth more than looting, part 3, the first of the things only money buys; the
   user: "Yes, go on"). `Orders.java`, saved "drifter_civ_orders" v1; lines and phrases in `drifter_chat/orders.json`.
   API 15 (`TownWork.Wares.pressing`).

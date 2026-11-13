@@ -18,6 +18,11 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 	private static java.util.List<int[]> tour;
 	private static int tourWait;
 
+	/** The world's sounds (not music, not the menu's clicks). */
+	private static final net.minecraft.sounds.SoundSource[] QUIET = {net.minecraft.sounds.SoundSource.AMBIENT, net.minecraft.sounds.SoundSource.WEATHER,
+		net.minecraft.sounds.SoundSource.BLOCKS, net.minecraft.sounds.SoundSource.HOSTILE, net.minecraft.sounds.SoundSource.NEUTRAL,
+		net.minecraft.sounds.SoundSource.PLAYERS, net.minecraft.sounds.SoundSource.RECORDS, net.minecraft.sounds.SoundSource.VOICE};
+
 	@Override
 	public void onInitializeClient() {
 		journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(new net.minecraft.client.KeyMapping(
@@ -35,6 +40,13 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 				asked = null;
 			} else if (asked != null && client.screen == null) {
 				client.setScreen(new WhoScreen(asked, asked.building() ? lastProgress : null));
+			}
+
+			// (Behind the loading screen and the first "Who are you?" the world isn't shown: not heard either.)
+			if (client.level != null && (client.screen instanceof WorldBuildScreen || client.screen instanceof WhoScreen who && who.first())) {
+				for (net.minecraft.sounds.SoundSource source : QUIET) {
+					client.getSoundManager().stop(null, source);
+				}
 			}
 
 			tourTick(client);

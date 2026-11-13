@@ -59,6 +59,20 @@ public final class WorldBuild {
 	static final int LOADING_REACH = 2000;
 	private static final long MOST_MS = 110_000L;
 	private static boolean more;
+	/**
+	 * The world's stood still by this while it's built (the game's own tick freeze: no time passing, nothing moving, nothing
+	 * spawning; the user, 2026-11-12: "when im picking towns i hear footsteps, animals, and one time i went afk and i loaded
+	 * it and it was nighttime"). Land is still generated and towns still built: that isn't the world's ticking.
+	 */
+	private static boolean froze;
+
+	/** The world let go again, if this stood it still. */
+	private static void thaw(MinecraftServer server) {
+		if (froze) {
+			froze = false;
+			server.tickRateManager().setFrozen(false);
+		}
+	}
 
 	static void register() {
 		PayloadTypeRegistry.playS2C().register(Progress.TYPE, Progress.CODEC);
@@ -72,6 +86,7 @@ public final class WorldBuild {
 		// saved unhurtable and come back taken for one who always was. Held again if they come back while it's built.)
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> release(handler.getPlayer()));
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			thaw(server);
 			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 				release(player);
 			}
@@ -83,6 +98,7 @@ public final class WorldBuild {
 		building = !builtBefore && (newPlanned || buildingBefore);
 		started = false;
 		more = false;
+		froze = false;
 		saveShown = false;
 		spawnSpot = null;
 		held.clear();
@@ -116,6 +132,12 @@ public final class WorldBuild {
 		}
 
 		hold(server);
+		// (Stood still till it's played. Not if someone froze it themselves: theirs to undo.)
+		if (!froze && !server.tickRateManager().isFrozen()) {
+			froze = true;
+			server.tickRateManager().setFrozen(true);
+		}
+
 		if (WorldPlan.ready) {
 			java.util.Set<UUID> wanted = Citizens.wantedHomes(server);
 			java.util.Set<Long> at = new java.util.HashSet<>();
@@ -227,6 +249,7 @@ public final class WorldBuild {
 		}
 
 		building = false;
+		thaw(server);
 		WorldPlan.built = true;
 		Towns.save(server);
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -244,7 +267,8 @@ public final class WorldBuild {
 
 		held.clear();
 		wasInvulnerable.clear();
-		DrifterCivilizations.LOGGER.info("[build] the world's built ({} s)", (System.currentTimeMillis() - since) / 1000);
+		DrifterCivilizations.LOGGER.info("[build] the world's built ({} s; the day's time {})", (System.currentTimeMillis() - since) / 1000,
+			server.overworld().getDayTime());
 	}
 
 	/**

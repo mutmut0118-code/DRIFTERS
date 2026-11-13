@@ -3797,3 +3797,10 @@ People now ask things of you, in person, and the journal (J) has a **Quests** bo
 - [ ] Say `make me something` to a smith: it lists what it makes. Say it to someone who isn't a smith: they send you
       to the smithy.
 - [ ] (`/drifterciv order` lists the open orders.)
+
+## 0.23.55: the world stands still until you begin (new)
+
+- [ ] **Make a new world** and take your time on "Who are you?" (leave it open for ten minutes if you like). You
+      should hear no footsteps or animals, only music and the menu's clicks.
+- [ ] **Press Begin.** When the world opens it's early morning, the very start of the first day, however long you
+      waited, and people and animals start moving only now.
