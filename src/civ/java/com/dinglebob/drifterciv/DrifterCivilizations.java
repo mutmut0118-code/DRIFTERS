@@ -274,13 +274,18 @@ public final class DrifterCivilizations implements ModInitializer {
 				.then(Commands.literal("roaddemo").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("length", com.mojang.brigadier.arguments.IntegerArgumentType.integer(16, 400)).executes(ctx -> {
 						int length = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length");
-						int stretches = Highways.demo(ctx.getSource().getLevel(), ctx.getSource().getPosition(), ctx.getSource().getRotation().y, length, false);
+						int stretches = Highways.demo(ctx.getSource().getLevel(), ctx.getSource().getPosition(), ctx.getSource().getRotation().y, length, 0);
 						ctx.getSource().sendSuccess(() -> Component.literal("Debug: a road " + length + " blocks long from here, in " + stretches + " stretches"), true);
 						return 1;
 					}).then(Commands.literal("straight").executes(ctx -> {
 						int length = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length");
-						int stretches = Highways.demo(ctx.getSource().getLevel(), ctx.getSource().getPosition(), ctx.getSource().getRotation().y, length, true);
+						int stretches = Highways.demo(ctx.getSource().getLevel(), ctx.getSource().getPosition(), ctx.getSource().getRotation().y, length, 1);
 						ctx.getSource().sendSuccess(() -> Component.literal("Debug: a straight road " + length + " blocks long from here, in " + stretches + " stretches"), true);
+						return 1;
+					})).then(Commands.literal("corner").executes(ctx -> {
+						int length = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "length");
+						int stretches = Highways.demo(ctx.getSource().getLevel(), ctx.getSource().getPosition(), ctx.getSource().getRotation().y, length, 2);
+						ctx.getSource().sendSuccess(() -> Component.literal("Debug: a road " + length + " blocks long from here with a square corner halfway, in " + stretches + " stretches"), true);
 						return 1;
 					}))))
 				.then(Commands.literal("roads").requires(source -> source.hasPermission(2)).executes(ctx -> {

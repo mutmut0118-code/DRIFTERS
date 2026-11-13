@@ -3396,6 +3396,21 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.59: every bridge straight** (the user, 2026-11-13: "do the corner bridges so all of them are straight"). Addon
+  only, new worlds.
+  - A crossing no one line suits is made of two (`WorldPlan.corner`): from the bank before it straight one way to a
+    corner, then straight the other way to the bank past it, the corner with less water on its way; a bridge that turns a
+    square corner over the water, its edges straight.
+  - A bridge's points are "sharp" (a third number, 1; saved as the road's `Sharp` list of indices): `Highways.smooth`
+    leaves them where the plan put them (smoothed, a corner was rounded and a squared line pulled off its line at the
+    banks).
+  - Seed 779: 19 crossings on one line, 10 with a corner, none on a slant.
+  - One wood a crossing: a bridge takes the wood of planks within 14 blocks (a second bridge just past a sandbar was
+    spruce beside oak).
+  - Debug: `/drifterciv plan roaddemo <length> corner`.
+  - Tested in the dev client: a bridge with a corner across a Tectonic river (pictures in `docs/shots/roads`).
+  - Known: a corner makes a crossing longer; over 200 blocks of water it becomes docks and a boat.
+
 - **0.23.58: roads, after the user's first play of them** (2026-11-13, thirteen pictures: pillars of earth in and beside
   the road, a mountainside cut into a bowl, a jumble of steps where a road meets a town, mud slabs and fences on a little
   bridge, bridges still on a slant by towns, sand through a deck, a hole into a buried ruin, a road standing a block over
@@ -3424,8 +3439,6 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   - Tested in the dev client: a straight 56-block bridge across a Tectonic river, the weathered edges, no column of a
     stretch changed by the next. Not seen again in a test: the pillars, the mountain cut and a town join (fixed by reading
     the code against the pictures).
-  - Open (asked the user): the last third of crossings could be made straight by a bridge that turns a square corner
-    over the water.
 
 - **0.23.57: the roads between towns made again** (the user, 2026-11-13, with pictures: "lets revamp the roads ... the
   path blocks are kinda janky, the grass sometimes over taking the path, bridge fences sometimes not connecting or

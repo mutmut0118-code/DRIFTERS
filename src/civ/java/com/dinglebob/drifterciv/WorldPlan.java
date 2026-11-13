@@ -2175,8 +2175,12 @@ final class WorldPlan {
 				}
 
 				if (why != null) {
-					DrifterCivilizations.LOGGER.info("[plan] a bridge left on a slant at {}, {} ({} blocks across): {}", between.get(s)[0], between.get(s)[1],
-						(e - s + 1) * STEP, why);
+					// (The user, 2026-11-13: "do the corner bridges so all of them are straight".)
+					int laid = this.corner(between, s, e);
+					DrifterCivilizations.LOGGER.info("[plan] a bridge with a corner at {}, {} ({} blocks across; no one line: {})", between.get(s)[0],
+						between.get(s)[1], (e - s + 1) * STEP, why);
+					n = between.size();
+					k = s + laid + 1;
 				}
 			}
 
@@ -2189,6 +2193,59 @@ final class WorldPlan {
 
 		private boolean water(int[] point) {
 			return this.realLand(point[0], point[1])[1] == 1;
+		}
+
+		/**
+		 * A crossing no one line east to west or north to south suits, made of two: from the bank before it straight one way
+		 * to a corner, then straight the other way to the bank past it (a bridge that turns a square corner over the water:
+		 * its edges are straight all the same). Of the two corners, the one with less water on its way. Its points are
+		 * {@link #sharp} (kept where they are when the road's way is smoothed). How many points are between its banks now.
+		 */
+		private int corner(List<int[]> between, int s, int e) {
+			int[] a = between.get(s - 1);
+			int[] b = between.get(e + 1);
+			List<int[]> best = null;
+			int bestWet = Integer.MAX_VALUE;
+			for (int[] turn : new int[][] {{b[0], a[1]}, {a[0], b[1]}}) {
+				List<int[]> way = new ArrayList<>();
+				int wet = 0;
+				for (int[][] leg : new int[][][] {{a, turn}, {turn, b}}) {
+					int length = Math.abs(leg[1][0] - leg[0][0]) + Math.abs(leg[1][1] - leg[0][1]);
+					int dx = Integer.signum(leg[1][0] - leg[0][0]);
+					int dz = Integer.signum(leg[1][1] - leg[0][1]);
+					// (From a step past its start up to its end: the corner itself is the first leg's last point.)
+					for (int d = STEP; d < length; d += STEP) {
+						way.add(new int[] {leg[0][0] + dx * d, leg[0][1] + dz * d, 1});
+					}
+
+					if (leg[1] == turn && length > 0) {
+						way.add(new int[] {turn[0], turn[1], 1});
+					}
+				}
+
+				for (int[] p : way) {
+					wet += this.water(p) ? 1 : 0;
+				}
+
+				if (wet < bestWet) {
+					bestWet = wet;
+					best = way;
+				}
+			}
+
+			for (int i = e; i >= s; i--) {
+				between.remove(i);
+			}
+
+			between.addAll(s, best);
+			between.set(s - 1, new int[] {a[0], a[1], 1});
+			between.set(s + best.size(), new int[] {b[0], b[1], 1});
+			return best.size();
+		}
+
+		/** A point of a road that stays where it is when the road's way is smoothed (a bridge's line): its third number is 1. */
+		static boolean sharp(int[] point) {
+			return point.length > 2 && point[2] == 1;
 		}
 
 		/**
@@ -2231,6 +2288,10 @@ final class WorldPlan {
 				}
 
 				p[side] = to;
+				if (i >= flat0 && i <= flat1) {
+					p = new int[] {p[0], p[1], 1};
+				}
+
 				boolean water = this.water(p);
 				// (The ends of its line, and the road eased over to them, on land; the water between no wider than a bridge.)
 				if (water && (i <= flat0 || i >= flat1)) {
@@ -2661,6 +2722,14 @@ final class WorldPlan {
 			}
 
 			one.putIntArray("Points", xs);
+			List<Integer> sharp = new ArrayList<>();
+			for (int i = 0; i < highway.points.size(); i++) {
+				if (highway.points.get(i).length > 2 && highway.points.get(i)[2] == 1) {
+					sharp.add(i);
+				}
+			}
+
+			one.putIntArray("Sharp", sharp);
 			byte[] built = new byte[highway.built.length];
 			for (int i = 0; i < built.length; i++) {
 				built[i] = (byte)(highway.built[i] ? 1 : 0);
@@ -2746,6 +2815,12 @@ final class WorldPlan {
 			List<int[]> points = new ArrayList<>();
 			for (int i = 0; i + 1 < xs.length; i += 2) {
 				points.add(new int[] {xs[i], xs[i + 1]});
+			}
+
+			for (int i : one.getIntArray("Sharp")) {
+				if (i >= 0 && i < points.size()) {
+					points.set(i, new int[] {points.get(i)[0], points.get(i)[1], 1});
+				}
 			}
 
 			Highway highway = new Highway(one.getUUID("From"), one.getUUID("To"), points);

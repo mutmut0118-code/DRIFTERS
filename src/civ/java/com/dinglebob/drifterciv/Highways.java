@@ -293,7 +293,8 @@ final class Highways {
 		List<double[]> out = new ArrayList<>();
 		int[] weights = {3, 2, 1};
 		for (int i = 0; i < n; i++) {
-			int reach = Math.min(2, Math.min(i, n - 1 - i));
+			// (A bridge's line stays where the plan put it: squared, or two lines and a corner.)
+			int reach = road.points.get(i).length > 2 && road.points.get(i)[2] == 1 ? 0 : Math.min(2, Math.min(i, n - 1 - i));
 			double x = 0;
 			double z = 0;
 			double sum = 0;
@@ -477,14 +478,15 @@ final class Highways {
 	 * Debug: a road from {@code from} the way {@code yaw} looks, bending a little as it goes, built in stretches as the
 	 * plan's roads are (each told of the others' ways), on land that's loaded. How many stretches.
 	 */
-	static int demo(ServerLevel level, net.minecraft.world.phys.Vec3 from, float yaw, int length, boolean straight) {
+	static int demo(ServerLevel level, net.minecraft.world.phys.Vec3 from, float yaw, int length, int shape) {
 		double heading = Math.toRadians(yaw + 90);
 		List<double[]> corners = new ArrayList<>();
 		double x = from.x;
 		double z = from.z;
 		for (int d = 0; d <= length; d += 4) {
 			corners.add(new double[] {x, z});
-			double bend = heading + (straight ? 0 : 0.5 * Math.sin(d / 38.0));
+			// (0: bending a little; 1: straight; 2: straight, a square corner to the right halfway.)
+			double bend = heading + (shape == 0 ? 0.5 * Math.sin(d / 38.0) : shape == 2 && d >= length / 8 * 4 ? Math.PI / 2 : 0);
 			x += Math.cos(bend) * 4;
 			z += Math.sin(bend) * 4;
 		}

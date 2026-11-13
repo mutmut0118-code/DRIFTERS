@@ -741,16 +741,18 @@ final class WildRoad {
 	/** The wood of a bridge begun already beside these columns (planks there), or null. */
 	@Nullable
 	private static String woodNear(ServerLevel level, Map<Long, Integer> decks) {
+		// (Well round it: a second bridge just past a sandbar, on the same crossing, was another wood.)
+		Set<Long> looked = new HashSet<>();
 		for (var deck : decks.entrySet()) {
-			for (int dx = -2; dx <= 2; dx++) {
-				for (int dz = -2; dz <= 2; dz++) {
+			for (int dx = -14; dx <= 14; dx += 2) {
+				for (int dz = -14; dz <= 14; dz += 2) {
 					int x = BlockPos.getX(deck.getKey()) + dx;
 					int z = BlockPos.getZ(deck.getKey()) + dz;
-					if (!TownBuilder.loadedAt(level, x, z)) {
+					if (!looked.add(BlockPos.asLong(x, 0, z)) || !TownBuilder.loadedAt(level, x, z)) {
 						continue;
 					}
 
-					for (int y = deck.getValue() - 1; y <= deck.getValue() + 1; y++) {
+					for (int y = deck.getValue() - 2; y <= deck.getValue() + 2; y++) {
 						BlockState state = level.getBlockState(new BlockPos(x, y, z));
 						String id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
 						if (state.is(BlockTags.PLANKS) && id.endsWith("_planks")) {
