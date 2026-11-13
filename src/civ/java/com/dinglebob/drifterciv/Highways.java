@@ -453,8 +453,8 @@ final class Highways {
 		double[] at = atStart ? corners.get(2) : corners.get(corners.size() - 3);
 		double[] toward = atStart ? corners.get(3 < corners.size() ? 3 : corners.size() - 1) : corners.get(Math.max(0, corners.size() - 4));
 		double heading = Math.atan2(toward[1] - at[1], toward[0] - at[0]);
-		int x = (int)Math.floor(at[0] + Math.cos(heading + Math.PI / 2) * 2.6);
-		int z = (int)Math.floor(at[1] + Math.sin(heading + Math.PI / 2) * 2.6);
+		int x = (int)Math.floor(at[0] + Math.cos(heading + Math.PI / 2) * 3.7);
+		int z = (int)Math.floor(at[1] + Math.sin(heading + Math.PI / 2) * 3.7);
 		BlockPos spot = new BlockPos(x, TownBuilder.ground(level, x, z) + 1, z);
 		if (!level.getBlockState(spot).isAir() || !level.getBlockState(spot.below()).isFaceSturdy(level, spot.below(), net.minecraft.core.Direction.UP)) {
 			return;
@@ -477,14 +477,14 @@ final class Highways {
 	 * Debug: a road from {@code from} the way {@code yaw} looks, bending a little as it goes, built in stretches as the
 	 * plan's roads are (each told of the others' ways), on land that's loaded. How many stretches.
 	 */
-	static int demo(ServerLevel level, net.minecraft.world.phys.Vec3 from, float yaw, int length) {
+	static int demo(ServerLevel level, net.minecraft.world.phys.Vec3 from, float yaw, int length, boolean straight) {
 		double heading = Math.toRadians(yaw + 90);
 		List<double[]> corners = new ArrayList<>();
 		double x = from.x;
 		double z = from.z;
 		for (int d = 0; d <= length; d += 4) {
 			corners.add(new double[] {x, z});
-			double bend = heading + 0.5 * Math.sin(d / 38.0);
+			double bend = heading + (straight ? 0 : 0.5 * Math.sin(d / 38.0));
 			x += Math.cos(bend) * 4;
 			z += Math.sin(bend) * 4;
 		}
@@ -514,7 +514,7 @@ final class Highways {
 			TownBuilder.highway(level, lines.get(i), java.util.Set.of(), avoid);
 		}
 
-		WildRoad.DEBUG = false;
+		WildRoad.DEBUG = System.getenv("DRIFTER_ROAD_DEBUG") != null;
 		// What its middle three are topped with, and where it runs (to look at it).
 		Map<String, Integer> tops = new java.util.TreeMap<>();
 		StringBuilder way = new StringBuilder();

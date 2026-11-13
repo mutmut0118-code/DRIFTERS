@@ -2090,7 +2090,7 @@ final class WorldPlan {
 		}
 
 		/** A bridge's way is squared only if it moves the road this far sideways at most. */
-		private static final int SQUARE_MOST = 24;
+		private static final int SQUARE_MOST = 48;
 
 		/**
 		 * Its bridges squared (the user, 2026-11-13: "square the bridge"): where the way crosses water narrow enough to bridge
@@ -2102,19 +2102,81 @@ final class WorldPlan {
 			int n = between.size();
 			int k = 0;
 			while (k < n) {
-				if (this.realLand(between.get(k)[0], between.get(k)[1])[1] != 1) {
+				if (!this.water(between.get(k))) {
 					k++;
 					continue;
 				}
 
+				// One crossing: the water here and any more within a few points of it (a river that winds or splits: squared
+				// one by one, each one's banks were the next one's water, and nearly all were left on a slant).
 				int s = k;
-				while (k < n && this.realLand(between.get(k)[0], between.get(k)[1])[1] == 1) {
-					k++;
+				int e = k;
+				while (true) {
+					while (e + 1 < n && this.water(between.get(e + 1))) {
+						e++;
+					}
+
+					int next = e + 1;
+					while (next < n && !this.water(between.get(next)) && next - e <= 4) {
+						next++;
+					}
+
+					if (next < n && next - e <= 5 && this.water(between.get(next))) {
+						e = next;
+						continue;
+					}
+
+					break;
 				}
 
-				int e = k - 1;
-				if (s > 0 && e < n - 1 && (e - s + 1) * STEP <= LONG_BRIDGE) {
-					this.squareAt(between, s, e);
+				k = e + 1;
+				if (s == 0 || e == n - 1 || (e - s + 1) * STEP > LONG_BRIDGE) {
+					continue;
+				}
+
+				int[] a = between.get(s - 1);
+				int[] b = between.get(e + 1);
+				// (0: it runs east to west, its points keep their x and take one z; 1: north to south.)
+				int first = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]) ? 1 : 0;
+				// (Square already: on a line another road's crossing here was put on.)
+				boolean sameX = true;
+				boolean sameZ = true;
+				for (int i = s - 1; i <= e + 1; i++) {
+					sameX &= between.get(i)[0] == a[0];
+					sameZ &= between.get(i)[1] == a[1];
+				}
+
+				if (sameX || sameZ) {
+					continue;
+				}
+
+				String why = "";
+				// (The user, 2026-11-13: "can all bridges be straight". The way it mostly runs first, then the other way; the
+				// line through the middle of its banks, then lines further and further either side; two points of each bank on
+				// it, then more. Hard by a town, the line through the road's end there.)
+				search:
+				for (int side : new int[] {first, 1 - first}) {
+					int middle = Math.round((a[side] + b[side]) / 2.0F);
+					for (int margin : new int[] {2, 4, 6, 8, 1}) {
+						for (int off : new int[] {0, 4, -4, 8, -8, 12, -12, 16, -16, 20, -20, 24, -24, 28, -28, 32, -32}) {
+							why = this.squareAt(between, s, e, margin, side, middle + off);
+							if (why == null) {
+								break search;
+							}
+						}
+
+						for (int through : new int[] {a[side], b[side], between.get(0)[side], between.get(n - 1)[side]}) {
+							why = this.squareAt(between, s, e, margin, side, through);
+							if (why == null) {
+								break search;
+							}
+						}
+					}
+				}
+
+				if (why != null) {
+					DrifterCivilizations.LOGGER.info("[plan] a bridge left on a slant at {}, {} ({} blocks across): {}", between.get(s)[0], between.get(s)[1],
+						(e - s + 1) * STEP, why);
 				}
 			}
 
@@ -2125,36 +2187,54 @@ final class WorldPlan {
 			}
 		}
 
-		private void squareAt(List<int[]> between, int s, int e) {
+		private boolean water(int[] point) {
+			return this.realLand(point[0], point[1])[1] == 1;
+		}
+
+		/**
+		 * The crossing from {@code s} to {@code e} and {@code margin} points of each bank put on the line {@code line} (their x
+		 * or z, {@code side}), the road eased over to it. Null if done, else why not.
+		 */
+		@Nullable
+		private String squareAt(List<int[]> between, int s, int e, int margin, int side, int line) {
 			int n = between.size();
-			int flat0 = s - 3;
-			int flat1 = e + 3;
-			int ease = Math.min(6, Math.min(flat0 - 1, n - 2 - flat1));
-			if (ease < 3) {
-				return;
+			int flat0 = s - margin;
+			int flat1 = e + margin;
+			int ease0 = Math.min(12, flat0 - 1);
+			int ease1 = Math.min(12, n - 2 - flat1);
+			// (No room to ease over before a town: the line through the road's end there, or none.)
+			if (ease0 < 1) {
+				flat0 = 0;
+				ease0 = 0;
+				if (between.get(0)[side] != line) {
+					return "too near the road's start (" + s + " points from it)";
+				}
 			}
 
-			int[] a = between.get(s - 1);
-			int[] b = between.get(e + 1);
-			// (0: it runs east to west, its points keep their x and take one z; 1: north to south.)
-			int along = Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]) ? 0 : 1;
-			int side = 1 - along;
-			int line = Math.round((a[side] + b[side]) / 2.0F);
+			if (ease1 < 1) {
+				flat1 = n - 1;
+				ease1 = 0;
+				if (between.get(n - 1)[side] != line) {
+					return "too near the road's end (" + (n - 1 - e) + " points from it)";
+				}
+			}
+
 			List<int[]> moved = new ArrayList<>();
 			int wet = 0;
-			for (int i = flat0 - ease; i <= flat1 + ease; i++) {
+			int ease = ease0;
+			for (int i = flat0 - ease0; i <= flat1 + ease1; i++) {
 				int[] p = between.get(i).clone();
-				double keep = i < flat0 ? (flat0 - i) / (double)(ease + 1) : i > flat1 ? (i - flat1) / (double)(ease + 1) : 0;
+				double keep = i < flat0 ? (flat0 - i) / (double)(ease0 + 1) : i > flat1 ? (i - flat1) / (double)(ease1 + 1) : 0;
 				int to = (int)Math.round(line + (p[side] - line) * keep);
 				if (Math.abs(to - p[side]) > SQUARE_MOST) {
-					return;
+					return "the road would move " + Math.abs(to - p[side]) + " blocks";
 				}
 
 				p[side] = to;
-				boolean water = this.realLand(p[0], p[1])[1] == 1;
-				// (Its banks, and the road eased over to them, on land; the water between them no wider than a bridge.)
-				if (water && (i < s || i > e)) {
-					return;
+				boolean water = this.water(p);
+				// (The ends of its line, and the road eased over to them, on land; the water between no wider than a bridge.)
+				if (water && (i <= flat0 || i >= flat1)) {
+					return "a bank would be water (" + p[0] + ", " + p[1] + ")";
 				}
 
 				wet += water ? 1 : 0;
@@ -2162,7 +2242,7 @@ final class WorldPlan {
 			}
 
 			if (wet == 0 || wet * STEP > LONG_BRIDGE) {
-				return;
+				return wet == 0 ? "no water on the squared line" : "too long squared";
 			}
 
 			for (int i = 0; i < moved.size(); i++) {
@@ -2171,6 +2251,7 @@ final class WorldPlan {
 
 			DrifterCivilizations.LOGGER.info("[plan] a bridge squared: from {}, {} to {}, {}, {} blocks of water", between.get(s - 1)[0], between.get(s - 1)[1],
 				between.get(e + 1)[0], between.get(e + 1)[1], wet * STEP);
+			return null;
 		}
 
 		/**

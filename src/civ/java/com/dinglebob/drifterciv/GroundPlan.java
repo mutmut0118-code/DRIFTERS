@@ -155,8 +155,10 @@ final class GroundPlan {
 			return 0;
 		}
 
+		// (Past six out, a block and a half a block: on a mountainside its banks cut a bowl fourteen out with a wall twenty
+		// high at its edge; steeper further out, far less is moved and the land's own slope takes over.)
 		double steep = 0.4 + 0.12 * this.wobble(x, z, 17);
-		return (int)Math.floor((d - 1.6) * steep + this.wobble(x, z, 6) * 0.5 * Math.min(1.0, d / 5.0));
+		return (int)Math.floor((Math.min(d, 6.0) - 1.6) * steep + Math.max(0.0, d - 6.0) * 1.5 + this.wobble(x, z, 6) * 0.5 * Math.min(1.0, d / 5.0));
 	}
 
 	private boolean standing(int x, int z) {
@@ -269,7 +271,9 @@ final class GroundPlan {
 		Integer known = this.raw.get(key);
 		if (known == null) {
 			Integer height = this.height(x, z, true);
-			known = height != null && !this.keptTree(x, z) ? height : this.natural(x, z);
+			// (A tree keeps its ground where that's a block off what's asked at most: kept whatever was asked, where the land was
+			// cut four deep beside a road the tree's column stood as a pillar of earth; the user's pictures, 2026-11-13.)
+			known = height != null && !(Math.abs(height - this.natural(x, z)) <= 1 && this.keptTree(x, z)) ? height : this.natural(x, z);
 			this.raw.put(key, known);
 		}
 
@@ -418,7 +422,7 @@ final class GroundPlan {
 
 		// Built up near water: no higher than a slope down to it (it stood over a river as a cliff of dirt). Not a road's
 		// shoulder: a bridge's ramp is held at its height.
-		if (t > g && roadAway > 1) {
+		if (t > g && roadAway > 2) {
 			Integer shore = this.shore(x, z);
 			if (shore != null) {
 				t = Math.max(g, Math.min(t, shore));
@@ -768,6 +772,21 @@ final class GroundPlan {
 			BlockState there = this.level.getBlockState(pos);
 			if (there.isAir() || TownBuilder.plant(there) || !there.getFluidState().isEmpty()) {
 				TownBuilder.set(this.level, pos, y >= t - 3 ? under : this.rock());
+			}
+		}
+
+		// (Out in the wild, a cut that opens into something hollow, a cave or a buried ruin: closed with the land's own, earth
+		// then rock: a hole beside the road down into a ruin, the user's picture.)
+		if (this.wild && t < g) {
+			int depth = 3 + (int)(this.hash(x, z) * 3);
+			for (int k = 0; k <= 16; k++) {
+				BlockPos pos = new BlockPos(x, t - k, z);
+				BlockState there = this.level.getBlockState(pos);
+				if (!(there.isAir() || TownBuilder.plant(there))) {
+					break;
+				}
+
+				TownBuilder.set(this.level, pos, k == 0 ? surface : k <= depth || !under.is(Blocks.DIRT) ? under : this.rock());
 			}
 		}
 

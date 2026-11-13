@@ -3396,6 +3396,37 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.58: roads, after the user's first play of them** (2026-11-13, thirteen pictures: pillars of earth in and beside
+  the road, a mountainside cut into a bowl, a jumble of steps where a road meets a town, mud slabs and fences on a little
+  bridge, bridges still on a slant by towns, sand through a deck, a hole into a buried ruin, a road standing a block over
+  flat grass; then "can all bridges be straight" and "a really straight road ... weathered a bit with some grass coming in
+  on the sides changing the width"). Addon only.
+  - **Pillars:** a tree kept its ground whatever was asked of the land round it (cut four deep, its column stood as a
+    pillar of earth); now only where that's a block off at most (`GroundPlan.raw`).
+  - **Mountainsides:** a bank's slope is gentle for six out, then a block and a half a block (`wildEase`): far less is
+    cut, the wall left at its edge lower and nearer.
+  - **Where two stretches meet:** a far end held is walked back only until it meets the way from the near end (both held
+    and too far apart, the step left is in the middle, not at the join). A bridge's deck laid by the stretch before is
+    part of this one's bridge (`laidDeck`): taken for something built, the bridge stopped and began again, fences and a
+    road's slabs across it.
+  - **Land in a crossing** lower than the deck is bridged over, not built up to it (sand through the railings); a road's
+    shoulder may be built up beside water two out (a causeway to a bridge had sheer sides).
+  - **Holes:** a bank's cut that opens into a cave or a buried ruin is closed with earth then rock.
+  - **Straight bridges** (`WorldPlan.square`): water within a few points of more water is one crossing; each is tried
+    east-west and north-south, on the line through the middle of its banks and lines up to 32 either side, through each
+    bank's own point and the road's ends (so a crossing hard by a town can be squared), with one to eight points of each
+    bank on the line, the road moved up to 48 and eased over up to twelve points. Seed 779: 18 of 28 squared (6 before).
+    The other 10: the road runs along a winding river, or a bank of the squared line is water. Logged
+    ("[plan] a bridge left on a slant ... : why").
+  - **Width:** grass comes in from the sides in patches, three to five wide (`WildRoad.half`); the middle three always.
+  - The signpost stands clear of the road (3.7 from its line; it stood on its edge).
+  - Debug: `/drifterciv plan roaddemo <length> straight`; `DRIFTER_ROAD_DEBUG=1` logs each stretch's heights and checks.
+  - Tested in the dev client: a straight 56-block bridge across a Tectonic river, the weathered edges, no column of a
+    stretch changed by the next. Not seen again in a test: the pillars, the mountain cut and a town join (fixed by reading
+    the code against the pictures).
+  - Open (asked the user): the last third of crossings could be made straight by a bridge that turns a square corner
+    over the water.
+
 - **0.23.57: the roads between towns made again** (the user, 2026-11-13, with pictures: "lets revamp the roads ... the
   path blocks are kinda janky, the grass sometimes over taking the path, bridge fences sometimes not connecting or
   switching wood mid bridge, little divots that go up and down rapidly with the slabs ... you can tell it was terraformed

@@ -3829,3 +3829,17 @@ With Terrain Slabs installed, as you usually play.
       log posts with lanterns, log piers on mossy stone in the water. One wood all the way, no gap in the railing.
 - [ ] **A hamlet's streets** use the same mud and dirt mix.
 - [ ] Anything that still looks off: a screenshot and the coordinates (F3) help most.
+
+## 0.23.58: roads, after your first play of them (new)
+
+In a **new world** again (bridges are placed when a world is made).
+
+- [ ] **No pillars of dirt** standing in the road or right beside it.
+- [ ] **A road along a mountainside:** the cut beside it should be much smaller than before, no giant stone bowl.
+- [ ] **Where a road meets a town:** no jumble of steps or walls across it.
+- [ ] **Bridges:** most are straight now, also right by towns. No sand poking through the deck, no fences or mud slabs
+      lying on it. About one in three is still on a slant (where the road runs along a winding river).
+- [ ] **A long straight road:** grass comes in from the sides here and there, so it's three to five wide, never two
+      ruled lines.
+- [ ] **No holes** beside the road into caves or buried ruins.
+- [ ] The signpost outside a town stands beside the road, not on it.

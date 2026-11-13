@@ -63,7 +63,7 @@ final class WildRoad {
 	/** Its height changes when the land's this far (half blocks) off it. */
 	private static final double HOLD = 0.8;
 	/** Debug: each stretch's columns and heights logged. */
-	static boolean DEBUG;
+	static boolean DEBUG = System.getenv("DRIFTER_ROAD_DEBUG") != null;
 	static final Map<Long, Integer> LAID = new HashMap<>();
 
 	static void build(ServerLevel level, List<double[]> line, Set<Long> keep, Set<Long> avoid) {
@@ -125,11 +125,22 @@ final class WildRoad {
 		boolean[] wetAt = new boolean[n];
 		int[] waterTop = new int[n];
 		Set<Long> standing = new HashSet<>();
+		// (A bridge's deck laid already, by the stretch before it: part of this one's bridge, not something built in its way.
+		// Taken for that, the bridge stopped at it and began again past it: a gap in its railings, the two not one bridge.)
+		Map<Long, Integer> laidDeck = new HashMap<>();
 		for (long cell : cells) {
 			int x = BlockPos.getX(cell);
 			int z = BlockPos.getZ(cell);
 			if (!TownBuilder.loadedAt(level, x, z)) {
 				continue;
+			}
+
+			if (!keep.contains(cell) && cellD.get(cell) <= CORE) {
+				int top = TownBuilder.ground(level, x, z);
+				if (level.getBlockState(new BlockPos(x, top, z)).is(BlockTags.PLANKS) && overWater(level, new BlockPos(x, top, z))) {
+					laidDeck.put(cell, top);
+					continue;
+				}
 			}
 
 			// (Something built on its way, a house: left as it is, not taken for the ground, not paved over.)
@@ -147,7 +158,11 @@ final class WildRoad {
 		for (int t = 0; t < n; t++) {
 			BlockPos at = at(line, t);
 			boolean loaded = TownBuilder.loadedAt(level, at.getX(), at.getZ());
-			if (loaded && !standing.contains(BlockPos.asLong(at.getX(), 0, at.getZ())) && TownBuilder.wet(level, at.getX(), at.getZ())) {
+			Integer deck = laidDeck.get(BlockPos.asLong(at.getX(), 0, at.getZ()));
+			if (deck != null) {
+				wetAt[t] = true;
+				waterTop[t] = deck - 2;
+			} else if (loaded && !standing.contains(BlockPos.asLong(at.getX(), 0, at.getZ())) && TownBuilder.wet(level, at.getX(), at.getZ())) {
 				wetAt[t] = true;
 				waterTop[t] = TownBuilder.ground(level, at.getX(), at.getZ());
 			}
@@ -291,11 +306,19 @@ final class WildRoad {
 			}
 		}
 
+		// Its far end held: back from it a step at a time until it meets the way from the near end. (Where both ends are held
+		// and too far apart to meet, the step that's left is in the middle: walked all the way back, it pulled the near end
+		// off the stretch before it.)
 		if (span[n - 1] < 0 && fixed1) {
-			q[n - 1] = pin1;
-			for (int t = n - 2; t >= 0 && span[t] < 0 && Math.abs(q[t] - q[t + 1]) > unit; t--) {
-				q[t] = q[t + 1] + (q[t] > q[t + 1] ? unit : -unit);
+			int[] back = q.clone();
+			back[n - 1] = pin1;
+			int t = n - 2;
+			for (; t >= 0 && span[t] < 0 && Math.abs(q[t] - back[t + 1]) > unit; t--) {
+				back[t] = back[t + 1] + (q[t] > back[t + 1] ? unit : -unit);
 			}
+
+			int from = t < 0 && fixed0 ? n / 2 : t + 1;
+			System.arraycopy(back, from, q, from, n - from);
 		}
 
 		// What each column is: road, a bridge's deck, or left out (water at its edge; the land under a bridge).
@@ -313,13 +336,21 @@ final class WildRoad {
 			int y = q[t] >> 1;
 			boolean wet = TownBuilder.wet(level, x, z);
 			boolean core = cellD.get(cell) <= CORE;
-			if (span[t] >= 0) {
+			Integer laid = laidDeck.get(cell);
+			if (laid != null) {
+				decks.put(cell, laid);
+				if (span[t] >= 0 && spans.get(span[t])[2] == 1) {
+					flat.add(cell);
+				}
+			} else if (span[t] >= 0) {
+				// (Land in a crossing lower than the deck is bridged over, not built up to it: a sandbar beside the bridge was
+				// raised to the deck as the road's shoulder, a column of sand through the railings.)
 				if (core && (wet || TownBuilder.ground(level, x, z) < y)) {
 					decks.put(cell, y);
 					if (spans.get(span[t])[2] == 1) {
 						flat.add(cell);
 					}
-				} else if (!wet && TownBuilder.ground(level, x, z) >= y - 1) {
+				} else if (!wet && TownBuilder.ground(level, x, z) >= y) {
 					paved.put(cell, q[t]);
 				}
 			} else if (!wet) {
@@ -455,6 +486,28 @@ final class WildRoad {
 				}
 			}
 
+			int sheer = 0;
+			StringBuilder sides = new StringBuilder();
+			for (var cell : paved.entrySet()) {
+				for (Direction side : Direction.Plane.HORIZONTAL) {
+					int nx = BlockPos.getX(cell.getKey()) + side.getStepX();
+					int nz = BlockPos.getZ(cell.getKey()) + side.getStepZ();
+					if (cells.contains(BlockPos.asLong(nx, 0, nz)) || !TownBuilder.loadedAt(level, nx, nz)) {
+						continue;
+					}
+
+					int there = TownBuilder.ground(level, nx, nz);
+					if (Math.abs(there - (cell.getValue() >> 1)) >= 1 && !TownBuilder.wet(level, nx, nz)) {
+						sheer++;
+						if (sides.length() < 500) {
+							sides.append(nx).append(',').append(nz).append(" road ").append(cell.getValue() >> 1).append(" beside ").append(there).append(" target ")
+								.append(plan.target(nx, nz)).append(TownBuilder.built(level, nx, nz) ? " built:" + TownBuilder.builtBy(level, nx, nz) : "").append("; ");
+						}
+					}
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[road] debug: {} sides of its columns stand a block or more off the land beside them: {}", sheer, sides);
 			int covered = 0;
 			StringBuilder what = new StringBuilder();
 			for (var cell : paved.entrySet()) {
@@ -527,6 +580,21 @@ final class WildRoad {
 		return 2 * y + (slab ? 1 : 0);
 	}
 
+	/** Open under this (a deck's plank) with water within a few blocks under it. */
+	private static boolean overWater(ServerLevel level, BlockPos deck) {
+		if (!open(level.getBlockState(deck.below()))) {
+			return false;
+		}
+
+		for (int k = 1; k <= 4; k++) {
+			if (level.getFluidState(deck.below(k)).is(net.minecraft.tags.FluidTags.WATER)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/** A road or a bridge laid here already (its top the worn mix, sandstone or planks). */
 	private static boolean laid(ServerLevel level, BlockPos at) {
 		if (!TownBuilder.loadedAt(level, at.getX(), at.getZ())) {
@@ -564,7 +632,9 @@ final class WildRoad {
 
 	/** How far out from its line it reaches here: about two (five wide), wandering, its edge ragged. */
 	private static double half(int x, int z, long salt) {
-		return 2.15 + 0.5 * noise(x, z, 7, salt) + (hash(x, z, salt) - 0.5) * 0.4;
+		// (Grass comes in from its sides in patches, so its width changes as it goes, three to five: on a dead straight run
+		// it was five wide to the block all the way, its edges two ruled lines; the user, 2026-11-13. Its middle three always.)
+		return Math.min(2.9, 1.55 + 1.5 * noise(x, z, 9, salt) + (hash(x, z, salt) - 0.5) * 0.5);
 	}
 
 	/**
