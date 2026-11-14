@@ -4795,7 +4795,10 @@ public final class TownBuilder {
 				|| state.is(Blocks.CACTUS) || state.is(Blocks.BAMBOO) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT) || state.is(Blocks.COCOA)
 				|| state.is(Blocks.BIG_DRIPLEAF) || state.is(Blocks.BIG_DRIPLEAF_STEM) || state.is(Blocks.HANGING_ROOTS) || state.is(Blocks.SPORE_BLOSSOM)
 				|| state.is(Blocks.SWEET_BERRY_BUSH) || state.is(Blocks.SEA_PICKLE) || state.is(Blocks.SCULK)
-				|| state.is(Blocks.TUFF) || state.is(Blocks.BASALT) || state.is(Blocks.BLACKSTONE);
+				|| state.is(Blocks.TUFF) || state.is(Blocks.BASALT) || state.is(Blocks.BLACKSTONE)
+				// (A taiga's boulders of mossy cobblestone, the land's own: taken for building, a road left them standing and cut a
+				// pit beside them where it met a bridge; the user's picture, 2026-11-14. One a player or a Drifter put down isn't.)
+				|| state.is(Blocks.MOSSY_COBBLESTONE) && !com.dinglebob.drifter.api.DrifterApi.isBuilt(level, pos.immutable());
 			return land ? null : state;
 		}
 

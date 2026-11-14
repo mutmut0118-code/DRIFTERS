@@ -290,6 +290,15 @@ public interface TownWork {
 		return null;
 	}
 
+	/**
+	 * Whether it may set off on a mining trip now (its town's mine: the user, 2026-11-14, "they all go to the mining
+	 * structure ... leaving the town barren because everybody is underground"). Asked before it sets off, not of one on its
+	 * way already; true by default.
+	 */
+	default boolean mayMine(DrifterEntity drifter) {
+		return true;
+	}
+
 	/** It stood the banner up there. */
 	default void bannerUp(DrifterEntity drifter, BlockPos where) {
 	}

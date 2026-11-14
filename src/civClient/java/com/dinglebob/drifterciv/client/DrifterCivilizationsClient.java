@@ -27,6 +27,8 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// A letter opens to its page on a right-click.
 		LetterReading.register();
+		// A town's name at the top of the screen as you come into it.
+		TownBannerHud.register();
 		FarFollow.register();
 		FarView.register();
 		journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(new net.minecraft.client.KeyMapping(

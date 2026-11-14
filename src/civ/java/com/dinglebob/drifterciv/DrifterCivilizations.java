@@ -74,6 +74,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		DrifterEvents.HEARD_NEWS.register((drifter, news, from) -> newsTold++);
 		DrifterEvents.TRADED.register((asker, giver, paid, got) -> trades++);
 		Chronicle.register();
+		TownBanner.register();
+		TownRoads.register();
 		Island.register();
 		Towns.register();
 		TownFounding.register();

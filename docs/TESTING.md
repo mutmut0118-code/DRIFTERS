@@ -3979,3 +3979,18 @@ In a **new world**.
 - [ ] **Board notices** pay different amounts now: cheap things a little, iron and leather more, rare things a lot.
       Some mornings a notice is from another town ("wanted in Ashford: ... bring them to ... there"): take the things
       there, to the person named, and you're paid more the further it was.
+
+## 0.23.66: bridges meet their roads; roads reach towns; town names (new)
+
+In a **new world**.
+
+- [ ] **Bridges meet the road flush at both ends**: no step of a block, no gap, no road stopping below the deck, no logs
+      or beams standing out on the bank past the bridge. The road climbs to the deck in half steps.
+- [ ] **Roads reach their towns**: the road between towns runs right on to one of the town's streets, not stopping in the
+      grass near it.
+- [ ] **The town stays busy**: in a new town, only about a fifth of its people are down the mine at a time; the rest
+      are about the town (fields, stall, plaza, chatting, building).
+- [ ] **No pits by mossy boulders** (taiga): a road through one cuts through it.
+- [ ] **Roads stay as they are**: Drifters don't turn the mud roads (or grass near their homes) into dirt path any more.
+- [ ] **Town names**: walk into a town and its name fades in at the top of the screen, stays a moment and fades out. It
+      doesn't show again until you've left the town and come back. F1 hides it.

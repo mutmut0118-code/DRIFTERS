@@ -123,6 +123,58 @@ final class TownDay {
 		return own < 13000L ? Part.DUSK : Part.NIGHT;
 	}
 
+	/** Of a town's people, at most this share down its mine at once (and one at least; the user: "make it a fifth"). */
+	private static final double MINING_SHARE = 0.2;
+	/** Each town's count of its people on a mining trip, and the tick it was counted in. */
+	private static final java.util.Map<java.util.UUID, long[]> mining = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** A townsperson's goals weighed (kept for the town's hook; the count's made fresh as it's asked). */
+	static void seen(Town town, DrifterEntity drifter) {
+	}
+
+	/**
+	 * Whether it may set off down the mine now (the user, 2026-11-14: "they all go to the mining structure ... and mine using
+	 * the towns strip mines", "leaving the town barren because everybody is underground"; every goal that wants ore, its
+	 * gear, its wares, torches, and going along with a friend, sent all of a new town's people down at once): while fewer
+	 * than a fifth of its people are on a mining trip. Counted afresh each tick from its people as they are (those it lets go
+	 * that tick counted too: as a town loaded all its people chose in the same moment), so the rest do something else
+	 * meanwhile and go when one comes back up.
+	 */
+	static boolean mayMine(Town town, DrifterEntity drifter) {
+		if (DrifterApi.mining(drifter) || !(drifter.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+			return true;
+		}
+
+		long now = level.getGameTime();
+		long[] count = mining.computeIfAbsent(town.id, id -> new long[] {-1, 0});
+		synchronized (count) {
+			if (count[0] != now) {
+				count[0] = now;
+				count[1] = 0;
+				var group = town.group == null ? null : DrifterApi.groupById(town.group);
+				if (group != null) {
+					for (java.util.UUID member : group.members) {
+						if (level.getEntity(member) instanceof DrifterEntity one && DrifterApi.mining(one)) {
+							count[1]++;
+						}
+					}
+				}
+			}
+
+			int allowed = Math.max(1, (int)Math.round(Math.max(1, TownAway.people(town)) * MINING_SHARE));
+			if (System.getenv("DRIFTER_MINE_DEBUG") != null) {
+				DrifterCivilizations.LOGGER.info("[mine] {} asks at {}: {} down of {} allowed", drifter.getName().getString(), now, count[1], allowed);
+			}
+
+			if (count[1] >= allowed) {
+				return false;
+			}
+
+			count[1]++;
+			return true;
+		}
+	}
+
 	/** How much more (or less) this goal counts for it now, by the time of its day. */
 	static double leaning(Town town, DrifterEntity drifter, String goal) {
 		Part part = part(DrifterApi.ownTime(drifter));

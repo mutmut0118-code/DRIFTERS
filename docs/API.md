@@ -246,13 +246,15 @@ setting, four by default, up to 32).
 - `DrifterApi.setCampKeepOut(BiPredicate<Level, BlockPos>)`: land where world generation puts no Drifter camp (a hut or
   a house): the addon's planned roads and places (0.23.63). Asked from world generation's threads, so quick and thread
   safe; `campKeptOut(level, pos)` asks.
+- `TownWork.mayMine(drifter)`: whether a townsperson may set off on a mining trip now (asked before one starts; true by
+  default); the addon lets a fifth of a town down its mine at once (0.23.66). `DrifterApi.mining(drifter)`: on a mining
+  trip now.
 
 ## Roads
 
 Drifters keep to paths they've seen: blocks in the tag `drifter:roads` (dirt paths) cost less to walk on in their
 routes. An addon that lays roads of other blocks (gravel, stone bricks) adds them to that tag (a data pack file
-`data/drifter/tags/block/roads.json` with `"replace": false`). Drifters wear dirt paths in themselves where they walk often
-near home.
+`data/drifter/tags/block/roads.json` with `"replace": false`). Drifters no longer wear dirt paths in themselves (0.23.66).
 
 ## The addon's own data on a Drifter
 

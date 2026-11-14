@@ -239,6 +239,11 @@ public final class Goals {
 				return 0.0;
 			}
 
+			// Nor while its town has as many down its mine as it wants (the town decides: TownWork.mayMine).
+			if (plan.next() instanceof Planner.Mine && context.drifter().getTownWork() != null && !context.drifter().getTownWork().mayMine(context.drifter())) {
+				return 0.0;
+			}
+
 			// Wandering off to look for something is worth less than doing something it knows how to do.
 			return plan.next() instanceof Planner.Explore ? 0.6 : 1.0;
 		}
@@ -3278,8 +3283,9 @@ public final class Goals {
 		goals.add(new com.dinglebob.drifter.compat.BountyGoal());
 		// Going back for its things after dying (section 20).
 		goals.add(new com.dinglebob.drifter.skills.CorpseRunGoal());
-		// Wearing paths in near home (milestone 22 groundwork, roads).
-		goals.add(new com.dinglebob.drifter.skills.PathGoal());
+		// (No more wearing paths in near home: it turned the roads' packed mud, rooted and coarse dirt into dirt path; the
+		// user, 2026-11-14: "take out the mechanic which makes drifters automatically path dirt blocks, so the road can still
+		// stay". skills.PathGoal is kept, unregistered.)
 		// Fishing (milestone 18, section 10.5).
 		goals.add(new com.dinglebob.drifter.skills.FishGoal());
 		// Its horse (milestone 18, section 10.7).

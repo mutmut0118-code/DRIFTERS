@@ -1390,6 +1390,8 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
 - 2026-11-13 (0.23.61): **lamps along the roads**, the user's own builds (made in a flat dev world, saved as structure
   files): spruce ones, now and then one with two lanterns, distance signs naming the towns either way; birch and
   froglight in the desert, acacia in the savanna. Details in docs/PROGRESS.md (0.23.61).
+- 2026-11-14 (0.23.66): bridges flush with their roads whichever is built first; roads run on further to reach their
+  towns; a town's name fades in at the top of the screen as you come in. Details in docs/PROGRESS.md (0.23.66).
 - 2026-11-14 (0.23.63): no world-generation camp houses on planned roads or in planned places; holes where a road met a
   bridge closed; bridge posts evenly placed. Details in docs/PROGRESS.md (0.23.63).
 - 2026-11-14 (0.23.62): roads that stopped being built for the rest of a game fixed; lamps closer, distance signs rarer

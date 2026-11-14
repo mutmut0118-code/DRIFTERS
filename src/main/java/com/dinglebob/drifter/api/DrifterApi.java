@@ -529,6 +529,11 @@ public final class DrifterApi {
 		return campKeptOut.test(level, pos);
 	}
 
+	/** On a mining trip now (going down, underground, or coming back up with what it dug). */
+	public static boolean mining(DrifterEntity drifter) {
+		return drifter.getDrifterBrain().activity() instanceof com.dinglebob.drifter.brain.activity.MineTripActivity;
+	}
+
 	/**
 	 * Debug: how much of a house put up from this plan here is gone: for each layer up from its corner, how many of the
 	 * blocks the plan has there are air now (null if there's no such plan).

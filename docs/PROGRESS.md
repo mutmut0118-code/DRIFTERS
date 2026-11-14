@@ -3517,6 +3517,45 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.66: bridges that meet their roads; roads that reach their towns; a town's name as you come in** (the user,
+  2026-11-14, pictures: "bridges almost never fully connect, and some town paths dont connect"; "the town name popping up
+  at the top of the screen when you enter it (a little fade in and fade out)"). Addon only.
+  - Bridges (`WildRoad`), as a flat test world with dug rivers showed (a river at a stretch's end, a shore aslant, either
+    stretch built first):
+    - A stretch built after the bridge beside it held its end to the land there, not to the deck: it came up a block short
+      of the deck, or stopped below it. Now an end with a deck a block or two past it (only water between: `deckPast`) is
+      held to that deck's height, flush.
+    - A stretch whose own line meets a deck laid already took its bit of water for a trickle of its own, a block lower than
+      the deck. Now a crossing with a laid deck in it carries on at that deck's height.
+    - A road comes up to a deck a half step a column (a whole one without slabs) over the last six columns (`RAMP`), flush
+      at the bank: it came up a block short, or a block's step onto it.
+    - Columns past either end of a stretch's line are the next stretch's: taken for this one's too, a bridge ending there
+      laid deck and beams on the land past it, and the next stretch paved a block lower, a pit between beams. And no beam
+      on the dry bank past a crossing (beams and corner logs stood out on the land).
+    - `/drifterciv plan checkroads` now follows a road from one stretch to the next (where they meet is where they went
+      wrong most).
+  - Roads to towns (`Highways`): a road's last stretch runs on to the town's nearest road if it's within 128 blocks (was
+    64; a road stopped in the grass short of a town whose streets didn't reach that way), the land loaded all the way out
+    to it.
+  - The town's name (`TownBanner` on the server, `TownBannerHud` in the client): coming into a town's land (its radius;
+    out of it again only 24 blocks past its edge, so no flicker), its name at the top of the screen, large, a thin rule
+    under it, fading in (0.7 s), held (2.6 s), fading out (1.2 s). Hidden with the HUD (F1).
+  - A taiga's boulders of mossy cobblestone counted as something built (`TownBuilder.builtBy`), so a road left them
+    standing and cut a pit beside them where it met a bridge (the user's picture). Now the land's own (one a player or a
+    Drifter put down still isn't).
+  - The town's mine (the user, 2026-11-14: "the whole town goes mining as soon as its loaded, leaving the town to be
+    barren or empty", "they all go to the mining structure ... and mine using the towns strip mines", "make it a fifth"):
+    every goal that wants ore (its gear, its wares, torches) planned a trip down the town's mine, and a new town's people
+    all wanted iron at once. Now at most a fifth of a town's people (one at least) set off down the mine at once: a new
+    hook in the API, `TownWork.mayMine` (asked before a trip starts, not of one on its way), and `DrifterApi.mining`; the
+    town counts who's on a mining trip (`TownDay.mayMine`). The rest get on with something else and go when one comes
+    back up.
+  - Drifters no longer wear paths in near home (the user: "take out the mechanic which makes drifters automatically path
+    dirt blocks, so the road can still stay"): with a shovel they turned the roads' packed mud, rooted and coarse dirt into
+    dirt path. `skills.PathGoal` is no longer registered.
+  - Tested in the dev client: the flat world's bridges (both build orders, a slanted shore): all flush; a new seed 779
+    world's seven bridges; Pinecrest's name fading in and out.
+
 - **0.23.65: quests pay properly; board notices priced by how hard things are to get** (the user, 2026-11-14: "i feel
   like im getting little compensation and just their thanks, it doesnt even raise the relationship. i did a quest, and
   after i came back i was still a stranger", "thanks rewards should be much rarer, and when you recieve those thanks you
