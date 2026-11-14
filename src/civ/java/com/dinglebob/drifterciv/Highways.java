@@ -36,7 +36,7 @@ final class Highways {
 	private static final int AT_ONCE = 3;
 	private static final int BUILDING_AT_ONCE = 6;
 	/** How far a stretch at a town's end may reach to meet its roads. */
-	private static final int MEET_WITHIN = 64;
+	private static final int MEET_WITHIN = 128;
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_civ_road", Comparator.comparingLong(ChunkPos::toLong));
 	/**
 	 * The stretches whose land is loading, by "road:stretch": the chunk its land is asked for round, the chunks out to the
@@ -147,10 +147,17 @@ final class Highways {
 
 					level.getChunkSource().addRegionTicket(TICKET, chunk, LOAD_RADIUS, chunk);
 					List<ChunkPos> fars = new ArrayList<>();
+					// (The land all the way out to the town's road, a ticket every few chunks: it may be up to MEET_WITHIN off.)
 					for (int[] end : ends) {
-						ChunkPos far = new ChunkPos(end[2] >> 4, end[3] >> 4);
-						level.getChunkSource().addRegionTicket(TICKET, far, LOAD_RADIUS, far);
-						fars.add(far);
+						double length = Math.hypot(end[2] - end[0], end[3] - end[1]);
+						for (double d = 0; d <= length + 32; d += 32) {
+							double f = length == 0 ? 1 : Math.min(1, d / length);
+							ChunkPos far = new ChunkPos((int)Math.floor(end[0] + (end[2] - end[0]) * f) >> 4, (int)Math.floor(end[1] + (end[3] - end[1]) * f) >> 4);
+							if (!fars.contains(far)) {
+								level.getChunkSource().addRegionTicket(TICKET, far, LOAD_RADIUS, far);
+								fars.add(far);
+							}
+						}
 					}
 
 					loading.put(key, new Loading(chunk, fars, server.getTickCount()));
@@ -587,19 +594,21 @@ final class Highways {
 		int found = 0;
 		for (WorldPlan.Highway road : WorldPlan.highways) {
 			List<double[]> smooth = smooth(road);
+			// (Carried on from one built stretch to the next: where two meet is where they went wrong most.)
+			char last = ' ';
+			double lastTop = 0;
+			int lastX = 0;
+			int lastZ = 0;
+			int gap = 0;
 			for (int p = 0; p < road.built.length; p++) {
 				if (!road.built[p]) {
+					last = ' ';
 					continue;
 				}
 
 				int a = p * PIECE;
 				int b = Math.min(road.points.size() - 1, a + PIECE);
 				List<double[]> line = line(smooth.subList(a, b + 1));
-				char last = ' ';
-				double lastTop = 0;
-				int lastX = 0;
-				int lastZ = 0;
-				int gap = 0;
 				for (double[] q : line) {
 					int x = (int)Math.floor(q[0]);
 					int z = (int)Math.floor(q[1]);

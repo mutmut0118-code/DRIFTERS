@@ -442,9 +442,15 @@ final class TownRoads {
 
 		@Override
 		public double leaning(DrifterEntity drifter, String goal) {
+			TownDay.seen(this.town, drifter);
 			long day = DrifterCivilizations.server() == null ? 0 : Chronicle.day(DrifterCivilizations.server());
 			return Trades.leaning(this.town, drifter, goal) + TownDay.leaning(this.town, drifter, goal) + TownEvents.leaning(this.town, drifter, goal, day)
 				+ TownCulture.leaning(this.town, drifter, goal, day);
+		}
+
+		@Override
+		public boolean mayMine(DrifterEntity drifter) {
+			return TownDay.mayMine(this.town, drifter);
 		}
 
 		@Override
@@ -568,6 +574,22 @@ final class TownRoads {
 	}
 
 	/** Each of its people in the town's work (not saved: set again each check). */
+	/**
+	 * A townsperson coming into the world (its chunk loaded, or just made) gets its town's work at once: it was given it only
+	 * at the town's next look round, and a new town's people chose what to do meanwhile with no town to ask (all of them off
+	 * down the mine at once; the user, 2026-11-14).
+	 */
+	static void register() {
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+			if (entity instanceof DrifterEntity drifter && drifter.getTownWork() == null) {
+				Town town = Diplomacy.townOf(drifter.getUUID());
+				if (town != null) {
+					DrifterApi.setTownWork(drifter, works.compute(town.id, (key, work) -> work != null && work.town == town ? work : new Work(town)));
+				}
+			}
+		});
+	}
+
 	static void setWork(MinecraftServer server, Town town, Iterable<java.util.UUID> members) {
 		for (java.util.UUID id : members) {
 			DrifterEntity member = TownFounding.loaded(server, id);

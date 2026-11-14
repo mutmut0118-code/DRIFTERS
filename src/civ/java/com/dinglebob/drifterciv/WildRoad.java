@@ -58,6 +58,8 @@ final class WildRoad {
 	private static final int DEEPEST = 6;
 	/** A post (and a pier under it) every this many steps of a bridge. */
 	private static final int POSTS = 6;
+	/** A road comes up to a bridge's deck over at most this many columns either side of it. */
+	private static final int RAMP = 6;
 	/** Water this many steps across or less: planks laid flat over it, no railings. */
 	private static final int TRICKLE = 3;
 	/** Its height changes when the land's this far (half blocks) off it. */
@@ -99,6 +101,27 @@ final class WildRoad {
 			}
 		}
 
+		// (Columns past either end of its line are the next stretch's: taken for this one's too, a bridge ending there laid its
+		// deck and beams on the land past it, and the next stretch paved over that a block lower, a pit between beams.)
+		for (int end : new int[] {0, n - 1}) {
+			double[] p = line.get(end);
+			double hx = Math.cos(p[2]) * (end == 0 ? -1 : 1);
+			double hz = Math.sin(p[2]) * (end == 0 ? -1 : 1);
+			cellT.entrySet().removeIf(cell -> {
+				if (cell.getValue() != end) {
+					return false;
+				}
+
+				double along = (BlockPos.getX(cell.getKey()) + 0.5 - p[0]) * hx + (BlockPos.getZ(cell.getKey()) + 0.5 - p[1]) * hz;
+				if (along > 0.75) {
+					cellD.remove(cell.getKey());
+					return true;
+				}
+
+				return false;
+			});
+		}
+
 		Set<Long> cells = new HashSet<>();
 		for (var cell : cellD.entrySet()) {
 			if (cell.getValue() <= half(BlockPos.getX(cell.getKey()), BlockPos.getZ(cell.getKey()), salt)) {
@@ -124,6 +147,9 @@ final class WildRoad {
 		java.util.Arrays.fill(ground, Double.NEGATIVE_INFINITY);
 		boolean[] wetAt = new boolean[n];
 		int[] waterTop = new int[n];
+		// (Where its line is on a deck laid already: its height.)
+		int[] laidAt = new int[n];
+		java.util.Arrays.fill(laidAt, Integer.MIN_VALUE);
 		Set<Long> standing = new HashSet<>();
 		// (A bridge's deck laid already, by the stretch before it: part of this one's bridge, not something built in its way.
 		// Taken for that, the bridge stopped at it and began again past it: a gap in its railings, the two not one bridge.)
@@ -162,6 +188,7 @@ final class WildRoad {
 			if (deck != null) {
 				wetAt[t] = true;
 				waterTop[t] = deck - 2;
+				laidAt[t] = deck;
 			} else if (loaded && !standing.contains(BlockPos.asLong(at.getX(), 0, at.getZ())) && TownBuilder.wet(level, at.getX(), at.getZ())) {
 				wetAt[t] = true;
 				waterTop[t] = TownBuilder.ground(level, at.getX(), at.getZ());
@@ -178,6 +205,19 @@ final class WildRoad {
 		if (!halves) {
 			pin0 &= ~1;
 			pin1 &= ~1;
+		}
+
+		// (A bridge's deck just past an end, built by the stretch there already: that end held to it, flush. Built after the
+		// bridge, a road came up a block short of its deck, or stopped below it; the user, 2026-11-14: "bridges almost never
+		// fully connect".)
+		Integer deck0 = deckPast(level, line, 0, -1);
+		Integer deck1 = deckPast(level, line, n - 1, 1);
+		if (deck0 != null) {
+			pin0 = 2 * deck0;
+		}
+
+		if (deck1 != null) {
+			pin1 = 2 * deck1;
 		}
 
 		// Crossings: the water along its line, a little land in the middle of it bridged over too.
@@ -216,7 +256,14 @@ final class WildRoad {
 			}
 
 			int length = e - s + 1;
-			boolean trickle = length <= TRICKLE;
+			// (A bridge laid already on part of it: it carries on at that deck's height, railings and all. Taken for a trickle
+			// of its own, the road came up to it a block below the deck.)
+			int laid = Integer.MIN_VALUE;
+			for (int k = s; k <= e; k++) {
+				laid = Math.max(laid, laidAt[k]);
+			}
+
+			boolean trickle = length <= TRICKLE && laid == Integer.MIN_VALUE;
 			int base = water + (trickle ? 1 : 2);
 			double a = s > 0 ? natural[s - 1] : Double.NaN;
 			double b = e < n - 1 ? natural[e + 1] : Double.NaN;
@@ -231,7 +278,7 @@ final class WildRoad {
 			for (int k = s; k <= e; k++) {
 				double f = (k - s + 1) / (double)(length + 1);
 				double across = Double.isNaN(a) ? b : Double.isNaN(b) ? a : Mth.lerp(f, a, b);
-				ground[k] = Math.max(base, Double.isNaN(across) ? base : Math.floor(across + 0.5));
+				ground[k] = laid != Integer.MIN_VALUE ? laid : Math.max(base, Double.isNaN(across) ? base : Math.floor(across + 0.5));
 				span[k] = spans.size();
 			}
 
@@ -266,8 +313,8 @@ final class WildRoad {
 
 		// (An end held only where a stretch is laid there already: held to the ground at both ends, a stretch up a steep
 		// slope couldn't reach its far end, and was pulled off its near one: eleven blocks' step where two met.)
-		boolean fixed0 = laid(level, at(line, 0));
-		boolean fixed1 = laid(level, at(line, n - 1));
+		boolean fixed0 = laid(level, at(line, 0)) || deck0 != null;
+		boolean fixed1 = laid(level, at(line, n - 1)) || deck1 != null;
 		if (!fixed0) {
 			pin0 = (int)Math.round(2 * h[0] / (halves ? 1 : 2)) * (halves ? 1 : 2);
 		}
@@ -319,6 +366,23 @@ final class WildRoad {
 
 			int from = t < 0 && fixed0 ? n / 2 : t + 1;
 			System.arraycopy(back, from, q, from, n - from);
+		}
+
+		// Flush with a crossing's deck at its banks, and up to it a half step a column (a whole one without slabs): it came up
+		// to a deck a block short, or with a block's step onto it.
+		for (int[] crossing : spans) {
+			for (int way : new int[] {-1, 1}) {
+				int from = way < 0 ? crossing[0] : crossing[1];
+				int want = 2 * (int)ground[from];
+				for (int k = 0; k < RAMP; k++) {
+					int t = from + way * (k + 1);
+					if (t < 0 || t >= n || span[t] >= 0 || t == 0 && fixed0 || t == n - 1 && fixed1) {
+						break;
+					}
+
+					q[t] = Mth.clamp(q[t], want - k * unit, want + k * unit);
+				}
+			}
 		}
 
 		// What each column is: road, a bridge's deck, or left out (water at its edge; the land under a bridge).
@@ -622,6 +686,34 @@ final class WildRoad {
 		return top.is(Blocks.PACKED_MUD) || top.is(Blocks.ROOTED_DIRT) || top.is(Blocks.SMOOTH_SANDSTONE) || top.is(BlockTags.PLANKS);
 	}
 
+	/**
+	 * The deck of a bridge (planks over water) a block or two past this end of the line ({@code way}: -1 before its start,
+	 * 1 past its end), with only water between: its height, or null.
+	 */
+	@Nullable
+	private static Integer deckPast(ServerLevel level, List<double[]> line, int t, int way) {
+		double[] p = line.get(t);
+		for (int d = 1; d <= 2; d++) {
+			int x = Mth.floor(p[0] + way * d * Math.cos(p[2]));
+			int z = Mth.floor(p[1] + way * d * Math.sin(p[2]));
+			if (!TownBuilder.loadedAt(level, x, z)) {
+				return null;
+			}
+
+			int top = TownBuilder.ground(level, x, z);
+			BlockPos at = new BlockPos(x, top, z);
+			if (level.getBlockState(at).is(BlockTags.PLANKS) && overWater(level, at)) {
+				return top;
+			}
+
+			if (!TownBuilder.wet(level, x, z)) {
+				return null;
+			}
+		}
+
+		return null;
+	}
+
 	/** Halfway between built up over dips and cut down through bumps, {@code most} a block at most. */
 	private static double[] grade(double[] ground, double most) {
 		int n = ground.length;
@@ -841,8 +933,14 @@ final class WildRoad {
 					int nz = z + dz;
 					long next = BlockPos.asLong(nx, 0, nz);
 					Double off = cellD.get(next);
-					if (off != null && off <= CORE || decks.containsKey(next) || paved.containsKey(next) || avoid.contains(next) || keep.contains(next)
+					// (Not past the ends of this stretch: the way on is the next one's, and a row of beams went across it. Not on the
+					// dry bank past the crossing either: beams and corner logs stood out on the land, a pit between them.)
+					if (off == null || off <= CORE || decks.containsKey(next) || paved.containsKey(next) || avoid.contains(next) || keep.contains(next)
 						|| standing.contains(next) || !TownBuilder.loadedAt(level, nx, nz)) {
+						continue;
+					}
+
+					if (!TownBuilder.wet(level, nx, nz) && span[cellT.get(next)] < 0) {
 						continue;
 					}
 

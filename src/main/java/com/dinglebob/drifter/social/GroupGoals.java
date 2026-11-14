@@ -121,7 +121,14 @@ public final class GroupGoals {
 				return 0.0;
 			}
 
+			// (Nor while its town has as many down its mine as it wants: going along with a friend took all of a new town down
+			// with the first one to set off; the user, 2026-11-14, "leaving the town barren because everybody is underground".)
+			// (Asked only with a mate to go with: a place down the mine is kept for one let go.)
 			this.mate = mateSettingOff(drifter, RANGE);
+			if (this.mate != null && drifter.getTownWork() != null && !drifter.getTownWork().mayMine(drifter)) {
+				this.mate = null;
+			}
+
 			return this.mate == null ? 0.0 : 0.7 + 0.25 * drifter.getPersonality().get(Trait.SOCIABILITY);
 		}
 
