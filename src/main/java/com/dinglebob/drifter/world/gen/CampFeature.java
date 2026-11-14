@@ -54,6 +54,11 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 			return false;
 		}
 
+		// (Not on land kept for something else: the addon's planned roads and towns.)
+		if (com.dinglebob.drifter.api.DrifterApi.campKeptOut(context.level().getLevel(), context.origin())) {
+			return false;
+		}
+
 		// How common camps are: a setting (user, 2026-10-17), rolled for each spot a camp could go.
 		if (context.random().nextDouble() >= DrifterConfig.spawnChance(com.dinglebob.drifter.DrifterConfig.Spawn.CAMPS)) {
 			return false;

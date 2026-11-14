@@ -577,6 +577,73 @@ final class Highways {
 		return lines.size();
 	}
 
+	/**
+	 * Debug: every built stretch walked along its line a block at a time (loaded land only), its middle's top read: the
+	 * road (the worn mix, its slab, sandstone), a deck (planks), water, or something else. Logged: water or something else
+	 * between the road and a deck within a few blocks, and a step of more than a block between two of them side by side.
+	 * How many places.
+	 */
+	static int check(ServerLevel level) {
+		int found = 0;
+		for (WorldPlan.Highway road : WorldPlan.highways) {
+			List<double[]> smooth = smooth(road);
+			for (int p = 0; p < road.built.length; p++) {
+				if (!road.built[p]) {
+					continue;
+				}
+
+				int a = p * PIECE;
+				int b = Math.min(road.points.size() - 1, a + PIECE);
+				List<double[]> line = line(smooth.subList(a, b + 1));
+				char last = ' ';
+				double lastTop = 0;
+				int lastX = 0;
+				int lastZ = 0;
+				int gap = 0;
+				for (double[] q : line) {
+					int x = (int)Math.floor(q[0]);
+					int z = (int)Math.floor(q[1]);
+					if (!TownBuilder.loadedAt(level, x, z)) {
+						last = ' ';
+						continue;
+					}
+
+					int y = TownBuilder.ground(level, x, z);
+					net.minecraft.world.level.block.state.BlockState top = level.getBlockState(new BlockPos(x, y, z));
+					boolean slab = top.getBlock() instanceof net.minecraft.world.level.block.SlabBlock
+						&& top.getValue(net.minecraft.world.level.block.SlabBlock.TYPE) == net.minecraft.world.level.block.state.properties.SlabType.BOTTOM;
+					char kind = top.is(net.minecraft.tags.BlockTags.PLANKS) || top.is(net.minecraft.tags.BlockTags.WOODEN_SLABS) ? 'D'
+						: WildRoad.worn(top) || WildRoad.slabOf(Blocks.PACKED_MUD.defaultBlockState()) != null && top.getBlock() == WildRoad.slabOf(
+							Blocks.PACKED_MUD.defaultBlockState()).getBlock() || top.is(Blocks.SMOOTH_SANDSTONE) || top.is(Blocks.SMOOTH_SANDSTONE_SLAB) ? 'R'
+						: !top.getFluidState().isEmpty() ? 'W' : 'O';
+					double surface = y + (slab ? 0.5 : 1.0);
+					if (kind == 'R' || kind == 'D') {
+						if (last != ' ' && last != kind && gap > 0 && gap <= 3) {
+							DrifterCivilizations.LOGGER.info("[road] check: {} block(s) of water or other between the road and a bridge at {} {} {} (road {})", gap, x, y, z,
+								road.from);
+							found++;
+						}
+
+						if (last != ' ' && gap == 0 && Math.abs(surface - lastTop) > 1.0 && (x != lastX || z != lastZ)) {
+							DrifterCivilizations.LOGGER.info("[road] check: a step of {} at {} {} {} ({} to {})", surface - lastTop, x, y, z, last, kind);
+							found++;
+						}
+
+						last = kind;
+						lastTop = surface;
+						lastX = x;
+						lastZ = z;
+						gap = 0;
+					} else if (last != ' ' && (x != lastX || z != lastZ)) {
+						gap++;
+					}
+				}
+			}
+		}
+
+		return found;
+	}
+
 	/** Debug: how many stretches are built of how many. */
 	static String describe() {
 		int pieces = 0;

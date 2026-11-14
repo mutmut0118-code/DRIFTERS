@@ -303,6 +303,12 @@ public final class DrifterCivilizations implements ModInitializer {
 						ctx.getSource().sendSuccess(() -> Component.literal("Debug: a road " + length + " blocks long from here with a square corner halfway, in " + stretches + " stretches"), true);
 						return 1;
 					}))))
+				// (Debug: built roads walked along their lines, the places a road and a bridge don't meet logged.)
+				.then(Commands.literal("checkroads").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					int found = Highways.check(ctx.getSource().getLevel());
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + found + " places where a road and a bridge don't meet (see the log)"), false);
+					return found;
+				}))
 				.then(Commands.literal("roads").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					Highways.forcedNear = BlockPos.containing(ctx.getSource().getPosition());
 					ctx.getSource().sendSuccess(() -> Component.literal("Debug: roads within 1000 blocks of here are built now, a stretch at a time, player or not"),

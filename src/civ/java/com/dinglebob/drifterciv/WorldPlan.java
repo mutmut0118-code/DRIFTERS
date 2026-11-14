@@ -309,9 +309,20 @@ final class WorldPlan {
 				highways.clear();
 				ferries.clear();
 				history = null;
+				keptChunks = null;
 			}
 		});
 		DrifterApi.setNotPlaced(structure -> planned && structure.is(SETTLEMENTS));
+		// (No world-generation camp on a planned road or in a planned place: a house camp stood in the middle of a road built
+		// later; while the plan's still being made, none at all.)
+		DrifterApi.setCampKeepOut((level, pos) -> {
+			if (!planned || level.dimension() != Level.OVERWORLD) {
+				return false;
+			}
+
+			java.util.Set<Long> kept = keptChunks;
+			return !ready || kept == null || kept.contains(net.minecraft.world.level.ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4));
+		});
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(WorldPlan::present);
 	}
 
@@ -463,6 +474,7 @@ final class WorldPlan {
 			Nations.planned(server, nation, towns, conquered, foundedAgo(nation.capital()));
 		}
 
+		keptChunks = keep();
 		ready = true;
 		making = false;
 		Towns.save(server);
@@ -2859,6 +2871,39 @@ final class WorldPlan {
 			history = null;
 		}
 
+		keptChunks = keep();
 		ready = true;
+	}
+
+	/** World-generation camps kept this far off a planned road's line (a house is up to about twenty blocks across). */
+	private static final int CAMP_OFF_ROAD = 28;
+	/** And this far past a planned place's own roads. */
+	private static final int CAMP_OFF_PLACE = 16;
+	/** The chunks a world-generation camp isn't put in (read from world generation's threads; made whole, then set). */
+	@Nullable
+	private static volatile java.util.Set<Long> keptChunks;
+
+	/** The chunks near the plan's roads and in its places. */
+	private static java.util.Set<Long> keep() {
+		java.util.Set<Long> kept = new java.util.HashSet<>();
+		for (Highway road : highways) {
+			for (int[] p : road.points) {
+				mark(kept, p[0], p[1], CAMP_OFF_ROAD);
+			}
+		}
+
+		for (Place place : places) {
+			mark(kept, place.x, place.z, place.reach() + CAMP_OFF_PLACE);
+		}
+
+		return java.util.Collections.unmodifiableSet(kept);
+	}
+
+	private static void mark(java.util.Set<Long> kept, int x, int z, int reach) {
+		for (int cx = (x - reach) >> 4; cx <= (x + reach) >> 4; cx++) {
+			for (int cz = (z - reach) >> 4; cz <= (z + reach) >> 4; cz++) {
+				kept.add(net.minecraft.world.level.ChunkPos.asLong(cx, cz));
+			}
+		}
 	}
 }

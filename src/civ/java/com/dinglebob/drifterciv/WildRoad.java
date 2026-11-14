@@ -344,10 +344,12 @@ final class WildRoad {
 				}
 			} else if (span[t] >= 0) {
 				// (Land in a crossing lower than the deck is bridged over, not built up to it: a sandbar beside the bridge was
-				// raised to the deck as the road's shoulder, a column of sand through the railings.)
-				if (core && (wet || TownBuilder.ground(level, x, z) < y)) {
+				// raised to the deck as the road's shoulder, a column of sand through the railings. A flat one's planks go its
+				// whole width: its sides were left water, holes beside it.)
+				boolean flatOne = spans.get(span[t])[2] == 1;
+				if ((core || flatOne && wet) && (wet || TownBuilder.ground(level, x, z) < y)) {
 					decks.put(cell, y);
-					if (spans.get(span[t])[2] == 1) {
+					if (flatOne) {
 						flat.add(cell);
 					}
 				} else if (!wet && TownBuilder.ground(level, x, z) >= y) {
@@ -355,6 +357,21 @@ final class WildRoad {
 				}
 			} else if (!wet) {
 				paved.put(cell, q[t]);
+			} else if (core) {
+				// (Water in its middle by a crossing whose own step of the line is still on the bank, where the shore runs
+				// aslant: it was left water, a hole where the road met the bridge; the user, 2026-11-14: "the paths and the
+				// bridges dont connect". The deck of the crossing nearest, carried to it.)
+				for (int d = 1; d <= 3; d++) {
+					int near = t - d >= 0 && span[t - d] >= 0 ? t - d : t + d < n && span[t + d] >= 0 ? t + d : -1;
+					if (near >= 0) {
+						decks.put(cell, (int)ground[near]);
+						if (spans.get(span[near])[2] == 1) {
+							flat.add(cell);
+						}
+
+						break;
+					}
+				}
 			}
 		}
 
@@ -844,14 +861,13 @@ final class WildRoad {
 			}
 		}
 
-		// Posts: one a side every few steps and at each end of the crossing, the beam column nearest the line at that step.
+		// Posts: one a side at the steps postSteps picks (evenly placed), the beam column nearest the line at that step.
+		Set<Integer> postTs = postSteps(level, line, span, spans);
 		Map<Long, Long> posts = new HashMap<>();
 		Map<Long, Double> postOff = new HashMap<>();
 		for (var beam : beams.entrySet()) {
 			int t = beamT.get(beam.getKey());
-			int[] crossing = span[t] >= 0 ? spans.get(span[t]) : null;
-			boolean end = crossing != null && (t == crossing[0] || t == crossing[1]);
-			if (!end && (Math.floorMod(t, POSTS) != POSTS / 2 || crossing != null && (t - crossing[0] < 3 || crossing[1] - t < 3))) {
+			if (!postTs.contains(t)) {
 				continue;
 			}
 
@@ -908,6 +924,69 @@ final class WildRoad {
 		for (BlockPos pos : fences) {
 			TownBuilder.place(level, pos, Block.updateFromNeighbourShapes(level.getBlockState(pos), level, pos));
 		}
+	}
+
+	/**
+	 * The steps of the line a bridge's posts stand at, evenly placed (the user, 2026-11-14: "the bridge stands should always
+	 * be evenly placed"; they were counted from each stretch's start, and a bridge across two stretches had an end post at
+	 * each where they met: posts two blocks apart). At its banks (a crossing's end with land past it; not where the stretch
+	 * ends over water); a crossing with both banks in this stretch evenly between them, about every {@link #POSTS}; one
+	 * running on into the next stretch at every {@link #POSTS}th block across the world the way it runs (a bridge is squared
+	 * to the compass), so the stretches either side agree, none nearer a bank than three.
+	 */
+	private static Set<Integer> postSteps(ServerLevel level, List<double[]> line, int[] span, List<int[]> spans) {
+		int n = line.size();
+		Set<Integer> steps = new HashSet<>();
+		for (int[] crossing : spans) {
+			boolean bankAtStart = crossing[0] > 0 || bankBeyond(level, line, 0, -1);
+			boolean bankAtEnd = crossing[1] < n - 1 || bankBeyond(level, line, n - 1, 1);
+			if (bankAtStart) {
+				steps.add(crossing[0]);
+			}
+
+			if (bankAtEnd) {
+				steps.add(crossing[1]);
+			}
+
+			int length = crossing[1] - crossing[0];
+			if (bankAtStart && bankAtEnd) {
+				int gaps = Math.max(1, (int)Math.round(length / (double)POSTS));
+				for (int i = 1; i < gaps; i++) {
+					steps.add(crossing[0] + (int)Math.round(i * length / (double)gaps));
+				}
+
+				continue;
+			}
+
+			for (int t = crossing[0]; t <= crossing[1]; t++) {
+				if (bankAtStart && t - crossing[0] < 3 || bankAtEnd && crossing[1] - t < 3) {
+					continue;
+				}
+
+				double[] p = line.get(t);
+				boolean alongX = Math.abs(Math.cos(p[2])) >= Math.abs(Math.sin(p[2]));
+				int across = alongX ? Mth.floor(p[0]) : Mth.floor(p[1]);
+				// (Once a block of the line: two steps of it can fall in one block where it's on a slant.)
+				int before = t > crossing[0] ? (alongX ? Mth.floor(line.get(t - 1)[0]) : Mth.floor(line.get(t - 1)[1])) : Integer.MIN_VALUE;
+				if (Math.floorMod(across, POSTS) == 0 && across != before) {
+					steps.add(t);
+				}
+			}
+		}
+
+		return steps;
+	}
+
+	/** Land (not water, not a deck) a block past this end of the line ({@code way}: -1 before its start, 1 past its end). */
+	private static boolean bankBeyond(ServerLevel level, List<double[]> line, int t, int way) {
+		double[] p = line.get(t);
+		int x = Mth.floor(p[0] + way * Math.cos(p[2]));
+		int z = Mth.floor(p[1] + way * Math.sin(p[2]));
+		if (!TownBuilder.loadedAt(level, x, z) || TownBuilder.wet(level, x, z)) {
+			return false;
+		}
+
+		return !level.getBlockState(new BlockPos(x, TownBuilder.ground(level, x, z), z)).is(BlockTags.PLANKS);
 	}
 
 	private static BlockState axis(Block log, Direction.Axis axis) {

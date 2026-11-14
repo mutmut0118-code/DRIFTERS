@@ -243,6 +243,9 @@ setting, four by default, up to 32).
   half a block of ground, cleared like a plant where something's built.
 - `DrifterApi.setNotPlaced(Predicate<Holder<Structure>>)`: structures the addon places itself get no placements (so
   /locate and generation don't look for them); `notPlaced(holder)` asks.
+- `DrifterApi.setCampKeepOut(BiPredicate<Level, BlockPos>)`: land where world generation puts no Drifter camp (a hut or
+  a house): the addon's planned roads and places (0.23.63). Asked from world generation's threads, so quick and thread
+  safe; `campKeptOut(level, pos)` asks.
 
 ## Roads
 

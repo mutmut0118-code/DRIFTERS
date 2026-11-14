@@ -6,7 +6,7 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
-## 0.23.62-side.2: towns and roads in Voxy's far view, "paper towns" (new, 2026-11-14)
+## 0.23.63-side.1: towns and roads in Voxy's far view, "paper towns" (new, 2026-11-14)
 
 Needs Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST). Best seen in a **new world**: in a world you've
 already played, far land Voxy has already filled in keeps its old look.
@@ -26,7 +26,7 @@ already played, far land Voxy has already filled in keeps its old look.
 Debug (cheats on): `/drifterciv sketch info` (the nearest planned place's sketch), `/drifterciv sketch check`,
 `/drifterciv sketch painted`.
 
-## 0.23.62-side.1: two fixes for Voxy SeedGen (new, 2026-11-14)
+## 0.23.63-side.1 (first out as 0.23.62-side.1): two fixes for Voxy SeedGen (new, 2026-11-14)
 
 With Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST):
 
@@ -3920,3 +3920,14 @@ In a **new world** (the roads fix also helps an old world: roads not built yet g
 - [ ] **Town streets** are the same packed mud / rooted dirt / coarse dirt as the roads (sandstone in deserts), no
       planks. Cities still have stone brick.
 
+## 0.23.63: no houses on the roads; bridges that meet the road; even bridge posts (new)
+
+In a **new world**.
+
+- [ ] **No lone houses or huts in the middle of a road** between towns (the camps Drifter puts down with the land stay
+      well off the roads and out of the towns).
+- [ ] **Where a road reaches a bridge, it meets the deck**: no hole of water between them, also where the shore runs at
+      a slant. Small plank crossings over a stream have planks their whole width, no holes at their sides.
+- [ ] **Bridge posts evenly spaced**: a post at each bank and the rest at even gaps (about 6 blocks), never two posts a
+      couple of blocks apart.
+- Debug: `/drifterciv plan checkroads` lists, in the log, any spots near you where a road and a bridge don't meet.
