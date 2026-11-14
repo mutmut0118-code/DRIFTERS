@@ -401,7 +401,8 @@ final class TownRoads {
 
 		@Override
 		public boolean guard(DrifterEntity drifter) {
-			return "guard".equals(this.town.lines.get(drifter.getUUID()));
+			// (One hired away isn't on its rounds: Hires.)
+			return "guard".equals(this.town.lines.get(drifter.getUUID())) && Hires.hired(drifter.getUUID()) == null;
 		}
 
 		/** Its rounds (columns of its roads, round the town), worked out for so many roads. */

@@ -338,6 +338,8 @@
     "ask.opinion_thing": {"any": ["{thing}? its alright", "love {thing}", "{thing} is cool", "eh, {thing}", "{thing}? yeah its good", "not really into {thing}"], "newbie": ["{thing} is so cool!!"], "hermit": ["{thing}. fine"], "pvp_sweat": ["{thing}? eh, pvp is better"], "builder": ["{thing}? i'd rather build"], "miner": ["{thing}? i'd rather mine"]},
     "ask.where_here": {"any": ["{who}? right there lol", "{who} is right there", "uh, behind you", "right there lol", "look around lol"]},
     "ask.where_seen": {"any": ["saw {who} {when}, {where}", "{who} was {where} {when}", "{when}, {where}", "last saw {who} {where}, {when}", "{who}? {where}, {when}"], "hermit": ["{where}. {when}"]},
+    "convo.called": {"any": ["yeah?", "hm?", "whats up", "yes?", "thats me, whats up"], "hermit": ["what."], "helper": ["yes? need something?"]},
+    "convo.called_back": {"any": ["yeah? whos that", "over here!", "who said my name?", "hello? where are you", "im here! wheres that coming from"], "hermit": ["what."], "bandit": ["who wants to know"]},
     "ask.where_me": {"any": ["right here lol", "uh, here?", "im right here", "here lol", "you're looking at me"], "hermit": ["here."]},
     "ask.where_unknown": {"any": ["no idea", "havent seen {who}", "dunno", "havent seen {who} around", "not sure, sorry"], "hermit": ["dont know"]},
     "ask.where_no": {"any": ["why do you wanna know", "not telling", "ask {who} yourself", "idk you well enough", "why?"], "bandit": ["what's it worth to you"]},

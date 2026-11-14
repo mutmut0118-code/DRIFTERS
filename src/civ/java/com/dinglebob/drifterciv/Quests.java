@@ -109,6 +109,17 @@ final class Quests {
 		String toTown = "";
 		String toRole = "";
 		boolean letter;
+		/** Carry word (Words): what kind ("family", "death", "leader", "warning", "trade", "debt", "news"; "" before 0.23.64), what it
+		 * says, sealed (private: they only know by opening it), unsigned; they know what it says; they broke its seal; the
+		 * reply to carry back; money handed them to carry back (emeralds' worth). */
+		String wordKind = "";
+		String message = "";
+		boolean sealed;
+		boolean anon;
+		boolean known;
+		boolean opened;
+		String reply = "";
+		int replyMoney;
 		/** Where (the other town, the grave). */
 		@Nullable
 		BlockPos at;
@@ -160,6 +171,14 @@ final class Quests {
 			tag.putString("ToTown", this.toTown);
 			tag.putString("ToRole", this.toRole);
 			tag.putBoolean("Letter", this.letter);
+			tag.putString("WordKind", this.wordKind);
+			tag.putString("Message", this.message);
+			tag.putBoolean("Sealed", this.sealed);
+			tag.putBoolean("Anon", this.anon);
+			tag.putBoolean("Known", this.known);
+			tag.putBoolean("Opened", this.opened);
+			tag.putString("Reply", this.reply);
+			tag.putInt("ReplyMoney", this.replyMoney);
 			if (this.at != null) {
 				tag.putLong("At", this.at.asLong());
 			}
@@ -198,6 +217,14 @@ final class Quests {
 			q.toTown = tag.getString("ToTown");
 			q.toRole = tag.getString("ToRole");
 			q.letter = tag.getBoolean("Letter");
+			q.wordKind = tag.getString("WordKind");
+			q.message = tag.getString("Message");
+			q.sealed = tag.getBoolean("Sealed");
+			q.anon = tag.getBoolean("Anon");
+			q.known = tag.getBoolean("Known");
+			q.opened = tag.getBoolean("Opened");
+			q.reply = tag.getString("Reply");
+			q.replyMoney = tag.getInt("ReplyMoney");
 			q.at = tag.contains("At") ? BlockPos.of(tag.getLong("At")) : null;
 			q.about = tag.getString("About");
 			q.war = tag.getBoolean("War");
@@ -253,6 +280,10 @@ final class Quests {
 	private static final int WORD_PAY = 2;
 	private static final double WORD_PAY_EVERY = 300.0;
 	private static final int WORD_PAY_MOST = 12;
+	/** A reply brought back adds this to the pay (emeralds' worth). */
+	private static final int REPLY_PAY = 1;
+	/** Money sent back and not handed over, this long (days) past when it was due: kept, they're taken to have. */
+	private static final int KEPT_DAYS = 3;
 	/** A grave this old (days) is no longer asked about. */
 	private static final int GRIEF_DAYS = 60;
 	/** Trust (-100 to 100): what someone who'd ask at all has in them (not wary of them), and who they'd ask a kindness of. */
@@ -350,8 +381,56 @@ final class Quests {
 				return 1;
 			}).then(Commands.literal("offer").executes(ctx -> debugOffer(ctx.getSource(), null))
 				.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
-					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("war", "short", "word", "dead", "find", "deal"), builder))
+					.suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("war", "short", "word", "dead", "find", "deal", "word.family",
+						"word.death", "word.leader", "word.warning", "word.trade", "word.debt", "word.news"), builder))
 					.executes(ctx -> debugOffer(ctx.getSource(), com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind")))))
+			// Debug: to whom their latest word is for: beside them if they're loaded, else to their town (run it again once it's there).
+			.then(Commands.literal("visit").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Quest word = null;
+				for (Quest q : quests.values()) {
+					if (q.player.equals(player.getUUID()) && q.kind.equals("word") && q.state == TAKEN) {
+						word = q;
+					}
+				}
+
+				if (word == null) {
+					ctx.getSource().sendFailure(Component.literal("Debug: no word being carried"));
+					return 0;
+				}
+
+				DrifterEntity to = word.to == null ? null : TownFounding.loaded(ctx.getSource().getServer(), word.to);
+				if (to != null && to.level() == player.level()) {
+					player.teleportTo(player.serverLevel(), to.getX() + 2.0, to.getY(), to.getZ(), player.getYRot(), player.getXRot());
+				} else if (word.at != null) {
+					player.teleportTo(ctx.getSource().getServer().overworld(), word.at.getX() + 0.5, 200, word.at.getZ() + 0.5, player.getYRot(), player.getXRot());
+				}
+
+				String name = word.toName;
+				boolean there = to != null;
+				DrifterCivilizations.LOGGER.info("[quests] debug visit: {} ({})", name, there ? "beside them" : "to their town");
+				ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + (there ? "by " + name : "to " + name + "'s town; run it again")), false);
+				return 1;
+			}))
+			// Debug: to whoever asked their latest word (to finish it).
+			.then(Commands.literal("back").executes(ctx -> {
+				ServerPlayer player = ctx.getSource().getPlayerOrException();
+				Quest word = null;
+				for (Quest q : quests.values()) {
+					if (q.player.equals(player.getUUID()) && q.kind.equals("word") && q.state == READY) {
+						word = q;
+					}
+				}
+
+				DrifterEntity giver = word == null ? null : TownFounding.loaded(ctx.getSource().getServer(), word.giver);
+				if (giver == null) {
+					ctx.getSource().sendFailure(Component.literal("Debug: no giver loaded"));
+					return 0;
+				}
+
+				player.teleportTo(player.serverLevel(), giver.getX() + 2.0, giver.getY(), giver.getZ(), player.getYRot(), player.getXRot());
+				return 1;
+			}))
 			.then(Commands.literal("page").then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(ctx -> {
 				ServerPlayer player = ctx.getSource().getPlayerOrException();
 				List<String> lines = Journal.text(open(player, com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id")));
@@ -440,6 +519,37 @@ final class Quests {
 
 	private static String pair(UUID giver, UUID player) {
 		return giver + "|" + player;
+	}
+
+	/** A quest by its number, or null. */
+	@Nullable
+	static Quest byId(long id) {
+		return quests.get(id);
+	}
+
+	/** Something of one changed (Words): saved. */
+	static void changed(MinecraftServer server) {
+		state(server).setDirty();
+	}
+
+	/** A word this player carries for this Drifter, not yet handed over, or null. */
+	@Nullable
+	static Quest wordFor(UUID to, UUID player) {
+		for (Quest q : quests.values()) {
+			if (q.state == TAKEN && q.kind.equals("word") && q.player.equals(player) && to.equals(q.to)) {
+				return q;
+			}
+		}
+
+		return null;
+	}
+
+	/** Its word taken in (Words): only going back to say so left (and the reply, or money, to bring). */
+	static void delivered(MinecraftServer server, Quest q) {
+		q.state = READY;
+		q.end = q.reply.isEmpty() ? "" : "They sent a reply back: \"" + capital(q.reply) + "\"" + (q.replyMoney > 0 ? " And " + DrifterApi.moneyWords(q.replyMoney)
+			+ " to hand over." : "");
+		state(server).setDirty();
 	}
 
 	@Nullable
@@ -538,14 +648,12 @@ final class Quests {
 	/** A quest of a player who's about: what being where they are does for it. True if it moved on. */
 	private static boolean near(MinecraftServer server, Quest q, ServerPlayer player, long now) {
 		// (Word by mouth; and a letter too, should it have gone astray: they're told what it said.)
+		// (Stood right by them a moment, seen: it's handed over, as when they're spoken to or thrown the letter. The user,
+		// 2026-11-14: "when i give them the word they dont stop and process it, im just in the proximity of them".)
 		if (q.state == TAKEN && q.kind.equals("word") && q.to != null) {
 			DrifterEntity to = TownFounding.loaded(server, q.to);
-			if (to != null && to.level() == player.level() && to.distanceToSqr(player) <= NEAR * NEAR && sees(to, player, now) && !TalkApi.talking(to)) {
-				TalkApi.sayTo(to, player, CivLines.pick(to, "quest.word.got", "from " + q.giverName + "? ok, got it. thanks for coming all this way",
-					"player", TalkApi.callName(to, player), "who", q.giverName, "town", q.townName));
-				DrifterApi.think(to, player.getGameProfile().getName() + " brought word from " + q.giverName);
-				q.state = READY;
-				return true;
+			if (to != null && to.level() == player.level() && to.distanceToSqr(player) <= Words.BESIDE * Words.BESIDE && sees(to, player, now) && !TalkApi.talking(to)) {
+				Words.hand(server, q, to, player, false);
 			}
 		}
 
@@ -721,6 +829,31 @@ final class Quests {
 				continue;
 			}
 
+			// (Money sent back, not handed over long after: kept. The town it was sent to hears of it.)
+			if (q.kind.equals("word") && q.state == READY && q.replyMoney > 0 && q.due > 0 && now > q.due + KEPT_DAYS * DAY) {
+				close(q, FAILED, "You never handed over the money " + q.toTown + " sent. " + q.giverName + " thinks you kept it.", now);
+				q.owed = 2 * FAIL_TRUST;
+				Town town = q.town == null ? null : Diplomacy.byId(q.town.toString());
+				if (town != null) {
+					town.heard.merge(q.player, -2 * TOWN_WORD, (a, b) -> Math.max(-100.0, a + b));
+					Chronicle.add(server, "town", q.playerName + " kept the money " + q.toTown + " sent " + q.townName);
+					Towns.save(server);
+				}
+
+				changed = true;
+				continue;
+			}
+
+			// (A word to a friend, or of a death, is for them alone: gone, there's nobody to take it to.)
+			if (q.kind.equals("word") && q.state != READY && (q.wordKind.equals("family") || q.wordKind.equals("death")) && q.to != null) {
+				DrifterRecord friend = DrifterApi.record(q.to);
+				if (friend != null && friend.status() == DrifterRecord.Status.GONE) {
+					close(q, LAPSED, q.toName + " is gone. There's nobody to carry it to.", now);
+					changed = true;
+					continue;
+				}
+			}
+
 			if (q.kind.equals("word") && q.state != READY) {
 				// Who it's for: the one named, while they live; else (or once their town is there to have one) its leader now.
 				DrifterRecord to = q.to == null ? null : DrifterApi.record(q.to);
@@ -739,7 +872,7 @@ final class Quests {
 
 						q.to = other.leader;
 						q.toName = name;
-						q.toRole = "leader";
+						q.toRole = "the leader";
 						changed = true;
 					} else if (q.to != null || place != null && place.ruin() || other == null && place == null) {
 						close(q, LAPSED, (q.toName.isEmpty() ? "The leader of " + q.toTown : q.toName) + " is gone. There's nobody to carry it to.", now);
@@ -940,7 +1073,16 @@ final class Quests {
 		if (q != null) {
 			words.put("q_ask", q.said);
 			String called = TalkApi.callName(drifter, player);
-			words.put("q_yes", CivLines.pick(drifter, "quest.yes." + q.kind, "thank you, really", "player", called));
+			String yes = CivLines.pick(drifter, "quest.yes." + q.kind, "thank you, really", "player", called);
+			// (A word: what it says, with the yes, unless it's private and there's paper to seal it in. Said apart, it was lost
+			// under the yes. Found in testing.)
+			if (q.kind.equals("word") && !q.message.isEmpty() && (!q.sealed || drifter.getInventory().count(stack -> stack.is(Items.PAPER)) == 0)) {
+				boolean paper = drifter.getInventory().count(stack -> stack.is(Items.PAPER)) > 0;
+				yes = yes + ". " + CivLines.pick(drifter, paper ? "word.tell.letter" : "word.tell", (paper ? "it says: " : "tell them this: ") + q.message, "player", called,
+					"what", q.message, "who", q.toName);
+			}
+
+			words.put("q_yes", yes);
 			words.put("q_no", CivLines.pick(drifter, "quest.no", "ok, no worries", "player", called));
 		}
 	}
@@ -1025,21 +1167,18 @@ final class Quests {
 			others.add(place);
 		}
 
-		Collections.shuffle(others, new java.util.Random(Friends.now() + giver.getId()));
-		for (WorldPlan.Place place : others) {
-			// Who it's for: in a town that's there, its leader (a leader's word) or its keeper; in one that isn't yet, its
-			// leader, as the world's summary names them.
-			Town other = Diplomacy.byId(place.id.toString());
-			UUID to = other == null ? null : leader || other.keeper == null ? other.leader : other.keeper;
-			DrifterRecord record = to == null ? null : DrifterApi.record(to);
-			if (other != null && (other.group == null || record == null || record.status() == DrifterRecord.Status.GONE) || other == null && place.leader.isEmpty()) {
+		// What there is to say, from what's true (Words: a friend elsewhere, a death, a leader's business, a warning, a shortage,
+		// news), the friend's first.
+		for (Words.Draft d : Words.drafts(server, town, giver, player, leader, others)) {
+			double far = Math.hypot(d.x - town.center.getX(), d.z - town.center.getZ());
+			if (d.toTownId == null || far > (leader ? LEADER_KNOWS : PERSON_KNOWS) || far < 200) {
 				continue;
 			}
 
 			// (Not to the same town twice at once.)
 			boolean already = false;
 			for (Quest q : quests.values()) {
-				already |= q.open() && q.player.equals(player.getUUID()) && place.id.equals(q.toTownId);
+				already |= q.open() && q.player.equals(player.getUUID()) && d.toTownId.equals(q.toTownId);
 			}
 
 			if (already) {
@@ -1048,24 +1187,26 @@ final class Quests {
 
 			Quest q = new Quest();
 			q.kind = "word";
-			q.forTown = leader;
-			q.to = to;
-			q.toTownId = place.id;
-			q.toName = record != null ? record.name() : place.leader;
-			q.toTown = place.name;
-			q.toRole = other == null || to.equals(other.leader) ? "leader" : "shopkeeper";
-			q.at = other != null ? other.center : new BlockPos(place.x, 64, place.z);
-			double far = Math.hypot(place.x - town.center.getX(), place.z - town.center.getZ());
+			q.wordKind = d.kind;
+			q.forTown = d.forTown;
+			q.to = d.to;
+			q.toTownId = d.toTownId;
+			q.toName = d.toName;
+			q.toTown = d.toTown;
+			q.toRole = d.toRole;
+			q.at = d.at;
+			q.message = d.message;
+			q.sealed = d.sealed;
+			q.anon = d.anon;
+			q.about = d.about;
 			// (A stranger is offered half.)
 			int wanted = (int)Math.min(WORD_PAY_MOST, WORD_PAY + far / WORD_PAY_EVERY);
 			wanted = level == 0 ? Math.max(1, wanted / 2) : wanted;
-			q.pay = Math.min(wanted, has(server, town, giver, leader));
+			q.pay = Math.min(wanted, has(server, town, giver, q.forTown));
 			q.due = Friends.now() + WORD_DAYS * DAY;
-			q.why = giver.getName().getString() + (leader ? ", who leads " + town.name + "," : " of " + town.name) + " has word for " + q.toName + ", the "
-				+ q.toRole + " of " + place.name + ", and can't leave to take it.";
+			q.why = d.why;
 			String pay = q.pay > 0 ? "i'll pay " + DrifterApi.moneyWords(q.pay) + " when you're back" : "i cant pay but id owe you one";
-			q.said = CivLines.pick(giver, leader ? "quest.ask.word.leader" : "quest.ask.word", "could you take word to " + q.toName + " in " + place.name + " for me? "
-				+ pay, "player", TalkApi.callName(giver, player), "who", q.toName, "town", place.name, "pay", pay);
+			q.said = d.ask.contains("{pay}") ? d.ask.replace("{pay}", pay) : d.ask + " " + pay;
 			return q;
 		}
 
@@ -1249,6 +1390,8 @@ final class Quests {
 		}
 
 		q.state = TAKEN;
+		// (Told what it says unless it's private: Words. Corrected below by whether there was paper for a letter.)
+		q.known = !q.sealed;
 		DrifterEntity giver = TownFounding.loaded(server, q.giver);
 		if (q.kind.equals("word") && giver != null && giver.level() == player.level() && giver.distanceToSqr(player) <= 12.0 * 12.0) {
 			// (A letter, if it has paper to write one on: its own paper, handed over. Else by word of mouth.)
@@ -1256,12 +1399,8 @@ final class Quests {
 				ItemStack stack = giver.getInventory().getItem(slot);
 				if (stack.is(Items.PAPER) && !stack.has(DataComponents.CUSTOM_DATA)) {
 					ItemStack letter = stack.split(1);
-					CompoundTag mark = new CompoundTag();
-					mark.putLong(LETTER, q.id);
-					letter.set(DataComponents.CUSTOM_DATA, CustomData.of(mark));
-					letter.set(DataComponents.CUSTOM_NAME, Component.literal("Letter for " + q.toName + " of " + q.toTown).withStyle(style -> style.withItalic(false)));
-					letter.set(DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(List.of(
-						Component.literal("From " + q.giverName + " of " + q.townName).withStyle(net.minecraft.ChatFormatting.GRAY))));
+					// (One page, to read with a right-click: Words, LetterReading.)
+					Words.write(q, letter);
 					giver.getCamera().track(player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
 					// (Theirs to pick up, nobody else's.)
 					giver.tossForward(letter).setTarget(player.getUUID());
@@ -1269,6 +1408,20 @@ final class Quests {
 					break;
 				}
 			}
+
+			if (!q.letter) {
+				q.sealed = false;
+				q.known = true;
+			}
+
+			// (What it says is told with its yes: Quests.facts.)
+		}
+
+		// (What it says: told them plainly, unless it's private and written down and sealed. Without a letter, even a private
+		// one is said aloud: also when they said yes from further off. Found in review.)
+		if (q.kind.equals("word") && !q.letter) {
+			q.sealed = false;
+			q.known = true;
 		}
 
 		if (q.kind.equals("dead") && q.at != null && flower(server.overworld(), q.at)) {
@@ -1326,22 +1479,8 @@ final class Quests {
 		if (data != null && data.contains(LETTER)) {
 			Quest q = quests.get(data.copyTag().getLong(LETTER));
 			if (q != null && q.state == TAKEN && q.kind.equals("word") && drifter.getUUID().equals(q.to)) {
-				// (Read: a sheet of paper again.)
-				for (int slot = 0; slot < drifter.getInventory().getContainerSize(); slot++) {
-					ItemStack held = drifter.getInventory().getItem(slot);
-					CustomData mark = held.get(DataComponents.CUSTOM_DATA);
-					if (mark != null && mark.contains(LETTER) && mark.copyTag().getLong(LETTER) == q.id) {
-						held.remove(DataComponents.CUSTOM_DATA);
-						held.remove(DataComponents.CUSTOM_NAME);
-						held.remove(DataComponents.LORE);
-					}
-				}
-
-				TalkApi.sayTo(drifter, player, CivLines.pick(drifter, "quest.word.got", "from " + q.giverName + "? ok, got it. thanks for coming all this way",
-					"player", TalkApi.callName(drifter, player), "who", q.giverName, "town", q.townName));
-				DrifterApi.think(drifter, player.getGameProfile().getName() + " brought a letter from " + q.giverName);
-				q.state = READY;
-				state(server).setDirty();
+				// (It stops and reads it: Words.)
+				Words.hand(server, q, drifter, player, true);
 			}
 
 			return;
@@ -1381,6 +1520,44 @@ final class Quests {
 		long now = server.overworld().getGameTime();
 		String name = player.getGameProfile().getName();
 		Town town = q.town == null ? null : Diplomacy.byId(q.town.toString());
+		// (Money sent back by whoever it was for: handed over first, all of it, into the till. Not on them: asked for, and it waits.)
+		if (q.replyMoney > 0) {
+			if (DrifterApi.moneyHeld(player.getInventory()) < q.replyMoney) {
+				if (now - q.closed > 20L * 60) {
+					q.closed = now;
+					TalkApi.sayTo(giver, player, CivLines.pick(giver, "word.money.where", "they sent money? where is it", "player", TalkApi.callName(giver, player),
+						"owed", DrifterApi.moneyWords(q.replyMoney)));
+				}
+
+				return;
+			}
+
+			int handed = DrifterApi.moneyTake(player.getInventory(), q.replyMoney);
+			int put = town == null ? 0 : Diplomacy.till(server, town, handed);
+			// (What the till hasn't room for, or no till: the giver keeps it for the town, as a tax owed.)
+			if (put < handed) {
+				for (ItemStack stack : DrifterApi.moneyStacks(handed - put)) {
+					giver.getInventory().add(stack);
+				}
+
+				if (town != null) {
+					town.taxOwed.merge(giver.getUUID(), handed - put, Integer::sum);
+				}
+			}
+
+			Chronicle.add(server, "town", q.toTown + " paid " + q.townName + " " + DrifterApi.moneyWords(handed) + ", carried by " + name);
+			q.replyMoney = 0;
+		}
+
+		// (A reply brought back: heard, and a little more for it.)
+		if (!q.reply.isEmpty()) {
+			TalkApi.sayTo(giver, player, CivLines.pick(giver, "word.reply.heard." + (q.wordKind.isEmpty() ? "news" : q.wordKind), "they said that? thank you for bringing it back",
+				"player", TalkApi.callName(giver, player), "who", q.toName, "reply", q.reply));
+			if (q.pay > 0) {
+				q.pay += REPLY_PAY;
+			}
+		}
+
 		int paid = 0;
 		if (q.pay > 0) {
 			paid = DrifterApi.moneyTake(giver.getInventory(), q.pay);
@@ -1462,7 +1639,7 @@ final class Quests {
 		return BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
 	}
 
-	private static String name(Item item) {
+	static String name(Item item) {
 		return new ItemStack(item).getHoverName().getString().toLowerCase(Locale.ROOT);
 	}
 
@@ -1487,7 +1664,7 @@ final class Quests {
 	static String title(Quest q) {
 		return switch (q.kind) {
 			case "bring" -> capital(plural(name(item(q.item)))) + " for " + q.townName + (q.war ? "'s war" : "");
-			case "word" -> (q.letter ? "A letter for " : "Word for ") + q.toName + " in " + q.toTown;
+			case "word" -> (q.letter ? q.sealed ? "A sealed letter for " : "A letter for " : "Word for ") + q.toName + " in " + q.toTown;
 			case "dead" -> "A flower for " + q.about + "'s grave";
 			case "find" -> "Someone new for " + q.townName;
 			case "deal" -> "Deal with " + q.toName;
@@ -1556,6 +1733,7 @@ final class Quests {
 		group(lines, "Offered", offered);
 		group(lines, "Your word given", given);
 		group(lines, "Ordered", Orders.lines(player));
+		group(lines, "Hired", Hires.lines(player));
 		group(lines, "On the boards", boards);
 		group(lines, "Done", done);
 		return new Journal.Tab("Quests", lines, "Nobody's asked anything of you yet. Get to know people; they will.");
@@ -1717,16 +1895,30 @@ final class Quests {
 				}
 			}
 			case "word" -> {
-				List<String> more = new ArrayList<>(List.of("The " + q.toRole + " of " + q.toTown));
+				// (Who they are, so they can be asked for: the user, 2026-11-14, "its hard to look for the drifter because they could be anywhere".)
+				String role = q.toRole.equals("leader") ? "the leader" : q.toRole.equals("shopkeeper") ? "who keeps the stall" : q.toRole;
+				List<String> more = new ArrayList<>(List.of(capital(Words.described(q.toName, role, q.toTown))));
 				if (q.at != null) {
 					more.add(q.toTown + " is at " + q.at.getX() + ", " + q.at.getZ());
 				}
 
-				els.add(el(Journal.ITEM, "minecraft:paper", (q.letter ? "A letter for " : "Word for ") + q.toName, Journal.PLAIN, more));
+				els.add(el(Journal.ITEM, "minecraft:paper", (q.letter ? q.sealed ? "A sealed letter for " : "A letter for " : "Word for ") + q.toName, Journal.PLAIN, more));
+				if (!q.message.isEmpty()) {
+					els.add(sub("What it says"));
+					els.add(q.known ? text("\"" + capital(q.message) + "\"" + (q.anon ? " (No name on it.)" : ""), Journal.PLAIN)
+						: text("It's sealed. You don't know what it says (you could open it: right-click the letter; they'll see it's been opened).", Journal.FAINT));
+				}
+
+				if (!q.reply.isEmpty()) {
+					els.add(sub("Their reply"));
+					els.add(text("\"" + capital(q.reply) + "\"" + (q.replyMoney > 0 ? " With " + DrifterApi.moneyWords(q.replyMoney) + " to hand to " + q.giverName + "." : ""),
+						Journal.PLAIN));
+				}
+
 				if (q.state == OFFERED || q.state == TAKEN) {
 					els.add(text(q.state == OFFERED ? "Say yes to their face and, if they've paper, they'll write it down for you to carry."
-						: q.letter ? "Throw the letter to " + q.toName + " (or, if it's lost, find them and tell them). Then come back to " + q.giverName + "."
-							: "Find " + q.toName + " and stand with them a moment. Then come back to " + q.giverName + ".", Journal.FAINT));
+						: "Find " + q.toName + " in " + q.toTown + " (ask anyone there where they are, or call their name), then speak to them, "
+							+ (q.letter ? "throw them the letter, " : "") + "or stand beside them. Then come back to " + q.giverName + ".", Journal.FAINT));
 					// (Never led into trouble unwarned.)
 					for (Town other : Towns.all()) {
 						Town.Criminal criminal = other.name.equals(q.toTown) ? other.crimes.get(player.getUUID()) : null;
@@ -1884,7 +2076,16 @@ final class Quests {
 	private static int debugOffer(net.minecraft.commands.CommandSourceStack source, @Nullable String kind) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 		Town town = Towns.nearest(player.level().dimension().location().toString(), player.blockPosition());
-		Quest q = town == null ? null : ask(player.server, town, player, player.server.overworld().getGameTime(), kind == null ? "" : kind);
+		// ("word.death", "word.leader"...: a word of that kind only.)
+		Words.only = kind != null && kind.startsWith("word.") ? kind.substring(5) : null;
+		kind = Words.only != null ? "word" : kind;
+		Quest q;
+		try {
+			q = town == null ? null : ask(player.server, town, player, player.server.overworld().getGameTime(), kind == null ? "" : kind);
+		} finally {
+			Words.only = null;
+		}
+
 		if (q == null && kind == null && town != null) {
 			for (String one : List.of("war", "short", "word", "dead", "find", "deal")) {
 				q = q != null ? q : ask(player.server, town, player, player.server.overworld().getGameTime(), one);

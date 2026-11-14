@@ -3396,6 +3396,68 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.64: a hired sword; finding people; what a word says, and handing it over** (shops worth more than looting,
+  part 3, the second money-only thing; the user, 2026-11-13, away: "automatically go with your reccomendation"; and
+  2026-11-14 of quests: "when people tell me to give a word, its hard to look for the drifter because they could be
+  anywhere ... ask around, yell their name", "when i give them the word they dont stop and process it", "same with
+  asking where important people are", "i would also like to know what the word is", the letter "opens one page when you
+  right click it ... page flip noise (making it compatible with sounds 'the mod)", "sometimes the letter can be
+  anonymous"; part 1 of three approved: "Yes, build part 1").
+  - **A hired sword** (`Hires.java`, saved "drifter_civ_hires" v1, `hires.json`): say "fight for me" to one of a town's
+    guards; it names a day's price (3 emeralds' worth, times what the town thinks of you), paid ahead; each day's price
+    thrown buys a day, up to 7 ahead. It follows you by sight (lost, it goes to where it last saw you, looks about and
+    calls out), and fights what's at you (a monster, a bandit, an enemy in a war, a wanderer you didn't start on) and
+    what you strike that it may (monsters, bandits, its town's enemies in a war); never its own nation, never townsfolk at
+    peace defending themselves. It goes home when its time's up (warning first), when let go ("you can go home"), when
+    you hit it or its own people, when you're wanted in its town, or when it loses you five minutes. Not on its town's
+    rounds while hired. The journal's Quests page lists it. Debug: `/drifterciv hire`, `/drifterciv hire nearest`.
+  - **Where someone is** (`Whereabouts.java`): ask anyone in a town "where's the shopkeeper / smith / enchanter /
+    leader / a guard / a farmer..." or someone's name: where it saw them lately (only if it did), else where they'd be
+    (the stall, the smithy, the mine, the fields, a guard's rounds, their house; at night home asleep); then "take me to
+    them" and it walks you there. Calling a name: just the name ("wombatt!") gets "yeah?" if it sees you, else it calls
+    back ("over here!") and walks toward your voice (Drifter's `AnswerName` and `PlayerConvo`).
+  - **What a word says** (`Words.java`, `words.json`): from what's true: a friend of the giver living in another town
+    (news of its own, or of a death in the giver's town), a leader's sealed letter to another (offer to stand together,
+    to trade, help asked in a war, a complaint, greetings: by how the towns stand), a debt owed by a peace (the leader
+    may send the money back with you, out of its till: hand it over), a warning (a war; someone wanted, sometimes
+    unsigned), a town out of something asking another's shop or smith, or news. Told to your face unless private; the
+    journal shows what it says, and who the person is ("Priya, who keeps the stall in Ashford").
+  - **The letter**: paper (vanilla art); right-click opens one page on the game's book screen with the game's
+    page-turn sound (`LetterReading`, client), so the Sounds mod and resource packs change it as they do a book's. A
+    private one is sealed: opened, it says so, and whoever it's for sees the seal broken.
+  - **Handing it over**: no longer for being within 8 blocks. Speak to them (face to face), throw them the letter, or
+    stand beside them: they stop, turn to you, read it (a letter) or hear it, react to what it says, and often send a
+    reply back; delivering a leader's letter, a warning or trade moves how the two towns stand. The giver hears the
+    reply (a little more pay); money sent back must be handed over first (kept past its time: failed, and both towns
+    hear). Debug: `/drifterciv quest offer word.<kind>`, `/drifterciv quest visit`, `/drifterciv quest back`.
+  - **Also:** a Drifter's question to a player (a quest asked, "want a tour?") is open from its last line, not after its
+    pause: a quick "yes" got "wdym".
+- **Tested** in the dev client (copies of a10p2_g): a guard hired, following a walking player, fighting a husk at the
+    player and going back to following, let go; "do you know where the shopkeeper is?", "wheres the smith", "where can i
+    find a guard" each answered rightly (who, where seen, when), "take me to them" led there; a name called out of sight
+    answered "im here! wheres that coming from" / "yeah? whos that"; a leader's word asked, "yes" taken at once (it used
+    to be "wdym"), told what it says; delivered in Millhollow (connor_47 stopped farming, "player sent you? lets hear
+    it", reacted, sent a reply), the reply heard back in Hollowbrook; a sealed letter written, opened by right-click (the
+    page and its text pictured), seal broken, and noticed on delivery ("someones opened this"). **Not tested:** a friend's
+    or a death's word (none of the test world's people has a friend in another town), a debt's money sent back, a
+    warning, trade, a hired guard's time running out, more days paid, betrayal, being wanted, losing it, the journal's
+    "Hired" line and saving with one hired.
+  - **Review** (one fresh reviewer; fixed, built): the word handed over to a name called from 32 blocks off through
+    walls; walking off or logging out mid-read still delivered it (money thrown at nobody); reading blocked a
+    recipient's own fight; accepted from over 12 blocks, a "sealed" word with no letter and never told; a sealed letter
+    left at home "told" from memory; a leader only ever sent leader's letters, a warning always beat trade and news; a
+    debt paid by letter could strand money already on its way; a hired guard attacked townsfolk defending themselves
+    from its hirer; two guards (or a town's last) could be hired by asking all, then paying; a letter in the off-hand
+    didn't count; a full till lost money handed over.
+  - **Rulings (my calls):** guards only, one each, the guard keeps the pay, no refund; a guard won't strike first at
+    people at peace with its town; a word to a friend or of a death lapses if they're gone (no leader stands in);
+    a friend's town is known to the giver (where an old friend moved to is common knowledge); a debt is paid from the
+    debtor town's till wherever its leader stands (as the towns' own peace payments are); anyone who opens a sealed
+    letter costs its carrier the recipient's trust; the reader doesn't visibly hold the letter (Drifter hands are its
+    own tools); "wait at a spot" left out (the user's third idea; asking and calling cover it).
+  - **Deferred minors:** a hired guard fighting for its hirer (score 1.5) can't break off to flee a creeper (it does
+    at low health); "where can i cook" is taken for the cook; each draft considered marks its line as said lately;
+    the hire record's version is written, not read.
 - **0.23.63: no camp houses on the roads; roads and bridges that meet; bridge posts evenly placed** (the user,
   2026-11-14: "random houses sometimes spawn in the middle of the road", "the paths and the bridges dont connect", "the
   bridge stands should always be evenly placed").

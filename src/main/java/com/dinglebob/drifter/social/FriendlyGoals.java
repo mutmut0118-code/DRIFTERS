@@ -112,6 +112,8 @@ public final class FriendlyGoals {
 			return new Activity(drifter) {
 				private int ticks;
 				private boolean answered;
+				/** It couldn't see who called, so it called back and went toward the voice. */
+				private boolean calledBack;
 
 				@Override
 				public String describe() {
@@ -133,6 +135,18 @@ public final class FriendlyGoals {
 					}
 
 					Mode mode = seen ? Mode.toward(this.drifter, player) : Mode.UNAWARE;
+					// Out of its sight: it calls back ("over here?") and goes toward the voice a little way, looking for them (the user,
+					// 2026-11-14, of finding someone to give word to: "yell their name"). Not to someone it wants nothing to do with.
+					if (!seen && !this.calledBack && this.ticks >= 25) {
+						this.calledBack = true;
+						Mode known = Mode.toward(this.drifter, player);
+						if (!known.hostile() && known != Mode.AVOIDING) {
+							ChatLines.speak(this.drifter, com.dinglebob.drifter.social.Lines.pick(this.drifter, "convo.called_back", "player",
+								player.getGameProfile().getName()));
+							return this.begin(new NavigateTask(this.drifter, from, 4.0, "go toward whoever called"));
+						}
+					}
+
 					if (seen && !mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
 						this.answered = true;
 						// (Not a "?" when it's answering what they asked.)
@@ -143,7 +157,8 @@ public final class FriendlyGoals {
 						return this.begin(new Gesture(this.drifter, player, "nod at " + player.getGameProfile().getName(), Gesture.Kind.NOD));
 					}
 
-					return this.ticks >= 50 ? Status.SUCCESS : Status.RUNNING;
+					// (Gone toward the voice: a moment more to look about for them there.)
+					return this.ticks >= (this.calledBack ? 90 : 50) ? Status.SUCCESS : Status.RUNNING;
 				}
 			};
 		}

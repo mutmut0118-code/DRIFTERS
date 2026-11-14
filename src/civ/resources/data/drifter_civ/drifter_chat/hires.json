@@ -1,0 +1,161 @@
+{
+  "_comment": "A hired sword (Hires.java): paying one of a town's guards to come with you and fight for you. 'answers': what players type. 'lines': {player} is what it calls you, {pay} its price for a day (or what's still short of it), {when} how long it's still hired for, {who} the one already hired.",
+  "answers": {
+    "hire": [
+      "fight for me",
+      "i want to hire you",
+      "id like to hire you",
+      "can i hire you",
+      "hire you",
+      "i want to hire a guard",
+      "can i hire a guard",
+      "be my bodyguard",
+      "be my guard",
+      "guard me",
+      "protect me",
+      "work for me",
+      "ill pay you to come with me",
+      "ill pay you to fight",
+      "i need a sword",
+      "i need a fighter",
+      "are you for hire",
+      "how much to hire you"
+    ],
+    "hire_done": [
+      "you can go home",
+      "you can go now",
+      "youre dismissed",
+      "you are dismissed",
+      "i dont need you anymore",
+      "i dont need you any more",
+      "were done here",
+      "your job is done",
+      "go back home",
+      "go back to your town"
+    ]
+  },
+  "lines": {
+    "hire.quote": {
+      "any": [
+        "{pay} a day, paid ahead. throw it over and im with you",
+        "my sword? {pay} for the day. up front",
+        "i can do that. {pay} a day, and i fight in my own gear",
+        "{pay} buys you a day of me. more days, more of the same"
+      ]
+    },
+    "hire.short": {
+      "any": [
+        "thats not a days pay. {pay} more",
+        "{pay} more and im yours for the day",
+        "need {pay} more before i go anywhere"
+      ]
+    },
+    "hire.hired": {
+      "any": [
+        "right, im with you {player}. lead on",
+        "ok. where you go i go, for {when}",
+        "deal. ill watch your back",
+        "paid. stay close and ill keep things off you"
+      ]
+    },
+    "hire.more": {
+      "any": [
+        "good, im yours for {when}",
+        "ok, {when} then",
+        "that keeps me on. {when}"
+      ]
+    },
+    "hire.already": {
+      "any": [
+        "im already yours, for {when}",
+        "you hired me already. {when} left on it",
+        "still with you. {pay} buys another day when you want one"
+      ]
+    },
+    "hire.notguard": {
+      "any": [
+        "im no fighter. ask one of the guards",
+        "not me, i dont fight for pay. try a guard",
+        "you want a guard for that, not me"
+      ]
+    },
+    "hire.no": {
+      "any": [
+        "not for you",
+        "i wouldnt go anywhere with you",
+        "no. find someone else"
+      ]
+    },
+    "hire.taken": {
+      "any": [
+        "someones already paying me",
+        "im hired already. ask another guard",
+        "cant, im working for someone"
+      ]
+    },
+    "hire.one": {
+      "any": [
+        "youve got {who} already. one of us is enough",
+        "arent you paying {who}? one at a time",
+        "{who} is with you already. let them go first"
+      ]
+    },
+    "hire.war": {
+      "any": [
+        "not now. the towns got trouble, im needed here",
+        "cant leave with things as they are here",
+        "ask me when its quiet. im needed"
+      ]
+    },
+    "hire.needed": {
+      "any": [
+        "were too few on the walls as it is",
+        "cant, theres hardly any of us guarding the place",
+        "the town cant spare me right now"
+      ]
+    },
+    "hire.lost": {
+      "any": [
+        "{player}? where did you go",
+        "lost you {player}. where are you",
+        "hey, wait up. i cant see you",
+        "{player}! over here"
+      ]
+    },
+    "hire.ending": {
+      "any": [
+        "my times nearly up {player}. {pay} for another day",
+        "nearly done here. {pay} keeps me on another day",
+        "im off home soon unless you pay for more. {pay}"
+      ]
+    },
+    "hire.over": {
+      "any": [
+        "thats my time. im heading home",
+        "days done. good luck out there {player}",
+        "thats what you paid for. im off"
+      ]
+    },
+    "hire.dismissed": {
+      "any": [
+        "ok. im heading home then",
+        "right. take care of yourself",
+        "fine by me. see you around"
+      ]
+    },
+    "hire.betrayed": {
+      "any": [
+        "thats one of ours! were done",
+        "you dont touch my people. were finished",
+        "no. not them. keep your money, im gone"
+      ]
+    },
+    "hire.wanted": {
+      "any": [
+        "youre wanted back home. were done",
+        "i cant be seen with you now. were finished",
+        "after what you did? im gone"
+      ]
+    }
+  }
+}

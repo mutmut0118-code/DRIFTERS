@@ -1,0 +1,358 @@
+{
+  "_comment": "What a word says, and asking where someone is (Words.java, Whereabouts.java). In word.msg.* lines (what's written or said) {who} is whom it's for, {town} their town, {mine} the sender's town, {news} something of the sender's town lately, {dead} who died, {cause} how, {enemy} who they're at war with, {wanted} someone wanted, {crime} what for, {thing} what's run out, {owed} a sum. In the rest {player} is what it calls you, {who} the person, {way} a direction, {far} how far, {place} a place, {job} a line of work.",
+  "lines": {
+    "word.msg.family": {
+      "any": [
+        "it's been too long. all's well in {town}, mostly. {news}. come and see us when you can.",
+        "i think of you often. {news}. write back if you can find someone to carry it.",
+        "do you remember the old days? i do. {news}. don't be a stranger.",
+        "just a word to say i'm well, and i hope you are. {news}.",
+        "we miss you here. {news}. there's always a place by our fire for you."
+      ]
+    },
+    "word.msg.death": {
+      "any": [
+        "i'm sorry to be the one to tell you. {dead} is dead. we buried them by the town. you were dear to them.",
+        "bad news, and no gentle way to say it: {dead} died. i know you two were close.",
+        "{dead} is gone. {cause}. we laid them to rest outside {town}. come and visit the grave if you can."
+      ]
+    },
+    "word.msg.news": {
+      "any": [
+        "news from {town}: {news}. we hope all's well with you.",
+        "a word from {town}. {news}. our door's open if you're ever passing.",
+        "just keeping in touch. {news}."
+      ]
+    },
+    "word.msg.news.leader": {
+      "any": [
+        "greetings from {town}. {news}. may our towns keep the peace.",
+        "from the leader of {town}: {news}. we wish your people well."
+      ]
+    },
+    "word.msg.leader.ally": {
+      "any": [
+        "{mine} and {town} have been good neighbours. i'd have us stand together, if you're willing.",
+        "our towns get on well. let's make it more than that: stand with us, and we'll stand with you."
+      ]
+    },
+    "word.msg.leader.trade": {
+      "any": [
+        "our carts could use your roads, and yours ours. shall we trade?",
+        "{mine} has goods to sell and money to spend. let our towns trade."
+      ]
+    },
+    "word.msg.leader.help": {
+      "any": [
+        "we're at war with {enemy}. if {town} would stand with us, we won't forget it.",
+        "{enemy} has made war on us. any help from {town}, fighters or food, would be repaid."
+      ]
+    },
+    "word.msg.leader.complain": {
+      "any": [
+        "your people have been no friends to us. this has to stop, or there'll be trouble between our towns.",
+        "i won't pretend we're friends. but keep your people in line, or {mine} will."
+      ]
+    },
+    "word.msg.leader.greet": {
+      "any": [
+        "greetings from {mine}, old friend. may your harvests be good.",
+        "all's well with us. i hope it is with you. {mine} stands with {town}, as ever."
+      ]
+    },
+    "word.msg.debt": {
+      "any": [
+        "{town} still owes {mine} {owed} by the peace we made. we'd like it paid.",
+        "a reminder: {owed}, owed to {mine} by our peace. send it with this messenger if you have it."
+      ]
+    },
+    "word.msg.warning.wanted": {
+      "any": [
+        "watch out for {wanted}. wanted here for {crime}. if they come your way, keep your doors shut.",
+        "a warning: {wanted} is wanted in {town} for {crime}. don't trust them."
+      ]
+    },
+    "word.msg.warning.war": {
+      "any": [
+        "we're at war with {enemy}. their bands are on the roads. keep your people close.",
+        "{enemy} is fighting us, and their people roam the roads. be careful."
+      ]
+    },
+    "word.msg.trade": {
+      "any": [
+        "we've run out of {thing} in {town}. if you can spare some, send it with anyone heading our way and we'll pay a fair price.",
+        "{town} is clean out of {thing}. have you any to sell us?"
+      ]
+    },
+    "word.ask.family": {
+      "any": [
+        "my old friend {who} lives in {town} now. could you take them a word from me? {pay}",
+        "{player}, if you're going near {town}, would you find {who} and give them a word from me? {pay}",
+        "i havent seen {who} in ages. theyre in {town} now. would you carry a word? {pay}"
+      ]
+    },
+    "word.ask.death": {
+      "any": [
+        "could you tell {who} in {town} that {dead} died? they were close. i cant face the road. {pay}",
+        "someone has to tell {who} about {dead}. theyre in {town}. would you? {pay}"
+      ]
+    },
+    "word.ask.sealed": {
+      "any": [
+        "ive a letter for {who} in {town}. its private, so it stays sealed. {pay}",
+        "would you take this to {who} in {town}? sealed, mind. its between us. {pay}"
+      ]
+    },
+    "word.ask.warning": {
+      "any": [
+        "someone should warn {who} in {town}. would you take it? {pay}",
+        "{who} in {town} needs to hear this. will you carry a warning? {pay}"
+      ]
+    },
+    "word.ask.warning.anon": {
+      "any": [
+        "take a warning to {who} in {town} for me? just dont say it came from me. {pay}",
+        "{who} in {town} should know something. but its not from me, understand? {pay}"
+      ]
+    },
+    "word.ask.trade": {
+      "any": [
+        "were out of {thing}. could you ask {who} in {town} if they can spare any? {pay}",
+        "would you ask {who} over in {town} about {thing}? were clean out. {pay}"
+      ]
+    },
+    "word.tell": {
+      "any": [
+        "tell them this: {what}",
+        "heres what to say. {what}",
+        "say it like this: {what}"
+      ]
+    },
+    "word.tell.letter": {
+      "any": [
+        "it says: {what}",
+        "i wrote: {what}",
+        "heres what it says. {what}"
+      ]
+    },
+    "word.take": {
+      "any": [
+        "word from {who}? go on",
+        "from {who}? whats it say",
+        "{who} sent you? lets hear it"
+      ]
+    },
+    "word.take.letter": {
+      "any": [
+        "a letter? for me?",
+        "from {who}? let me see",
+        "huh. a letter. give it here"
+      ]
+    },
+    "word.opened": {
+      "any": [
+        "this has been opened.",
+        "the seals broken. you read it, didnt you.",
+        "someones opened this."
+      ]
+    },
+    "word.react.family": {
+      "any": [
+        "{who} wrote? thats good to hear",
+        "ha, {who}. i miss them",
+        "its been so long. thank you for this"
+      ]
+    },
+    "word.react.death": {
+      "any": [
+        "{dead}? ... no. thank you for telling me",
+        "oh. oh no. {dead}...",
+        "i didnt know. thank you for coming all this way to say it"
+      ]
+    },
+    "word.react.leader.good": {
+      "any": [
+        "from {who}? good, good",
+        "ah, {who}. always glad to hear from them"
+      ]
+    },
+    "word.react.leader.fair": {
+      "any": [
+        "from {who}. hm",
+        "{who}, is it. alright"
+      ]
+    },
+    "word.react.leader.bad": {
+      "any": [
+        "{who} has some nerve",
+        "a letter from {who}. of course"
+      ]
+    },
+    "word.react.warning": {
+      "any": [
+        "thanks for the warning",
+        "good to know. well keep watch",
+        "thats worth knowing. thank {who} for me"
+      ]
+    },
+    "word.react.trade": {
+      "any": [
+        "out of {thing}, are they",
+        "{thing}, hm. let me think"
+      ]
+    },
+    "word.react.debt": {
+      "any": [
+        "the money. of course its the money",
+        "yes, yes. i know what we owe"
+      ]
+    },
+    "word.reply.family": {
+      "any": [
+        "tell {who} i miss them too",
+        "tell {who} im well, and ill come by when i can",
+        "tell {who} to write again"
+      ]
+    },
+    "word.reply.death": {
+      "any": [
+        "tell {who} ill come and see the grave",
+        "tell {who} thank you for letting me know"
+      ]
+    },
+    "word.reply.warning": {
+      "any": [
+        "tell {town} we owe them one",
+        "tell {who} thanks. we wont forget it"
+      ]
+    },
+    "word.reply.trade.yes": {
+      "any": [
+        "tell them we can spare some",
+        "tell {who} yes, well send some their way"
+      ]
+    },
+    "word.reply.trade.no": {
+      "any": [
+        "tell them were short ourselves",
+        "tell {who} sorry, we have none to spare"
+      ]
+    },
+    "word.reply.debt.paid": {
+      "any": [
+        "here. take it to {who}, all of it",
+        "fine. heres {owed}. see that it gets there"
+      ]
+    },
+    "word.reply.debt.sent": {
+      "any": [
+        "tell them its on its way already",
+        "tell {who} the money left here days ago"
+      ]
+    },
+    "word.no_letter": {
+      "any": [
+        "{who} sent a letter? where is it then",
+        "you were to bring me a letter. youve not got it?",
+        "a letter from {who}? hand it over then"
+      ]
+    },
+    "word.reply.debt.not": {
+      "any": [
+        "tell them theyll have it when we have it",
+        "tell {who} we cant pay yet"
+      ]
+    },
+    "word.reply.leader.ally.good": {"any": ["tell {who} yes. well stand together", "tell {who} {town} has a friend in us"]},
+    "word.reply.leader.ally.fair": {"any": ["tell {who} well think on it", "tell {who} its worth talking about"]},
+    "word.reply.leader.ally.bad": {"any": ["tell {who} not yet", "tell {who} no"]},
+    "word.reply.leader.trade.good": {"any": ["tell {who} our roads are open to them", "tell {who} yes, lets trade"]},
+    "word.reply.leader.trade.fair": {"any": ["tell {who} well see", "tell {who} send a cart and well talk"]},
+    "word.reply.leader.trade.bad": {"any": ["tell {who} no thank you", "tell {who} we trade with friends"]},
+    "word.reply.leader.help.good": {"any": ["tell {who} were with them", "tell {who} well send what we can"]},
+    "word.reply.leader.help.fair": {"any": ["tell {who} we cant promise anything", "tell {who} well think on it"]},
+    "word.reply.leader.help.bad": {"any": ["tell {who} its not our war", "tell {who} no"]},
+    "word.reply.leader.complain.good": {"any": ["tell {who} ill look into it", "tell {who} im sorry for it"]},
+    "word.reply.leader.complain.fair": {"any": ["tell {who} we heard them", "tell {who} ill speak to my people"]},
+    "word.reply.leader.complain.bad": {"any": ["tell {who} to mind their own town", "tell {who} we heard them. thats all"]},
+    "word.reply.leader.greet.good": {"any": ["tell {who} the same to them", "tell {who} all is well here"]},
+    "word.reply.leader.greet.fair": {"any": ["tell {who} thank you", "tell {who} we wish them well"]},
+    "word.reply.leader.greet.bad": {"any": ["tell {who} we got it", "tell {who} noted"]},
+    "word.reply.heard.family": {"any": ["they said that? ha. thank you for bringing it back", "good. thats good to hear"]},
+    "word.reply.heard.death": {"any": ["thank you. i hope they do come", "thank you for doing that"]},
+    "word.reply.heard.leader": {"any": ["{reply}? hm. thank you", "so thats their answer. thank you"]},
+    "word.reply.heard.warning": {"any": ["good. glad they listened", "thank you for bringing it back"]},
+    "word.reply.heard.trade": {"any": ["{reply}? well, its an answer", "thank you for asking them"]},
+    "word.reply.heard.debt": {"any": ["about time", "well. thank you for bringing it"]},
+    "word.reply.heard.news": {"any": ["they said that? thank you for bringing it back", "good to hear from them"]},
+    "word.money.where": {
+      "any": [
+        "they sent money? where is it",
+        "you were to bring {owed}. wheres the money",
+        "the money they sent, {player}. hand it over"
+      ]
+    },
+    "town.where.here": {
+      "any": [
+        "{who}? right there, {way} of you",
+        "thats {who}, over to the {way}",
+        "{who}s just there. {way}"
+      ]
+    },
+    "town.where.seen": {
+      "any": [
+        "saw {who} {when}, {far} {way} of here",
+        "{who}? {when}, {way}. {far}",
+        "i saw {who} {when}. head {way}"
+      ]
+    },
+    "town.where.usual": {
+      "any": [
+        "{who}? usually at {place}. {way}, {far}",
+        "try {place}, {way} of here",
+        "{who}s mostly at {place}. thats {way}"
+      ]
+    },
+    "town.where.night": {
+      "any": [
+        "this late? {who}s at {place}. {way}",
+        "{who}? {place}. {way} of here, {far}"
+      ]
+    },
+    "town.where.unknown": {
+      "any": [
+        "no idea where {who} is, sorry",
+        "havent seen {who}. ask around",
+        "{who}? couldnt tell you"
+      ]
+    },
+    "town.where.nojob": {
+      "any": [
+        "we dont have a {job} here",
+        "no {job} in this town",
+        "theres no {job} here, sorry"
+      ]
+    },
+    "town.where.me": {
+      "any": [
+        "thats me",
+        "youre looking at them",
+        "me! what do you need"
+      ]
+    },
+    "town.where.take": {
+      "any": [
+        "sure, follow me",
+        "come on then, ill show you",
+        "this way"
+      ]
+    },
+    "town.where.arrive": {
+      "any": [
+        "here we are",
+        "this is where they were",
+        "there you go"
+      ]
+    }
+  }
+}

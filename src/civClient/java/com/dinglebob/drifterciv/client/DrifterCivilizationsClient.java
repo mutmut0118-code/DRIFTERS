@@ -25,6 +25,8 @@ public final class DrifterCivilizationsClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		// A letter opens to its page on a right-click.
+		LetterReading.register();
 		journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(new net.minecraft.client.KeyMapping(
 			"key.drifter_civ.journal", org.lwjgl.glfw.GLFW.GLFW_KEY_J, "key.categories.drifter_civ"));
 		// The key asks the server for the journal (none without the addon there: nothing happens); it opens when it comes.

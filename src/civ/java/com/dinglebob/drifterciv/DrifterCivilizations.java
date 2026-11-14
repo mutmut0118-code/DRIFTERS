@@ -83,6 +83,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownServices.register();
 		BloodGoods.register();
 		Orders.register();
+		Hires.register();
 		Friends.register();
 		FriendTalk.register();
 		FriendPerks.register();
@@ -90,6 +91,8 @@ public final class DrifterCivilizations implements ModInitializer {
 		FriendCommands.register();
 		Journal.register();
 		Quests.register();
+		Words.register();
+		Whereabouts.register();
 		Citizens.register();
 		TownAway.register();
 		Annals.register();

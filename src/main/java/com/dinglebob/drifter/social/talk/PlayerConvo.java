@@ -438,6 +438,24 @@ public final class PlayerConvo {
 		return Lines.answer(text, "everyone") != null;
 	}
 
+	/** The message is its name and nothing more than a "hey" or two. */
+	private static boolean justCalled(DrifterEntity drifter, String text) {
+		String words = " " + text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]+", " ") + " ";
+		if (!com.dinglebob.drifter.social.SocialWatcher.called(words, drifter.getName().getString())) {
+			return false;
+		}
+
+		for (String word : words.trim().split(" ")) {
+			boolean filler = word.isEmpty() || java.util.Set.of("hey", "hi", "yo", "oi", "oy", "hello", "excuse", "me", "sir", "maam", "pls", "please", "u", "you",
+				"there", "where", "are", "r", "ya", "hellooo", "heyy", "heyyy").contains(word);
+			if (!filler && !com.dinglebob.drifter.social.SocialWatcher.called(" " + word + " ", drifter.getName().getString())) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	// ---------------------------------------------------------------------------------------------
 	// Before anything else: asleep, in a fight, rude
 	// ---------------------------------------------------------------------------------------------
@@ -635,6 +653,13 @@ public final class PlayerConvo {
 
 			if (hostile) {
 				say(drifter, player, "ask.hostile", null);
+				return;
+			}
+
+			// Just its name called ("wombatt!", "hey bob"): it answers to it, not "what?". Out of its sight, it calls back so they can
+			// find it (the user, 2026-11-14, of finding someone: "yell their name"; found in testing: "wdym lol").
+			if (justCalled(drifter, text)) {
+				say(drifter, player, drifter.getSocial().watcher().sees(player) ? "convo.called" : "convo.called_back", null);
 				return;
 			}
 

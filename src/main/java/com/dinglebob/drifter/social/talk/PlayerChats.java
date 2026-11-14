@@ -241,6 +241,12 @@ public final class PlayerChats {
 				ChatLines.speak(opening.drifter, line);
 				PlayerConvo.opened(opening.player, opening.drifter, opening.topic.id(), line, now);
 				opening.said = true;
+				// (Its last line asks something: the answer's awaited from now, not from after its pause. Found in testing, 0.23.64: a
+				// "yes" a few seconds after a quest was asked came before the question was open, and got "wdym".)
+				if (opening.turn >= opening.topic.turns().size() && opening.topic.question() != null) {
+					PlayerTalk.ask(opening.drifter, opening.player, opening.topic.question(), vars(opening), now, opening.topic.id());
+				}
+
 				opening.nextAt = now + Math.min(120, 30 + line.length() * 2) + opening.drifter.getRandom().nextInt(20);
 				return true;
 			}

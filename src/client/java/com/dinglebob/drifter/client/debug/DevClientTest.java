@@ -109,6 +109,12 @@ public final class DevClientTest {
 				if (mc.player != null) {
 					mc.player.connection.sendChat(line.substring(5));
 				}
+			} else if (line.equals("use")) {
+				// A right-click with what's in the main hand, as the player does it (a letter read).
+				if (mc.player != null && mc.gameMode != null) {
+					Drifter.LOGGER.info("[Drifter test] use: {} (screen {})", mc.gameMode.useItem(mc.player, net.minecraft.world.InteractionHand.MAIN_HAND),
+						mc.screen == null ? "none" : mc.screen.getClass().getSimpleName());
+				}
 			} else if (line.startsWith("attack ")) {
 				// The player turns to the named Drifter and swings at it as a player does (a click: the attack goes to the server
 				// with its reach check), if it's in reach; logged either way. For fight tests (0.23.34: shields against players).
@@ -161,6 +167,7 @@ public final class DevClientTest {
 				}
 			} else if (line.startsWith("shot ")) {
 				String name = line.substring(5).trim() + ".png";
+				Drifter.LOGGER.info("[Drifter test] shot with screen {}", mc.screen == null ? "none" : mc.screen.getClass().getSimpleName());
 				Screenshot.grab(mc.gameDirectory, name, mc.getMainRenderTarget(), message -> Drifter.LOGGER.info("[Drifter test] {}", message.getString()));
 			} else if (line.startsWith("fps ")) {
 				fpsTicks = Integer.parseInt(line.substring(4).trim());

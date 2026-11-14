@@ -3897,3 +3897,22 @@ In a **new world**.
 - [ ] **Bridge posts evenly spaced**: a post at each bank and the rest at even gaps (about 6 blocks), never two posts a
       couple of blocks apart.
 - Debug: `/drifterciv plan checkroads` lists, in the log, any spots near you where a road and a bridge don't meet.
+
+## 0.23.64: a hired sword; asking where people are; letters you can read (new)
+
+- [ ] **Hire a guard.** In a town, walk up to a guard and say `fight for me`. It names a price (3 emeralds a day). Hold
+      that many emeralds and drop them toward it (Q). It says it's with you. Walk off: it follows. Let a zombie hit you:
+      it fights it. Say `you can go home`: it leaves. Your journal (J), Quests page, shows "Hired" while it's with you.
+- [ ] **Where's the shopkeeper?** Say to anyone in a town: `do you know where the shopkeeper is?`, `wheres the smith`,
+      `where can i find a guard`, or someone's name. They tell you where they saw them (and when), or where they usually
+      are. Then say `take me to them`: they walk you there.
+- [ ] **Call a name.** Stand where a townsperson can't see you (behind a house, up to about 30 blocks) and type just their
+      name, like `wombatt!`. They call back ("over here!") and walk toward you.
+- [ ] **A word to carry.** When someone asks you to take word to someone, say `yes`. If it isn't private they tell you
+      what it says, and your journal shows it, with who the person is ("Priya, who keeps the stall in Ashford"). A
+      letter: right-click it to read its one page (page-flip sound). A **sealed** letter you can open too, but the person
+      it's for will notice.
+- [ ] **Hand it over.** In their town, ask around for them by name, then talk to them (say anything), throw them the
+      letter, or stand right next to them. They stop, turn to you, read it, react to what it says, and often give you a
+      reply to take back. Go back to whoever sent you: they hear the reply and pay you. If the reply came with money, it
+      has to be handed over first.
