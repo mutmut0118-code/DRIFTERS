@@ -107,7 +107,7 @@ final class TownTalkMore {
 					&& pos.getZ() <= plot.origin.getZ() + plot.sizeZ;
 				if (in) {
 					if (plot == town.stallPlot) {
-						return "the stall";
+						return town.keeper == null || group == null ? null : group.names.get(town.keeper);
 					}
 
 					UUID owner = plot.owner != null ? plot.owner : plot.residents.isEmpty() ? null : plot.residents.get(0);

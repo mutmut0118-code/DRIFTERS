@@ -220,7 +220,7 @@ final class TalkMore {
 				continue;
 			}
 
-			for (LivingEntity near : carrier.level().getEntitiesOfClass(LivingEntity.class, carrier.getBoundingBox().inflate(8.0),
+			for (LivingEntity near : carrier.level().getEntitiesOfClass(LivingEntity.class, carrier.getBoundingBox().inflate(14.0),
 				one -> one != null && one.isAlive() && (one instanceof DrifterEntity || one instanceof ServerPlayer))) {
 				String name = near.getName().getString();
 				if (near == carrier || !com.dinglebob.drifter.social.SocialWatcher.called(" " + relay.to().toLowerCase(Locale.ROOT) + " ", name)
@@ -724,8 +724,14 @@ final class TalkMore {
 						"how", death.how(), "when", Deaths.when(death.at(), now));
 				}
 			}
-			case "weather_q" -> say(drifter, player, drifter.level().isThundering() ? "more.weather.thunder" : drifter.level().isRaining() ? "more.weather.rain"
-				: night(drifter) ? "more.weather.night" : "more.weather.clear");
+			case "weather_q" -> {
+				// (Where it stands: no rain in a desert, no weather in the nether.)
+				boolean overworld = drifter.level().dimension() == net.minecraft.world.level.Level.OVERWORLD;
+				boolean wet = drifter.level().getBiome(drifter.blockPosition()).value().getPrecipitationAt(drifter.blockPosition())
+					!= net.minecraft.world.level.biome.Biome.Precipitation.NONE;
+				say(drifter, player, !overworld ? "more.weather.night" : drifter.level().isThundering() && wet ? "more.weather.thunder"
+					: drifter.level().isRaining() && wet ? "more.weather.rain" : night(drifter) ? "more.weather.night" : "more.weather.clear");
+			}
 			case "who_here" -> {
 				List<String> seen = new ArrayList<>();
 				for (var a : drifter.getSenses().tracked()) {
@@ -791,12 +797,16 @@ final class TalkMore {
 			case "fight_tips" -> {
 				String said = " " + Lines.normalize(text) + " ";
 				String mob = null;
+				// (The longest name said wins; a wither skeleton or a zombified piglin isn't one of these: the general tips.)
 				for (String one : List.of("creeper", "skeleton", "enderman", "zombie", "spider", "witch", "blaze", "ghast", "warden", "phantom", "slime",
 					"drowned", "piglin", "pillager", "breeze", "wither", "dragon", "guardian", "evoker", "ravager", "hoglin", "vindicator")) {
-					if (said.contains(" " + one) && said.contains(one)) {
+					if (said.contains(" " + one) && (mob == null || one.length() > mob.length())) {
 						mob = one;
-						break;
 					}
+				}
+
+				if (said.contains(" wither skeleton") || said.contains(" zombified") || said.contains(" cave spider") || said.contains(" elder guardian")) {
+					mob = null;
 				}
 
 				if (mob == null || !say(drifter, player, "more.tips." + mob)) {
@@ -1035,8 +1045,10 @@ final class TalkMore {
 					say(drifter, player, "convo.your_house.none");
 				} else {
 					BlockPos at = home.center;
+					// (A fire it can check; an open door or an animal out it takes their word for.)
+					boolean fire = Lines.normalize(text).contains(" fire ") || Lines.normalize(text).contains(" burning ");
 					sayThen(drifter, player, "more.home_alarm.go", () -> StepGoal.go(drifter, at, 4.0, 20, "go home to check on it", () -> {
-						boolean wrong = fireNear(drifter, at);
+						boolean wrong = !fire || fireNear(drifter, at);
 						if (!wrong) {
 							r.addTrust(-3.0);
 						}

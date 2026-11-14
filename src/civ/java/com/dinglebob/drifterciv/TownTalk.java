@@ -41,6 +41,9 @@ final class TownTalk {
 			Town town = Market.townOf(drifter);
 			if (town != null) {
 				words.putIfAbsent("town", town.name);
+				if (town.warning != null && !town.warning.isBlank()) {
+					words.putIfAbsent("warning", town.warning);
+				}
 				String leader = leader(town);
 				if (leader != null) {
 					words.putIfAbsent("leader", leader);

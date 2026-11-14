@@ -189,413 +189,2151 @@
    "any": [
     "{who} sells {item} for {price}",
     "{item}? {price} at the stall",
-    "about {price}"
+    "about {price}",
+    "{price}, ask {who}",
+    "{who} wants {price} for it",
+    "last i saw, {price}",
+    "{price} i think. {who} runs the stall",
+    "{price} from {who}",
+    "{item} goes for {price}",
+    "{price}, not bad right?"
+   ],
+   "bandit": [
+     "{price}. or less, if {who} looks away"
+   ],
+   "speedrunner": [
+     "{price}. go"
+   ],
+   "hoarder": [
+     "{price}. id never sell mine that cheap"
+   ],
+   "helper": [
+     "{price}. {who} is fair, dont worry",
+     "{price}, {who} will sort you out"
+   ],
+   "pvp_sweat": [
+     "{price}, pocket change",
+     "{price}. go win some fights and buy it"
+   ],
+   "hermit": [
+     "{price}. {who}",
+     "... {price}"
+   ],
+   "newbie": [
+     "omg i think {price}! ask {who}",
+     "{price}? pretty sure thats right"
+   ],
+   "casual": [
+     "like {price} ngl",
+     "{price} lol, its {who}'s stall"
    ]
   },
   "town.more.price.mine": {
    "any": [
     "{item}? {price}",
     "{price} for {item}",
-    "{price}"
+    "{price}",
+    "{price}, right here",
+    "mine go for {price}",
+    "{price}, fair price",
+    "{price}. want one?",
+    "{price}, same as always",
+    "{item} is {price}",
+    "{price}. right click me if you want it"
+   ],
+   "builder": [
+     "{price}, and its good quality"
+   ],
+   "hoarder": [
+     "{price}, and im counting every one"
+   ],
+   "helper": [
+     "{price}, and ill help you pick",
+     "{price}. let me know if thats too much"
+   ],
+   "pvp_sweat": [
+     "{price}. no haggling",
+     "{price}, dont cry about it"
+   ],
+   "hermit": [
+     "{price}. take it or dont",
+     "... {price}"
+   ],
+   "newbie": [
+     "{price}! is that ok?",
+     "um {price} i think!!"
+   ],
+   "casual": [
+     "{price} fr",
+     "{price}, its a steal lol"
    ]
   },
   "town.more.price.not_sold": {
    "any": [
     "nobody sells {item} here",
     "no {item} at the stall",
-    "we dont sell {item}"
+    "we dont sell {item}",
+    "{item}? not here",
+    "the stall doesnt have {item}",
+    "no one here sells {item}, sorry",
+    "{item}, nope. try another town",
+    "we dont stock {item}",
+    "cant buy {item} here",
+    "{item}? youd have to find that yourself"
+   ],
+   "nomad": [
+     "no {item} here. try down the road"
+   ],
+   "helper": [
+     "no {item} here, maybe the next town has some",
+     "sorry, no {item}. hope you find some"
+   ],
+   "pvp_sweat": [
+     "{item}? go get it yourself",
+     "{item}? earn it"
+   ],
+   "hermit": [
+     "{item}. no",
+     "{item}? try elsewhere"
+   ],
+   "newbie": [
+     "oh no, i dont think we have {item}",
+     "{item}?? i havent seen any here"
+   ],
+   "casual": [
+     "{item}? nah lol",
+     "no {item} here ngl"
    ]
   },
   "town.more.price.what": {
    "any": [
     "how much is what",
     "price of what?",
-    "what do you want"
+    "what do you want",
+    "how much is which thing?",
+    "price of which?",
+    "what item?",
+    "which thing",
+    "name the item",
+    "how much for what lol",
+    "say the item"
+   ],
+   "speedrunner": [
+     "item?"
+   ],
+   "helper": [
+     "which item? ill check the price",
+     "tell me what you want and ill find out"
+   ],
+   "pvp_sweat": [
+     "spit it out",
+     "what item, speak up"
+   ],
+   "hermit": [
+     "what",
+     "which"
+   ],
+   "newbie": [
+     "um which one?",
+     "how much for what?? im confused"
+   ],
+   "casual": [
+     "what thing lol",
+     "price of uh, what?"
    ]
   },
   "town.more.buy.mine": {
    "any": [
     "{price}, right click me",
     "ok, {price}",
-    "{price}, throw it or trade"
+    "{price}, throw it or trade",
+    "{price}. right click to trade",
+    "{price} and its yours",
+    "sure, {price}",
+    "{price}, open my trades",
+    "deal, {price}",
+    "{price}. right click when ready",
+    "{price}, trade me"
+   ],
+   "bandit": [
+     "{price}. dont even think about stealing it"
+   ],
+   "hoarder": [
+     "{price}... fine, its yours"
+   ],
+   "helper": [
+     "{price}, right click me and ill sort it",
+     "sure! {price}, take your time"
+   ],
+   "pvp_sweat": [
+     "{price}. no refunds",
+     "{price}, pay up"
+   ],
+   "hermit": [
+     "{price}. trade",
+     "... {price}"
+   ],
+   "newbie": [
+     "yay! {price} pls",
+     "{price}! yay, a customer!"
+   ],
+   "casual": [
+     "{price} and we're good",
+     "bet, {price}"
    ]
   },
   "town.more.buys.list": {
    "any": [
     "{who} buys {goods}",
     "mostly {goods}",
-    "{goods}"
+    "{goods}",
+    "{goods}, stuff like that",
+    "always need {goods}",
+    "we buy {goods}",
+    "bring {goods}",
+    "{goods}, if you have spare",
+    "right now? {goods}",
+    "{goods}, mainly"
+   ],
+   "hoarder": [
+     "{goods}. the more the better"
+   ],
+   "helper": [
+     "{goods}. bring some, its easy money",
+     "{goods}, you might have some already"
+   ],
+   "pvp_sweat": [
+     "{goods}. got any or nah?",
+     "{goods}, dont waste my time"
+   ],
+   "hermit": [
+     "{goods}. thats it",
+     "... {goods}"
+   ],
+   "newbie": [
+     "um {goods} i think!",
+     "{goods}! got any?"
+   ],
+   "casual": [
+     "{goods} lol, the usual",
+     "{goods} ngl"
    ]
   },
   "town.more.buys.item": {
    "any": [
     "{who} pays {price} for {item}",
     "about {price}",
-    "{price} each"
+    "{price} each",
+    "{price} for {item}",
+    "{price}, give or take",
+    "{item}? {price}",
+    "maybe {price}",
+    "{price} for each {item}",
+    "{item} gets you {price}",
+    "bring it, {price}"
+   ],
+   "bandit": [
+     "{price}. or i could just take it"
+   ],
+   "hoarder": [
+     "{price}... id keep my {item} tho"
+   ],
+   "helper": [
+     "{price} for {item}, thats a fair deal",
+     "{price}, worth the trip"
+   ],
+   "pvp_sweat": [
+     "{price}, take it or leave it",
+     "{price}. final offer"
+   ],
+   "hermit": [
+     "{price}. no more",
+     "... {price}"
+   ],
+   "newbie": [
+     "{price} i think!",
+     "ooh {item}! {price}?"
+   ],
+   "casual": [
+     "like {price} ngl",
+     "{price} prob"
    ]
   },
   "town.more.money.emeralds": {
    "any": [
     "emeralds",
     "we take emeralds",
-    "emeralds only"
+    "emeralds only",
+    "just emeralds",
+    "emeralds, nothing else",
+    "only emeralds",
+    "the green ones. emeralds",
+    "emeralds please",
+    "we trade in emeralds",
+    "emeralds, sorry"
+   ],
+   "miner": [
+     "emeralds. mountains have the ore"
+   ],
+   "hoarder": [
+     "emeralds. and i count every one"
+   ],
+   "helper": [
+     "emeralds. jobs round here can earn you some",
+     "emeralds, want to know where to get some?"
+   ],
+   "pvp_sweat": [
+     "emeralds. bring a stack",
+     "emeralds, got any or nah"
+   ],
+   "hermit": [
+     "green gems",
+     "emeralds. go"
+   ],
+   "newbie": [
+     "emeralds! the green shiny ones",
+     "i think just emeralds?"
+   ],
+   "casual": [
+     "emeralds lol",
+     "emeralds ngl, thats it"
    ]
   },
   "town.more.money.coins": {
    "any": [
     "coins",
     "we take coins",
-    "bronze, silver, gold"
+    "bronze, silver, gold",
+    "coins only",
+    "coins. got some?",
+    "bronze coins mostly",
+    "town coins",
+    "coins, any kind",
+    "we use coins here",
+    "coins, sorry"
+   ],
+   "hoarder": [
+     "coins. every last one counts"
+   ],
+   "helper": [
+     "coins! jobs round here pay in them",
+     "coins. happy to explain how they add up"
+   ],
+   "pvp_sweat": [
+     "coins. lots of em",
+     "coins, bring a pile"
+   ],
+   "hermit": [
+     "coins. go",
+     "round metal ones"
+   ],
+   "newbie": [
+     "coins! the shiny ones",
+     "i think coins?"
+   ],
+   "casual": [
+     "coins lol",
+     "coins ngl"
    ]
   },
   "town.more.live.welcome": {
    "any": [
     "ask {leader}, but youd be welcome",
     "sure, talk to {leader}",
-    "id like that"
+    "id like that",
+    "sure, ask {leader} to be sure",
+    "wed be glad to have you",
+    "yeah! talk to {leader}",
+    "id love a new neighbor",
+    "you'd fit right in",
+    "go see {leader}, theyll say yes",
+    "why not, people like you here"
+   ],
+   "nomad": [
+     "settling down? good for you"
+   ],
+   "builder": [
+     "sure, just build something nice"
+   ],
+   "homebody": [
+     "yes! you'll love it here",
+     "aw, stay. its cozy here"
+   ],
+   "helper": [
+     "of course! ill help you settle in",
+     "yes! {leader} will help you find a spot"
+   ],
+   "pvp_sweat": [
+     "sure, we could use a fighter",
+     "yeah, just dont start fights"
+   ],
+   "hermit": [
+     "fine by me",
+     "... ask {leader}"
+   ],
+   "newbie": [
+     "omg yes!! new neighbor!",
+     "yes pls! ask {leader}"
+   ],
+   "casual": [
+     "ya come live here lol",
+     "sure, {leader} wont mind"
    ]
   },
   "town.more.live.maybe": {
    "any": [
     "ask {leader}",
     "maybe, talk to {leader}",
-    "depends on {leader}"
+    "depends on {leader}",
+    "thats up to {leader}",
+    "talk to {leader} first",
+    "{leader} decides that",
+    "maybe. {leader}'s call",
+    "ask {leader}, cant promise",
+    "depends what {leader} says",
+    "{leader} would know"
+   ],
+   "nomad": [
+     "ask {leader}. or keep wandering, its nice"
+   ],
+   "helper": [
+     "go talk to {leader}, i bet itll be fine",
+     "{leader} decides, but ill put in a word"
+   ],
+   "pvp_sweat": [
+     "convince {leader}, not me",
+     "{leader} decides. impress them"
+   ],
+   "hermit": [
+     "not my say. {leader}",
+     "{leader}. not me"
+   ],
+   "newbie": [
+     "um i think {leader} decides?",
+     "maybe! ask {leader}!"
+   ],
+   "casual": [
+     "idk, ask {leader} lol",
+     "prob? ask {leader}"
    ]
   },
   "town.more.live.no": {
    "any": [
     "i dont think so",
     "no",
-    "not after what happened"
+    "not after what happened",
+    "people here dont trust you",
+    "not right now",
+    "sorry, no",
+    "id rather you didnt",
+    "not with how things are",
+    "earn some trust first",
+    "nah, not you"
+   ],
+   "bandit": [
+     "you? funny"
+   ],
+   "helper": [
+     "not yet, but you could earn it back",
+     "sorry, maybe do some good here first"
+   ],
+   "pvp_sweat": [
+     "lol no",
+     "not a chance"
+   ],
+   "hermit": [
+     "go away",
+     "leave it"
+   ],
+   "newbie": [
+     "um... i dont think thats a good idea",
+     "sorry!! people dont trust you"
+   ],
+   "casual": [
+     "nah lol",
+     "eh, prob not"
    ]
   },
   "town.more.build.inside": {
    "any": [
     "not in the middle of town",
     "theres no room here",
-    "outside town maybe"
+    "outside town maybe",
+    "not here, its the middle of town",
+    "too close to the plaza",
+    "try further out",
+    "the middle is spoken for",
+    "go out past the houses",
+    "not in town, sorry",
+    "edge of town is better"
+   ],
+   "builder": [
+     "not in the middle, it'd ruin the layout",
+     "further out, and make it match"
+   ],
+   "helper": [
+     "try a bit further out, more room there",
+     "out past the houses should work"
+   ],
+   "pvp_sweat": [
+     "not here. go out there",
+     "lol not in the middle"
+   ],
+   "hermit": [
+     "not here",
+     "further out"
+   ],
+   "newbie": [
+     "um i dont think in the middle?",
+     "maybe further out?"
+   ],
+   "casual": [
+     "here? nah lol",
+     "kinda crowded here ngl"
    ]
   },
   "town.more.build.outside": {
    "any": [
     "out here's fine",
     "sure, just not on the road",
-    "go for it"
+    "go for it",
+    "sure, out here works",
+    "fine by me",
+    "plenty of space out here",
+    "yeah, go ahead",
+    "just keep off the roads",
+    "build away",
+    "dont block the paths"
+   ],
+   "homebody": [
+     "yes! a neighbor!"
+   ],
+   "builder": [
+     "sure, make it look nice",
+     "yes, but match the town style"
+   ],
+   "helper": [
+     "sure! need any help?",
+     "yeah! shout if you need anything"
+   ],
+   "pvp_sweat": [
+     "sure, just dont build ugly",
+     "go ahead, make it a fort"
+   ],
+   "hermit": [
+     "fine",
+     "...sure"
+   ],
+   "newbie": [
+     "yes! build something cool!",
+     "ooh, what are you building?"
+   ],
+   "casual": [
+     "ya go for it",
+     "sure lol"
    ]
   },
   "town.more.nation": {
    "any": [
     "{nation}, capitals {capital}",
     "were part of {nation}",
-    "{nation}"
+    "{nation}",
+    "were in {nation}",
+    "this is {nation}",
+    "{nation}. {capital} is the capital",
+    "{nation}, ruled from {capital}",
+    "we belong to {nation}",
+    "part of {nation}, capital at {capital}",
+    "{nation}, why?"
+   ],
+   "nomad": [
+     "{nation}. been to {capital}?"
+   ],
+   "helper": [
+     "{nation}. {capital} is the capital if you want to visit",
+     "{nation}! want to know more?"
+   ],
+   "pvp_sweat": [
+     "{nation}. best around",
+     "{nation}, dont forget it"
+   ],
+   "hermit": [
+     "{nation}. thats all",
+     "... {nation}"
+   ],
+   "newbie": [
+     "{nation}! capital is {capital} i think",
+     "um, {nation}?"
+   ],
+   "casual": [
+     "{nation} lol",
+     "{nation}, the big one is {capital}"
    ]
   },
   "town.more.nation.capital": {
    "any": [
     "this is the capital of {nation}",
     "{nation}, and youre in the capital",
-    "{nation}"
+    "{nation}",
+    "{nation}, and this is its capital",
+    "capital of {nation}",
+    "this town runs {nation}",
+    "{nation}, right here's the capital",
+    "the heart of {nation}",
+    "{nation}. you're standing in it",
+    "{nation}, and this is where it's run from"
+   ],
+   "builder": [
+     "{nation}. best builds in the whole nation"
+   ],
+   "helper": [
+     "{nation}, and this is the capital, welcome!",
+     "{nation}. this is where it all happens"
+   ],
+   "pvp_sweat": [
+     "{nation}, and we run it",
+     "capital of {nation}. respect it"
+   ],
+   "hermit": [
+     "{nation}. capital",
+     "{nation}. here"
+   ],
+   "newbie": [
+     "{nation}! and were the capital!",
+     "were the capital of {nation}!!"
+   ],
+   "casual": [
+     "{nation}, this is the capital lol",
+     "capital of {nation} ngl"
    ]
   },
   "town.more.nation.none": {
    "any": [
     "no nation",
     "were on our own",
-    "just this town"
+    "just this town",
+    "none",
+    "were nobodys",
+    "no one, just us",
+    "no nation here",
+    "independent",
+    "we answer to nobody",
+    "only this town"
+   ],
+   "nomad": [
+     "no nation. i like that"
+   ],
+   "helper": [
+     "none, its just this town",
+     "no nation, were our own place"
+   ],
+   "pvp_sweat": [
+     "nobody owns us",
+     "we stand alone"
+   ],
+   "hermit": [
+     "nobody's",
+     "us. thats it"
+   ],
+   "newbie": [
+     "um, none i think?",
+     "were not in one!"
+   ],
+   "casual": [
+     "none lol",
+     "just us ngl"
    ]
   },
   "town.more.like.yes": {
    "any": [
     "yeah its nice",
     "love it here",
-    "its home"
+    "its home",
+    "yeah, its good here",
+    "i like it",
+    "its a good place",
+    "pretty nice honestly",
+    "no complaints",
+    "good people here",
+    "yeah. you thinking of staying?"
+   ],
+   "nomad": [
+     "for now, yeah"
+   ],
+   "builder": [
+     "nice builds, so yeah"
+   ],
+   "homebody": [
+     "so cozy here",
+     "home sweet home"
+   ],
+   "helper": [
+     "love it, people look out for each other",
+     "yes! everyone helps each other"
+   ],
+   "pvp_sweat": [
+     "its ok. could use more fights",
+     "solid town"
+   ],
+   "hermit": [
+     "its quiet. good",
+     "fine"
+   ],
+   "newbie": [
+     "yes!! i love it here",
+     "its so nice here!"
+   ],
+   "casual": [
+     "its chill",
+     "yeah its nice ngl"
    ]
   },
   "town.more.like.taxes": {
    "any": [
     "taxes are too high",
     "its ok",
-    "could be better"
+    "could be better",
+    "taxes are a bit much",
+    "ok, except the taxes",
+    "the taxes hurt",
+    "fine, if you like paying",
+    "itd be better without taxes",
+    "the tax eats my earnings",
+    "could be cheaper to live here"
+   ],
+   "bandit": [
+     "taxes are just robbery with a badge"
+   ],
+   "hoarder": [
+     "they count my stuff for taxes",
+     "every tax is a piece of my pile gone"
+   ],
+   "helper": [
+     "its ok, the taxes are hard on some",
+     "nice people, rough taxes"
+   ],
+   "pvp_sweat": [
+     "taxes are a scam",
+     "paying taxes is an L"
+   ],
+   "hermit": [
+     "taxes",
+     "too many taxes"
+   ],
+   "newbie": [
+     "um the taxes are kinda high?",
+     "i like it but the taxes!!"
+   ],
+   "casual": [
+     "its ok but taxes lol",
+     "taxes tho ngl"
    ]
   },
   "town.more.like.sad": {
    "any": [
     "its been hard",
     "used to be",
-    "not lately"
+    "not lately",
+    "hard to say right now",
+    "its been a rough time",
+    "not my best days here",
+    "i miss someone",
+    "lost someone lately",
+    "ask me another time",
+    "everything feels heavy"
+   ],
+   "homebody": [
+     "home feels empty lately"
+   ],
+   "helper": [
+     "its a good town, im just sad lately",
+     "people here are kind, its just hard right now"
+   ],
+   "pvp_sweat": [
+     "not feeling it lately",
+     "dont wanna talk about it"
+   ],
+   "hermit": [
+     "...not now",
+     "hard"
+   ],
+   "newbie": [
+     "its been really sad lately",
+     "i dont know anymore"
+   ],
+   "casual": [
+     "eh, not rn",
+     "rough times ngl"
    ]
   },
   "town.more.allies": {
    "any": [
     "{them}",
     "friends with {them}",
-    "{them}, mostly"
+    "{them}, mostly",
+    "were friendly with {them}",
+    "{them}, good folk",
+    "allies? {them}",
+    "we get along with {them}",
+    "{them}, at peace with us",
+    "{them} are on our side",
+    "peace with {them}"
+   ],
+   "nomad": [
+     "{them}. been there?"
+   ],
+   "helper": [
+     "{them}! good people, worth a visit",
+     "{them}, theyre nice if you visit"
+   ],
+   "pvp_sweat": [
+     "{them}, they better stay friendly",
+     "{them}, for now"
+   ],
+   "hermit": [
+     "{them}. thats it",
+     "... {them}"
+   ],
+   "newbie": [
+     "{them}! i think",
+     "um, {them}?"
+   ],
+   "casual": [
+     "{them} lol",
+     "{them} ngl, theyre cool"
    ]
   },
   "town.more.allies.none": {
    "any": [
     "nobody",
     "we keep to ourselves",
-    "no allies"
+    "no allies",
+    "none",
+    "no friends out there",
+    "nobody yet",
+    "no one, sadly",
+    "just us",
+    "none at all",
+    "no pacts with anyone"
+   ],
+   "helper": [
+     "none yet, maybe someday",
+     "no one, but were friendly enough"
+   ],
+   "pvp_sweat": [
+     "dont need any",
+     "allies are for the weak"
+   ],
+   "hermit": [
+     "dont need them",
+     "nobody. fine"
+   ],
+   "newbie": [
+     "nobody i think...",
+     "nobody :( sad right?"
+   ],
+   "casual": [
+     "none lol",
+     "nobody ngl"
    ]
   },
   "town.more.allies.enemies_only": {
    "any": [
     "no friends, just {enemies}",
     "at war with {enemies}",
-    "{enemies}, and theyre not friends"
+    "{enemies}, and theyre not friends",
+    "only enemies. {enemies}",
+    "nobody friendly, and {enemies} hate us",
+    "no allies. were fighting {enemies}",
+    "zero friends, and {enemies} at war with us",
+    "just {enemies}, and its war",
+    "allies? no. {enemies}? war",
+    "none. {enemies} would like us gone"
+   ],
+   "helper": [
+     "no allies, sadly. careful near {enemies}",
+     "none, and steer clear of {enemies}"
+   ],
+   "pvp_sweat": [
+     "no allies. {enemies} are going down",
+     "dont need friends. {enemies} need luck"
+   ],
+   "hermit": [
+     "{enemies}. enemies",
+     "none. {enemies}, war"
+   ],
+   "newbie": [
+     "none... and {enemies} are fighting us",
+     "um only {enemies} and thats bad"
+   ],
+   "casual": [
+     "lol none, war with {enemies} tho",
+     "no allies, {enemies} tho ngl"
    ]
   },
   "town.more.war": {
    "any": [
     "{them}",
     "were fighting {them}",
-    "war with {them}"
+    "war with {them}",
+    "yeah, with {them}",
+    "at war with {them}",
+    "{them}, its war",
+    "fighting {them} right now",
+    "yes. {them}",
+    "{them}. stay clear of them",
+    "against {them}"
+   ],
+   "bandit": [
+     "{them}. good time to loot"
+   ],
+   "helper": [
+     "{them}. be careful if you go that way",
+     "sadly {them}. stay safe"
+   ],
+   "pvp_sweat": [
+     "{them}. ez",
+     "{them}. they picked the wrong town"
+   ],
+   "hermit": [
+     "{them}. bad",
+     "{them}. dont ask"
+   ],
+   "newbie": [
+     "yes!! {them}, its scary",
+     "{them}... is it gonna be ok?"
+   ],
+   "casual": [
+     "yeah {them} lol",
+     "{them} ngl, its bad"
    ]
   },
   "town.more.war.none": {
    "any": [
     "no war",
     "peaceful",
-    "nope"
+    "nope",
+    "no wars",
+    "not right now",
+    "peace for now",
+    "were at peace",
+    "no fighting",
+    "nobody",
+    "all quiet"
+   ],
+   "bandit": [
+     "no war. pity"
+   ],
+   "helper": [
+     "no, peaceful here",
+     "no wars, safe to stay"
+   ],
+   "pvp_sweat": [
+     "sadly no",
+     "no war. boring"
+   ],
+   "hermit": [
+     "no",
+     "quiet"
+   ],
+   "newbie": [
+     "no, thank goodness",
+     "nope! its peaceful"
+   ],
+   "casual": [
+     "nah lol",
+     "nope, chill times"
    ]
   },
   "town.more.wanted": {
    "any": [
     "{who}",
     "{who} is wanted",
-    "watch out for {who}"
+    "watch out for {who}",
+    "wanted? {who}",
+    "{who}, keep an eye out",
+    "the guards want {who}",
+    "{who}. dont trust them",
+    "{who}, if you see them",
+    "{who} for now",
+    "theres {who}"
+   ],
+   "bandit": [
+     "{who}. amateurs"
+   ],
+   "helper": [
+     "{who}. stay safe out there",
+     "{who}, tell a guard if you see them"
+   ],
+   "pvp_sweat": [
+     "{who}. id take them out",
+     "{who}, easy bounty"
+   ],
+   "hermit": [
+     "{who}. avoid",
+     "... {who}"
+   ],
+   "newbie": [
+     "{who}! theyre scary",
+     "um, {who} i think"
+   ],
+   "casual": [
+     "{who} lol",
+     "{who} ngl"
    ]
   },
   "town.more.wanted.none": {
    "any": [
     "nobody",
     "no one",
-    "clean town"
+    "clean town",
+    "nobody right now",
+    "no one wanted",
+    "all clear",
+    "nobody on the list",
+    "no criminals",
+    "nope, all good",
+    "none"
+   ],
+   "bandit": [
+     "nobody yet"
+   ],
+   "helper": [
+     "nobody, its safe here",
+     "no one, the guards keep it clean"
+   ],
+   "pvp_sweat": [
+     "nobody. boring",
+     "no bounties, sadly"
+   ],
+   "hermit": [
+     "quiet now",
+     "clear"
+   ],
+   "newbie": [
+     "nobody! yay",
+     "no one i think"
+   ],
+   "casual": [
+     "nobody lol",
+     "nah, clean"
    ]
   },
   "town.more.join.yes": {
    "any": [
     "sure, come on",
     "everyone's welcome",
-    "yeah!"
+    "yeah!",
+    "sure, join in",
+    "yes, come along",
+    "of course",
+    "anyone can come",
+    "yeah, the more the better",
+    "come on then",
+    "sure, have fun"
+   ],
+   "nomad": [
+     "join us, then wander on"
+   ],
+   "homebody": [
+     "yes! come, its fun"
+   ],
+   "helper": [
+     "yes! glad youre here",
+     "of course! nobody gets left out"
+   ],
+   "pvp_sweat": [
+     "sure, try to keep up",
+     "yeah, try not to lose"
+   ],
+   "hermit": [
+     "fine",
+     "...sure"
+   ],
+   "newbie": [
+     "yes!! come!!",
+     "omg yes, join!"
+   ],
+   "casual": [
+     "ya come thru",
+     "sure lol"
    ]
   },
   "town.more.join.nothing": {
    "any": [
     "nothing on today",
     "no party today",
-    "nothing going on"
+    "nothing going on",
+    "nothing happening today",
+    "nothing on",
+    "not today",
+    "nothing to join today",
+    "quiet day",
+    "maybe another day",
+    "theres nothing going today"
+   ],
+   "helper": [
+     "nothing today, check back another day",
+     "not today, but ask again soon"
+   ],
+   "pvp_sweat": [
+     "nothing. go fight something",
+     "nothing today, sorry"
+   ],
+   "hermit": [
+     "nothing. good",
+     "... nothing"
+   ],
+   "newbie": [
+     "um, theres nothing today?",
+     "nothing today :("
+   ],
+   "casual": [
+     "nah nothing today lol",
+     "nothing rn"
    ]
   },
   "town.more.market.today": {
    "any": [
     "today!",
     "its today",
-    "right now"
+    "right now",
+    "happening now",
+    "yep, today",
+    "right now, today",
+    "today, go have a look",
+    "its on today",
+    "today! dont miss it",
+    "today, as it happens"
+   ],
+   "helper": [
+     "today! you should go",
+     "its today, have fun"
+   ],
+   "pvp_sweat": [
+     "today. hurry",
+     "today, keep up"
+   ],
+   "hermit": [
+     "now",
+     "go now"
+   ],
+   "newbie": [
+     "today!! its today!",
+     "omg today!"
+   ],
+   "casual": [
+     "today lol",
+     "today ngl"
    ]
   },
   "town.more.market.tomorrow": {
    "any": [
     "tomorrow",
     "tmrw",
-    "next day"
+    "next day",
+    "its tomorrow",
+    "tomorrow, come back",
+    "one more day",
+    "tomorrow i think",
+    "after tonight",
+    "tomorrow, not long",
+    "just a day away"
+   ],
+   "helper": [
+     "tomorrow! come by",
+     "tomorrow, worth staying for"
+   ],
+   "pvp_sweat": [
+     "tomorrow. be there",
+     "tomorrow, dont be late"
+   ],
+   "hermit": [
+     "wait a day",
+     "next sunrise"
+   ],
+   "newbie": [
+     "tomorrow! cant wait",
+     "tmrw!! so close"
+   ],
+   "casual": [
+     "tmrw lol",
+     "tomorrow ngl"
    ]
   },
   "town.more.market.soon": {
    "any": [
     "in {days} days",
     "{days} days",
-    "soon"
+    "soon",
+    "{days} days from now",
+    "about {days} days",
+    "give it {days} days",
+    "in {days} days or so",
+    "not long, {days} days",
+    "{days} more days",
+    "soon, {days} days"
+   ],
+   "helper": [
+     "{days} days, worth waiting for",
+     "in {days} days, come back then"
+   ],
+   "pvp_sweat": [
+     "{days} days. be patient",
+     "{days} days, chill"
+   ],
+   "hermit": [
+     "{days}",
+     "{days} days. wait"
+   ],
+   "newbie": [
+     "in {days} days! i counted",
+     "only {days} more days!"
+   ],
+   "casual": [
+     "like {days} days lol",
+     "{days} days ngl"
    ]
   },
   "town.more.market.none": {
    "any": [
     "no market",
     "dunno",
-    "not soon"
+    "not soon",
+    "none coming",
+    "nothing soon",
+    "not for a while",
+    "no idea when",
+    "none planned",
+    "not anytime soon",
+    "nothing on the way"
+   ],
+   "helper": [
+     "nothing soon, sorry",
+     "not for a while, sorry about that"
+   ],
+   "pvp_sweat": [
+     "not soon. go grind",
+     "forget it, nothing soon"
+   ],
+   "hermit": [
+     "no",
+     "none"
+   ],
+   "newbie": [
+     "um i dont know :(",
+     "not for ages i think"
+   ],
+   "casual": [
+     "idk lol",
+     "nah, not soon"
    ]
   },
   "town.more.leader.good": {
    "any": [
     "{leader}'s good",
     "fine",
-    "i like {leader}"
+    "i like {leader}",
+    "{leader} is good",
+    "{leader}'s fair",
+    "good leader",
+    "{leader} does fine",
+    "i trust {leader}",
+    "{leader} looks after us",
+    "no complaints about {leader}"
+   ],
+   "homebody": [
+     "{leader} keeps it cozy here"
+   ],
+   "helper": [
+     "{leader} is great, go say hi",
+     "{leader} really cares about people"
+   ],
+   "pvp_sweat": [
+     "{leader}'s solid",
+     "{leader} could win a fight"
+   ],
+   "hermit": [
+     "{leader}'s ok",
+     "good enough"
+   ],
+   "newbie": [
+     "{leader} is so nice!",
+     "i like {leader} a lot!"
+   ],
+   "casual": [
+     "{leader}s chill",
+     "{leader} is cool ngl"
    ]
   },
   "town.more.leader.careful": {
    "any": [
     "cant complain",
     "theyre ok",
-    "no comment"
+    "no comment",
+    "theyre fine",
+    "no complaints",
+    "i shouldnt say",
+    "theyre the leader",
+    "its not my place",
+    "could be worse",
+    "lets talk about something else"
+   ],
+   "bandit": [
+     "careful who you ask that"
+   ],
+   "helper": [
+     "i try not to judge",
+     "its complicated"
+   ],
+   "pvp_sweat": [
+     "i keep my head down",
+     "not saying"
+   ],
+   "hermit": [
+     "...",
+     "pass"
+   ],
+   "newbie": [
+     "um... theyre ok?",
+     "i dont wanna say"
+   ],
+   "casual": [
+     "eh. theyre ok i guess",
+     "idk, no comment lol"
    ]
   },
   "town.more.leader.frank": {
    "any": [
     "honestly? not great",
     "taxes are killing us",
-    "between us, no"
+    "between us, no",
+    "between you and me, not good",
+    "honestly? people are unhappy",
+    "its rough, tbh",
+    "not good, dont tell anyone",
+    "people are fed up",
+    "could be a lot better",
+    "id vote them out if i could"
+   ],
+   "hoarder": [
+     "they take too much of my stuff"
+   ],
+   "helper": [
+     "honestly people are struggling",
+     "its hard on everyone right now"
+   ],
+   "pvp_sweat": [
+     "weak leader",
+     "id do better"
+   ],
+   "hermit": [
+     "bad",
+     "not good"
+   ],
+   "newbie": [
+     "its kinda bad... dont say i said",
+     "i dont like it, dont tell"
+   ],
+   "casual": [
+     "ngl, kinda bad",
+     "lowkey not great"
    ]
   },
   "town.more.leader.me": {
    "any": [
     "im doing my best",
     "you tell me",
-    "pretty good, if i say so"
+    "pretty good, if i say so",
+    "im trying",
+    "you tell me, im the leader",
+    "hope im doing ok",
+    "doing what i can",
+    "ask the others",
+    "id like to think so",
+    "its harder than it looks"
+   ],
+   "helper": [
+     "i try to help everyone",
+     "i do my best for everyone here"
+   ],
+   "pvp_sweat": [
+     "best leader around",
+     "obviously great"
+   ],
+   "hermit": [
+     "im fine at it",
+     "..."
+   ],
+   "newbie": [
+     "im trying my best!!",
+     "i hope im good at it!"
+   ],
+   "casual": [
+     "pretty good ngl",
+     "im doing ok lol"
    ]
   },
   "town.more.who_lives": {
    "any": [
     "{who}",
-    "{who} lives here",
-    "this is {who}'s"
+    "thats {who}",
+    "{who}, i think",
+    "{who}. why?",
+    "taken. {who}",
+    "{who}, last i checked",
+    "pretty sure {who}",
+    "{who}, so its taken"
+   ],
+   "bandit": [
+     "{who}. why, got plans?"
+   ],
+   "helper": [
+     "{who}, so be polite",
+     "{who}, best not touch anything"
+   ],
+   "pvp_sweat": [
+     "{who}. dont break in",
+     "{who}, hands off"
+   ],
+   "hermit": [
+     "{who}. leave it",
+     "... {who}"
+   ],
+   "newbie": [
+     "um, {who}?",
+     "i think its {who}!"
+   ],
+   "casual": [
+     "{who} lol",
+     "{who} ngl"
    ]
   },
   "town.more.who_lives.me": {
    "any": [
     "me",
     "i do",
-    "this is mine"
+    "this is mine",
+    "this ones mine",
+    "mine",
+    "me, its my place",
+    "i live here",
+    "me. welcome",
+    "its mine, actually",
+    "yep, me"
+   ],
+   "hoarder": [
+     "mine. and so is everything in it"
+   ],
+   "builder": [
+     "mine. like the build?"
+   ],
+   "homebody": [
+     "me! its cozy right?"
+   ],
+   "helper": [
+     "me! make yourself comfy",
+     "mine, need anything?"
+   ],
+   "pvp_sweat": [
+     "mine. dont touch",
+     "mine. back off"
+   ],
+   "hermit": [
+     "mine. go",
+     "my place"
+   ],
+   "newbie": [
+     "me! do you like it?",
+     "its mine!!"
+   ],
+   "casual": [
+     "me lol",
+     "my place ngl"
    ]
   },
   "town.more.who_lives.nobody": {
    "any": [
     "nobody",
     "its empty",
-    "no one"
+    "no one",
+    "nobody i know of",
+    "empty, i think",
+    "nobodys",
+    "no ones place",
+    "not anyones",
+    "nobody lives here",
+    "nobody, far as i know"
+   ],
+   "helper": [
+     "nobody, as far as i can tell",
+     "no one, ask the leader about it"
+   ],
+   "pvp_sweat": [
+     "nobody. claim it",
+     "no one. all yours if you dare"
+   ],
+   "hermit": [
+     "none",
+     "no one. why"
+   ],
+   "newbie": [
+     "nobody i think?",
+     "um, no one?"
+   ],
+   "casual": [
+     "nobody lol",
+     "no one ngl"
    ]
   },
   "town.more.guards.coming": {
    "any": [
     "guards are coming!",
     "help is coming",
-    "theyre on their way"
+    "theyre on their way",
+    "guards!",
+    "theyre coming",
+    "help's on the way",
+    "guards on the way",
+    "hang on, theyre coming",
+    "stay there, guards coming",
+    "the guards heard"
+   ],
+   "helper": [
+     "hold on, help is close",
+     "stay safe, theyre coming"
+   ],
+   "pvp_sweat": [
+     "guards incoming",
+     "backup's coming"
+   ],
+   "hermit": [
+     "coming",
+     "guards. soon"
+   ],
+   "newbie": [
+     "guards!! hurry!!",
+     "omg theyre coming!"
+   ],
+   "casual": [
+     "they're coming lol",
+     "on the way fr"
    ]
   },
   "town.more.guards.none": {
    "any": [
     "no guards near",
     "theyre not around",
-    "nobody coming"
+    "nobody coming",
+    "no guards close",
+    "none nearby",
+    "cant see any guards",
+    "no one near enough",
+    "theyre too far",
+    "sorry, no guards",
+    "no ones close"
+   ],
+   "helper": [
+     "none close, stay near me",
+     "none near, be careful"
+   ],
+   "pvp_sweat": [
+     "no guards. handle it",
+     "fight it yourself"
+   ],
+   "hermit": [
+     "none",
+     "too far"
+   ],
+   "newbie": [
+     "i cant find any!!",
+     "no guards :("
+   ],
+   "casual": [
+     "none around lol",
+     "no guards rn"
    ]
   },
   "town.more.report": {
    "any": [
     "tell a guard",
     "the guards should hear",
-    "go to the guards"
+    "go to the guards",
+    "tell the guards",
+    "a guard can help",
+    "find a guard",
+    "guards handle that",
+    "go see a guard",
+    "thats one for the guards",
+    "i cant do much, ask a guard"
+   ],
+   "bandit": [
+     "happens. tell a guard if you want"
+   ],
+   "helper": [
+     "oh no, are you ok? tell a guard",
+     "sorry that happened. the guards will help"
+   ],
+   "pvp_sweat": [
+     "deal with it or tell a guard",
+     "go get even. or tell a guard"
+   ],
+   "hermit": [
+     "guards",
+     "not my job"
+   ],
+   "newbie": [
+     "oh no! find a guard!",
+     "get a guard quick!!"
+   ],
+   "casual": [
+     "rip, tell a guard",
+     "oof, guards tho"
    ]
   },
   "town.more.report.guard": {
    "any": [
     "ill keep an eye out",
     "noted",
-    "ill look into it"
+    "ill look into it",
+    "ill watch for them",
+    "got it",
+    "on it",
+    "ill keep watch",
+    "thanks for telling me",
+    "ill handle it",
+    "leave it with me"
+   ],
+   "helper": [
+     "im sorry, ill keep you safe",
+     "youre ok now, ill deal with it"
+   ],
+   "pvp_sweat": [
+     "theyre done",
+     "they picked the wrong town"
+   ],
+   "hermit": [
+     "ok",
+     "...watching"
+   ],
+   "newbie": [
+     "ok! ill watch!!",
+     "ill do my best!"
+   ],
+   "casual": [
+     "kk, ill watch",
+     "bet, ill handle it"
    ]
   },
   "town.more.innocent.nothing": {
    "any": [
     "nobody said you did",
     "did what?",
-    "youre fine"
+    "youre fine",
+    "never said you did",
+    "ok?",
+    "nobody thinks you did",
+    "didnt what?",
+    "all good",
+    "relax",
+    "youre not in trouble"
+   ],
+   "helper": [
+     "youre fine, dont worry",
+     "nobody blames you"
+   ],
+   "pvp_sweat": [
+     "sus",
+     "thats what a guilty person says"
+   ],
+   "hermit": [
+     "whatever",
+     "didnt ask"
+   ],
+   "newbie": [
+     "um ok?",
+     "nobody blamed you!"
+   ],
+   "casual": [
+     "ok lol",
+     "chill, youre fine"
    ]
   },
   "town.more.innocent.guard": {
    "any": [
     "tell it to the leader",
     "sure",
-    "everyone says that"
+    "everyone says that",
+    "the record says otherwise",
+    "save it",
+    "pay up or talk to the leader",
+    "not my call",
+    "sure you didnt",
+    "we'll see",
+    "take it up with the leader"
+   ],
+   "helper": [
+     "if its a mistake, the leader can fix it",
+     "talk to the leader, they can clear it"
+   ],
+   "pvp_sweat": [
+     "nice try",
+     "yeah ok"
+   ],
+   "hermit": [
+     "noted",
+     "heard it before"
+   ],
+   "newbie": [
+     "um, the record says you did",
+     "i just do what im told"
+   ],
+   "casual": [
+     "sure lol",
+     "ok buddy"
    ]
   },
   "town.more.innocent.friend": {
    "any": [
     "i believe you",
     "ok",
-    "i know you"
+    "i know you",
+    "i trust you",
+    "i know you didnt",
+    "youre not like that",
+    "i got you",
+    "sounds like a mix up",
+    "you? no way",
+    "i know you better than that"
+   ],
+   "helper": [
+     "i believe you, lets sort it out",
+     "ill vouch for you"
+   ],
+   "pvp_sweat": [
+     "i got your back",
+     "anyone says otherwise, 1v1 them"
+   ],
+   "hermit": [
+     "i know",
+     "trust you"
+   ],
+   "newbie": [
+     "no way you did that!",
+     "you wouldnt do that!"
+   ],
+   "casual": [
+     "nah i trust you",
+     "i know lol"
    ]
   },
   "town.more.innocent.doubt": {
    "any": [
     "sure",
     "right",
-    "if you say so"
+    "if you say so",
+    "uh huh",
+    "mhm",
+    "ok",
+    "sure you didnt",
+    "hmm, sure",
+    "ok then",
+    "sure, sure"
+   ],
+   "bandit": [
+     "lol sure"
+   ],
+   "helper": [
+     "i hope thats true",
+     "maybe tell a guard that"
+   ],
+   "pvp_sweat": [
+     "sus",
+     "cap"
+   ],
+   "hermit": [
+     "...",
+     "hm"
+   ],
+   "newbie": [
+     "um ok...",
+     "really?"
+   ],
+   "casual": [
+     "sure lol",
+     "mhm ok"
    ]
   },
   "town.more.sorry.fine": {
    "any": [
     "pay the {fine} to a guard",
     "{fine}, to a guard",
-    "throw it to a guard"
+    "throw it to a guard",
+    "{fine}, pay a guard",
+    "give a guard {fine}",
+    "its {fine}, a guard takes it",
+    "pay {fine} and youre clear",
+    "{fine} to a guard and its done",
+    "find a guard, its {fine}",
+    "throw {fine} to a guard"
+   ],
+   "bandit": [
+     "{fine}. id just run"
+   ],
+   "helper": [
+     "{fine}, then youre clear, promise",
+     "just {fine} to a guard, and its done"
+   ],
+   "pvp_sweat": [
+     "{fine}. pay up",
+     "{fine}, dont be cheap"
+   ],
+   "hermit": [
+     "{fine}. guard",
+     "pay {fine}"
+   ],
+   "newbie": [
+     "um i think {fine}? to a guard",
+     "oh! um, {fine} i think, guards take it"
+   ],
+   "casual": [
+     "{fine}, guard takes it lol",
+     "pay a guard {fine} ngl"
    ]
   },
   "town.more.sorry.leader": {
    "any": [
     "only the leader can pardon you",
     "talk to the leader",
-    "too late for sorry"
+    "too late for sorry",
+    "the leader decides",
+    "only the leader can clear it",
+    "sorry wont do it",
+    "its gone past a fine",
+    "go see the leader",
+    "too late, ask the leader",
+    "no fine for this one. the leader"
+   ],
+   "helper": [
+     "try the leader, they might forgive you",
+     "ask the leader for a pardon"
+   ],
+   "pvp_sweat": [
+     "should have thought first",
+     "beg the leader"
+   ],
+   "hermit": [
+     "leader",
+     "too late"
+   ],
+   "newbie": [
+     "um, the leader decides?",
+     "sorry... ask the leader"
+   ],
+   "casual": [
+     "rip, leader only",
+     "leader's call lol"
    ]
   },
   "town.more.sorry.nothing": {
    "any": [
     "you dont owe anything",
     "nothing to pay",
-    "youre clear"
+    "youre clear",
+    "youre all clear",
+    "no fine",
+    "nothing owed",
+    "no need",
+    "were good",
+    "you owe nothing",
+    "nothing on your name"
+   ],
+   "helper": [
+     "nothing to pay, dont worry",
+     "you dont owe a thing, its ok"
+   ],
+   "pvp_sweat": [
+     "nothing. relax",
+     "keep your money"
+   ],
+   "hermit": [
+     "nothing",
+     "clear"
+   ],
+   "newbie": [
+     "nothing! youre ok",
+     "no fine! dont worry!"
+   ],
+   "casual": [
+     "youre fine lol",
+     "nah, nothing"
    ]
   },
   "town.more.haggle.no": {
    "any": [
     "prices are prices",
     "no",
-    "nope"
+    "nope",
+    "price stays",
+    "no deal",
+    "nah",
+    "price is fair",
+    "thats the price",
+    "not today",
+    "cant go lower"
+   ],
+   "helper": [
+     "sorry, its already fair",
+     "i wish i could"
+   ],
+   "pvp_sweat": [
+     "nope. pay up",
+     "lol no"
+   ],
+   "hermit": [
+     "price stands",
+     "no haggling"
+   ],
+   "newbie": [
+     "um, i cant!",
+     "sorry, its the price!"
+   ],
+   "casual": [
+     "nah lol",
+     "cant, sorry"
    ]
   },
   "town.more.haggle.friend": {
    "any": [
     "for you, a little",
     "ok fine, a bit off",
-    "only for you"
+    "only for you",
+    "for you, ok",
+    "fine, a little less",
+    "since its you",
+    "ok, a bit cheaper",
+    "just this once",
+    "friends discount",
+    "dont tell anyone"
+   ],
+   "helper": [
+     "of course, for a friend",
+     "sure, happy to help"
+   ],
+   "pvp_sweat": [
+     "fine, you earned it",
+     "ok, dont make it a habit"
+   ],
+   "hermit": [
+     "fine. a bit",
+     "...for you"
+   ],
+   "newbie": [
+     "hehe ok, a little off!",
+     "um, ok, a little!"
+   ],
+   "casual": [
+     "ok fine lol",
+     "ok ok, for you"
    ]
   },
   "town.more.haggle.never": {
    "any": [
     "never",
     "no discounts",
-    "full price"
+    "full price",
+    "not a chance",
+    "price is the price",
+    "nope, never",
+    "no deals",
+    "full price only",
+    "never ever",
+    "dont even ask"
+   ],
+   "hoarder": [
+     "every one counts. no",
+     "lower? its worth more",
+     "i keep my prices",
+     "no, i know what its worth",
+     "id rather keep it",
+     "less? no way",
+     "i counted, no"
    ]
   },
   "town.more.haggle.not_mine": {
    "any": [
     "not my stall",
     "ask the keeper",
-    "not mine"
+    "not mine",
+    "not my call",
+    "not my shop",
+    "talk to whoever runs it",
+    "i dont set prices",
+    "ask at the stall",
+    "not up to me",
+    "i just live here"
+   ],
+   "helper": [
+     "i dont run it, sorry",
+     "ask the keeper, theyre fair"
+   ],
+   "pvp_sweat": [
+     "wrong person",
+     "do i look like a shop"
+   ],
+   "hermit": [
+     "not me",
+     "someone else"
+   ],
+   "newbie": [
+     "i dont sell stuff!",
+     "um, not mine!"
+   ],
+   "casual": [
+     "idk, not mine lol",
+     "not my thing lol"
    ]
   },
   "town.more.job_done": {
    "any": [
     "give it to whoever asked",
     "nice, go tell them",
-    "the one who asked'll want it"
+    "the one who asked'll want it",
+    "take it to whoever asked",
+    "the one who asked wants that",
+    "nice, go hand it in",
+    "good job, go find who asked",
+    "whoever asked will be glad",
+    "nice work, take it to them",
+    "go see who asked"
+   ],
+   "helper": [
+     "great job! go tell them",
+     "well done, theyll be happy"
+   ],
+   "pvp_sweat": [
+     "nice. go get paid",
+     "gg, collect your reward"
+   ],
+   "hermit": [
+     "take it to them",
+     "... whoever asked"
+   ],
+   "newbie": [
+     "ooh nice! go give it to them!",
+     "yay! go show them!"
+   ],
+   "casual": [
+     "nice, go turn it in",
+     "gg, take it to them lol"
    ]
   },
   "town.more.raid.believe": {
    "any": [
     "really?? ill tell people",
     "oh no, ty",
-    "ill warn everyone"
+    "ill warn everyone",
+    "oh no. thanks",
+    "ill tell people",
+    "thanks for the warning",
+    "ill get ready",
+    "ill spread the word",
+    "good to know, ty",
+    "ok, ill warn the others"
+   ],
+   "homebody": [
+     "oh no, ill lock up"
+   ],
+   "helper": [
+     "thank you! ill warn the others",
+     "thanks, ill help get people safe"
+   ],
+   "pvp_sweat": [
+     "let them come",
+     "finally, a fight"
+   ],
+   "hermit": [
+     "...noted",
+     "ill hide"
+   ],
+   "newbie": [
+     "omg really?!",
+     "oh no oh no, ty!!"
+   ],
+   "casual": [
+     "fr? ill tell people",
+     "uh oh, ty"
    ]
   },
   "town.more.raid.guard": {
    "any": [
     "ill be ready",
     "thanks, ill watch",
-    "noted. ill tell the others"
+    "noted. ill tell the others",
+    "thanks, ill gather the others",
+    "ill keep watch",
+    "noted, thanks",
+    "ill get ready",
+    "well be waiting",
+    "good, ill tell the guards",
+    "ill be at my post"
+   ],
+   "helper": [
+     "thank you, ill keep everyone safe",
+     "thanks, stay close to town"
+   ],
+   "pvp_sweat": [
+     "let em come",
+     "theyll regret it"
+   ],
+   "hermit": [
+     "ready",
+     "...let them"
+   ],
+   "newbie": [
+     "ok!! ill be ready!",
+     "eek, ok, ill watch"
+   ],
+   "casual": [
+     "bet, ill be ready",
+     "ty, on it"
    ]
   },
   "town.more.raid.doubt": {
    "any": [
     "sure",
     "why should i believe you",
-    "hm"
+    "hm",
+    "really?",
+    "doubt it",
+    "uh huh",
+    "prove it",
+    "and how would you know",
+    "hm, ok",
+    "says who"
+   ],
+   "bandit": [
+     "nice try"
+   ],
+   "helper": [
+     "hope youre wrong",
+     "ill keep it in mind"
+   ],
+   "pvp_sweat": [
+     "yeah right",
+     "lol sure"
+   ],
+   "hermit": [
+     "unlikely",
+     "..."
+   ],
+   "newbie": [
+     "um, really?",
+     "are you sure?"
+   ],
+   "casual": [
+     "sure lol",
+     "cap"
    ]
   }
  }

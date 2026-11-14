@@ -44,7 +44,7 @@ A = {
     "im_busy": ["im busy", "not now", "cant talk", "cant talk rn", "busy rn", "talk later", "im in the middle of something"],
     "saved_me": ["you saved me", "thanks for saving me", "thanks for the help", "couldnt have done it without you", "you saved my life", "lifesaver"],
     "good_job": ["good job", "well done", "nice shot", "nice fight", "youre good", "nicely done", "great job", "good work", "nice work", "you did great"],
-    "condolence": ["sorry about", "sorry for your loss", "rip your friend", "sorry they died", "my condolences", "im sorry they died", "sorry to hear about"],
+    "condolence": ["sorry for your loss", "rip your friend", "sorry they died", "my condolences", "im sorry they died", "sorry to hear about"],
     "lost_stuff": ["i lost all my stuff", "i died and lost everything", "lost everything", "lost all my items", "all my stuff is gone", "i lost my stuff",
                    "my stuff despawned"],
     "distress": ["i want to die", "i hate my life", "i hate myself", "i want to disappear", "nobody cares about me", "everything is pointless",
@@ -56,13 +56,13 @@ A = {
     "fun_fact": ["tell me a fun fact", "fun fact", "did you know", "tell me something interesting", "teach me something", "random fact"],
     "correction": ["it is raining actually", "its night actually", "no thats wrong", "thats not right", "actually its", "youre wrong", "thats not true",
                    "no it isnt", "no its not"],
-    "rematch": ["rematch", "again", "one more round", "run it back", "lets go again", "best two out of three", "another round"],
+    "rematch": ["rematch", "one more round", "run it back", "lets go again", "best two out of three", "another round"],
     "fight_me": ["fight me", "come at me", "you scared", "coward", "chicken", "1v1 me bro", "square up", "lets fight", "wanna go"],
     "are_we_good": ["are we good", "are we cool", "we good", "we cool", "are we ok", "are we okay", "still mad at me", "are you still mad"],
     "we_friends": ["were friends remember", "we're friends remember", "but were friends", "i thought we were friends", "arent we friends"],
     "owe_me": ["you owe me", "pay me back", "wheres my payment", "you promised", "you said you would", "remember your promise"],
     "ready": ["you ready", "ready", "are you coming", "lets go", "go go", "you coming", "come on lets go", "lets move", "hurry lets go"],
-    "done_outing": ["im done", "thats enough", "lets stop", "lets head back", "lets go home", "thats enough for today", "head back", "we can stop"],
+    "done_outing": ["im done", "lets stop", "lets head back", "lets go home", "thats enough for today", "head back"],
     "deal": ["deal", "ok deal", "its a deal", "you got a deal", "sounds good", "agreed then"],
     "no_deal": ["no deal", "too much", "too expensive", "forget it then", "thats a rip off", "nah too pricey"],
     "hurry": ["hurry up", "faster", "keep up", "move faster", "speed up", "hurry"],
@@ -492,14 +492,14 @@ m("more.look_house.builder", "needs more detail", "roof could be better", "decen
 m("more.relay.ok", "sure, ill tell {who}", "ok, will do", "ill pass it on")
 m("more.relay.who", "tell who?", "who?", "tell who what")
 m("more.relay.deliver", "hey {who}, {from} {what}", "{who}, {from} {what}", "oh {who}, {from} {what}")
-m("more.relay.heard", "oh ty", "ok cool", "tell them hi back")
+m("more.relay.heard", "oh ty", "ok cool", "good to know")
 m("more.new_gear", "nice {item}", "ooh, {item}", "sick {item}")
 m("more.new_gear.nothing", "what?", "i dont see anything", "show me")
 m("more.safe_now", "oh nice, ty", "good to know", "thanks for clearing it")
 m("more.safe_now.doubt", "sure", "ill see for myself", "hm")
 m("more.home_alarm.go", "WHAT", "on my way", "no no no")
 m("more.home_alarm.real", "ty for telling me!!", "phew, thanks", "thanks!!")
-m("more.home_alarm.false", "theres nothing wrong", "not funny", "liar")
+m("more.home_alarm.false", "theres nothing wrong", "not funny", "looks fine to me")
 m("more.walked_in", "uh, hello?", "can i help you?", "this is my house")
 m("more.walked_in.friend", "oh hey, come in", "make yourself at home", "hey!")
 m("more.walked_in.hoarder", "dont touch anything", "eyes off the chests", "out")
@@ -545,7 +545,7 @@ t("town.more.leader.good", "{leader}'s good", "fine", "i like {leader}")
 t("town.more.leader.careful", "cant complain", "theyre ok", "no comment")
 t("town.more.leader.frank", "honestly? not great", "taxes are killing us", "between us, no")
 t("town.more.leader.me", "im doing my best", "you tell me", "pretty good, if i say so")
-t("town.more.who_lives", "{who}", "{who} lives here", "this is {who}'s")
+t("town.more.who_lives", "{who}", "thats {who}", "{who}, so its taken")
 t("town.more.who_lives.me", "me", "i do", "this is mine")
 t("town.more.who_lives.nobody", "nobody", "its empty", "no one")
 t("town.more.guards.coming", "guards are coming!", "help is coming", "theyre on their way")

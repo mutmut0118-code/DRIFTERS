@@ -3965,3 +3965,31 @@ In a **new world**.
       letter, or stand right next to them. They stop, turn to you, read it, react to what it says, and often give you a
       reply to take back. Go back to whoever sent you: they hear the reply and pay you. If the reply came with money, it
       has to be handed over first.
+
+## 0.23.65-side.1: more to say to Drifters (batch 1 finished, batch 2) (new)
+
+Try these on any Drifter (or run `/drifter hear <text>` standing by one):
+
+- [ ] **Job names.** In a town: "hey guard", "smith, whats up": the guard / smith answers.
+- [ ] **Two names.** "frog and teal come here": both answer.
+- [ ] **A gift mid-fight.** Throw food at one while it fights: once the fight's over it walks over and picks it up.
+- [ ] **Walk into its house** without asking: it says something. Ask "can i come in" first and it doesn't.
+- [ ] **Warn it.** "dont go in the mine theres a dungeon down there": it (and others who hear later) won't cave or mine
+      there for a few days. "its safe now" undoes it.
+- [ ] **Prices.** At a town: "how much is bread", "what do you buy", "do you buy iron".
+- [ ] **What happened.** In a town where things happened: "what happened here".
+- [ ] **The dead.** After a Drifter dies near you: "wheres <name>", "what killed <name>", "do you miss <name>".
+- [ ] **About it.** "how long have you been here", "whats your favorite food" (ask again later: same answer), "sword or
+      axe?", "what do you think of creepers", "rate my sword out of 10", "how many diamonds do you have", "have you died",
+      "whats your dream", "whos your best friend".
+- [ ] **What it knows.** "where can i find iron", "show me where the iron is" (a friend leads you), "which way is
+      north", "how do i make a shield", "what level for diamonds", "how do i kill a creeper", "hows the weather", "where
+      did i die" (one that saw), "whats over there" (look at something).
+- [ ] **Asking it to do things.** "youre in my way", "go away", "meet me at the plaza", "walk me home", "bring me some
+      bread", "rescue me", "attack that" (looking at a zombie), "can i take some wheat from your chest" (a friend says
+      yes: taking then isn't theft), "tell bob i said hi" (it tells Bob later), "your house is on fire".
+- [ ] **Moods and manners.** "shut up" (it goes quiet a while), "leave me alone" (it won't start talks with you for a
+      day), "im bored", "i lost all my stuff", "love you", "fight me", "give me your stuff" (a scared one drops a little).
+- [ ] **In a town.** "what nation is this", "are you at war", "who are your allies", "can i live here", "when is market
+      day", "what do you think of the leader", "whos wanted", "guards!", "a raid is coming", "discount?".
+- [ ] **Anything that reads wrong**: a screenshot, as before.

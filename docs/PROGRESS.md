@@ -6819,3 +6819,59 @@ actually want the mood to keep going ... anything that isnt friendly"; and the b
 **Checked**: build; headless `tools/smoke-playertalk.txt` (a threat, then a new talk: "oh. its you", "fine.", "if you say
 so", "none of your business"). Not yet seen in a real game. More cold and down lines, and more kinds with them, would
 help; the usual lines still show for kinds that have none.
+
+## Player talk: batch 1 finished, batch 2 (0.23.65-side.1)
+
+The user (2026-11-14): "okay lets finish batch 1 and then start batch 2" (docs/PLAYER_TALK.md).
+
+**Batch 1's leftovers, done:**
+- **Called by its work**: "hey guard", "smith, whats up": the nearest with that job answers (`TalkApi.registerRoles`).
+- **Two names at once**: "frog and teal come here", "hi dani and bob": each named one answers (greetings, come, follow,
+  stop, team up, help, outings...).
+- **A gift thrown mid-fight** is picked up once the fight's over (`GiftGoal`: a player-thrown item near it, in sight,
+  from someone it doesn't mind, in the last 90 seconds).
+- **Walking into its house** unasked: it says something (a friend "come in", anyone else "uh, hello?", a hoarder "dont
+  touch anything") and the talk starts; not after a "can i come in" it said yes to.
+- **A danger it's told of or saw is avoided**: "dont go in the mine, theres a dungeon" (from someone it doesn't
+  distrust), and anywhere it saw someone killed by a monster close by, mark the place (20 blocks round) for five
+  days: its caving turns back there and skips spots there, and its trips to the town mine skip faces there (`Dangers`;
+  aimed at the Roguelike Dungeons mine). "its safe now / i cleared it" forgets it.
+- **Prices by chat**: "how much is bread", "ill take it", "what do you buy", "do you buy iron" (the stall's real prices).
+- **"what happened here"** tells the town's chronicle of the last days, as its people say it.
+- **The dead, named**: "wheres reed" gets "reed's gone. reed was slain by zombie" from one who knew (in chat range when
+  it died, or of its group); "what killed reed", "do you miss reed", "reed died" answered from the same (`Deaths`).
+
+**Batch 2** (the rows marked 2; `TalkMore`, `TownTalkMore`; about 130 new meanings): gm by the time of day, back, gg,
+later, ew, anyway, btw, "you already said that", why are you ignoring me, shut up / leave me alone (it goes quiet and
+opens no talk with them for a while / a day), say that again, are you sure, tell me more, ask me something, im bored /
+sad / happy / angry / lonely, logging off, im busy, you saved me, good job, sorry about reed, i lost all my stuff (offers
+food), a kind word for distress (no jokes), i did it, missed you, love you (friendly, never romantic), fun facts,
+correcting it, rematch, fight me, are we good, "were friends remember", "you owe me", ready / lets head back, deal,
+hurry; how long it's been here (saved from now: `ArrivedDay`), where it's from, what kind of player, why it's doing
+that, whats next, hungry, its inventory, diamonds, where it got its sword (and its enchants), what it's saving for,
+deaths, best find, the nether and the end, a story, its dream, what it's building, its favorite food / block / mob /
+biome / wood / tool / enchant / color... (one answer each, kept), what it hates, "x or y?", what it thinks of villagers
+/ pvp / creepers... (21 things), rate my X out of 10, what it's good at, brave, lonely, likes it here, best friend,
+enemies, the strongest near, its group, how to make it up to it; where to find any ore / structure / wood / animal it
+has seen (and "show me where": it leads), where you died (if it saw), which way is north / spawn (it looks that way),
+the biome, what's over there, bandits, the weather where it stands, who's been around, who stole (honest: didn't
+see), whose house that is, what X is doing, where everyone is, gossip, recipes (from the game's own), what y level for
+each ore, how to fight 20 mobs; go away / move (it steps off), meet me at (coords or the plaza; it waits 3 minutes),
+come in / up, walk me home, explore / fish / chop together, eat together, bring me X (from what it can spare), come get
+me / rescue me, attack that (the mob you look at), run, stop attacking, do you yield, do you want this, give it back,
+robbery (a timid or outgunned one hands over a little; trust falls), can i use your crafting table / take from your
+chest (a yes makes it not theft for 10 minutes), can i pet your dog, dont touch my stuff, what should i do, come look
+at my house, tell X i said hi (it passes it on when it meets them), look what i found, your house is on fire (it runs
+home to check). In a town: what it buys, what money it takes, can i live / build here, the nation and capital, does it
+like the town, allies and wars, who's wanted, can i join the festival, when's market day, the leader (careful in
+public, frank with friends), who lives here, "guards!" (the nearest guards come), reporting a crime, "i didnt do it",
+paying a fine, haggling, a raid warning (believed by people who know you; the chronicle notes it).
+
+Lines: `drifter_chat/convo_more.json` and `drifter_civ/drifter_chat/town_more.json` (about 7,400 new lines; 31,500 chat
+lines load in all). API 16 (docs/API.md). Headless tests: `tools/smoke-playertalk2.txt`, `smoke-playertalk-relay.txt`,
+`smoke-playertalk-town.txt`.
+
+**Not done / known gaps:** "race me" says not now (a race is an encounter with a new Drifter, not this one); "craft me
+X" refers you to the smith; pets and farms always "no pets"; haggling's "for you, a little" doesn't change the price
+(the friend's price elsewhere does); "do you have a farm" goes to pets; "what happened here" outside a town falls back
+to news; "x or y" only for two short words. Not seen in a real game yet.

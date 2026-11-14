@@ -316,7 +316,7 @@ paper):
 | `DrifterApi.newName(server)` | A username no Drifter has, as a new one picks its own. |
 | `DrifterApi.spawnAs(level, feet, username)` | As `spawn`, with that username as its own (not a name given to it). |
 
-## A talk with a player (API 10, docs/PLAYER_TALK.md)
+## A talk with a player (API 10 and 16, docs/PLAYER_TALK.md)
 
 A player can hold a conversation with a Drifter: it stops, faces them and answers whatever they type (`PlayerConvo`).
 An addon adds its own things to ask through the chat handler above, and these:
@@ -330,6 +330,11 @@ An addon adds its own things to ask through the chat handler above, and these:
 | `TalkApi.tour(drifter, player)` | "Show me around": it leads them to each of those places in turn (the nearest first), waiting when they fall behind. |
 | `TalkApi.leadTo(drifter, player, pos, lineKey, what)` | It leads them to one place and says that line there. |
 | `TalkApi.registerThreatened((drifter, player, all) -> ...)` | A player threatened it (or everyone) in chat. |
+
+| `TalkApi.registerRoles(drifter -> words)` | The words for its work a player may call it by ("guard", "smith", "mayor"): "hey guard" is said to the nearest with that job (API 16). |
+| `TalkApi.registerHistory(drifter -> list)` | What happened round it lately, as it would tell it ({what, when}, newest first): "what happened here" (API 16). |
+| `TalkApi.registerOwner((drifter, pos) -> name)` | Whose a place is, as it knows ("whose house is this") (API 16). |
+| `TalkApi.itemNamed(text)`, `comeHelp(drifter, player)` | The item a message names; it comes to a player's side to help (API 16). |
 
 `/drifter hear <text>` (debug): the nearest Drifter hears it as if a player beside it had typed it (the player running
 it; from the console, a stand-in player), for testing a talk without a client.
@@ -361,7 +366,7 @@ carry that uniform's trim; put that uniform's trim on it.
 `TownWork.Wares(items, count, what, pressing)` (API 15): `pressing` true for things ordered and paid for: it makes them
 before its own wants (the three-argument form is as before, not pressing).
 
-## A Drifter's skin on its record (API 11)
+## A Drifter's skin on its record (API 16)
 
 `DrifterRecord.skin()` keeps what a Drifter looks like while it isn't loaded (or is gone): `skinTexture()` (its skin's
 texture, as `DrifterEntity.getSkinTexture()`) and `realSkin()` (the real player's skin it wears, as
