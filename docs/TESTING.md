@@ -4034,3 +4034,11 @@ In a **new world**.
 - [ ] **Sent for.** If a town's leader likes you, it may send for you ("come and see me in ..."). Go there and walk up to
       it: it asks you to do something.
 - [ ] **Your journal (J), Quests page, Letters**: the letters that reached you, and what they said.
+
+## 0.23.67-side.1: talk fixes from play (new)
+
+From the user's screenshots (2026-11-14): "cmere", "come", "wait", "heres your food" understood; "heck yea", "yeah" are
+agreeing (and "yeah" still answers its "new here?"); "whats the history" asks about the town; no more bot-like "try
+saying it another way" / "lets talk about something else"; after a few things it doesn't follow it brings something up
+itself instead of going quiet; news about itself is said as "me" ("muto gave me something"); other Drifters keep their
+chatter down out to chat range (48 blocks) while you talk with one, and for 10 seconds after your message.

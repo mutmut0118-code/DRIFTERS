@@ -6993,3 +6993,11 @@ lines load in all). API 16 (docs/API.md). Headless tests: `tools/smoke-playertal
 X" refers you to the smith; pets and farms always "no pets"; haggling's "for you, a little" doesn't change the price
 (the friend's price elsewhere does); "do you have a farm" goes to pets; "what happened here" outside a town falls back
 to news; "x or y" only for two short words. Not seen in a real game yet.
+
+## 0.23.67-side.1: talk fixes from play (new)
+
+From the user's screenshots (2026-11-14): "cmere", "come", "wait", "heres your food" understood; "heck yea", "yeah" are
+agreeing (and "yeah" still answers its "new here?"); "whats the history" asks about the town; no more bot-like "try
+saying it another way" / "lets talk about something else"; after a few things it doesn't follow it brings something up
+itself instead of going quiet; news about itself is said as "me" ("muto gave me something"); other Drifters keep their
+chatter down out to chat range (48 blocks) while you talk with one, and for 10 seconds after your message.
