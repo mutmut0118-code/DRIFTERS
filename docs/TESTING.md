@@ -4062,3 +4062,27 @@ From the user's screenshot and log (slickrustt, 2026-11-14: "they understand it,
 here" got "ok" from the town's keeper, which went on keeping its stall (0.79) over going to the player (0.70). What a
 player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
 somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.
+
+## 0.23.67-side.5: it only says what's so (new)
+
+1. **Gear and weather lines.** Take your armor off and chat with Drifters a while (or let one bring something up with
+   you: `/drifter talk me`). Nobody should say "nice gear", "your armor looks good" or "nice sword" unless you're wearing
+   armor or holding that thing. In sunshine nobody says "this rain" or "i'm gonna watch the rain"; in rain nobody says
+   "nice weather" or "sun's out". `/weather rain` and `/weather clear` switch it.
+2. **"random question!"** Only comes before a question now. Before anything else it's "random thought!".
+3. **Calling a name.** Stand right in front of a Drifter and say its name. It should say "yeah?" or similar, not "where's
+   that coming from". Say "<name> come here" to one that doesn't know you: one answer ("no thanks"), not a second "yeah?
+   whos that" after.
+4. **Someone else's name.** While talking with one Drifter, shout the name of a Drifter who isn't nearby ("BRAVEBOLT").
+   Nobody nearby should answer.
+5. **Wrong town.** In a town, ask a townsperson "do you know where <name> is" for someone who lives in another town. It
+   should say there's nobody by that name here (wrong town?). If you're carrying a word for that person, it should tell
+   you which town they live in and which way.
+6. **Words.**
+   - Say "i have a word" to someone the word isn't for: "not for me, that's for <name>".
+   - Say it to the right Drifter from a bit away (over 6 blocks): "come closer".
+   - Back with whoever gave you the job, say "gave the word" or "the quest is done": it's handed in at once. Right after,
+     "thats it?" gets "yep, that's it".
+   - "no problem" or "i will tell them" after it thanks you should get a normal answer.
+7. **Thank-you letters.** After finishing a job, no thank-you letter or message from that person for at least a day (it
+   used to come within a minute).

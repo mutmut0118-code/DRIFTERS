@@ -231,7 +231,12 @@ public final class PlayerChats {
 					continue;
 				}
 
-				String line = Lines.pickFrom(opening.drifter, option.lines(), vars(opening));
+				// (Not a line that isn't so: "nice gear btw" to a player in no armor. The user, 2026-11-14.)
+				List<String> conditions = new ArrayList<>(opening.topic.needs());
+				conditions.addAll(turn.conditions());
+				conditions.addAll(option.conditions());
+				Map<String, List<String>> sayable = Claims.sayable(option.lines(), opening.a, opening.b, opening.world, conditions);
+				String line = sayable == null ? null : Lines.pickFrom(opening.drifter, sayable, vars(opening));
 				if (line == null) {
 					break;
 				}

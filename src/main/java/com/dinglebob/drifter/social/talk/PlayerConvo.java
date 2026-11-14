@@ -699,7 +699,10 @@ public final class PlayerConvo {
 			// Just its name called ("wombatt!", "hey bob"): it answers to it, not "what?". Out of its sight, it calls back so they can
 			// find it (the user, 2026-11-14, of finding someone: "yell their name"; found in testing: "wdym lol").
 			if (justCalled(drifter, text)) {
-				say(drifter, player, drifter.getSocial().watcher().sees(player) ? "convo.called" : "convo.called_back", null);
+				// (Right there behind it, or off to one side: it turns and sees them. Found in play: "wheres that coming from" said to a
+				// player standing at its stall.)
+				boolean there = drifter.getSocial().watcher().sees(player) || drifter.distanceTo(player) <= 8.0 && drifter.hasLineOfSight(player);
+				say(drifter, player, there ? "convo.called" : "convo.called_back", null);
 				return;
 			}
 

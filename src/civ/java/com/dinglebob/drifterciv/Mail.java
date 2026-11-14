@@ -382,16 +382,18 @@ final class Mail {
 			String key = "thanks:" + q.id;
 			DrifterRecord record = DrifterApi.record(q.giver);
 			Town town = q.town == null ? null : Diplomacy.byId(q.town.toString());
-			if (told.contains(key) || record == null || record.status() == DrifterRecord.Status.GONE || town == null) {
+			// (A few days on, as it says: not the minute after it thanked them to their face. Found in play: "organ wanted you to know"
+			// from another, organ stood right there.)
+			if (told.contains(key) || record == null || record.status() == DrifterRecord.Status.GONE || town == null
+				|| server.overworld().getGameTime() - q.closed < DAY) {
 				continue;
 			}
 
 			told.add(key);
 			DrifterEntity writer = TownFounding.loaded(server, q.giver);
 			Letter l = from(writer, q.giver, q.giverName, town);
-			l.message = line(writer, "mail.msg.thanks", "i keep thinking about what you did for us. " + Quests.title(q).toLowerCase(java.util.Locale.ROOT)
-				+ ". thank you, truly. if you're ever this way, there's a place at our fire.", "player", called(writer, player), "what", Quests.title(q)
-				.toLowerCase(java.util.Locale.ROOT), "town", town.name);
+			l.message = line(writer, "mail.msg.thanks", "i keep thinking about you " + Quests.deed(q) + ". thank you, truly. if you're ever this way, "
+				+ "there's a place at our fire.", "player", called(writer, player), "what", Quests.deed(q), "town", town.name);
 			// (To their door if they live in a town; else waiting where it was written.)
 			l.channel = home != null && home != town ? "door" : "town";
 			l.town = home != null && home != town ? home.id : town.id;

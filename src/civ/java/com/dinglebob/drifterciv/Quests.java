@@ -569,6 +569,62 @@ final class Quests {
 		return null;
 	}
 
+	/** A word this player carries (for anyone), or null. */
+	@Nullable
+	static Quest wordCarried(UUID player) {
+		for (Quest q : quests.values()) {
+			if (q.state == TAKEN && q.kind.equals("word") && q.player.equals(player)) {
+				return q;
+			}
+		}
+
+		return null;
+	}
+
+	/** Words that say a job's done ("gave the word", "the quest is done", "delivered it"). */
+	private static final List<String> SAYS_DONE = List.of(" done ", " delivered ", " gave ", " did it ", " finished ", " told them ", " handed ",
+		" quest ", " complete ", " completed ", " delivered it ", " got it done ", " its sorted ", " sorted ");
+
+	/**
+	 * Said to whoever gave them a job that's ready to hand in ("gave the word", "the quest is done"): it's handed in now, not
+	 * "eh?" and then the thanks once the talk's over (found in play). Just after: "thats it?" has an answer. True: answered.
+	 */
+	static boolean handIn(MinecraftServer server, DrifterEntity giver, ServerPlayer player, String text) {
+		String said = " " + text.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", " ") + " ";
+		boolean done = SAYS_DONE.stream().anyMatch(said::contains);
+		long now = server.overworld().getGameTime();
+		for (Quest q : quests.values()) {
+			if (!q.player.equals(player.getUUID()) || !giver.getUUID().equals(q.giver)) {
+				continue;
+			}
+
+			if (q.state == READY && done && giver.level() == player.level() && giver.distanceToSqr(player) <= NEAR * NEAR) {
+				finish(server, q, giver, player);
+				return true;
+			}
+
+			// (Just handed in: "the quest is done", "thats it?", "is that all".)
+			if (q.state == DONE && now - q.closed < 20L * 90 && (done || said.contains(" thats it ") || said.contains(" that it ")
+				|| said.contains(" is that all ") || said.contains(" thats all "))) {
+				return TalkApi.answer(giver, player, "quest.done_already", null, "what", deed(q));
+			}
+		}
+
+		return false;
+	}
+
+	/** What they did, as said in thanks ("carrying my word to bob", "the iron you brought"). */
+	static String deed(Quest q) {
+		return switch (q.kind) {
+			case "bring" -> "bringing us " + plural(name(item(q.item))).toLowerCase(java.util.Locale.ROOT);
+			case "word" -> (q.letter ? "taking my letter to " : "carrying my word to ") + q.toName;
+			case "dead" -> "the flower on " + q.about + "'s grave";
+			case "find" -> "finding us someone new";
+			case "deal" -> "dealing with " + q.toName;
+			default -> "what you did";
+		};
+	}
+
 	/** Its word taken in (Words): only going back to say so left (and the reply, or money, to bring). */
 	static void delivered(MinecraftServer server, Quest q) {
 		q.state = READY;

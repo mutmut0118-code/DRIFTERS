@@ -137,6 +137,12 @@ public final class FriendlyGoals {
 					Mode mode = seen ? Mode.toward(this.drifter, player) : Mode.UNAWARE;
 					// Out of its sight: it calls back ("over here?") and goes toward the voice a little way, looking for them (the user,
 					// 2026-11-14, of finding someone to give word to: "yell their name"). Not to someone it wants nothing to do with.
+					// (Not when it has just answered what they said with its name: "bravebolt come here", "no thanks", then "yeah? whos
+					// that" was found in play.)
+					if (!seen && !this.calledBack && this.ticks >= 25 && com.dinglebob.drifter.social.talk.PlayerTalk.answering(this.drifter)) {
+						this.calledBack = true;
+					}
+
 					if (!seen && !this.calledBack && this.ticks >= 25) {
 						this.calledBack = true;
 						Mode known = Mode.toward(this.drifter, player);

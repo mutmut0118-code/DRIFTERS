@@ -334,7 +334,15 @@ public final class Telling {
 				}
 
 				if (subject == null) {
-					return false;
+					// A name it doesn't know at all: it says so (found in play: "do you know where bravebolt is", to one who'd never met
+					// them, got nothing at all).
+					String asked = askedName(text);
+					if (asked == null) {
+						return false;
+					}
+
+					PlayerTalk.reply(drifter, "ask.where_never", null, "player", name, "who", asked);
+					return true;
 				}
 
 				whereIs(drifter, player, subject, name, knows || helper, now);
@@ -704,7 +712,43 @@ public final class Telling {
 	}
 
 	@Nullable
-	static Subject subject(DrifterEntity me, ServerPlayer speaker, String text) {
+	/** Words after "where is" that aren't someone ("wheres the village", "where is it", "wheres home"). */
+	private static final Set<String> NOT_SOMEONE = Set.of("it", "that", "this", "these", "those", "everyone", "everybody", "anyone", "someone", "home",
+		"town", "they", "them", "he", "she", "him", "her", "to", "go", "we", "i", "you", "u", "here", "there", "village", "house", "base", "spawn",
+		"shop", "market", "smith", "smithy", "farm", "mine", "nether", "end", "ocean", "sea", "desert", "forest", "plaza", "church", "bed", "chest",
+		"portal", "stronghold", "your", "ur", "his", "their", "a", "an", "some", "any", "all", "food", "wood", "iron", "diamonds", "water", "lava",
+		"mom", "dad", "friend", "friends", "leader", "guard", "guards", "keeper", "shopkeeper", "trader", "next", "north", "south", "east", "west",
+		"way", "nearest", "closest", "good", "best", "ore", "cave", "caves", "river", "road", "bridge", "well", "tower", "wall", "gate", "dock",
+		"tavern", "inn", "bank", "hall", "temple", "camp", "outpost", "mansion", "monument", "city", "castle");
+
+	/**
+	 * The name asked after in "where is X" / "seen X?", as typed, when X looks like someone (not "the village", "it", an
+	 * item); null if not.
+	 */
+	@Nullable
+	public static String askedName(String text) {
+		String[] words = text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_ ]", " ").trim().split("\\s+");
+		Set<String> skip = Set.of("is", "s", "the", "my", "did", "does", "are", "was", "u", "you", "ya", "ye", "of", "has", "have", "go", "went");
+		for (int i = 0; i < words.length; i++) {
+			if (!Set.of("where", "wheres", "seen", "whered", "wher", "whers").contains(words[i])) {
+				continue;
+			}
+
+			for (int j = i + 1; j < words.length; j++) {
+				if (skip.contains(words[j])) {
+					continue;
+				}
+
+				String word = words[j];
+				boolean someone = word.length() >= 3 && !NOT_SOMEONE.contains(word) && PlayerTalk.named(word) == null && Lines.answer(word, "yes", "no") == null;
+				return someone ? word : null;
+			}
+		}
+
+		return null;
+	}
+
+	public static Subject subject(DrifterEntity me, ServerPlayer speaker, String text) {
 		String words = " " + text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", " ") + " ";
 		String own = me.getName().getString();
 		String theirs = speaker.getGameProfile().getName();

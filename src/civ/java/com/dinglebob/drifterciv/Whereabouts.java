@@ -114,12 +114,24 @@ final class Whereabouts {
 			}
 		}
 
-		// Or by name: one of its town (the longest name heard).
+		// Or by name: one of its town (the longest name heard). Its own name counts only after the asking word: before it, that's
+		// them getting its attention. (Found in play: "sculkteo do yk where bravebolt is", bravebolt of no town of its, got
+		// "youre looking at them".)
 		UUID named = null;
 		String namedName = null;
+		int asking = -1;
+		for (String word : List.of(" where ", " wheres ", " whereabouts ", " seen ", " find ", " looking for ", " lookin for ", " wher ", " whers ")) {
+			int at = words.indexOf(word);
+			if (at >= 0 && (asking < 0 || at < asking)) {
+				asking = at;
+			}
+		}
+
+		String asked = asking < 0 ? words : words.substring(asking);
 		if (group != null) {
 			for (Map.Entry<UUID, String> entry : group.names.entrySet()) {
-				if (SocialWatcher.called(words, entry.getValue()) && (namedName == null || entry.getValue().length() > namedName.length())) {
+				String in = entry.getKey().equals(drifter.getUUID()) ? asked : words;
+				if (SocialWatcher.called(in, entry.getValue()) && (namedName == null || entry.getValue().length() > namedName.length())) {
 					named = entry.getKey();
 					namedName = entry.getValue();
 				}
@@ -127,7 +139,7 @@ final class Whereabouts {
 		}
 
 		if (job == null && named == null) {
-			return false;
+			return elsewhere(player, drifter, town, text);
 		}
 
 		TownReputation.Standing standing = TownReputation.of(town, player);
@@ -273,6 +285,38 @@ final class Whereabouts {
 		double dz = to.getZ() + 0.5 - player.getZ();
 		String[] ways = {"south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"};
 		return ways[Math.floorMod((int)Math.round(Math.toDegrees(Math.atan2(-dx, dz)) / 45.0), 8)];
+	}
+
+	/**
+	 * Someone of no town of its asked after, that it has never met (the user, 2026-11-14, in Copperford asking for bravebolt of
+	 * Copperstead: "how can we make that make sense"). If they carry word for them, the letter says where: that town, that
+	 * way. Else it knows everyone of its own town, and nobody here goes by that: wrong town? False when it isn't that.
+	 */
+	private static boolean elsewhere(ServerPlayer player, DrifterEntity drifter, Town town, String text) {
+		String asked = TalkApi.askedName(text);
+		if (asked == null || TalkApi.knowsOf(drifter, player, text)) {
+			return false;
+		}
+
+		Quests.Quest word = Quests.wordCarried(player.getUUID());
+		if (word != null && !word.toName.isEmpty() && SocialWatcher.called(" " + asked + " ", word.toName) && !word.toTown.isEmpty()
+			&& !word.toTown.equalsIgnoreCase(town.name)) {
+			BlockPos at = word.at;
+			if (word.toTownId != null) {
+				for (Town other : Towns.all()) {
+					if (other.id.equals(word.toTownId)) {
+						at = other.center;
+					}
+				}
+			}
+
+			if (at != null) {
+				return TalkApi.answer(drifter, player, "town.where.other_town", null, "who", word.toName, "town", word.toTown, "here", town.name,
+					"way", way(player, at), "far", far(player, at));
+			}
+		}
+
+		return TalkApi.answer(drifter, player, "town.where.not_here", null, "who", asked, "town", town.name);
 	}
 
 	private static String far(ServerPlayer player, BlockPos to) {
