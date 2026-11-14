@@ -60,7 +60,7 @@ public final class StepGoal extends Goals.Goal {
 			return 0.0;
 		}
 
-		return context.threat().urgent() ? 0.0 : 0.79;
+		return context.threat().urgent() ? 0.0 : 0.85;
 	}
 
 	@Override

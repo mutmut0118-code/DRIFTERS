@@ -4055,3 +4055,10 @@ From the user's screenshot and game log (raspberrywick9, 2026-11-14): a Drifter 
 tour?" and took the player's "sure" as nonsense ("?? be clear"): an answer to its question only counted within 32
 blocks, its chat carries 48. Now an answer counts as far as its chat is heard, and it only offers a tour when it's by
 the player (16 blocks, in sight) and can walk them round.
+
+## 0.23.67-side.4: it does what it said yes to (new)
+
+From the user's screenshot and log (slickrustt, 2026-11-14: "they understand it, but they dont actually do it"): "come
+here" got "ok" from the town's keeper, which went on keeping its stall (0.79) over going to the player (0.70). What a
+player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
+somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.

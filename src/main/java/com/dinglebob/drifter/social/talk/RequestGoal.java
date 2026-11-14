@@ -91,7 +91,8 @@ public final class RequestGoal extends Goals.Goal {
 			return 0.0;
 		}
 
-		return request.kind() == Kind.HELP ? 0.85 : 0.7;
+		// (Above everyday work, a stall or a farm: found in play, "come here" got "ok" from a keeper that stayed at its stall.)
+		return request.kind() == Kind.HELP ? 0.88 : 0.86;
 	}
 
 	@Override
