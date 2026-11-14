@@ -1,6 +1,6 @@
 # Towns and roads in the far view (LOD mods): design
 
-Status: design, waiting for the user's approval. Not to be built until the user says (2026-11-14: "hold on building it
+Status: approved by the user, 2026-11-14 ("everything else is correct", after asking for lights). Not to be built until the user says (2026-11-14: "hold on building it
 because bug fixes will be coming up").
 
 ## Intent
@@ -49,6 +49,11 @@ pops in as you walk up. Up close, real chunks take over, as they do now.
 - Towns: plaza, streets in the town's shape, houses as blocks of wall and roof in the town's style (spruce in the taiga,
   sandstone in the desert, ...), fields; cities bigger, hamlets smaller, ruins lower and fewer.
 - Once a place or stretch is really built, the LOD mods show the real blocks (from loaded and saved chunks), 1 to 1.
+- **Lights at night** (the user, 2026-11-14: "lights in the far view please, including the roads"): towns' lamps and lit
+  windows, and the road lamps (one every 28 blocks, as `RoadLamps` places them), glow in the far view at night, so a
+  nation shows as lit towns strung along lit roads. As close as each mod allows: Distant Horizons keeps light levels in
+  its LOD data; whether Meridian 0.3.0 draws light from what a backend answers (e.g. an emissive block such as a lantern
+  or a froglight as the column's top) is for the spike to check.
 - With **DH SeedGen** on too (the user, 2026-11-14: "dh, and meridian, but make sure seedgen works with it on aswell"),
   towns and roads still show in Distant Horizons' far view.
 - Singleplayer first, and **LAN** (the user: "i only play on singleplayer, but i do lan sometimes"): a friend joining by
@@ -60,7 +65,7 @@ pops in as you walk up. Up close, real chunks take over, as they do now.
 
 - Exactness up close: house positions may differ a little between the sketch and the real town (only noticeable at
   middle distance, where the LOD is coarse).
-- Night lights, banners, Drifters, smoke or anything moving in the far view.
+- Banners, Drifters, smoke or anything moving in the far view.
 - Worlds without a plan (old worlds, the plan setting off: towns where villages would be).
 - Dedicated servers: not a goal now, but nothing should rule them out later (LAN guests already need the same client
   side as a server's players).
@@ -104,7 +109,8 @@ pops in as you walk up. Up close, real chunks take over, as they do now.
 Made for every place of the plan, after the plan itself and in the same background work, from the generator's heights
 (no chunks): its style (from the biome at its middle, as `TownBuilder.Style.at`), its shape, the plaza, its streets (the
 same kind of street laying as the real builder, on the predicted heights), house boxes along them (position, size, wall
-and roof blocks by style, roof height), fields, and for a city its larger extent. A ruin: fewer houses, lower, no roofs.
+and roof blocks by style, roof height), fields, the town's lamps (plaza corners and along its streets, as the real builder spaces them) and some lit windows,
+and for a city its larger extent. A ruin: fewer houses, lower, no roofs.
 
 Saved with the plan (versioned). Small: a few hundred boxes and a few lines per place.
 
@@ -118,7 +124,9 @@ differs from the predicted heights only by trees and vanilla features, so street
 ### 3. Roads in the far view
 
 From the plan's road lines as built (`Highways.smooth`, squared and cornered crossings), each stretch not yet built:
-about three to five wide in the worn mud colours, a plank deck at the bridge height over water. No lamps.
+about three to five wide in the worn mud colours, a plank deck at the bridge height over water, and its lamps at the
+spots `RoadLamps` would put them (the same spacing and sides; worked out from the road line, not from real ground, so a
+skipped spot may still show a light: fine at that distance), each a lit block high enough to glow at night.
 
 ### 4. Drawing into Distant Horizons
 
@@ -171,6 +179,7 @@ jar as a local compile-only mod dependency outside git (Loom maps its intermedia
 
 - Dev client, a new seed 779 world on Tectonic, DH on, then Meridian on: screenshots from a high spot showing towns and
   roads thousands of blocks out; walk toward one and compare far, middle and near (no visible jump).
+- At night (`/time set midnight`): towns and roads lit in the far view, in both mods.
 - DH with SeedGen on: towns and roads still drawn.
 - A LAN guest (a second dev client joining the first): sees the towns in its far view.
 - Without either mod: nothing changes, no errors.
