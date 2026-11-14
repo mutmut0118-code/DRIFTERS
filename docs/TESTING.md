@@ -3872,3 +3872,17 @@ In a **new world** (roads already built in an older world don't get lamps).
       on a lump of ground high above the road.
 - [ ] At night the roads are lit.
 
+## 0.23.62: roads all built; closer lamps; signs in words; town streets (new)
+
+In a **new world** (the roads fix also helps an old world: roads not built yet get built now).
+
+- [ ] **Every road between towns gets built** as you travel, also after flying or teleporting around, and after the
+      loading screen. No towns left with no road between them. (`/drifterciv plan` says how many stretches are built.)
+- [ ] **Lamps a bit closer** (about every 22 blocks).
+- [ ] **Distance signs rarer**: one where each road leaves a town, then about every 500 blocks. No more standing
+      signposts by the towns.
+- [ ] **The signs read as words**: e.g. "This road goes on to Millcrest, 250 blocks". Walking into a town, the sign by
+      its edge says "Welcome to" the town.
+- [ ] **Town streets** are the same packed mud / rooted dirt / coarse dirt as the roads (sandstone in deserts), no
+      planks. Cities still have stone brick.
+

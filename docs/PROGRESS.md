@@ -3396,6 +3396,35 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.62: roads that stopped being built; closer lamps, rarer distance signs in words; town streets of the road mix**
+  (the user, 2026-11-14: "some roads between towns are not spawning?", then "make the lamps a bit closer to eachother,
+  with rarer distance signs / also make the distance signs prose if that makes sense / also also replace the sign at the
+  start of every road from a town to a distance sign / also also also, replace the wooden paths with the road paths
+  (hamlet paths) in a town"). Addon only.
+  - The bug: at most three stretches of road load their land at once (`Highways.AT_ONCE`; six while the loading screen's
+    up), and a stretch left that list only once built. One the player left behind before its land loaded (the loading
+    screen ending with six of them far out, flying, teleporting) stayed in it for good, its chunks held loaded, and with
+    three such no stretch was built again all game. In the user's world: Wolfdale to Westcrest 0 of 4 stretches built,
+    Wolfdale to Stonemere 0 of 13, both towns standing. Shown in a new seed 779 world: six stuck after the loading screen,
+    51 of 397 stretches built and no more, whatever the player did.
+  - The fix: each tick, a stretch no longer near enough (or built, or waiting over a minute: `LOAD_PATIENCE`) is let go,
+    its tickets taken back (`Highways.release`), to be asked for again when someone's near. Same world: 81 built by the
+    loading screen, then 94 and 110 as the player went to roads not yet built, none stuck.
+  - Debug: `/drifterciv plan` also says which stretches are loading.
+  - Lamps every 22 blocks (were 28); a distance sign every 23rd lamp (about 500 blocks; was every 9th, and the first and
+    last lamps by each town).
+  - Where a road leaves a town, a lamp with a distance sign (`RoadLamps.leaving`, 8 blocks along it, on the side the
+    standing signpost stood; the signpost's gone).
+  - The signs in words (`RoadLamps.text`): "This road / goes on to / Millcrest, / 250 blocks", "Ashford / lies some /
+    200 blocks / this way", "Ashford is / about 200 / blocks down / this road", "Walk 200 / blocks to / reach / Ashford";
+    the distance rounded (to 10 under 100, 50 under 1,000, 100 past it); within 60 blocks of the town, "Welcome to /
+    Pinecrest" (the face read walking in). A name too long for a line goes on two, with "some 250 / blocks on".
+  - Towns' streets and paths the worn mix of the roads between towns (packed mud, rooted dirt, coarse dirt; sandstone in
+    deserts), as hamlets' were, climbing by the packed mud slab (Terrain Slabs; their wood's without it) rather than wood
+    stairs. Cities keep stone brick.
+  - Tested in the dev client, a new seed 779 world: Pinecrest's streets of the mix, its road-start sign read both ways
+    ("Welcome to Pinecrest" / "This road goes on to Millcrest, 250 blocks").
+
 - **0.23.61: lamps along the roads between towns, the user's own** (the user, 2026-11-13: "lets add lamps to the road /
   for this i want us to work together / can you open a dev client of a superflat world, so i can build the lamp (and
   some variations), and when i close the world you take the lamps and put it along the road"). Addon only.
