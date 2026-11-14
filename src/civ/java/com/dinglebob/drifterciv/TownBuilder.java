@@ -79,7 +79,7 @@ public final class TownBuilder {
 	private static final int SHORTEST_BRANCH = 22;
 	private static final int LONGEST_BRANCH = 38;
 	/** How far out from the plaza a house may go (each way). */
-	private static final int REACH = PLAZA + ARM + 12;
+	static final int REACH = PLAZA + ARM + 12;
 	/** A city's (A4: "40-80 households ... so it feels like a CITY"): its main roads, how far out it goes, most people in it. */
 	static final int CITY_ARM = 132;
 	static final int CITY_REACH = PLAZA + CITY_ARM + 12;
@@ -134,7 +134,11 @@ public final class TownBuilder {
 
 		/** The style for the biome at this spot. */
 		static Style at(ServerLevel level, BlockPos pos) {
-			var biome = level.getBiome(pos);
+			return of(level.getBiome(pos));
+		}
+
+		/** The style for this biome. */
+		static Style of(net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> biome) {
 			return biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_DESERT) || biome.is(net.minecraft.tags.BiomeTags.IS_BADLANDS) ? DESERT
 				: biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_SAVANNA) || biome.is(net.minecraft.tags.BiomeTags.IS_SAVANNA) ? SAVANNA
 				: biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_SNOWY) ? SNOWY
