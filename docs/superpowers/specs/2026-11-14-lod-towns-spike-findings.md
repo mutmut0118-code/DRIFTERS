@@ -14,6 +14,7 @@ picked turned out to be open sea (the user saw it); the land was then searched f
 | --- | --- |
 | Distant Horizons 3.3.3 | **Works.** Town, road, bridge deck and glowing lamps drawn (`lod-spike-a-*`). |
 | DH + SeedGen 0.9.1 | **Works, same hook.** (`lod-spike-b-*`) |
+| Voxy 0.2.15 + Voxy SeedGen 0.3.1 | **Works**, lamps glow, through a guarded mixin on Voxy SeedGen's column writers. (`lod-spike-d-*`) |
 | Meridian 0.3.0 | **Half.** Our columns get into Meridian's pipeline and change the picture, but houses don't read as houses yet, and there's no light (Meridian has no lighting system: the user, 2026-11-14). (`lod-spike-c5-*`, `c6-*`) |
 
 ## Distant Horizons (run A)
@@ -104,19 +105,43 @@ picked turned out to be open sea (the user saw it); the land was then searched f
    (layers, then structures) before anything is built on it; lights are left out until Meridian has lighting.
 4. Sections near a place whose sketch isn't ready are held back instead of redone.
 
-## Voxy 0.2.15-beta and Voxy SeedGen 0.3.1 (read only, not yet tried; the user, 2026-11-14: "there is actually another mod")
+## Voxy 0.2.15-beta + Voxy SeedGen 0.3.1 (run D; the user, 2026-11-14: "there is actually another mod", then "Voxy first")
 
-Both are in DRIFTER TEST and both are All Rights Reserved (never in git). Read from the jars, nothing run yet:
+**Works.** The fake town, the road and the glowing lamps are drawn in Voxy's far view (`lod-spike-d-day-east.png`,
+`-night-east.png`, `-night-road.png`, `-day-south.png`). Both mods are All Rights Reserved: never in git.
 
-- **Voxy alone has no far land of its own**: it only keeps what the player's game has loaded (`VoxelIngestService`). Far
-  towns can only be painted where something has put land there, which is Voxy SeedGen's job. So this hookup matters
-  with Voxy SeedGen on.
-- **No public API in either.** Voxy stores 16-block sections of voxels (`VoxelizedSection`, a `long` a voxel: block,
-  biome and light, so lamps could glow) written with `WorldUpdater.insertUpdate(WorldEngine, VoxelizedSection)`. Voxy
-  SeedGen writes its land through its own `VoxyChunkWriter.column(worldX, worldZ, stride, ColumnSpans)` (spans of
-  block, biome and light a column, much like Distant Horizons' data points) and `chunkFinished`.
-- **Ways in, to try in this order:** (1) a guarded mixin (`"required": false`, only when `voxyseedgen` is loaded with a
-  version starting `0.3.`) on `VoxyChunkWriter.column`, adding the painter's spans to the column before it's written;
-  (2) writing our own sections over the top with Voxy's `WorldUpdater.insertUpdate` after SeedGen has written a chunk.
-- **Needs its own try-out** like the other two (the fake town in a dev client with Voxy + Voxy SeedGen + Sodium), and a
-  decision from the user: it isn't in the approved design.
+- **Voxy alone has no far land of its own**: it only keeps what the player's game has loaded. Far towns can only be
+  painted where Voxy SeedGen has put land, so this hookup is for Voxy with Voxy SeedGen.
+- **The hook: a guarded mixin on Voxy SeedGen's two column writers.** No public API in either mod. Voxy SeedGen hands
+  every column to a sink, `column(int worldX, int worldZ, int stride, mobius.voxyseedgen.terrain.ColumnSpans spans)`, of
+  `mobius.voxyseedgen.voxy.VoxyChunkWriter` (full detail) and `mobius.voxyseedgen.voxy.LadderWriter` (the coarser
+  levels; the first painted column came through it, stride 2). An `@Inject` at the head of both (`@Pseudo`,
+  `@Mixin(targets = ..., remap = false)`, a mixin config with `"required": false` and `defaultRequire` 0) rewrites the
+  spans in place before they're written. With neither mod there, the mixins simply never apply.
+- **Data shape.** `ColumnSpans`: spans bottom up with no gaps, heights counted from the world's floor
+  (`count()`, `bottom(i)`, `top(i)`, `state(i)`, `biome(i)`, `light(i)` = block light << 4 | sky light; `clear()`,
+  `add(bottom, top, state, biome, blockLight, skyLight)`). A column before: stone, dirt, grass, air, leaves, air to the
+  build limit. Painting: keep everything under the ground span, the ground span with our surface block and light, then
+  our spans with air between; what stood above (trees) is dropped.
+- **Light: yes.** Voxy keeps light with every voxel; lamp blocks at light 15 and lit ground round them glow at midnight.
+- **Threads.** `VoxySeedGen worker #n` threads, on the client side of the game; nothing on the server thread.
+- **Compiling.** The spike compiled against Voxy SeedGen's jar from the git-ignored folder (its Loom is older than ours,
+  so Loom takes it). The product needs a hand-written stub of `ColumnSpans` (its public methods only), as for Meridian.
+- **Where it runs.** On the client, so a LAN guest's own Voxy SeedGen paints for itself from the sketches sent to it
+  (Task 5's packets).
+
+### Two compat problems found on the way (not paper towns; for the main line)
+
+1. **Far land filled round the wrong place** (the user: "the chunks always generate at 0,0 and not where the player is
+   spawned"). Read from the user's own log: Voxy SeedGen starts filling round where the player stands a few seconds
+   after joining (the default start by the plan's middle town, 4727, -957), a pass of 945,024 chunks that took 114 s;
+   "Who are you?" then moved the player to their nation's town (Ravenridge, 7730, 175), 3,200 blocks away, and the fill
+   only looks at the player's place again when that pass is done. Fix proposed: when the player is put at their start,
+   the client calls `mobius.voxyseedgen.voxy.SeedFill.stop()` (by reflection, only when `voxyseedgen` is loaded); Voxy
+   SeedGen, set to keep up with the player (its default), starts a new fill round the new place within a second.
+2. **Voxy SeedGen runs Drifter's world-generation features in a stand-in world of its own**, and `WandererFeature`
+   "places" wanderers there: 1,408 "[Drifter] world gen: a ... wanderer at" lines from `VoxySeedGen worker` threads in
+   the user's log, none from the real game. They aren't real Drifters, but the feature asks `DrifterCensus.roomFor` and
+   makes a Drifter each time, off the server thread. (DH SeedGen says the same of itself: "paints 265 features of mods
+   into the chunks".) Fix proposed: Drifter's features do nothing in a level that isn't the game's own generation
+   region.
