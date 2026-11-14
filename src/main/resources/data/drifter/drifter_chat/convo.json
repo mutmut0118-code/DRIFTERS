@@ -53,27 +53,7 @@
    "you serious",
    "deadass"
   ],
-  "agree": [
-   "same",
-   "me too",
-   "me neither",
-   "mood",
-   "relatable",
-   "real",
-   "facts",
-   "true",
-   "so true",
-   "ikr",
-   "i know right",
-   "agreed",
-   "exactly",
-   "fair",
-   "fair enough",
-   "right",
-   "yeah same",
-   "big facts",
-   "valid"
-  ],
+  "agree": ["same", "me too", "me neither", "mood", "relatable", "real", "facts", "true", "so true", "ikr", "i know right", "agreed", "exactly", "fair", "fair enough", "right", "yeah same", "big facts", "valid", "heck yea", "heck yeah", "hell yeah", "hell yea", "yeah", "yea", "yep", "yup", "ofc", "of course", "for sure", "totally", "absolutely", "definitely", "def", "yes", "yess", "oh yeah", "fr fr", "100 percent", "too real", "big true", "so real"],
   "doubt": [
    "cap",
    "thats cap",
@@ -229,21 +209,7 @@
    "who asked you",
    "i meant someone else"
   ],
-  "wait_up": [
-   "wait up",
-   "stop walking away",
-   "come back",
-   "dont walk away",
-   "where are you going come back",
-   "stay still",
-   "stop moving",
-   "hold still",
-   "dont leave",
-   "wait for me",
-   "hey come back",
-   "stop running",
-   "stop running away"
-  ],
+  "wait_up": ["wait up", "stop walking away", "come back", "dont walk away", "where are you going come back", "stay still", "stop moving", "hold still", "dont leave", "wait for me", "hey come back", "stop running", "stop running away", "wait", "wait wait", "hold up", "stop", "stay there", "dont go", "wait a minute", "hey wait"],
   "sorry": [
    "sorry",
    "sry",
@@ -778,29 +744,7 @@
    "please dont kill me",
    "i mean no harm"
   ],
-  "offer": [
-   "here take this",
-   "take this",
-   "this is for you",
-   "i got you something",
-   "i have something for you",
-   "want this",
-   "do you want this",
-   "i got food",
-   "i have food",
-   "i got food for you",
-   "i have food for you",
-   "here you go",
-   "heres some food",
-   "have some food",
-   "want some food",
-   "need a sword",
-   "i brought you something",
-   "a gift for you",
-   "got a gift for you",
-   "here have this",
-   "catch"
-  ],
+  "offer": ["here take this", "take this", "this is for you", "i got you something", "i have something for you", "want this", "do you want this", "i got food", "i have food", "i got food for you", "i have food for you", "here you go", "heres some food", "have some food", "want some food", "need a sword", "i brought you something", "a gift for you", "got a gift for you", "here have this", "catch", "heres your food", "here is your food", "heres food", "heres your", "here is your", "take it", "its for you", "for you", "here", "heres something", "have this", "take some food", "this is yours", "i got you food", "got you some food"],
   "come_in": [
    "can i come in",
    "may i come in",
@@ -2990,7 +2934,6 @@
     "what does that mean",
     "i dont get it sorry",
     "wait what??",
-    "sorry i dont understand!!",
     "um.. what?"
    ],
    "hermit": [
@@ -3006,14 +2949,12 @@
     "?",
     "bro what",
     "say it properly",
-    "??",
-    "huh. try again"
+    "??"
    ],
    "helper": [
     "sorry, what do you mean?",
     "hm? say that again?",
-    "sorry, i didnt catch that!",
-    "not sure i follow, can you say it another way?"
+    "sorry, i didnt catch that!"
    ],
    "casual": [
     "lol what",
@@ -3048,16 +2989,12 @@
     "youve lost me again",
     "no idea, sorry",
     "im not getting it",
-    "try saying it another way",
     "i got nothing",
     "still dont get it lol",
     "ok im lost",
-    "that one too, no clue",
     "say it simpler?",
-    "nah i dont understand",
     "uhh sure",
-    "not a clue lol",
-    "lets talk about something else"
+    "not a clue lol"
    ],
    "hermit": [
     "...ok",

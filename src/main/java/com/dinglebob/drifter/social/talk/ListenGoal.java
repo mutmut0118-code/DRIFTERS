@@ -30,7 +30,7 @@ public final class ListenGoal extends Goals.Goal {
 	public double urgency(Goals.Context context) {
 		DrifterEntity drifter = context.drifter();
 		return context.threat().urgent() || drifter.isSleeping() || drifter.inAFight() || GuideGoal.leading(drifter)
-			|| PlayerConvo.listeningTo(drifter) == null ? 0.0 : 0.78;
+			|| PlayerConvo.listeningTo(drifter) == null ? 0.0 : 0.81;
 	}
 
 	@Override

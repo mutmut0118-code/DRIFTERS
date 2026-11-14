@@ -107,7 +107,7 @@ public final class GuideGoal extends Goals.Goal {
 			return 0.0;
 		}
 
-		return context.threat().urgent() ? 0.0 : 0.76;
+		return context.threat().urgent() ? 0.0 : 0.85;
 	}
 
 	@Override

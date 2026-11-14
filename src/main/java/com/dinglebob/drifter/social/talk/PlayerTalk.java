@@ -132,7 +132,9 @@ public final class PlayerTalk {
 		String intent = Lines.answer(text, ALL);
 		// The answer to what a Drifter just asked them (a yes or a no, and nothing else asked).
 		Asked question = asked.get(player.getUUID());
-		if (question != null && now < question.until() && question.drifter().isAlive() && question.drifter().distanceTo(player) <= SocialWatcher.NAME_RANGE
+		// (As far as its chat is heard: found in play, a "sure" to its "quick tour?" from 40 blocks off, it down the mine, got "?? be clear".)
+		if (question != null && now < question.until() && question.drifter().isAlive()
+			&& question.drifter().distanceTo(player) <= Math.max(SocialWatcher.NAME_RANGE, com.dinglebob.drifter.DrifterConfig.chatRange())
 			// (Not a question of their own: "yeah, found 3 diamonds" answers "find any dias?".)
 			&& (intent == null || intent.equals("compliment") || intent.equals("follow") || intent.equals("team") || !Telling.question(text))) {
 			String yes = Lines.answer(text, "yes", "no", "ready");
@@ -668,6 +670,8 @@ public final class PlayerTalk {
 
 		// (Without its progress or counts: "gather birch log (0/3)", "craft oak planks x3".)
 		String doing = activity.describe().replaceAll("\\s*\\(.*\\)$", "").replaceAll("\\s+x\\d+$", "").toLowerCase(Locale.ROOT);
+		// (Its own words for what it's doing say "its"; said to someone, that's "my": "keep my stall".)
+		doing = doing.replaceAll("\\bitself\\b", "myself").replaceAll("\\bits\\b", "my");
 		// (Standing and talking with a player: what it was doing before they spoke.)
 		if (doing.startsWith("talk with ") || doing.startsWith("look for ")) {
 			return PlayerConvo.wasDoing(drifter);

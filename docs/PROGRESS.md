@@ -7023,3 +7023,31 @@ lines load in all). API 16 (docs/API.md). Headless tests: `tools/smoke-playertal
 X" refers you to the smith; pets and farms always "no pets"; haggling's "for you, a little" doesn't change the price
 (the friend's price elsewhere does); "do you have a farm" goes to pets; "what happened here" outside a town falls back
 to news; "x or y" only for two short words. Not seen in a real game yet.
+
+## 0.23.67-side.1: talk fixes from play (new)
+
+From the user's screenshots (2026-11-14): "cmere", "come", "wait", "heres your food" understood; "heck yea", "yeah" are
+agreeing (and "yeah" still answers its "new here?"); "whats the history" asks about the town; no more bot-like "try
+saying it another way" / "lets talk about something else"; after a few things it doesn't follow it brings something up
+itself instead of going quiet; news about itself is said as "me" ("muto gave me something"); other Drifters keep their
+chatter down out to chat range (48 blocks) while you talk with one, and for 10 seconds after your message.
+
+## 0.23.67-side.2: goodbyes and "my" (new)
+
+From the user's screenshot (Jewel_Cliff, 2026-11-14): a goodbye with a bit of glue in it ("anyways thats my gift u have a
+good day") is a goodbye, not "ok, whats up"; "have a good day", "take care", "have a good one", "see you around" are
+goodbyes. What it's doing, said to you, says "my" not "its" ("i still have to keep my stall").
+
+## 0.23.67-side.3: a tour offered from close by, and its answer heard as far as chat (new)
+
+From the user's screenshot and game log (raspberrywick9, 2026-11-14): a Drifter down the town mine (Y 12) offered "quick
+tour?" and took the player's "sure" as nonsense ("?? be clear"): an answer to its question only counted within 32
+blocks, its chat carries 48. Now an answer counts as far as its chat is heard, and it only offers a tour when it's by
+the player (16 blocks, in sight) and can walk them round.
+
+## 0.23.67-side.4: it does what it said yes to (new)
+
+From the user's screenshot and log (slickrustt, 2026-11-14: "they understand it, but they dont actually do it"): "come
+here" got "ok" from the town's keeper, which went on keeping its stall (0.79) over going to the player (0.70). What a
+player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
+somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.

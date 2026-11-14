@@ -79,9 +79,13 @@ public final class PlayerConvo {
 	/** How close they have to stay for it to keep waiting. */
 	private static final double EARSHOT = 14.0;
 	/** Others this close to a player in a talk keep it down; right after the player's message, altogether. */
-	private static final double HUSH_RANGE = 24.0;
-	private static final long HUSH_AFTER = 20L * 5;
-	private static final double HUSH_CHANCE = 0.75;
+	private static double hushRange() {
+		// (As far as their chat is heard: a line from further off the player doesn't see anyway.)
+		return Math.max(24.0, com.dinglebob.drifter.DrifterConfig.chatRange());
+	}
+
+	private static final long HUSH_AFTER = 20L * 10;
+	private static final double HUSH_CHANCE = 0.9;
 	/** How long its opener's question waits for an answer. */
 	private static final long EXPECTS = 20L * 45;
 
@@ -340,7 +344,7 @@ public final class PlayerConvo {
 			}
 
 			ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
-			if (player != null && player.level() == drifter.level() && player.distanceTo(drifter) <= HUSH_RANGE
+			if (player != null && player.level() == drifter.level() && player.distanceTo(drifter) <= hushRange()
 				&& (now - c.lastPlayerAt < HUSH_AFTER || drifter.getRandom().nextDouble() < HUSH_CHANCE)) {
 				return true;
 			}
@@ -448,7 +452,22 @@ public final class PlayerConvo {
 			return mine != null && (theirs == null || mine.length() >= theirs.length()) ? topic : null;
 		}
 
-		return old == null ? Lines.answer(text, ALL_GLUE) : null;
+		if (old != null) {
+			return null;
+		}
+
+		// (A goodbye or a thanks that says more than a bit of glue in it is that: "anyways thats my gift, have a good day" is a bye.)
+		String glue = Lines.answer(text, ALL_GLUE);
+		String ritual = Lines.answer(text, "bye", "night", "thanks", "greeting");
+		if (glue != null && ritual != null) {
+			String glueSaid = Lines.phrase(text, glue);
+			String ritualSaid = Lines.phrase(text, ritual);
+			if (ritualSaid != null && (glueSaid == null || ritualSaid.length() > glueSaid.length())) {
+				return null;
+			}
+		}
+
+		return glue;
 	}
 
 	/** Said to no one by name, but to all of them ("you guys", "anyone"). */
@@ -565,7 +584,8 @@ public final class PlayerConvo {
 		}
 
 		String yes = "im_new".equals(mine) || "iam".equals(mine) ? "yes" : Lines.answer(text, "yes", "no", "ready", "unsure", "middle", "greeting");
-		if (yes == null || mine != null && !mine.equals("im_new") && !mine.equals("iam") && !mine.equals("middle")) {
+		if (yes == null || mine != null && !mine.equals("im_new") && !mine.equals("iam") && !mine.equals("middle") && !mine.equals("agree")
+			&& !mine.equals("ack")) {
 			return false;
 		}
 
@@ -604,7 +624,9 @@ public final class PlayerConvo {
 
 	/** A welcome to someone new, and (where there's a town to show) an offer to show them round. */
 	private static void welcome(DrifterEntity drifter, ServerPlayer player, String key, long now) {
-		boolean tour = !Mode.atOdds(drifter, player) && !cold(player) && !com.dinglebob.drifter.api.TalkApi.places(drifter).isEmpty()
+		// (Only when it's by them, to walk them round: not from down the mine.)
+		boolean tour = !Mode.atOdds(drifter, player) && !cold(player) && drifter.distanceTo(player) <= 16.0 && drifter.getSocial().watcher().sees(player)
+			&& !com.dinglebob.drifter.api.TalkApi.places(drifter).isEmpty()
 			&& drifter.getPersonality().get(Trait.SOCIABILITY) >= 0.35;
 		say(drifter, player, tour ? key + "_tour" : key, null);
 		if (tour) {
@@ -708,9 +730,10 @@ public final class PlayerConvo {
 				return;
 			}
 
-			// Nothing it knows: it says so, or brings something up itself; after a few in a row, it stops answering nonsense.
+			// Nothing it knows: it says so, or brings something up itself; after a few in a row, it moves the talk on itself.
 			int unknowns = c == null ? 0 : c.unknowns++;
-			if (unknowns >= 3) {
+			if (unknowns >= 2 && Conversations.idle(drifter) && PlayerChats.start(drifter, player, null, now) != null) {
+				c.unknowns = 0;
 				return;
 			}
 

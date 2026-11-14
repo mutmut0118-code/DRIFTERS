@@ -57,18 +57,7 @@
    "how many people in this town",
    "whats the population"
   ],
-  "town_story": [
-   "tell me about this town",
-   "whats the story of this town",
-   "who founded this town",
-   "how old is this town",
-   "when was this town founded",
-   "tell me about this place",
-   "whats this towns story",
-   "history of this town",
-   "how long has this town been here",
-   "who built this town"
-  ],
+  "town_story": ["tell me about this town", "whats the story of this town", "who founded this town", "how old is this town", "when was this town founded", "tell me about this place", "whats this towns story", "history of this town", "how long has this town been here", "who built this town", "whats the history", "history", "the history", "tell me the history", "any history", "whats the story here", "whats the history here", "whats this place about", "how did this town start", "how was this town made"],
   "where_shop": [
    "wheres the shop",
    "where is the shop",

@@ -1,0 +1,28 @@
+# The user's chat (2026-11-14): food offered to a hungry Drifter, called back, "cmere", "come", "heres your food".
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+drifter spawn Ghost
+wait 3
+drifter hear hey ghost
+wait 4
+drifter hear i got food
+wait 5
+drifter hear ghost! wait
+wait 4
+drifter hear ghost!
+wait 4
+drifter hear cmere
+wait 4
+drifter hear come
+wait 4
+drifter hear heres your food
+wait 4
+drifter hear blorp
+wait 4
+drifter hear flarp
+wait 4
+drifter hear zorp
+wait 6
+stop

@@ -192,7 +192,7 @@ public final class Facts {
 		News news = freshNews(me, other, now);
 		if (news != null) {
 			facts.words.put("news_who", news.aboutName());
-			facts.words.put("news_what", news.what());
+			facts.words.put("news_what", news.whatSaidBy(me.getUUID()));
 			facts.flags.add("has_news");
 		}
 
@@ -291,7 +291,7 @@ public final class Facts {
 		for (News news : me.getNews().all()) {
 			if (!news.stale(now) && !news.aboutName().equals(name)) {
 				facts.words.put("news_who", news.aboutName());
-				facts.words.put("news_what", news.what());
+				facts.words.put("news_what", news.whatSaidBy(me.getUUID()));
 				facts.flags.add("has_news");
 				break;
 			}
