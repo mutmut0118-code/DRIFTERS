@@ -1,0 +1,36 @@
+# Batch 2 town questions (TownTalkMore), headless: a spawned town, its people asked by /drifter hear.
+until Done_( 900
+wait 3
+time set 6000
+forceload add 160 160 360 360
+execute positioned 260 -60 260 run drifterciv town spawn 6 Testvale
+wait 40
+execute positioned 260 -60 260 run drifter hear what is this place
+wait 4
+execute positioned 260 -60 260 run drifter hear what nation is this
+wait 4
+execute positioned 260 -60 260 run drifter hear are you at war
+wait 4
+execute positioned 260 -60 260 run drifter hear who are your allies
+wait 4
+execute positioned 260 -60 260 run drifter hear how much is bread
+wait 4
+execute positioned 260 -60 260 run drifter hear what do you buy
+wait 4
+execute positioned 260 -60 260 run drifter hear can i live here
+wait 4
+execute positioned 260 -60 260 run drifter hear when is market day
+wait 4
+execute positioned 260 -60 260 run drifter hear what do you think of the leader
+wait 4
+execute positioned 260 -60 260 run drifter hear whos wanted
+wait 4
+execute positioned 260 -60 260 run drifter hear a raid is coming
+wait 4
+execute positioned 260 -60 260 run drifter hear what happened here
+wait 4
+execute positioned 260 -60 260 run drifter hear hey guard
+wait 4
+execute positioned 260 -60 260 run drifter hear discount?
+wait 4
+stop

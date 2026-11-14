@@ -3156,6 +3156,19 @@ protected void customServerAiStep() {
 	@org.jetbrains.annotations.Nullable
 	private com.dinglebob.drifter.world.Respawns.Corpse corpse;
 
+	/** The world day it arrived (first loaded; an older Drifter: the day this was first saved). */
+	private long arrivedDay = -1L;
+
+	/** Days since it arrived (docs/PLAYER_TALK.md B1.4: "how long have you been here"). */
+	public long daysHere() {
+		long today = this.level().getDayTime() / 24000L;
+		if (this.arrivedDay < 0) {
+			this.arrivedDay = today;
+		}
+
+		return Math.max(0, today - this.arrivedDay);
+	}
+
 	public int deaths() {
 		return this.deaths;
 	}
@@ -3363,6 +3376,7 @@ protected void customServerAiStep() {
 		tag.putInt("DrifterSaveVersion", SAVE_VERSION);
 		tag.put("DrifterInventory", this.inventory.save(this.registryAccess()));
 		tag.put("Diary", this.diary.save());
+		tag.putLong("ArrivedDay", this.arrivedDay);
 		tag.put("DrifterLore", this.lore.save());
 		tag.put("DrifterGear", this.gearLore.save());
 		tag.putInt("SelectedItemSlot", this.inventory.getSelected());
@@ -3429,6 +3443,8 @@ protected void customServerAiStep() {
 		this.inventory.setSelectedImmediately(tag.getInt("SelectedItemSlot"));
 		this.foodData.readAdditionalSaveData(tag);
 		this.diary.load(tag.getCompound("Diary"));
+		// (Older saves have none: from today.)
+		this.arrivedDay = tag.contains("ArrivedDay") ? tag.getLong("ArrivedDay") : -1L;
 		// (Older saves have none: it knows what its personality gives it, and learns the rest again.)
 		this.lore.load(tag.getCompound("DrifterLore"));
 		// (No DrifterGear tag, an older save: it seeds from what it carries on its next check.)

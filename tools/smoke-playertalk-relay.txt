@@ -1,0 +1,13 @@
+# Passing word on: "tell bobby i said hi" to Alice, then Bobby brought close.
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+drifter spawn Alice
+execute positioned ~30 ~ ~ run drifter spawn Bobby
+wait 3
+drifter hear tell bobby i said hi
+wait 5
+tp @e[type=drifter:drifter,name=Bobby] @e[type=drifter:drifter,name=Alice,limit=1]
+wait 8
+stop

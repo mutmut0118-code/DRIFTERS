@@ -1,6 +1,6 @@
 # Everything a player might say to a Drifter (design catalogue)
 
-**Status: batch 1 is built (0.23.44-side.2); docs/PROGRESS.md, "Player talk, batch 1", says what is in and what was left out. The "Now" column below is as it was before that.** The user (2026-11-12), after sending 24 screenshots of talks with
+**Status: batches 1 and 2 are built (0.23.44-side.2, 0.23.65-side.1); docs/PROGRESS.md ("Player talk, batch 1" and "batch 1 finished, batch 2") says what is in and what was left out. The "Now" column below is as it was before batch 1.** The user (2026-11-12), after sending 24 screenshots of talks with
 Drifters that went nowhere: "make a HUGE highly detailed list of almost EVERY possible thing a player could ask from a
 drifter (only for design). we can prioritize high value topics and fallback".
 

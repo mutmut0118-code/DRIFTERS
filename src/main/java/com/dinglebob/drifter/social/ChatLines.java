@@ -201,7 +201,7 @@ public final class ChatLines {
 
 		long now = drifter.level().getGameTime();
 		if (now - lastLine.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_DRIFTER)
-			|| com.dinglebob.drifter.social.talk.PlayerConvo.hush(drifter, now)) {
+			|| com.dinglebob.drifter.social.talk.PlayerConvo.hush(drifter, now) || com.dinglebob.drifter.social.talk.PlayerConvo.quietNear(drifter)) {
 			return;
 		}
 
