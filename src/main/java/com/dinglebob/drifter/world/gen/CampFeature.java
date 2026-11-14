@@ -46,6 +46,10 @@ public class CampFeature extends Feature<NoneFeatureConfiguration> {
 
 	@Override
 	public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+		if (!DrifterFeatures.realWorld(context.level())) {
+			return false;
+		}
+
 		if (!DrifterConfig.worldgenCamps() || !campChunk(context.level(), new net.minecraft.world.level.ChunkPos(context.origin()))) {
 			return false;
 		}

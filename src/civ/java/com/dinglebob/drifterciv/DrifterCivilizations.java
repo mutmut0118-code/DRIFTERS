@@ -55,6 +55,18 @@ public final class DrifterCivilizations implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		Sketches.register();
+		FarPaint.register();
+		FarSync.register();
+		// Paper towns in Distant Horizons (optional, 3.3.x: the version its hookup was written against).
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("distanthorizons")
+			.map(mod -> mod.getMetadata().getVersion().getFriendlyString().startsWith("3.3.")).orElse(false)) {
+			try {
+				FarDh.start();
+			} catch (LinkageError | RuntimeException e) {
+				LOGGER.warn("[far] Distant Horizons: its hookup couldn't start; towns and roads are left out of its far view ({})", e.toString());
+			}
+		}
 		CivConfig.load();
 		ServerLifecycleEvents.SERVER_STARTING.register(started -> server = started);
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> server = null);

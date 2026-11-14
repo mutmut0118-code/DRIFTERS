@@ -4,6 +4,127 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## Towns and roads in the far view (paper towns): built for Voxy and Distant Horizons, 0.23.63-side.2 (2026-11-14)
+
+Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`,
+the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings.md`. Branch
+`claude/elastic-leakey-afebd2` (not yet in the main line). The user: "go", then "Voxy first", then "Yes, start".
+
+**Done (plan Tasks 1 to 4 and 5b), installed as 0.23.63-side.1 (the main line's 0.23.63 merged in):**
+
+- **Task 1.** A town's main roads read their land through `TownLand` (the level's, or the generator's); a planned
+  place's choices come from its own seed (`Sketches.seedOf`); `TownBuilder.streets(...)` lays the main roads with no
+  level. Real towns unchanged: three towns built before and after with `DRIFTER_TOWN_SEED=42` (a debug environment
+  variable, kept), every `[town]` log line equal; the map pictures differ only as two runs of the same code do.
+- **Task 2.** `Sketch`, `Sketches`: every planned place sketched in the background once the plan's ready (main roads,
+  house boxes, fields, lamps), on all but one core at the lowest priority (18 places: 7 s), saved with the plan
+  (`SketchVersion` 1). `/drifterciv sketch info`, `check` (0 houses in water, on a street or overlapping, of 336),
+  `land` (the generator's land against the real).
+- **Task 3.** The real town takes its sketch's shape, headings and reading of the land, and logs how near it came:
+  seed 779, street points' distance mean / worst: ruin main street 1.4 / 15, grid city 0.0 / 0, harbour town 1.8 / 18,
+  rings city 0.7 / 10, main street 0.0 / 0; a harbour hamlet (Fairdale, 4 houses) 9.4 / 39. The generator's heights
+  are lifted 2 blocks to the real ground's (`Sketches.LIFT`, measured on Tectonic).
+- **Task 4.** `FarPaint`: sketches of unbuilt places and unlaid road pieces as per-column answers; kept up from the
+  plan every second. `/drifterciv sketch paint`, `painted`, `stamp` (the sketches put in as real blocks, for a look:
+  `docs/superpowers/shots/sketch-*.png`).
+- **Task 5b, the Voxy hookup** (Voxy 0.2.15 with Voxy SeedGen 0.3.x; `client/FarVoxy`, two guarded mixins on Voxy
+  SeedGen's column writers, applied only with a 0.3.x Voxy SeedGen there; compiled against a hand-written stub,
+  `src/voxyStub`, in no jar). Dev client, seed 779: unbuilt towns and lit roads in Voxy's far view, day and midnight
+  (`docs/superpowers/shots/paper-voxy-*.png`); without Voxy the game starts clean.
+
+- **Task 6, the Distant Horizons hookup** (0.23.63-side.2; DH 3.3.x; `FarDh`, common code: it runs where the world is
+  hosted). A world generator override that wraps the generator DH would have used (its own, or DH SeedGen's) and
+  paints the result, as the spike proved; DH's API from Modrinth's maven, compile-only
+  (`distant_horizons_version=3.3.3-1.21.1`). Dev client, seed 779: an unbuilt city in DH's far view by day, lit at
+  midnight (`docs/superpowers/shots/paper-dh-*.png`); 30 touched pieces painted in 108 ms on DH's threads. Not built:
+  holding a piece back until a place's sketch is ready (as with Voxy: a brand-new world's first seconds). Not run in
+  the product with DH SeedGen (the spike ran that pairing).
+- **Task 5, sketches to a guest** (0.23.63-side.2; `FarSync`, `client/FarView`): a guest whose own game draws the far
+  view (Voxy with Voxy SeedGen) asks once; the server sends every sketch and road compressed (18 sketches and 16 roads:
+  28 KB, one part; parts of 400,000 bytes at most), again when they change, and a small state packet whenever a place
+  is built or a road piece laid. Tested by the game sending them to itself (`DRIFTER_FAR_TEST=1`: the counts the client
+  held matched the server's). **Not tested with a real second player over LAN.** A guest stops drawing a place when
+  the host says it's built (not when its own game loads it, as the plan first had it).
+
+- **The rework after the user's first look (0.23.63-side.3; the user, 2026-11-14, with pictures of a road's blocks
+  and lamps on treetops and a road in loose blocks over every bump: "we need to rework the routes and paper towns to
+  be a little more accurate than being painted over"; "an lod that showed a ruin town turned out to be just an actual
+  town").** The hookups stood everything on the highest thing in a column, a treetop in a forest. Now:
+  `FarPaint.ground(state)` finds the ground under trees and plants (Voxy and DH hookups both); where a road, a street,
+  a plaza or a house goes, what grew there is cleared; a column may ask for its surface's height
+  (`FarPaint.Column.y`): a road's bed (the generator's land at each of its points, smoothed along it, worked out in
+  the background: `FarPaint.grade`), a house's plot (`Sketch.Box.base`), the plaza (`Sketch.y0`), and the far land is
+  cut down or filled up to it (within `MOST_GRADE` 8 blocks; never on water); a column with only a lamp's glow on it
+  keeps its trees. The ruin: a place's sketch and its real town are a ruin by the same flag (`Place.ruin()`), so it was
+  most likely a hill town's houses standing broken at treetop and bump heights (Oakstead in the user's log: 4 of its
+  13 sketched houses near a real one); not confirmed. Dev client with Voxy, seed 779: a road cut clean through a
+  jungle to a city (`docs/superpowers/shots/grade-road-day.png`). The user's own game ran 0.23.63-side.2 fine (31
+  places sketched in 4.8 s, Voxy painting, the far land starting over after a move): the installed jar's hookup works.
+
+**Not done yet:** Task 7 (Meridian), Task 8 (a real LAN run, timing against the main line, the whole-branch review).
+Also open: far land Voxy wrote with 0.23.63-side.2 keeps its old look (the treetop roads) until that world's far view
+is made again; a road's bed may be asked for a second or two after a world opens (worked out in the background), so
+the first columns Voxy SeedGen writes can still lie ungraded; at coarse detail a 3-wide road is sampled every 2 or 4
+blocks and can look dotted. **Not yet checked:** the installed (remapped) jar with Voxy in the user's own game
+(the hookup was only run in the dev game); walking up to a sketched town and watching the real one take over; a world
+whose far land Voxy had already filled before this version (its old far view stays where it was filled).
+
+**Known limits:** in a brand-new world the sketches are made in the few seconds after the plan; land Voxy SeedGen writes
+before a place's sketch is ready is drawn without it (not seen in testing; the plan's own fix, holding those columns
+back, isn't built). A painted road lamp may stand where the real one is later refused (a slope, another road).
+
+- **Distant Horizons 3.3.3: works**, through DH's API alone (a world generator override that wraps DH's own generator
+  and paints the result). Town, road, bridge deck and glowing lamps at night drawn; about 1 ms a touched section, on
+  DH's threads.
+- **DH + SeedGen 0.9.1: works with the same hook** (it wraps SeedGen's generator the same way).
+- **Meridian 0.3.0: half.** Our columns get into its pipeline (a backend under its own name, our blocks added to the
+  sampler's block table) and change the picture, but houses don't read as houses yet. No light: Meridian has no lighting
+  system (the user, 2026-11-14).
+- **Next (the plan's gate):** Tasks 5 to 7 are rewritten from the findings; the user looks at the result and answers the
+  design questions below, then Part 2 starts with Task 1.
+
+**Design questions (paper towns), each with my recommendation:**
+
+0. *A harbour hamlet's real roads can come out well off its sketch's* (Fairdale: 9.4 blocks on average, 39 at worst;
+   every other shape tried is within 2). Recommendation: leave it; if it shows in play, the real builder can walk the
+   sketch's street lines for harbours instead of laying its own.
+1. *Meridian's houses aren't proven.* Recommendation: build everything for Distant Horizons first (Tasks 1 to 6, ship
+   it), then give Meridian its own short try-out (Task 7); if houses still don't read there, ship Meridian with streets,
+   plazas and roads only, or ask Meridian's author for a way in.
+2. *A world whose far view was made before this feature keeps its old far view* (DH has no call to redo it) until the
+   land is visited or DH's saved data for the world is deleted. Recommendation: accept it and say so in TESTING (new
+   worlds are fine).
+3. *SeedGen may draw its own stand-in buildings where our town markers' structure sets would place something.* To be
+   checked in Task 6; recommendation if it does: stop those sets placing anything in a planned world.
+4. *LAN guests with DH* get the far view from the host only as far as DH's own networking sends it (not tested).
+   Recommendation: test in Task 8; if it doesn't arrive, leave LAN guests on DH for a later step.
+5. *Voxy + Voxy SeedGen* (the user, 2026-11-14: "there is actually another mod", then "Voxy first"): **tried, works**,
+   lamps glow (run D; a guarded mixin on Voxy SeedGen's column writers). It's the first hookup to be built (plan Task
+   5b), then Distant Horizons, then Meridian.
+6. *Two compat bugs found with Voxy SeedGen, not paper towns*: **fixed in 0.23.62-side.1** (the user: "Yes, bugs
+   first"; see "0.23.62-side.1" below).
+
+## 0.23.62-side.1: two fixes for Voxy SeedGen (2026-11-14, branch `claude/elastic-leakey-afebd2`)
+
+Found while trying paper towns in Voxy; read from the user's own log. Not yet in the main line
+(`claude/gifted-archimedes-n6yen5` is at 0.23.62): merge this branch there.
+
+- **Far land filled round the wrong place** (the user: "the chunks always generate at 0,0 and not where the player is
+  spawned ... a huge wall of chunks and air before the chunks loaded in the town im in"). Voxy SeedGen fills round where
+  the player stood when its fill began (the default start), a pass of 945,024 chunks (114 s), and looks at the player's
+  place again only when the pass is done; "Who are you?" had by then moved the player to their nation's town 3,200
+  blocks off. Fix: `client/FarFollow` (addon, client): a move of more than 512 blocks in one tick, with `voxyseedgen`
+  loaded and its "keep up" setting on, calls `mobius.voxyseedgen.voxy.SeedFill.stopForWorldClosing()` by name; Voxy
+  SeedGen starts a new fill round the new place within a second (tested in the dev client: "fill started ... from chunk
+  -269, 256" a second after a 2,700 block `/tp`). **Not `SeedFill.stop()`**: that one is the player's own stop, it
+  switches "keep up" off in their settings and saves it (found in the first test).
+- **Phantom wanderers.** Voxy SeedGen (and DH SeedGen) run every mod's world-gen features in a stand-in world of their
+  own, off the server thread; `WandererFeature` made a Drifter each time (1,408 in one session of the user's).
+  `DrifterFeatures.realWorld(level)` (a `WorldGenRegion`, or the `ServerLevel` for `/place`): `WandererFeature` and
+  `CampFeature` do nothing elsewhere. Dev client with Voxy SeedGen: 0 such lines (before: dozens in the first seconds).
+- Known and left: Voxy SeedGen logs once that it "could not paint drifter:cave_torches into a chunk in memory" and
+  leaves it out (harmless).
+
 ## Current state (session 2, local, 2026-10-15 afternoon)
 
 - **Milestone 10 (offscreen and performance): all five steps have code**, waiting on the user's play. Hybrid

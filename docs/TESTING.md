@@ -6,6 +6,55 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.63-side.1: towns and roads in Voxy's far view, "paper towns" (new, 2026-11-14)
+
+Needs Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST). Best seen in a **new world**: in a world you've
+already played, far land Voxy has already filled in keeps its old look.
+
+1. **Towns far away.** New world, pick a nation, Begin. Fly up (creative or spectator) and look round: towns you
+   haven't been near show in the far view as streets, a plaza and simple houses, at the spots the real towns will be.
+2. **Roads.** Brown roads run between them, with wooden decks over water.
+3. **Night.** `/time set midnight`: the far towns glow (lamps, lit windows) and the roads are lined with lamp light.
+4. **Walk up to one.** As you get near, the real town is built and takes over. Wanted: the same spot, the same shape
+   of streets, no big jump (the houses themselves will differ: the far ones are simple boxes). Tell me if a far town
+   stays visible on top of the real one, or if the real one is somewhere else.
+5. **Nothing odd up close.** Painted towns exist only in the far view: there must be no stray blocks where a far town
+   was shown before its real one is built.
+6. In the log (`logs/latest.log`): `[far] Voxy: the first column of a sketched town or road painted`, and for every
+   town built `[sketch] <name>: ... street points are X blocks from its real main roads on average`.
+
+Debug (cheats on): `/drifterciv sketch info` (the nearest planned place's sketch), `/drifterciv sketch check`,
+`/drifterciv sketch painted`.
+
+**0.23.63-side.3 (re-test after fix): roads and towns on the real ground.** In a **new world** (far land already
+filled by the last version keeps its old look): a far road should be one clean path cut through the land, trees
+cleared along it, no road blocks or lamps on treetops; far houses stand on level plots, not at odd heights. If a far
+town still looks like a ruin and the real one isn't, tell me its name (it's in the journal or on the signs) or the
+coordinates.
+
+**With Distant Horizons instead (0.23.63-side.2, new):** switch Voxy and Voxy SeedGen off and Distant Horizons on (with
+or without its SeedGen), make a new world, and check the same four things (towns far away, roads, night, walking up).
+Distant Horizons makes far land slowly without SeedGen: give it a few minutes. Log line:
+`[far] Distant Horizons: towns and roads are painted into its far view (ready)`.
+
+**LAN (0.23.63-side.2, new, not yet tried with two players):** a friend who joins your world with Voxy and Voxy SeedGen
+(and both Drifter jars) should see the far towns and roads too. Their log should say
+`[far] N sketches and M roads came from the server`.
+
+## 0.23.63-side.1 (first out as 0.23.62-side.1): two fixes for Voxy SeedGen (new, 2026-11-14)
+
+With Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST):
+
+1. **Far land round your town, not round the first spot.** Make a new world, pick a nation in "Who are you?" and press
+   Begin. Wanted: within a few seconds the far land starts filling in round the town you're put in, not thousands of
+   blocks away with a gap of air between. (Before: it finished a huge circle round the default start first.) The same
+   after any long `/tp`. In the log (`logs/latest.log`) there's a line
+   `[far] moved a long way (to x, z): Voxy SeedGen's fill stopped, to start over here`.
+2. **Your Voxy SeedGen "keep up with me" setting stays on** after that (Sodium's video settings, Voxy SeedGen page).
+3. **No phantom wanderers.** Nothing to see in game; in the log there should be no
+   `[Drifter] world gen: ... wanderer at` lines from a `VoxySeedGen worker` (there were 1,408 in one session). Wanderers
+   and camps in the real world are as before.
+
 ## Getting the latest version (no coding needed)
 
 **Local sessions (since session 2):** Claude builds the mod on your computer and copies the new jar straight into the

@@ -247,10 +247,13 @@ final class TownSites {
 				site.ruin = place.ruin();
 			}
 
-			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin);
+			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin,
+				place != null ? Sketches.seedOf(level.getSeed(), place.id) : null);
 			if (place != null) {
 				job.plannedId = place.id;
 				job.gates = List.copyOf(place.gates);
+				// (Paper towns: the shape and the ways its main roads go are its sketch's, what the far view has shown of it.)
+				job.follow(Sketches.of(place.id));
 				// (As its past has it: its leader now, founded so long ago.)
 				job.leaderName = place.leader.isEmpty() ? null : place.leader;
 				job.pastAgo = WorldPlan.foundedAgo(place.id);

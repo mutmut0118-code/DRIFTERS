@@ -1,0 +1,14 @@
+{
+	"required": false,
+	"minVersion": "0.8",
+	"package": "com.dinglebob.drifterciv.client.mixin.voxy",
+	"plugin": "com.dinglebob.drifterciv.FarVoxyPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"VoxyChunkWriterMixin",
+		"LadderWriterMixin"
+	],
+	"injectors": {
+		"defaultRequire": 0
+	}
+}

@@ -298,6 +298,7 @@ final class WorldPlan {
 		ServerWorldEvents.UNLOAD.register((server, level) -> {
 			if (level.dimension() == Level.OVERWORLD) {
 				generation++;
+				Sketches.clear();
 				making = false;
 				planned = false;
 				ready = false;
@@ -343,6 +344,8 @@ final class WorldPlan {
 	/** As the world's towns load: the plan made if this world's planned and it isn't yet (in the background). */
 	static void start(MinecraftServer server) {
 		if (!planned || ready || making) {
+			// (Its plan loaded with the world: the places with no sketch yet get theirs.)
+			Sketches.start(server);
 			return;
 		}
 
@@ -479,6 +482,8 @@ final class WorldPlan {
 		DrifterCivilizations.LOGGER.info("[plan] {} nations, {} places ({} cities), {} roads ({} blocks); made in {} ms", nations.size(), places.size(), cities,
 			highways.size(), highways.stream().mapToInt(h -> h.points.size() * Plan.STEP).sum(), millis);
 		Chronicle.add(server, "plan", "The world has " + nations.size() + " nations: " + String.join(", ", nations.stream().map(PlannedNation::name).toList()));
+		// (Paper towns: a sketch of each place for the far view, in the background from here; nothing waits for them.)
+		Sketches.start(server);
 	}
 
 	/** Debug: the land surveyed from here as a plan made here would (0.23.31): what it found, where the nations would go. */
@@ -2770,12 +2775,14 @@ final class WorldPlan {
 			plan.put("History", past);
 		}
 
+		Sketches.save(plan);
 		tag.put("Plan", plan);
 	}
 
 	static void load(CompoundTag tag) {
 		pulledAll = false;
 		ownedBefore = java.util.Set.of();
+		Sketches.clear();
 		places.clear();
 		nations.clear();
 		highways.clear();
@@ -2793,6 +2800,7 @@ final class WorldPlan {
 		}
 
 		CompoundTag plan = tag.getCompound("Plan");
+		Sketches.load(plan);
 		for (Tag t : plan.getList("Places", Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag)t;
 			Place place = new Place(one.getUUID("Id"), one.getString("Name"), one.getString("Kind"), one.getInt("X"), one.getInt("Z"), one.getInt("Households"),

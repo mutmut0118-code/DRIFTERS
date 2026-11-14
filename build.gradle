@@ -31,12 +31,17 @@ loom {
 // change to Drifter that would break it fails this build at once. The game launches here (runClient, runServer) load
 // both mods, so every test runs them together.
 sourceSets {
+	// Paper towns in Voxy (optional): the few signatures of Voxy SeedGen's column type the hookup calls, written by hand
+	// (Voxy SeedGen is All Rights Reserved: never in this repository). Compile-only for civClient; in no jar.
+	voxyStub {
+		compileClasspath += sourceSets.main.compileClasspath
+	}
 	civ {
 		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
 		runtimeClasspath += sourceSets.main.runtimeClasspath
 	}
 	civClient {
-		compileClasspath += sourceSets.civ.compileClasspath + sourceSets.civ.output + sourceSets.client.compileClasspath + sourceSets.client.output
+		compileClasspath += sourceSets.civ.compileClasspath + sourceSets.civ.output + sourceSets.client.compileClasspath + sourceSets.client.output + sourceSets.voxyStub.output
 		runtimeClasspath += sourceSets.civ.runtimeClasspath + sourceSets.client.runtimeClasspath
 	}
 }
@@ -82,6 +87,9 @@ dependencies {
 	// Optional: Farmer's Delight, for cooking (compat/farmersdelight). Compile-only, so Drifter runs with or without it.
 	// The dev game launches only load it when asked: ./gradlew runServer -PfarmersDelight, or DRIFTER_FD=1 (tests run both ways).
 	modCompileOnly "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
+
+	// Optional: Distant Horizons' API, for paper towns in its far view (FarDh). Compile-only; only loaded when DH is there.
+	modCompileOnly "maven.modrinth:distanthorizons:${project.distant_horizons_version}"
 	if (project.hasProperty("farmersDelight") || System.getenv("DRIFTER_FD") == "1") {
 		modLocalRuntime "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
 	}
