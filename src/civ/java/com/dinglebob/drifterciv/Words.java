@@ -498,6 +498,11 @@ final class Words {
 		CustomData data = stack.get(DataComponents.CUSTOM_DATA);
 		CompoundTag tag = data == null ? new CompoundTag() : data.copyTag();
 		Quests.Quest q = Quests.byId(tag.getLong(LETTER));
+		// (A letter that came to them (Mail): read now.)
+		if (tag.contains(Mail.MAIL)) {
+			Mail.opened(player.server, tag.getLong(Mail.MAIL));
+		}
+
 		if (tag.getBoolean(SEALED) && !tag.getBoolean(OPENED)) {
 			tag.putBoolean(OPENED, true);
 			stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
@@ -539,7 +544,9 @@ final class Words {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> handing.clear());
 		net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, level, hand) -> {
 			ItemStack stack = player.getItemInHand(hand);
-			if (level.isClientSide || !(player instanceof ServerPlayer one) || letterOf(stack) < 0) {
+			// (Any letter: the mail's have negative numbers. Found in review: they were never marked read.)
+			CustomData data = stack.is(Items.PAPER) ? stack.get(DataComponents.CUSTOM_DATA) : null;
+			if (level.isClientSide || !(player instanceof ServerPlayer one) || data == null || !data.contains(LETTER)) {
 				return InteractionResultHolder.pass(stack);
 			}
 

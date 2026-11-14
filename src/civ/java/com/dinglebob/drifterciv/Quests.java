@@ -529,6 +529,23 @@ final class Quests {
 		return giver + "|" + player;
 	}
 
+	/** Sent for (Mail): only this one may ask, now, whatever the gap since the last ask. */
+	@Nullable
+	private static UUID preferred;
+
+	/** Quests of theirs done (not favors or notices) within this many days. */
+	static List<Quest> doneLately(UUID player, int days) {
+		List<Quest> out = new ArrayList<>();
+		long now = Friends.now();
+		for (Quest q : quests.values()) {
+			if (q.player.equals(player) && q.state == DONE && !q.kind.equals("favor") && !q.kind.equals("notice") && now - q.closed <= days * DAY) {
+				out.add(q);
+			}
+		}
+
+		return out;
+	}
+
 	/** A quest by its number, or null. */
 	@Nullable
 	static Quest byId(long id) {
@@ -637,6 +654,22 @@ final class Quests {
 
 			for (Quest q : of(player.getUUID())) {
 				changed |= near(server, q, player, now);
+			}
+
+			// (Sent for by its leader (Mail): it asks them something when they're come, whatever the day's chance.)
+			UUID summoner = here == null || server.getTickCount() % 100 != 0 ? null : Mail.summonedBy(player.getUUID(), here, Chronicle.day(server));
+			if (summoner != null) {
+				preferred = summoner;
+				try {
+					Quest asked = ask(server, here, player, now, null);
+					if (asked != null) {
+						changed = true;
+						DrifterCivilizations.LOGGER.info("[quests] {} was sent for by {}, who asks them now", player.getGameProfile().getName(), asked.giverName);
+						Mail.answered(player.getUUID());
+					}
+				} finally {
+					preferred = null;
+				}
 			}
 
 			if (here != null && server.getTickCount() % 100 == 0 && player.getRandom().nextDouble() < ASK_CHANCE) {
@@ -961,10 +994,14 @@ final class Quests {
 	private static Quest ask(MinecraftServer server, Town town, ServerPlayer player, long now, @Nullable String only) {
 		UUID id = player.getUUID();
 		if (open(id) >= MOST_OPEN) {
+			if (preferred != null && Mail.debug) {
+				DrifterCivilizations.LOGGER.info("[quests] debug: {} has {} things asked of them already", player.getGameProfile().getName(), open(id));
+			}
+
 			return null;
 		}
 
-		if (only == null) {
+		if (only == null && preferred == null) {
 			for (Quest q : quests.values()) {
 				// (What was asked in person; not a favor or a notice kept here once done.)
 				if (q.player.equals(id) && !q.kind.equals("favor") && !q.kind.equals("notice")
@@ -979,20 +1016,33 @@ final class Quests {
 		TownReputation.Standing standing = TownReputation.standing(server, town, id);
 		if (criminal != null && (criminal.fine > 0 || criminal.wantedUntil > 0 || criminal.exiledUntil > 0)
 			|| standing != TownReputation.Standing.WELCOME && standing != TownReputation.Standing.NEUTRAL) {
+			if (preferred != null && Mail.debug) {
+				DrifterCivilizations.LOGGER.info("[quests] debug: {} isn't asked anything in {}: standing {}, a record {}", player.getGameProfile().getName(), town.name,
+					standing, criminal != null);
+			}
+
 			return null;
 		}
 
-		List<DrifterEntity> about = player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(only == null ? NEAR : 64.0),
+		// (Sent for: the one who sent for them, a little further off too.)
+		List<DrifterEntity> about = player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(only != null ? 64.0 : preferred != null
+			? 2 * NEAR : NEAR),
 			drifter -> drifter.isAlive() && !drifter.isTemporary() && !TalkApi.hostileOnSight(drifter));
 		Collections.shuffle(about, new java.util.Random(now));
 		for (DrifterEntity giver : about) {
 			// (As it would start any talk: not asleep, busy talking or at odds with them, they not mid-talk or with a question
 			// of someone else's still to answer.)
+			// (Sent for by one in particular: only it asks.)
+			if (preferred != null && !giver.getUUID().equals(preferred)) {
+				continue;
+			}
+
 			if (only == null && (!sees(giver, player, now) || !TalkApi.freeToTalk(giver, player) || TalkApi.talking(giver))
 				|| Diplomacy.townOf(giver.getUUID()) != town || DrifterApi.trustInPlayer(giver, id) < ASKS) {
-				if (only != null) {
-					DrifterCivilizations.LOGGER.info("[quests] debug: {} wouldn't ask (talking {}, of this town {}, trust {})", giver.getName().getString(),
-						TalkApi.talking(giver), Diplomacy.townOf(giver.getUUID()) == town, DrifterApi.trustInPlayer(giver, id));
+				if (only != null || preferred != null && Mail.debug) {
+					DrifterCivilizations.LOGGER.info("[quests] debug: {} wouldn't ask (sees {}, free {}, talking {}, of this town {}, trust {})", giver.getName().getString(),
+						sees(giver, player, now), TalkApi.freeToTalk(giver, player), TalkApi.talking(giver), Diplomacy.townOf(giver.getUUID()) == town,
+						DrifterApi.trustInPlayer(giver, id));
 				}
 
 				continue;
@@ -1035,7 +1085,7 @@ final class Quests {
 					default -> level >= 1 || only != null ? dead(server, town, giver, player) : null;
 				};
 				if (q == null) {
-					if (only != null) {
+					if (only != null || preferred != null && Mail.debug) {
 						DrifterCivilizations.LOGGER.info("[quests] debug: {} has no {} to ask (speaks for the town {}, closeness {})", giver.getName().getString(),
 							kind, speaksForTown, level);
 					}
@@ -1734,6 +1784,7 @@ final class Quests {
 		group(lines, "Your word given", given);
 		group(lines, "Ordered", Orders.lines(player));
 		group(lines, "Hired", Hires.lines(player));
+		group(lines, "Letters", Mail.lines(player));
 		group(lines, "On the boards", boards);
 		group(lines, "Done", done);
 		return new Journal.Tab("Quests", lines, "Nobody's asked anything of you yet. Get to know people; they will.");
@@ -1916,7 +1967,7 @@ final class Quests {
 				}
 
 				if (q.state == OFFERED || q.state == TAKEN) {
-					els.add(text(q.state == OFFERED ? "Say yes to their face and, if they've paper, they'll write it down for you to carry."
+					els.add(text(q.state == OFFERED ? "Say yes to their face and, if they have paper, they'll write it down for you to carry."
 						: "Find " + q.toName + " in " + q.toTown + " (ask anyone there where they are, or call their name), then speak to them, "
 							+ (q.letter ? "throw them the letter, " : "") + "or stand beside them. Then come back to " + q.giverName + ".", Journal.FAINT));
 					// (Never led into trouble unwarned.)
