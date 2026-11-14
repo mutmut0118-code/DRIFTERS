@@ -103,3 +103,20 @@ picked turned out to be open sea (the user saw it); the land was then searched f
 3. Meridian: the hookup is possible but its look isn't proven. Task 7 starts with its own short try-out of houses
    (layers, then structures) before anything is built on it; lights are left out until Meridian has lighting.
 4. Sections near a place whose sketch isn't ready are held back instead of redone.
+
+## Voxy 0.2.15-beta and Voxy SeedGen 0.3.1 (read only, not yet tried; the user, 2026-11-14: "there is actually another mod")
+
+Both are in DRIFTER TEST and both are All Rights Reserved (never in git). Read from the jars, nothing run yet:
+
+- **Voxy alone has no far land of its own**: it only keeps what the player's game has loaded (`VoxelIngestService`). Far
+  towns can only be painted where something has put land there, which is Voxy SeedGen's job. So this hookup matters
+  with Voxy SeedGen on.
+- **No public API in either.** Voxy stores 16-block sections of voxels (`VoxelizedSection`, a `long` a voxel: block,
+  biome and light, so lamps could glow) written with `WorldUpdater.insertUpdate(WorldEngine, VoxelizedSection)`. Voxy
+  SeedGen writes its land through its own `VoxyChunkWriter.column(worldX, worldZ, stride, ColumnSpans)` (spans of
+  block, biome and light a column, much like Distant Horizons' data points) and `chunkFinished`.
+- **Ways in, to try in this order:** (1) a guarded mixin (`"required": false`, only when `voxyseedgen` is loaded with a
+  version starting `0.3.`) on `VoxyChunkWriter.column`, adding the painter's spans to the column before it's written;
+  (2) writing our own sections over the top with Voxy's `WorldUpdater.insertUpdate` after SeedGen has written a chunk.
+- **Needs its own try-out** like the other two (the fake town in a dev client with Voxy + Voxy SeedGen + Sodium), and a
+  decision from the user: it isn't in the approved design.

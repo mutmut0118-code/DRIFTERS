@@ -33,6 +33,10 @@ No product code yet.
    checked in Task 6; recommendation if it does: stop those sets placing anything in a planned world.
 4. *LAN guests with DH* get the far view from the host only as far as DH's own networking sends it (not tested).
    Recommendation: test in Task 8; if it doesn't arrive, leave LAN guests on DH for a later step.
+5. *Voxy + Voxy SeedGen* (the user, 2026-11-14: "there is actually another mod! voxy and voxy seedgen, both in drifter
+   test"; not in the approved design). Read, not yet tried: no public API, a guarded mixin into Voxy SeedGen's column
+   writer looks possible, light is carried a voxel so lamps could glow (findings file, last section). Recommendation:
+   add it as a third hookup with its own try-out, after Distant Horizons; waiting for the user's yes and the order.
 
 ## Current state (session 2, local, 2026-10-15 afternoon)
 
