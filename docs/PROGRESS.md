@@ -7007,3 +7007,10 @@ chatter down out to chat range (48 blocks) while you talk with one, and for 10 s
 From the user's screenshot (Jewel_Cliff, 2026-11-14): a goodbye with a bit of glue in it ("anyways thats my gift u have a
 good day") is a goodbye, not "ok, whats up"; "have a good day", "take care", "have a good one", "see you around" are
 goodbyes. What it's doing, said to you, says "my" not "its" ("i still have to keep my stall").
+
+## 0.23.67-side.3: a tour offered from close by, and its answer heard as far as chat (new)
+
+From the user's screenshot and game log (raspberrywick9, 2026-11-14): a Drifter down the town mine (Y 12) offered "quick
+tour?" and took the player's "sure" as nonsense ("?? be clear"): an answer to its question only counted within 32
+blocks, its chat carries 48. Now an answer counts as far as its chat is heard, and it only offers a tour when it's by
+the player (16 blocks, in sight) and can walk them round.

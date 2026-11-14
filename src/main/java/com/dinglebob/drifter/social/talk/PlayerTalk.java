@@ -132,7 +132,9 @@ public final class PlayerTalk {
 		String intent = Lines.answer(text, ALL);
 		// The answer to what a Drifter just asked them (a yes or a no, and nothing else asked).
 		Asked question = asked.get(player.getUUID());
-		if (question != null && now < question.until() && question.drifter().isAlive() && question.drifter().distanceTo(player) <= SocialWatcher.NAME_RANGE
+		// (As far as its chat is heard: found in play, a "sure" to its "quick tour?" from 40 blocks off, it down the mine, got "?? be clear".)
+		if (question != null && now < question.until() && question.drifter().isAlive()
+			&& question.drifter().distanceTo(player) <= Math.max(SocialWatcher.NAME_RANGE, com.dinglebob.drifter.DrifterConfig.chatRange())
 			// (Not a question of their own: "yeah, found 3 diamonds" answers "find any dias?".)
 			&& (intent == null || intent.equals("compliment") || intent.equals("follow") || intent.equals("team") || !Telling.question(text))) {
 			String yes = Lines.answer(text, "yes", "no", "ready");

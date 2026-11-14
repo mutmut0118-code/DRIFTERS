@@ -624,7 +624,9 @@ public final class PlayerConvo {
 
 	/** A welcome to someone new, and (where there's a town to show) an offer to show them round. */
 	private static void welcome(DrifterEntity drifter, ServerPlayer player, String key, long now) {
-		boolean tour = !Mode.atOdds(drifter, player) && !cold(player) && !com.dinglebob.drifter.api.TalkApi.places(drifter).isEmpty()
+		// (Only when it's by them, to walk them round: not from down the mine.)
+		boolean tour = !Mode.atOdds(drifter, player) && !cold(player) && drifter.distanceTo(player) <= 16.0 && drifter.getSocial().watcher().sees(player)
+			&& !com.dinglebob.drifter.api.TalkApi.places(drifter).isEmpty()
 			&& drifter.getPersonality().get(Trait.SOCIABILITY) >= 0.35;
 		say(drifter, player, tour ? key + "_tour" : key, null);
 		if (tour) {
