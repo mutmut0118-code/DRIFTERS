@@ -3396,7 +3396,31 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
-- **0.23.62: roads that stopped being built; closer lamps, rarer distance signs in words; town streets of the road mix**
+- **0.23.63: no camp houses on the roads; roads and bridges that meet; bridge posts evenly placed** (the user,
+  2026-11-14: "random houses sometimes spawn in the middle of the road", "the paths and the bridges dont connect", "the
+  bridge stands should always be evenly placed").
+  - Houses in the road: Drifter's world-generation camps (a hut, or a house from the house plans with its Drifter: "a
+    lived-in house camp") are put down as the land generates, before the roads between towns are built; a road built
+    later ran into one (it leaves what's built standing). New in the API: `DrifterApi.setCampKeepOut` (docs/API.md); the
+    addon keeps camps out of every chunk within 28 blocks of a planned road's line or in a planned place (its reach and
+    16 more), and out of all land while the plan's still being made (`WorldPlan.keep`). Tested: a new seed 779 world, its
+    camps all 52 blocks or more off a planned road and outside the places.
+  - Gaps where a road met a bridge (`WildRoad`): each column of a stretch goes with the step of its line it's nearest; a
+    water column in the road's middle whose nearest step was still on the bank (a shore running aslant of the road) was
+    neither road nor deck, and stayed water: a hole where the road met the bridge. Now it takes the deck of the crossing
+    nearest (within three steps). And a flat crossing's planks (water three steps across or less) go its whole width (its
+    sides were left water, holes beside it). Found in the user's world with a new debug command,
+    `/drifterciv plan checkroads` (built stretches walked along their lines: water or something else between a road and a
+    deck, or a step of more than a block, logged): at -3677, 2110 and -2546, 2924. In a new seed 779 world: one before at
+    seven bridges, none after.
+  - Bridge posts (`WildRoad.postSteps`): they were counted from each stretch's start, and a bridge across two stretches had
+    an "end" post at each where they met (posts two blocks apart, the user's picture). Now: a post at each bank (not where
+    a stretch ends over water); a crossing with both banks in one stretch has them evenly between, about every 6; one
+    running on into the next stretch at every 6th block across the world the way it runs (bridges are squared to the
+    compass), so the stretches either side agree, none nearer a bank than three.
+  - Only new stretches of road and new chunks change.
+
+ closer lamps, rarer distance signs in words; town streets of the road mix**
   (the user, 2026-11-14: "some roads between towns are not spawning?", then "make the lamps a bit closer to eachother,
   with rarer distance signs / also make the distance signs prose if that makes sense / also also replace the sign at the
   start of every road from a town to a distance sign / also also also, replace the wooden paths with the road paths

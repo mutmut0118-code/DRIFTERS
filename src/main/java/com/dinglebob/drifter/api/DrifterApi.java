@@ -514,6 +514,21 @@ public final class DrifterApi {
 		return settled.test(level, pos);
 	}
 
+	private static volatile java.util.function.BiPredicate<net.minecraft.world.level.Level, net.minecraft.core.BlockPos> campKeptOut = (level, pos) -> false;
+
+	/**
+	 * Land kept for something else (the addon: its planned roads and towns), where world generation puts no Drifter camp
+	 * (a hut or a house): a house camp stood in the middle of a road built later (the user, 2026-11-14: "random houses
+	 * sometimes spawn in the middle of the road"). Asked from world generation's threads: keep it quick and thread safe.
+	 */
+	public static void setCampKeepOut(java.util.function.BiPredicate<net.minecraft.world.level.Level, net.minecraft.core.BlockPos> which) {
+		campKeptOut = which;
+	}
+
+	public static boolean campKeptOut(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+		return campKeptOut.test(level, pos);
+	}
+
 	/**
 	 * Debug: how much of a house put up from this plan here is gone: for each layer up from its corner, how many of the
 	 * blocks the plan has there are air now (null if there's no such plan).
