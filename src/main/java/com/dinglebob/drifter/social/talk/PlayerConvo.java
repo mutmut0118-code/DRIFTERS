@@ -452,7 +452,22 @@ public final class PlayerConvo {
 			return mine != null && (theirs == null || mine.length() >= theirs.length()) ? topic : null;
 		}
 
-		return old == null ? Lines.answer(text, ALL_GLUE) : null;
+		if (old != null) {
+			return null;
+		}
+
+		// (A goodbye or a thanks that says more than a bit of glue in it is that: "anyways thats my gift, have a good day" is a bye.)
+		String glue = Lines.answer(text, ALL_GLUE);
+		String ritual = Lines.answer(text, "bye", "night", "thanks", "greeting");
+		if (glue != null && ritual != null) {
+			String glueSaid = Lines.phrase(text, glue);
+			String ritualSaid = Lines.phrase(text, ritual);
+			if (ritualSaid != null && (glueSaid == null || ritualSaid.length() > glueSaid.length())) {
+				return null;
+			}
+		}
+
+		return glue;
 	}
 
 	/** Said to no one by name, but to all of them ("you guys", "anyone"). */

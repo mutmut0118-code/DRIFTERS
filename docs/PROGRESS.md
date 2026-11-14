@@ -7001,3 +7001,9 @@ agreeing (and "yeah" still answers its "new here?"); "whats the history" asks ab
 saying it another way" / "lets talk about something else"; after a few things it doesn't follow it brings something up
 itself instead of going quiet; news about itself is said as "me" ("muto gave me something"); other Drifters keep their
 chatter down out to chat range (48 blocks) while you talk with one, and for 10 seconds after your message.
+
+## 0.23.67-side.2: goodbyes and "my" (new)
+
+From the user's screenshot (Jewel_Cliff, 2026-11-14): a goodbye with a bit of glue in it ("anyways thats my gift u have a
+good day") is a goodbye, not "ok, whats up"; "have a good day", "take care", "have a good one", "see you around" are
+goodbyes. What it's doing, said to you, says "my" not "its" ("i still have to keep my stall").

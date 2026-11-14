@@ -668,6 +668,8 @@ public final class PlayerTalk {
 
 		// (Without its progress or counts: "gather birch log (0/3)", "craft oak planks x3".)
 		String doing = activity.describe().replaceAll("\\s*\\(.*\\)$", "").replaceAll("\\s+x\\d+$", "").toLowerCase(Locale.ROOT);
+		// (Its own words for what it's doing say "its"; said to someone, that's "my": "keep my stall".)
+		doing = doing.replaceAll("\\bitself\\b", "myself").replaceAll("\\bits\\b", "my");
 		// (Standing and talking with a player: what it was doing before they spoke.)
 		if (doing.startsWith("talk with ") || doing.startsWith("look for ")) {
 			return PlayerConvo.wasDoing(drifter);
