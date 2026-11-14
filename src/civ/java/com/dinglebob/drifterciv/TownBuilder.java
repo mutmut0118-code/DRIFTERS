@@ -536,6 +536,75 @@ public final class TownBuilder {
 		double[] wantHeadings;
 		/** The ways its main roads left the plaza (none: a river's or a harbour's, which go by the water). */
 		double[] headings = new double[0];
+		@Nullable
+		private Sketch sketch;
+		/** From its sketch: what the land was found to be ({@link Sketch#survey}), taken as it is. */
+		@Nullable
+		private double[] wantSurvey;
+
+		/** Its sketch (null: none made yet, and it makes its own choices from the same seed, as its sketch will). */
+		void follow(@Nullable Sketch sketch) {
+			this.sketch = sketch;
+			if (sketch != null) {
+				this.wantShape = Shape.byId(sketch.shape());
+				this.wantHeadings = sketch.headings();
+				this.wantSurvey = sketch.survey().length == 8 ? sketch.survey() : null;
+			}
+		}
+
+		/**
+		 * How near its real main roads came to its sketch's (the land a sketch is made over is the generator's word for it,
+		 * every fourth block): each point of the sketch's streets to the nearest real road column, the mean and the worst.
+		 */
+		private void compareRoads() {
+			if (this.sketch == null || this.roadCells.isEmpty()) {
+				return;
+			}
+
+			double sum = 0;
+			double worst = 0;
+			int points = 0;
+			for (int[] street : this.sketch.streets()) {
+				for (int k = 1; k + 1 < street.length; k += 2) {
+					double best = 40;
+					for (int r = 0; r <= 40 && best == 40; r++) {
+						for (int dx = -r; dx <= r && best == 40; dx++) {
+							for (int dz = -r; dz <= r; dz++) {
+								if (Math.max(Math.abs(dx), Math.abs(dz)) == r && this.roadCells.contains(BlockPos.asLong(street[k] + dx, 0, street[k + 1] + dz))) {
+									best = Math.min(best, Math.hypot(dx, dz));
+								}
+							}
+						}
+					}
+
+					sum += best;
+					worst = Math.max(worst, best);
+					points++;
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[sketch] {}: {} (its sketch: {}); its sketch's {} street points are {} blocks from its real main roads on average, {} at worst",
+				this.name, this.shape.id, this.sketch.shape(), points, String.format("%.1f", sum / Math.max(1, points)), String.format("%.0f", worst));
+		}
+
+		/** How many of its sketch's houses have a real house within 8 blocks of their middle. */
+		private void compareHouses() {
+			if (this.sketch == null || this.sketch.boxes().isEmpty()) {
+				return;
+			}
+
+			int near = 0;
+			for (Sketch.Box box : this.sketch.boxes()) {
+				int mx = (box.x0() + box.x1()) / 2;
+				int mz = (box.z0() + box.z1()) / 2;
+				if (this.houseRects.stream().anyMatch(rect -> rect.away(mx, mz) <= 8)) {
+					near++;
+				}
+			}
+
+			DrifterCivilizations.LOGGER.info("[sketch] {}: {} of its sketch's {} houses have a real one within 8 blocks ({} real houses)", this.name, near,
+				this.sketch.boxes().size(), this.houseRects.size());
+		}
 		private BlockPos storeAt;
 		private Direction storeFront = Direction.WEST;
 		private Direction penFront = Direction.EAST;
@@ -745,6 +814,7 @@ public final class TownBuilder {
 			}
 
 			this.mainRoads();
+			this.compareRoads();
 			this.then("lots", this::lots);
 		}
 
@@ -1025,6 +1095,21 @@ public final class TownBuilder {
 		 * and falls (a hill: 14 blocks or more between its highest and lowest).
 		 */
 		private void survey() {
+			// (Its sketch's findings, if it has one: where the water is and which way the hill rises decide which ways its roads
+			// set off, and the real land read a block differently had a harbour's roads go another way from its sketch's.)
+			if (this.wantSurvey != null) {
+				double[] found = this.wantSurvey;
+				this.river = found[0] == 1;
+				this.coast = found[1] == 1;
+				this.hill = found[2] == 1;
+				this.toWater = found[3];
+				this.waterAway = found[4];
+				this.waterLine = found[5];
+				this.riverWidth = (int)found[6];
+				this.uphill = found[7];
+				return;
+			}
+
 			int h0 = this.land.ground(this.cx, this.cz);
 			int high = h0;
 			int low = h0;
@@ -3859,6 +3944,7 @@ public final class TownBuilder {
 		private void finish() {
 			Town town = this.town;
 			Chronicle.quiet = false;
+			this.compareHouses();
 			if (this.ruin) {
 				Chronicle.add(this.server, "town", "The ruins of " + this.name + " stand where a village might have: " + this.houses.size()
 					+ " houses fallen in, nobody living there for a long time");

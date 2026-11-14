@@ -70,6 +70,13 @@ final class Sketches {
 	/** A road's half width (as {@code TownBuilder}'s) and the width a sketch's street is drawn at. */
 	private static final double STREET_HALF = 1.5;
 	static final int STREET_WIDTH = 3;
+	/**
+	 * The real ground stands this much over where the generator's final terrain turns solid at one point (measured with
+	 * {@code /drifterciv sketch land} on Tectonic, seed 779, three places: two blocks more often than not, the real land
+	 * being smoothed between the generator's points). Without it low beaches were taken for sea, and a harbour's sketch
+	 * had its shore blocks nearer than the real one.
+	 */
+	static final int LIFT = 2;
 	/** A place whose sketch took longer than this is logged. */
 	private static final long SLOW_MS = 6000;
 
@@ -324,7 +331,8 @@ final class Sketches {
 			}
 		}
 
-		return new Sketch(spot.id, spot.x, spot.z, y0, style.name(), laid.shape().id, laid.headings(), seed, reach, spot.ruin, plaza, streets, boxes, fields,
+		return new Sketch(spot.id, spot.x, spot.z, y0, style.name(), laid.shape().id, laid.headings(), new double[] {laid.river() ? 1 : 0,
+			laid.coast() ? 1 : 0, laid.hill() ? 1 : 0, laid.toWater(), laid.waterAway(), laid.waterLine(), laid.riverWidth(), laid.uphill()}, seed, reach, spot.ruin, plaza, streets, boxes, fields,
 			lamps);
 	}
 
@@ -408,24 +416,30 @@ final class Sketches {
 			return this.cells.size();
 		}
 
+		/** (Water's top where it's water, as the real land's ground is read: {@code TownBuilder.ground}.) */
 		@Override
 		public int ground(int x, int z) {
+			int floor = this.floor(x, z);
+			return floor < this.sea - 1 ? this.sea - 1 : floor;
+		}
+
+		private int floor(int x, int z) {
 			int i = Math.floorDiv(x, GRID);
 			int j = Math.floorDiv(z, GRID);
 			long key = BlockPos.asLong(i, 0, j);
 			Integer known = this.cells.get(key);
 			if (known == null) {
-				known = this.top(i * GRID + GRID / 2, j * GRID + GRID / 2);
+				known = this.top(i * GRID + GRID / 2, j * GRID + GRID / 2) + LIFT;
 				this.cells.put(key, known);
 			}
 
 			return known;
 		}
 
-		/** (Water's up to a block under the sea's level, as the plan takes it: land whose top's at it is a beach.) */
+		/** (Water over it: its ground a block or more under the sea's top water block.) */
 		@Override
 		public boolean wet(int x, int z) {
-			return this.ground(x, z) < this.sea;
+			return this.floor(x, z) < this.sea - 1;
 		}
 
 		Holder<Biome> biome(int x, int y, int z) {
@@ -517,6 +531,56 @@ final class Sketches {
 					String text = place.name + " (" + place.kind + (sketch.ruin() ? ", a ruin" : "") + ") at " + sketch.x() + ", " + sketch.y0() + ", " + sketch.z()
 						+ ": " + sketch.shape() + ", " + sketch.style() + ", " + sketch.streets().size() + " streets, " + sketch.boxes().size() + " houses of "
 						+ place.households + ", " + sketch.fields().size() + " fields, " + sketch.lamps().size() + " lamps" + (place.made ? "; built" : "");
+					DrifterCivilizations.LOGGER.info("[sketch] {}", text);
+					ctx.getSource().sendSuccess(() -> Component.literal(text), false);
+					return 1;
+				}))
+				// Debug: the land within 90 blocks as the generator says it is against the land that's there (loaded columns only).
+				.then(Commands.literal("land").executes(ctx -> {
+					Predicted predicted = land;
+					ServerLevel level = ctx.getSource().getLevel();
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					if (predicted == null) {
+						ctx.getSource().sendFailure(Component.literal("No planned world"));
+						return 0;
+					}
+
+					int both = 0;
+					int saidWet = 0;
+					int wasWet = 0;
+					int dry = 0;
+					long off = 0;
+					int worst = 0;
+					int[] by = new int[7];
+					int[] signed = new int[11];
+					for (int x = at.getX() - 90; x <= at.getX() + 90; x += 2) {
+						for (int z = at.getZ() - 90; z <= at.getZ() + 90; z += 2) {
+							if (!TownBuilder.loadedAt(level, x, z) || TownBuilder.built(level, x, z)) {
+								continue;
+							}
+
+							boolean said = predicted.wet(x, z);
+							boolean was = TownBuilder.wet(level, x, z);
+							if (said && was) {
+								both++;
+							} else if (said) {
+								saidWet++;
+								by[Mth.clamp(TownBuilder.ground(level, x, z) - predicted.ground(x, z) + 3, 0, 6)]++;
+							} else if (was) {
+								wasWet++;
+							} else {
+								dry++;
+								signed[Mth.clamp(TownBuilder.ground(level, x, z) - predicted.ground(x, z) + 5, 0, 10)]++;
+								int d = Math.abs(predicted.ground(x, z) - TownBuilder.ground(level, x, z));
+								off += d;
+								worst = Math.max(worst, d);
+							}
+						}
+					}
+
+					String text = "land round " + at.getX() + ", " + at.getZ() + ": water both " + both + ", only said " + saidWet + " (real minus said height, -3..+3: "
+						+ java.util.Arrays.toString(by) + "), only real " + wasWet + "; dry " + dry + ", height off " + String.format("%.2f", off / (double)Math.max(1, dry))
+						+ " on average, " + worst + " at worst (real minus said, -5..+5: " + java.util.Arrays.toString(signed) + "); sea level " + level.getSeaLevel();
 					DrifterCivilizations.LOGGER.info("[sketch] {}", text);
 					ctx.getSource().sendSuccess(() -> Component.literal(text), false);
 					return 1;

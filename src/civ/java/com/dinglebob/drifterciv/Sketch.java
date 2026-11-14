@@ -13,12 +13,14 @@ import net.minecraft.world.level.block.Blocks;
  * shape, the lines of its main roads, boxes for its houses, its fields and its lamps, worked out from the land as the
  * generator says it will be. For drawing into a far-view mod only: nothing a Drifter decides reads it.
  *
+ * @param survey what its land was found to be: {river (1 or 0), coast, hill, the way to the water, how far, the water's line, the river's width, the way
+ *        uphill}; the real town takes these as they are, so its roads set off the same ways
  * @param plaza {x0, z0, x1, z1}
  * @param streets each {width, x, z, x, z, ...}: a point every few blocks along its middle
  * @param fields each {x0, z0, x1, z1}
  * @param lamps each {x, z}
  */
-record Sketch(UUID place, int x, int z, int y0, String style, String shape, double[] headings, long seed, int reach, boolean ruin, int[] plaza,
+record Sketch(UUID place, int x, int z, int y0, String style, String shape, double[] headings, double[] survey, long seed, int reach, boolean ruin, int[] plaza,
 	List<int[]> streets, List<Box> boxes, List<int[]> fields, List<int[]> lamps) {
 	/** The blocks a sketch's houses are of: a box names its walls' and its roof's by their place here. Add to the end only. */
 	static final List<Block> PALETTE = List.of(Blocks.OAK_PLANKS, Blocks.BIRCH_PLANKS, Blocks.SPRUCE_PLANKS, Blocks.DARK_OAK_PLANKS, Blocks.ACACIA_PLANKS,
@@ -55,6 +57,12 @@ record Sketch(UUID place, int x, int z, int y0, String style, String shape, doub
 		}
 
 		tag.putLongArray("Headings", ways);
+		long[] found = new long[this.survey.length];
+		for (int i = 0; i < found.length; i++) {
+			found[i] = Double.doubleToLongBits(this.survey[i]);
+		}
+
+		tag.putLongArray("Survey", found);
 		tag.putLong("Seed", this.seed);
 		tag.putInt("Reach", this.reach);
 		tag.putBoolean("Ruin", this.ruin);
@@ -80,6 +88,12 @@ record Sketch(UUID place, int x, int z, int y0, String style, String shape, doub
 			headings[i] = Double.longBitsToDouble(ways[i]);
 		}
 
+		long[] found = tag.getLongArray("Survey");
+		double[] survey = new double[found.length];
+		for (int i = 0; i < found.length; i++) {
+			survey[i] = Double.longBitsToDouble(found[i]);
+		}
+
 		int[] packed = tag.getIntArray("Boxes");
 		List<Box> boxes = new ArrayList<>();
 		for (int i = 0; i + BOX_INTS <= packed.length; i += BOX_INTS) {
@@ -88,7 +102,7 @@ record Sketch(UUID place, int x, int z, int y0, String style, String shape, doub
 		}
 
 		return new Sketch(tag.getUUID("Place"), tag.getInt("X"), tag.getInt("Z"), tag.getInt("Y"), tag.getString("Style"), tag.getString("Shape"), headings,
-			tag.getLong("Seed"), tag.getInt("Reach"), tag.getBoolean("Ruin"), tag.getIntArray("Plaza"), unpack(tag.getIntArray("Streets")), boxes,
+			survey, tag.getLong("Seed"), tag.getInt("Reach"), tag.getBoolean("Ruin"), tag.getIntArray("Plaza"), unpack(tag.getIntArray("Streets")), boxes,
 			unpack(tag.getIntArray("Fields")), unpack(tag.getIntArray("Lamps")));
 	}
 
