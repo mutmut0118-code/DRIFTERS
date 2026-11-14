@@ -4,6 +4,12 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## Waiting for a go: towns and roads in the far view (paper towns), 2026-11-14
+
+Design approved (`docs/superpowers/specs/2026-11-14-lod-towns-design.md`), plan written and approved by the user
+("Looks right"): `docs/superpowers/plans/2026-11-14-lod-towns.md`. **On hold**: the user, 2026-11-14, "hold on building it
+because bug fixes will be coming up". Nothing is built, not even the spike (Task 0). Start only when the user says go.
+
 ## Current state (session 2, local, 2026-10-15 afternoon)
 
 - **Milestone 10 (offscreen and performance): all five steps have code**, waiting on the user's play. Hybrid
