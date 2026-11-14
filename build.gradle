@@ -31,12 +31,17 @@ loom {
 // change to Drifter that would break it fails this build at once. The game launches here (runClient, runServer) load
 // both mods, so every test runs them together.
 sourceSets {
+	// Paper towns in Voxy (optional): the few signatures of Voxy SeedGen's column type the hookup calls, written by hand
+	// (Voxy SeedGen is All Rights Reserved: never in this repository). Compile-only for civClient; in no jar.
+	voxyStub {
+		compileClasspath += sourceSets.main.compileClasspath
+	}
 	civ {
 		compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
 		runtimeClasspath += sourceSets.main.runtimeClasspath
 	}
 	civClient {
-		compileClasspath += sourceSets.civ.compileClasspath + sourceSets.civ.output + sourceSets.client.compileClasspath + sourceSets.client.output
+		compileClasspath += sourceSets.civ.compileClasspath + sourceSets.civ.output + sourceSets.client.compileClasspath + sourceSets.client.output + sourceSets.voxyStub.output
 		runtimeClasspath += sourceSets.civ.runtimeClasspath + sourceSets.client.runtimeClasspath
 	}
 }

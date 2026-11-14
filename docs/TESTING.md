@@ -6,6 +6,26 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.62-side.2: towns and roads in Voxy's far view, "paper towns" (new, 2026-11-14)
+
+Needs Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST). Best seen in a **new world**: in a world you've
+already played, far land Voxy has already filled in keeps its old look.
+
+1. **Towns far away.** New world, pick a nation, Begin. Fly up (creative or spectator) and look round: towns you
+   haven't been near show in the far view as streets, a plaza and simple houses, at the spots the real towns will be.
+2. **Roads.** Brown roads run between them, with wooden decks over water.
+3. **Night.** `/time set midnight`: the far towns glow (lamps, lit windows) and the roads are lined with lamp light.
+4. **Walk up to one.** As you get near, the real town is built and takes over. Wanted: the same spot, the same shape
+   of streets, no big jump (the houses themselves will differ: the far ones are simple boxes). Tell me if a far town
+   stays visible on top of the real one, or if the real one is somewhere else.
+5. **Nothing odd up close.** Painted towns exist only in the far view: there must be no stray blocks where a far town
+   was shown before its real one is built.
+6. In the log (`logs/latest.log`): `[far] Voxy: the first column of a sketched town or road painted`, and for every
+   town built `[sketch] <name>: ... street points are X blocks from its real main roads on average`.
+
+Debug (cheats on): `/drifterciv sketch info` (the nearest planned place's sketch), `/drifterciv sketch check`,
+`/drifterciv sketch painted`.
+
 ## 0.23.62-side.1: two fixes for Voxy SeedGen (new, 2026-11-14)
 
 With Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST):

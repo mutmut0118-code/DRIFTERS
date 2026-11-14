@@ -4,12 +4,42 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Towns and roads in the far view (paper towns): spike done, at the gate (2026-11-14)
+## Towns and roads in the far view (paper towns): built for Voxy, 0.23.62-side.2 (2026-11-14)
 
-Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`
-(approved, "Looks right"; the user said "go" on 2026-11-14). **Task 0 (the throwaway spike) is done**; findings in
-`docs/superpowers/specs/2026-11-14-lod-towns-spike-findings.md`, screenshots `docs/superpowers/shots/lod-spike-*.png`.
-No product code yet.
+Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`,
+the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings.md`. Branch
+`claude/elastic-leakey-afebd2` (not yet in the main line). The user: "go", then "Voxy first", then "Yes, start".
+
+**Done (plan Tasks 1 to 4 and 5b), installed as 0.23.62-side.2:**
+
+- **Task 1.** A town's main roads read their land through `TownLand` (the level's, or the generator's); a planned
+  place's choices come from its own seed (`Sketches.seedOf`); `TownBuilder.streets(...)` lays the main roads with no
+  level. Real towns unchanged: three towns built before and after with `DRIFTER_TOWN_SEED=42` (a debug environment
+  variable, kept), every `[town]` log line equal; the map pictures differ only as two runs of the same code do.
+- **Task 2.** `Sketch`, `Sketches`: every planned place sketched in the background once the plan's ready (main roads,
+  house boxes, fields, lamps), on all but one core at the lowest priority (18 places: 7 s), saved with the plan
+  (`SketchVersion` 1). `/drifterciv sketch info`, `check` (0 houses in water, on a street or overlapping, of 336),
+  `land` (the generator's land against the real).
+- **Task 3.** The real town takes its sketch's shape, headings and reading of the land, and logs how near it came:
+  seed 779, street points' distance mean / worst: ruin main street 1.4 / 15, grid city 0.0 / 0, harbour town 1.8 / 18,
+  rings city 0.7 / 10, main street 0.0 / 0; a harbour hamlet (Fairdale, 4 houses) 9.4 / 39. The generator's heights
+  are lifted 2 blocks to the real ground's (`Sketches.LIFT`, measured on Tectonic).
+- **Task 4.** `FarPaint`: sketches of unbuilt places and unlaid road pieces as per-column answers; kept up from the
+  plan every second. `/drifterciv sketch paint`, `painted`, `stamp` (the sketches put in as real blocks, for a look:
+  `docs/superpowers/shots/sketch-*.png`).
+- **Task 5b, the Voxy hookup** (Voxy 0.2.15 with Voxy SeedGen 0.3.x; `client/FarVoxy`, two guarded mixins on Voxy
+  SeedGen's column writers, applied only with a 0.3.x Voxy SeedGen there; compiled against a hand-written stub,
+  `src/voxyStub`, in no jar). Dev client, seed 779: unbuilt towns and lit roads in Voxy's far view, day and midnight
+  (`docs/superpowers/shots/paper-voxy-*.png`); without Voxy the game starts clean.
+
+**Not done yet:** Task 5 (sketches sent to a LAN guest), Task 6 (Distant Horizons), Task 7 (Meridian), Task 8 (LAN,
+timing, the whole-branch review). **Not yet checked:** the installed (remapped) jar with Voxy in the user's own game
+(the hookup was only run in the dev game); walking up to a sketched town and watching the real one take over; a world
+whose far land Voxy had already filled before this version (its old far view stays where it was filled).
+
+**Known limits:** in a brand-new world the sketches are made in the few seconds after the plan; land Voxy SeedGen writes
+before a place's sketch is ready is drawn without it (not seen in testing; the plan's own fix, holding those columns
+back, isn't built). A painted road lamp may stand where the real one is later refused (a slope, another road).
 
 - **Distant Horizons 3.3.3: works**, through DH's API alone (a world generator override that wraps DH's own generator
   and paints the result). Town, road, bridge deck and glowing lamps at night drawn; about 1 ms a touched section, on
@@ -23,6 +53,9 @@ No product code yet.
 
 **Design questions (paper towns), each with my recommendation:**
 
+0. *A harbour hamlet's real roads can come out well off its sketch's* (Fairdale: 9.4 blocks on average, 39 at worst;
+   every other shape tried is within 2). Recommendation: leave it; if it shows in play, the real builder can walk the
+   sketch's street lines for harbours instead of laying its own.
 1. *Meridian's houses aren't proven.* Recommendation: build everything for Distant Horizons first (Tasks 1 to 6, ship
    it), then give Meridian its own short try-out (Task 7); if houses still don't read there, ship Meridian with streets,
    plazas and roads only, or ask Meridian's author for a way in.
