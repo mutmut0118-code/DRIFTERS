@@ -16,7 +16,7 @@ that needs to be done this will start"). It is its own milestone, so its version
 | --- | --- | --- |
 | N1 | The grudge loop: deaths found out, real avengers, grudges that burn out, four ways to settle | Planned |
 | N2 | On the run: manhunts that follow sightings until the trail goes cold | Planned |
-| N3 | Outlaws: illagers and witches replaced by half-mob Drifters; the outlaw who becomes known | Planned |
+| N3 | Outlaws: illagers and witches replaced by half-mob Drifters; delvers become outlaw looters; the outlaw who becomes known | Planned |
 | N4 | Rivalries you walk into, born from the towns' and nations' history | Planned |
 | N5 | The encounters revamp: take out, make real, keep | Planned |
 | N6 | Renown, callouts and a Rivals page in the journal | Planned |
@@ -116,6 +116,10 @@ Drifter (`src/main`):
   `heard.json` `memory.*`): "last time you came at me swinging", "you killed my friend", "you owe me".
 - **Bandits**: an archetype; kill anyone outside their group on sight (`social/BanditGoals`); half of pillager outposts
   held by a gang of 3 full Bandits (`world/gen/LivedInStructures`).
+- **Delvers** (`world/gen/Delvers`): made near a player at an unlooted chest of a mineshaft (16 to 48 blocks off, out of
+  sight) or at a ruin (`drifter:looter_ruins`: half the ruins' looters are delvers, half townsfolk out scavenging), never
+  saved, gone 30 s after no player is within 96 blocks; every one a Bandit (kills on sight); iron to diamond kit, some
+  enchanted, a favourite weapon, bow, shield; `DelveActivity` loots every chest it sees. Setting "Mineshaft delvers".
 - **Horses**: tamed and ridden for trips (`skills/HorseGoal`, `RideTask`); never in a fight.
 - **Group feuds and wars** (`world/DrifterWars`); two Drifters near each other can become rivals (DESIGN.md 21).
 
@@ -472,6 +476,30 @@ they are, and its grudge against the player (N1 rules, first-hand). What follows
   towns' people. With permanent death nothing changes for outlaws (always one life), but the one that got away is the
   story.
 
+### N3.5 Delvers become looters
+
+The user (2026-11-14): "we also have to find a way to incorperate delvers, in structures and stuff, maybe remove them
+and turn it into bandits aswell?", then "yes" to this. Delvers are already nearly outlaws (Bandits that kill on sight,
+made near the player, never saved, "more of a mob than a drifter" in the user's words of 2026-10-17), so they become an
+outlaw role, the **looter**:
+
+- **The same feel:** you come across one in the middle of looting. It works through the place chest by chest
+  (`DelveActivity`, kept), kills on sight, and carries what it really looted from the structure's chests, so its pockets
+  are fair loot.
+- **Toned-down kit** (today iron to diamond, enchanted, is a lot to hand out for nothing): mostly iron and chain, a
+  diamond piece now and then, rarely enchanted; a weapon, a bow, a pickaxe, torches, food. The good things on it are
+  what it looted. A data file like the other roles.
+- **More places** (a structure tag, so other mods' structures can be added): mineshafts and ruins as now (Hopo's
+  mineshafts and portals, Philips Ruins included), plus dungeons (spawner rooms), desert and jungle temples, strongholds
+  now and then, and ancient cities rarely (sneaking, warden-wary; the old TODO "ancient cities"). Made the way delvers
+  are: near the player, at an unlooted chest out of sight, on the place's roll (fixed by the seed, again after 3 days).
+- **A looter can become known** (N3.4): one that gets away from you down a mineshaft, or kills you there, is the one
+  that got away.
+- **What stays real:** the townsfolk out scavenging at ruins (the other half of ruin looters) stay real townspeople who go
+  home; they aren't outlaws.
+- **Where it lives:** in Drifter, like the rest of the outlaw kind, so it works without the addon. The setting
+  "Mineshaft delvers" becomes **"Looters"** (on/off), its old value kept. The outlaw cap (N3.1) counts looters.
+
 ---
 
 ## 8. Part N4: rivalries you walk into
@@ -686,7 +714,8 @@ language, an entry in the progress below and docs/PROGRESS.md.
   ends the hunt; permanent-death hunters stalk rather than charge.
 - **N3:** spawn eggs of each mob give outlaws; an outpost refills; a raid of outlaws with a captain's ominous bottle; a
   mansion chief's totem used and dropped; witch farm drops; the setting off brings vanilla back; get away from one at
-  low health and meet it again with a gang wearing your things.
+  low health and meet it again with a gang wearing your things. Looters: one in a mineshaft, a dungeon, a temple and a
+  ruin (scavenging townsfolk still go home); its kit toned down, its pockets what it looted; "Looters" off stops them.
 - **N4:** a town over several days: rivalries from an election and a war, incidents seen and heard, a quest to pull you
   in, siding and being hunted for it, one ending in a death with permanent death and the heir taking it up.
 - **N5:** each kind kept, made real or gone; Drifter alone falls back to strangers.
@@ -708,7 +737,9 @@ language, an entry in the progress below and docs/PROGRESS.md.
 3. **Outlaws and the known outlaw live in Drifter**; the addon does the swapping across the world (N3.1). With the addon,
    new outposts are all outlaw gangs.
 4. **Existing worlds:** saved illagers and witches are swapped on their first load, except name-tagged ones (N3.3).
-5. Saying nothing in a parley means the fight starts; only gear is marked as the dead's; the two illager settings are
+5. **Looters** (N3.5, approved by the user): delvers become an outlaw role with a toned-down kit, in more kinds of
+   structures; ruin scavengers from towns stay real.
+6. Saying nothing in a parley means the fight starts; only gear is marked as the dead's; the two illager settings are
    one; everything is per player.
 
 ## 18. Questions for the user
