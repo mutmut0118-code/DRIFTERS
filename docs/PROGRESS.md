@@ -3517,6 +3517,43 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.67: letters that come to you** (words, part 2; the user, 2026-11-14: "think of ways that a word can be
+  delivered to the player", then "Yes, part 2").
+  - **What they say** (`Mail.java`, saved "drifter_civ_mail" v1, `mail.json`), each from something true: thanks again for
+    a quest you did lately (from whoever asked it); a leader who likes you (trust 20 or more) sending for you ("come and
+    see me, i've work"), and once you've had it, it asks you something when you're near it in its town; a threat,
+    unsigned, from someone with a grudge; a friend's warning (a price on your head, wanted somewhere); news that a friend
+    of yours died for good; a friend's town's festival in the days ahead; a fine you still owe; a friend who hasn't seen
+    you in a week missing you. At most one a day, about two days in five, three waiting at most, given up after 12 days.
+  - **Written or said**: on a sheet of the writer's own paper if it's about and has one (a letter, read with a
+    right-click as 0.23.64's), else passed on by word of mouth.
+  - **How it reaches you**: one of the town keeping it who sees you walks up, calls out and hands it over (or says it);
+    a friend of yours you meet passes it on; a note on a town's board, taken when you're at the board; or left in the
+    chest by your bed in your town, by one of its people who walks there while you're away. Your journal's Quests page
+    lists letters that reached you, under Letters.
+  - **Also:** a quest giver the player was sent for asks from a little further off (16 blocks).
+  - **Tested** in the dev client: a friend's warning brought by word by the friend itself, and written, handed over by
+    a townsperson who walked up ("tester! wait up", "here, i wrote you this"); a leader's summons passed on by a friend
+    ("player wanted you to know..."); a note pinned to the board, taken; a letter left in the chest by the bed by a
+    townsperson who walked there ("left a letter for Tester5 at their door"). **Not tested:** thanks, a threat, a
+    death, an invitation, a fine's note, the leader asking once you've come (it walked off to its stall in the test),
+    the journal's Letters list.
+  - **Review** (one fresh reviewer; fixed, built, the delivery test run again): letters that came to the player were never
+    marked read (their negative number failed the reader's check); a summons was lost on a restart, could come again and
+    again from the same leader (each time letting it ask past the usual gap), and counted before its letter arrived; a
+    letter for the door gave up when the player was offline or far, went to any chest near the bed (a neighbour's), and
+    was put in through a wall: now only the chest in their own house (their bed in one of the town's houses, which its
+    people know), waited for, and only seen from where the courier stands; a letter handed over or said through a wall;
+    letters crossed the world the moment they were written (now carried at a walk from the writer's town to the one
+    keeping it); the same threat, warning or fine written day after day (now a week apart); a courier pulled out of a
+    talk, and an unreachable player hailed every two minutes (a failed try waits five); the summons' reasons logged every
+    five seconds (now only with `/drifterciv mail debug`).
+  - **Rulings (my calls):** a letter is paper from the writer's own pockets, else said; the door is only for a player whose
+    bed is in one of a town's houses; a summons stands seven days and comes from one leader at most once a week; a friend
+    may be the one who brings their own letter.
+  - **Deferred minors:** the record of what's been told grows without end (invitations and missings); a summons left in
+    the chest counts as had, read or not; the reader of a letter's seal or a threat's grudge reads Drifter memory through
+    its own classes, not the API.
 - **0.23.66: bridges that meet their roads; roads that reach their towns; a town's name as you come in** (the user,
   2026-11-14, pictures: "bridges almost never fully connect, and some town paths dont connect"; "the town name popping up
   at the top of the screen when you enter it (a little fade in and fade out)"). Addon only.

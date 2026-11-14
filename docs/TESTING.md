@@ -3994,3 +3994,16 @@ In a **new world**.
 - [ ] **Roads stay as they are**: Drifters don't turn the mud roads (or grass near their homes) into dirt path any more.
 - [ ] **Town names**: walk into a town and its name fades in at the top of the screen, stays a moment and fades out. It
       doesn't show again until you've left the town and come back. F1 hides it.
+
+## 0.23.67: letters that come to you (new)
+
+- [ ] **Play a few days near towns where people know you.** Now and then someone has word for you: a townsperson walks
+      up ("hey! something came for you") and hands you a letter or tells you; or a friend passes on news when you meet.
+      Right-click a letter to read it.
+- [ ] **Your board.** Some notes are pinned to a town's board with your name on them (a fine you owe, a threat): walk up
+      to the board and you take it.
+- [ ] **Your door.** If your bed is in a town and there's a chest near it, letters may be left in that chest while
+      you're away.
+- [ ] **Sent for.** If a town's leader likes you, it may send for you ("come and see me in ..."). Go there and walk up to
+      it: it asks you to do something.
+- [ ] **Your journal (J), Quests page, Letters**: the letters that reached you, and what they said.

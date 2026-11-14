@@ -1,0 +1,95 @@
+{
+  "_comment": "Letters that come to the player (Mail.java). In mail.msg.* lines (what's written or passed on) {player} is what they call you, {town} a town, {what} what it's about (a quest done, a festival, a warning), {dead} who died, {owed} a sum, {when} how soon. In the rest {player} is what it calls you, {who} who it's from, {what} the words to pass on.",
+  "lines": {
+    "mail.msg.thanks": {
+      "any": [
+        "i keep thinking about what you did for us ({what}). thank you, truly. if you're ever in {town}, there's a place at our fire.",
+        "just wanted to say it again: thank you for {what}. people here still talk about it.",
+        "{player}, i never thanked you properly for {what}. so: thank you. come by {town} sometime."
+      ]
+    },
+    "mail.msg.summons": {
+      "any": [
+        "come and see me in {town} when you can. i've work for someone i can trust, and it pays.",
+        "{player}, i need someone i can rely on. come to {town}. ask for me.",
+        "there's something i'd rather ask you than anyone else. come to {town} when you're able."
+      ]
+    },
+    "mail.msg.threat": {
+      "any": [
+        "we know what you did. we haven't forgotten. watch yourself.",
+        "you think nobody saw? someone did. sleep lightly.",
+        "this isn't over. not by a long way."
+      ]
+    },
+    "mail.msg.warning": {
+      "any": [
+        "i had to warn you: {what}. be careful, please.",
+        "listen. {what}. keep your head down for a while.",
+        "{player}, word reached me: {what}. don't go thinking you're safe."
+      ]
+    },
+    "mail.msg.death": {
+      "any": [
+        "i'm sorry to be the one to tell you. {dead} is gone. they spoke of you often.",
+        "bad news, i'm afraid. {dead} died. we buried them outside the town. i know you two were close.",
+        "{dead} is dead. i thought you'd want to hear it from a friend, not from a stranger."
+      ]
+    },
+    "mail.msg.invite": {
+      "any": [
+        "it's {what} in {town} {when}. come! it won't be the same without you.",
+        "{what} is {when}, here in {town}. there'll be food and music. come if you can.",
+        "we're having {what} {when}. you'd better be there, {player}."
+      ]
+    },
+    "mail.msg.debt": {
+      "any": [
+        "you still owe {town} a fine of {owed}. pay it to a guard, or don't come back.",
+        "a reminder: {owed}, owed to {town}. we haven't forgotten.",
+        "{owed}. that's what you owe {town}. pay up."
+      ]
+    },
+    "mail.msg.miss": {
+      "any": [
+        "it's been ages. we miss you in {town}. come back and see us.",
+        "{player}, where have you got to? it's quiet here without you. come by {town}.",
+        "haven't seen you in so long. i hope you're alright. write back, or better, come."
+      ]
+    },
+    "mail.call": {
+      "any": [
+        "hey {player}! something came for you",
+        "{player}! wait up, ive got something for you",
+        "oi {player}, a letter came"
+      ]
+    },
+    "mail.call.friend": {
+      "any": [
+        "{player}! ive got news for you",
+        "hey {player}, hold on. someone asked me to tell you something"
+      ]
+    },
+    "mail.give": {
+      "any": [
+        "a letter came for you, from {who}",
+        "here. from {who}",
+        "this is for you. {who} sent it"
+      ]
+    },
+    "mail.give.own": {
+      "any": [
+        "here, i wrote you this",
+        "i wrote this for you. read it later",
+        "take this. its from me"
+      ]
+    },
+    "mail.tell": {
+      "any": [
+        "{who} asked me to tell you: {what}",
+        "word from {who}: {what}",
+        "{who} wanted you to know. {what}"
+      ]
+    }
+  }
+}
