@@ -11,7 +11,7 @@ import com.dinglebob.drifterciv.client.FarVoxy;
 import mobius.voxyseedgen.terrain.ColumnSpans;
 
 /**
- * Paper towns in Voxy (optional: applied only with Voxy SeedGen 0.3.x there, {@code FarVoxyPlugin}): a column of far land
+ * Paper towns in Voxy (optional: applied only with Voxy SeedGen 0.3.x there, {@code com.dinglebob.drifterciv.FarVoxyPlugin}): a column of far land
  * Voxy SeedGen is about to write into Voxy (its coarser levels) has the sketched towns and roads painted into it first.
  */
 @Pseudo

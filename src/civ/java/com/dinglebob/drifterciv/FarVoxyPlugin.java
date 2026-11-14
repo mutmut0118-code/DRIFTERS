@@ -1,4 +1,4 @@
-package com.dinglebob.drifterciv.client;
+package com.dinglebob.drifterciv;
 
 import java.util.List;
 import java.util.Set;
