@@ -3856,3 +3856,19 @@ In a **new world**.
       shows ONE line for it ("Two died in ...", "Several died in ...", "Many died in ...", or "A massacre in ..." when
       six or more were killed), not one line each. Its page says how many, of what, and shows who they were.
       (Remember the Chronicle only shows what you've heard: walk into the town first.)
+
+## 0.23.61: lamps along the roads (new)
+
+In a **new world** (roads already built in an older world don't get lamps).
+
+- [ ] **Lamps beside the roads between towns**, about every 28 blocks, switching sides, a block of grass between the
+      lamp and the road, the arm and lantern leaning toward the road. They look like the ones you built.
+- [ ] **Now and then the two-lantern one** (about one in six).
+- [ ] **Distance signs**: the first lamp out of a town has a hanging sign. Walk along the road and read it: the side
+      facing you names the town you're walking toward and how many blocks; the other side names the town behind you.
+      More of them about every 250 blocks.
+- [ ] **Desert roads** get the birch and froglight lamps, **savanna roads** the acacia ones.
+- [ ] **No lamps** on bridges (they have their own lanterns), in water, in the middle of another road, floating, or
+      on a lump of ground high above the road.
+- [ ] At night the roads are lit.
+

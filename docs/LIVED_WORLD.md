@@ -1387,3 +1387,6 @@ All answered (decisions 1 to 9 at the top). New ones go here as they come up.
   packed mud, rooted dirt and coarse dirt (hamlets' streets too), smooth heights in half blocks, banks that fade into the
   land, earth then rock under it, bridges of beams, posts, lanterns and piers squared east to west or north to south, up
   to 200 blocks of water. Details in docs/PROGRESS.md (0.23.57).
+- 2026-11-13 (0.23.61): **lamps along the roads**, the user's own builds (made in a flat dev world, saved as structure
+  files): spruce ones, now and then one with two lanterns, distance signs naming the towns either way; birch and
+  froglight in the desert, acacia in the savanna. Details in docs/PROGRESS.md (0.23.61).

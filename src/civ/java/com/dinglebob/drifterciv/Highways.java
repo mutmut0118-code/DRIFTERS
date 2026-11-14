@@ -243,7 +243,9 @@ final class Highways {
 			meet(road.to, corners, false, townRoads);
 		}
 
-		TownBuilder.highway(level, line(corners), townRoads, waysAbout(corners, road, a, b));
+		java.util.Set<Long> ways = waysAbout(corners, road, a, b);
+		TownBuilder.highway(level, line(corners), townRoads, ways);
+		lamps(level, road, piece, a, b, ways);
 		// A dock where it meets water too wide to bridge (its boat crossing's end).
 		if (piece == 0 && road.fromDock && road.points.size() > 1) {
 			int[] p = road.points.get(0);
@@ -262,6 +264,28 @@ final class Highways {
 
 		if (last) {
 			sign(level, corners, false, road.from);
+		}
+	}
+
+	/**
+	 * The lamps along this stretch ({@link RoadLamps}): its own, away from its ends; and those either side of where it meets
+	 * a stretch built already (left till both were built: the second one's banks dug under a lamp by its end).
+	 */
+	private static void lamps(ServerLevel level, WorldPlan.Highway road, int piece, int a, int b, java.util.Set<Long> ways) {
+		List<double[]> smooth = smooth(road);
+		double[] s = RoadLamps.along(smooth);
+		boolean lastPiece = piece == road.built.length - 1;
+		long salt = level.getSeed() ^ road.from.getLeastSignificantBits() * 31L ^ road.to.getMostSignificantBits();
+		String from = placeName(road.from);
+		String to = placeName(road.to);
+		int join = RoadLamps.JOIN;
+		RoadLamps.light(level, smooth, s, piece == 0 ? s[a] : s[a] + join, lastPiece ? s[b] + 1 : s[b] - join, from, to, salt, ways);
+		if (piece > 0 && road.built[piece - 1]) {
+			RoadLamps.light(level, smooth, s, s[a] - join, s[a] + join, from, to, salt, ways);
+		}
+
+		if (!lastPiece && road.built[piece + 1]) {
+			RoadLamps.light(level, smooth, s, s[b] - join, s[b] + join, from, to, salt, ways);
 		}
 	}
 
@@ -517,6 +541,8 @@ final class Highways {
 		}
 
 		WildRoad.DEBUG = System.getenv("DRIFTER_ROAD_DEBUG") != null;
+		double[] s = RoadLamps.along(corners);
+		int lamps = RoadLamps.light(level, corners, s, 0, s[s.length - 1] + 1, "Ashford", "Brindlemoor", level.getSeed(), java.util.Set.of());
 		// What its middle three are topped with, and where it runs (to look at it).
 		Map<String, Integer> tops = new java.util.TreeMap<>();
 		StringBuilder way = new StringBuilder();
@@ -533,7 +559,7 @@ final class Highways {
 			}
 		}
 
-		DrifterCivilizations.LOGGER.info("[road] demo: along its middle {}; by {}", tops, way);
+		DrifterCivilizations.LOGGER.info("[road] demo: along its middle {}; {} lamps; by {}", tops, lamps, way);
 
 		return lines.size();
 	}

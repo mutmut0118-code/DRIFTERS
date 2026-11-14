@@ -270,6 +270,19 @@ public final class DrifterCivilizations implements ModInitializer {
 						+ "; generated, its floor at " + floor + " and its top at " + top), false);
 					return 1;
 				}))
+				// (Debug: the lamps built round here saved as structure files, for the road lamps; the user built them.)
+				.then(Commands.literal("grablamps").requires(source -> source.hasPermission(2))
+					.then(Commands.argument("radius", com.mojang.brigadier.arguments.IntegerArgumentType.integer(4, 128)).executes(ctx -> {
+						int radius = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "radius");
+						try {
+							int count = RoadLamps.grab(ctx.getSource().getLevel(), BlockPos.containing(ctx.getSource().getPosition()), radius);
+							ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + count + " lamps saved to lamps_out"), true);
+							return count;
+						} catch (java.io.IOException e) {
+							ctx.getSource().sendFailure(Component.literal("Couldn't save the lamps: " + e.getMessage()));
+							return 0;
+						}
+					})))
 				// (Debug: a road between towns from here the way the player looks, bending a little, in stretches as they're built.)
 				.then(Commands.literal("roaddemo").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("length", com.mojang.brigadier.arguments.IntegerArgumentType.integer(16, 400)).executes(ctx -> {

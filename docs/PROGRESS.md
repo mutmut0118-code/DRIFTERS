@@ -3396,6 +3396,33 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.61: lamps along the roads between towns, the user's own** (the user, 2026-11-13: "lets add lamps to the road /
+  for this i want us to work together / can you open a dev client of a superflat world, so i can build the lamp (and
+  some variations), and when i close the world you take the lamps and put it along the road"). Addon only.
+  - The user built seven lamps beside a sample road in a flat dev world, with signs as notes ("desert lamps", "savanna
+    lamps", "this lamp is the distance sign", "this lamp is more uncommon than the normal lamp"). Saved with the debug
+    `/drifterciv plan grablamps <radius>` (`RoadLamps.grab`: each build on the land a structure file in
+    `run/lamps_out`, with notes of its blocks, foot, way to the road and the signs beside it; standing signs are notes and
+    left out, a hanging sign is part of a lamp). Now `data/drifter_civ/structure/road_lamp/`: `spruce` (stone brick wall
+    foot, spruce fence post, an arm and a lantern), `spruce_double` (arms two ways, two lanterns), `spruce_sign` (a
+    hanging sign on one arm, the lantern on the other), `desert` and `desert_sign` (birch post, sandstone wall foot,
+    ochre froglight on top), `savanna` and `savanna_sign` (acacia).
+  - Placed (`RoadLamps.light`, from `Highways.build`): one every 28 blocks along a road (`EVERY`), switching sides, none
+    within 24 blocks of its ends; the post 4.2 blocks out from the road's line (a block of grass between), turned to stand
+    to the road as the user built it. The desert's in desert and badlands, the savanna's in savanna, the spruce ones
+    everywhere else; one in six of those the two-lantern one (`DOUBLE_ONE_IN`).
+  - Distance signs: the first lamp out of each town, the last before the next, and every ninth (about 250 blocks).
+    Each face names the town the way a reader facing it walks, and how far along the road ("Brindlemoor / 172 blocks";
+    on its back "Ashford / 28 blocks"), as the user's sign had it.
+  - Not by a bridge (it has its own lanterns), not by water, not on another road, not where something stands; only where
+    the land is within a block of the road's height with no drop between (on a hillside one stood on a lump of the bank
+    over a road cut three blocks down); tried up to three blocks either way along the road first.
+  - Lamps within 18 blocks of a stretch's end (`JOIN`) wait for the stretch past it (its banks would dig under them).
+  - Only new stretches of road get lamps (in a world made before, the roads still to be built).
+  - Debug: `/drifterciv plan roaddemo` now stands lamps too (towns "Ashford" and "Brindlemoor").
+  - Tested in the dev client: the flat sample road (both faces of a sign, at night), and a new seed 779 world on Tectonic:
+    76 lamps by the roads near spawn (48 spruce, 6 two-lantern, 13 signs, 9 savanna up on the mountains).
+
 - **0.23.60: the story so far, as prose, in the journal; many deaths told as one** (the user, 2026-11-13: "make it
   more prose, move it to the journal", and "when it comes to massacre, or a situation where alot of people died it tends
   to fill up the chronicle alot, how can we solve that?"; they were away: "automatically go with your reccomendation").
