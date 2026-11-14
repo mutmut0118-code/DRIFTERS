@@ -53,27 +53,7 @@
    "you serious",
    "deadass"
   ],
-  "agree": [
-   "same",
-   "me too",
-   "me neither",
-   "mood",
-   "relatable",
-   "real",
-   "facts",
-   "true",
-   "so true",
-   "ikr",
-   "i know right",
-   "agreed",
-   "exactly",
-   "fair",
-   "fair enough",
-   "right",
-   "yeah same",
-   "big facts",
-   "valid"
-  ],
+  "agree": ["same", "me too", "me neither", "mood", "relatable", "real", "facts", "true", "so true", "ikr", "i know right", "agreed", "exactly", "fair", "fair enough", "right", "yeah same", "big facts", "valid", "heck yea", "heck yeah", "hell yeah", "hell yea", "yeah", "yea", "yep", "yup", "ofc", "of course", "for sure", "totally", "absolutely", "definitely", "def", "yes", "yess", "oh yeah", "fr fr", "100 percent", "too real", "big true", "so real"],
   "doubt": [
    "cap",
    "thats cap",
@@ -3014,8 +2994,7 @@
     "ok im lost",
     "say it simpler?",
     "uhh sure",
-    "not a clue lol",
-    "lets talk about something else"
+    "not a clue lol"
    ],
    "hermit": [
     "...ok",

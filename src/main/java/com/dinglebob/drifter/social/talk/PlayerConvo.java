@@ -79,9 +79,13 @@ public final class PlayerConvo {
 	/** How close they have to stay for it to keep waiting. */
 	private static final double EARSHOT = 14.0;
 	/** Others this close to a player in a talk keep it down; right after the player's message, altogether. */
-	private static final double HUSH_RANGE = 24.0;
-	private static final long HUSH_AFTER = 20L * 5;
-	private static final double HUSH_CHANCE = 0.75;
+	private static double hushRange() {
+		// (As far as their chat is heard: a line from further off the player doesn't see anyway.)
+		return Math.max(24.0, com.dinglebob.drifter.DrifterConfig.chatRange());
+	}
+
+	private static final long HUSH_AFTER = 20L * 10;
+	private static final double HUSH_CHANCE = 0.9;
 	/** How long its opener's question waits for an answer. */
 	private static final long EXPECTS = 20L * 45;
 
@@ -340,7 +344,7 @@ public final class PlayerConvo {
 			}
 
 			ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
-			if (player != null && player.level() == drifter.level() && player.distanceTo(drifter) <= HUSH_RANGE
+			if (player != null && player.level() == drifter.level() && player.distanceTo(drifter) <= hushRange()
 				&& (now - c.lastPlayerAt < HUSH_AFTER || drifter.getRandom().nextDouble() < HUSH_CHANCE)) {
 				return true;
 			}
@@ -565,7 +569,8 @@ public final class PlayerConvo {
 		}
 
 		String yes = "im_new".equals(mine) || "iam".equals(mine) ? "yes" : Lines.answer(text, "yes", "no", "ready", "unsure", "middle", "greeting");
-		if (yes == null || mine != null && !mine.equals("im_new") && !mine.equals("iam") && !mine.equals("middle")) {
+		if (yes == null || mine != null && !mine.equals("im_new") && !mine.equals("iam") && !mine.equals("middle") && !mine.equals("agree")
+			&& !mine.equals("ack")) {
 			return false;
 		}
 
