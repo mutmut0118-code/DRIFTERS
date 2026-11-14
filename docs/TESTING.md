@@ -4034,3 +4034,13 @@ In a **new world**.
 - [ ] **Sent for.** If a town's leader likes you, it may send for you ("come and see me in ..."). Go there and walk up to
       it: it asks you to do something.
 - [ ] **Your journal (J), Quests page, Letters**: the letters that reached you, and what they said.
+
+## 0.23.68: the economy balanced (new)
+
+- [ ] **Board notices** pay about what the goods are worth now: 32 wool a few silver, 32 iron about 15 silver, a notice
+      from another town more. Its journal page shows the same sum as the notice.
+- [ ] **Quests** pay a few silver for carrying word (more the further), 15 to 25 for finding someone a home, 30 to 50 for a
+      bandit. A hired guard is 7 silver a day.
+- [ ] **Stall prices** are exact: a price can be two coins (silver and bronze), not everything "1 silver". Raw meat is
+      cheaper than cooked; a block of coal costs about nine coal.
+- Debug: `/drifterciv economy` lists sample prices.

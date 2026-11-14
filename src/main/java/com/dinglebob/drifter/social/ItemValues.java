@@ -59,6 +59,12 @@ public final class ItemValues {
 			value = 8.0;
 		} else if (item == Items.EXPERIENCE_BOTTLE || item == Items.NAME_TAG || item == Items.SHULKER_SHELL) {
 			value = 12.0;
+		} else if (item == Items.COAL_BLOCK || item == Items.REDSTONE_BLOCK || item == Items.LAPIS_BLOCK || item == Items.COPPER_BLOCK || item == Items.RAW_COPPER_BLOCK) {
+			// (A block of nine is worth the nine: a block of coal sold for 13 bronze while its coal went for 90. Found by the user,
+			// 2026-11-14.)
+			value = 4.5;
+		} else if (item == Items.HAY_BLOCK || item == Items.BONE_BLOCK || item == Items.DRIED_KELP_BLOCK || item == Items.SLIME_BLOCK) {
+			value = item == Items.DRIED_KELP_BLOCK ? 2.25 : 0.45;
 		} else if (item == Items.LAPIS_LAZULI || item == Items.REDSTONE || item == Items.COAL || item == Items.COPPER_INGOT) {
 			value = 0.5;
 		} else if (!"minecraft".equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getNamespace())

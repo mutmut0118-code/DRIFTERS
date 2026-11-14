@@ -388,6 +388,10 @@ silver). Sums an addon keeps (a tax, a fine, a tribute) are counted in emeralds'
 | `DrifterApi.inCoins(text)` | Words that name a sum in emeralds ("a fine of 6 emeralds"), in coins when that mod is here. |
 | `DrifterApi.listedPoints(item, sells)` | What a stall sells or pays for one, in points, by that mod's own prices; null if it has none. |
 
+## Sums to the bronze (API 17)
+
+`DrifterApi.moneyWordsPoints(points)`, `moneyStacksPoints(points)`, `moneyHeldPoints(chest)`, `moneyTakePoints(chest, points)` (coins taken with change made, an emerald broken into coins when short; change with no room comes out with the sum) and `moneyPutPoints(chest, points)`: sums in points (an emerald 6, a silver 0.6), exact to the bronze with Numismatic Overhaul, whole emeralds (at least one) without it.
+
 ## Rules for the addon
 
 - Only this door. If the addon needs something Drifter doesn't offer, Drifter grows the door (a method or an event

@@ -128,6 +128,18 @@ public final class BuyGoal extends Goals.Goal {
 						afford = drifter.getInventory().count(stack -> stack.is(offer.pay().getItem())) / Math.max(1, offer.pay().getCount());
 					}
 
+					// (And the second coin of a price to the bronze.)
+					ItemStack payB = offer.payB();
+					if (!payB.isEmpty()) {
+						int afford2 = drifter.getInventory().count(stack -> stack.is(payB.getItem())) / Math.max(1, payB.getCount());
+						if (afford2 <= 0 && Money.isCoin(payB)) {
+							Money.makeChange(drifter, payB.getItem(), payB.getCount());
+							afford2 = drifter.getInventory().count(stack -> stack.is(payB.getItem())) / Math.max(1, payB.getCount());
+						}
+
+						afford = Math.min(afford, afford2);
+					}
+
 					int wanted = (int)Math.ceil(need.want() / (double)Math.max(1, offer.goods().getCount()));
 					int times = Math.min(Math.min(afford, offer.times()), Math.min(wanted, MOST));
 					if (times > 0) {

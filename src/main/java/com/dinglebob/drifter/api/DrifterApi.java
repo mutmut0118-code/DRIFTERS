@@ -26,7 +26,7 @@ import net.minecraft.world.level.entity.EntityTypeTest;
  */
 public final class DrifterApi {
 	/** Bumped when something here changes in a way a mod using it would notice. */
-	public static final int API_VERSION = 16;
+	public static final int API_VERSION = 17;
 
 	private static final List<Supplier<Goals.Goal>> GOALS = new ArrayList<>();
 	private static final List<CatchUpStep> CATCH_UP = new ArrayList<>();
@@ -1637,6 +1637,33 @@ public final class DrifterApi {
 	public static Double listedPoints(net.minecraft.world.item.Item item, boolean sells) {
 		Double bronze = sells ? com.dinglebob.drifter.trade.CoinPrices.sells(item) : com.dinglebob.drifter.trade.CoinPrices.buys(item);
 		return bronze == null ? null : Double.valueOf(bronze * com.dinglebob.drifter.trade.Money.BRONZE_POINTS);
+	}
+
+	// ----- Sums to the bronze (API 17: the economy balanced, 0.23.68) -----
+
+	/** This many points in words: "35 silver", "1 gold and 5 silver"; without coins, whole emeralds (at least one). */
+	public static String moneyWordsPoints(double points) {
+		return com.dinglebob.drifter.trade.Money.wordsPoints(points);
+	}
+
+	/** This many points as stacks to hand over: the fewest coins, to the bronze; without coins, whole emeralds. */
+	public static java.util.List<net.minecraft.world.item.ItemStack> moneyStacksPoints(double points) {
+		return com.dinglebob.drifter.trade.Money.stacksPoints(points);
+	}
+
+	/** The money in a chest, in points. */
+	public static double moneyHeldPoints(net.minecraft.world.Container chest) {
+		return com.dinglebob.drifter.trade.Money.heldPoints(chest);
+	}
+
+	/** Up to this many points out of a chest, change made (an emerald broken into coins if need be): what came out, in points. */
+	public static double moneyTakePoints(net.minecraft.world.Container chest, double points) {
+		return com.dinglebob.drifter.trade.Money.takePoints(chest, points);
+	}
+
+	/** This many points into a chest as the fewest coins (or emeralds): what went in, in points. */
+	public static double moneyPutPoints(net.minecraft.world.Container chest, double points) {
+		return com.dinglebob.drifter.trade.Money.putPoints(chest, points);
 	}
 
 	/** The money in a chest, in whole emeralds' worth (its emeralds, and its coins when that mod is here). */

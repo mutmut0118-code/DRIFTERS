@@ -283,17 +283,15 @@ final class TownBounties {
 		}
 
 		// Paid: its poster's money, then the till's.
-		List<ItemStack> paid = new ArrayList<>();
-		double owed = notice.points;
-		if (poster != null) {
-			owed = TownNotices.take(poster.getInventory(), owed, paid);
+		// (To the bronze, change made: 0.23.68.)
+		double taken = poster == null ? 0.0 : DrifterApi.moneyTakePoints(poster.getInventory(), notice.points);
+		Container till = TownNotices.till(server, town);
+		if (taken + 0.001 < notice.points && till != null) {
+			taken += DrifterApi.moneyTakePoints(till, notice.points - taken);
 		}
 
-		Container till = TownNotices.till(server, town);
-		if (owed > 0 && till != null) {
-			owed = TownNotices.take(till, owed, paid);
-			till.setChanged();
-		}
+		double owed = Math.max(0.0, notice.points - taken);
+		List<ItemStack> paid = DrifterApi.moneyStacksPoints(taken);
 
 		double got = 0;
 		for (ItemStack money : paid) {

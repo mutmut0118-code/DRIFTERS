@@ -39,9 +39,7 @@ final class Rewards {
 	}
 
 	/** Money points to an emerald. */
-	private static final double EMERALD = 6.0;
 	/** A job's worth (emeralds) from which it's a big one: a prize besides the money. */
-	static final int BIG = 8;
 	/** A prize worth up to this many times the job (points), at least this. */
 	private static final double PRIZE_OVER = 3.0;
 	private static final double PRIZE_LEAST = 6.0;
@@ -51,7 +49,7 @@ final class Rewards {
 	private static final int FOOD_PRIZE = 6;
 	/** Experience for thanks alone: this, plus this for each emerald the job was worth, at most this. */
 	private static final int XP_BASE = 40;
-	private static final int XP_PER = 12;
+	private static final int XP_PER = 3;
 	private static final int XP_MOST = 400;
 	/** Rare things a Drifter keeps (by worth they'd be missed otherwise). */
 	private static final java.util.Set<net.minecraft.world.item.Item> RARE = java.util.Set.of(Items.ENDER_PEARL, Items.BLAZE_ROD, Items.GHAST_TEAR,
@@ -63,7 +61,7 @@ final class Rewards {
 	private static final java.util.Map<String, Long> thankedOn = new java.util.HashMap<>();
 
 	/** What it gave, for its words and the journal. */
-	record Given(int money, List<ItemStack> things, boolean made, int xp) {
+	record Given(double money, List<ItemStack> things, boolean made, int xp) {
 		boolean nothing() {
 			return this.money <= 0 && this.things.isEmpty() && !this.made;
 		}
@@ -94,18 +92,18 @@ final class Rewards {
 		return out;
 	}
 
-	/** What it could promise in money, in whole emeralds' worth: its pockets, and (for its town) the till. */
-	static int money(MinecraftServer server, Town town, DrifterEntity giver, boolean forTown) {
-		int has = DrifterApi.moneyHeld(giver.getInventory());
+	/** What it could promise in money (points): its pockets, and (for its town) the till. */
+	static double money(MinecraftServer server, Town town, DrifterEntity giver, boolean forTown) {
+		double has = DrifterApi.moneyHeldPoints(giver.getInventory());
 		Container till = forTown ? TownNotices.till(server, town) : null;
-		return has + (till == null ? 0 : DrifterApi.moneyHeld(till));
+		return has + (till == null ? 0 : DrifterApi.moneyHeldPoints(till));
 	}
 
 	/**
-	 * It pays them for this quest: {@code pay} promised in money, the job worth {@code worth} (emeralds), a big one or not.
+	 * It pays them for this quest: {@code pay} promised in money, the job worth {@code worth} (points), a big one or not.
 	 * Tossed to them; what's given said back.
 	 */
-	static Given give(MinecraftServer server, Quests.Quest q, @Nullable Town town, DrifterEntity giver, ServerPlayer player, int pay, int worth, boolean big) {
+	static Given give(MinecraftServer server, Quests.Quest q, @Nullable Town town, DrifterEntity giver, ServerPlayer player, double pay, double worth, boolean big) {
 		List<Container> sources = new ArrayList<>();
 		sources.add(giver.getInventory());
 		// (The till is never one of its own, even if it's listed among its chests.)
@@ -122,22 +120,25 @@ final class Rewards {
 		}
 
 		// Money: as promised, from its pockets first, then its chests, then the till.
-		int paid = 0;
+		// (To the bronze, change made: 0.23.68. The sum as it can be paid first: whole emeralds without coins, or each source
+		// rounded up to one more. Found in review.)
+		pay = DrifterApi.moneyStacksPoints(pay).stream().mapToDouble(DrifterApi::moneyWorth).sum();
+		double paid = 0;
 		for (Container from : sources) {
-			if (paid < pay) {
-				paid += DrifterApi.moneyTake(from, pay - paid);
+			if (paid + 0.001 < pay) {
+				paid += DrifterApi.moneyTakePoints(from, pay - paid);
 				from.setChanged();
 			}
 		}
 
 		giver.getCamera().track(player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
-		for (ItemStack stack : DrifterApi.moneyStacks(paid)) {
+		for (ItemStack stack : DrifterApi.moneyStacksPoints(paid)) {
 			giver.tossForward(stack).setTarget(player.getUUID());
 		}
 
 		// Short of what the job was worth: something of worth instead, from its pockets and its own chests (not the till's town).
 		List<ItemStack> things = new ArrayList<>();
-		double owed = (worth - paid) * EMERALD;
+		double owed = worth - paid;
 		if (owed >= 1.0) {
 			for (Container from : sources.subList(0, sources.size() - (till != null ? 1 : 0))) {
 				owed = inKind(giver, from, owed, things);
@@ -147,7 +148,7 @@ final class Rewards {
 		// A big job: the best fitting thing it has besides (a prize), else (the biggest) a piece made for them by the smith.
 		boolean made = false;
 		if (big) {
-			ItemStack prize = prize(giver, sources.subList(0, sources.size() - (till != null ? 1 : 0)), worth * EMERALD);
+			ItemStack prize = prize(giver, sources.subList(0, sources.size() - (till != null ? 1 : 0)), worth);
 			if (!prize.isEmpty()) {
 				things.add(prize);
 			} else if (q.kind.equals("deal") && town != null) {
@@ -165,7 +166,7 @@ final class Rewards {
 		String key = giver.getUUID() + ":" + player.getUUID();
 		if (paid <= 0 && things.isEmpty() && !made && thankedOn.getOrDefault(key, -1L) != day) {
 			thankedOn.put(key, day);
-			xp = Math.min(XP_MOST, XP_BASE + XP_PER * Math.max(1, worth));
+			xp = (int)Math.min(XP_MOST, XP_BASE + XP_PER * Math.max(1.0, worth / Prices.SILVER));
 			player.giveExperiencePoints(xp);
 		}
 
@@ -300,7 +301,7 @@ final class Rewards {
 	static String words(Given given) {
 		List<String> parts = new ArrayList<>();
 		if (given.money() > 0) {
-			parts.add(DrifterApi.moneyWords(given.money()));
+			parts.add(Prices.say(given.money()));
 		}
 
 		for (ItemStack thing : given.things()) {
