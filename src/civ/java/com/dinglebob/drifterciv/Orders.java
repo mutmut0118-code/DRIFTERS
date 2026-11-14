@@ -80,6 +80,8 @@ final class Orders {
 		/** When it was asked (game time), the day it was placed, the day it was made. */
 		final long at;
 		long day;
+		/** Paid for by its town as a reward (Rewards): what was paid goes back to the till if it comes to nothing. */
+		boolean gift;
 		/** The piece, once made: put by, out of its pockets. */
 		ItemStack piece = ItemStack.EMPTY;
 		long said = Long.MIN_VALUE / 2;
@@ -327,6 +329,58 @@ final class Orders {
 			pay(deposit(price)));
 	}
 
+	/**
+	 * A piece made for them as a reward (Rewards: the biggest jobs): the best a smith of the town makes that the till can
+	 * pay for, paid to the smith out of the till (real money, its pockets), and ordered for them as if they'd paid it.
+	 * False if there's no smith about, nothing it makes, or not the money.
+	 */
+	static boolean gift(MinecraftServer server, Town town, ServerPlayer player) {
+		DrifterEntity smith = null;
+		for (var entry : town.lines.entrySet()) {
+			DrifterEntity one = entry.getValue().equals("smith") ? TownFounding.loaded(server, entry.getKey()) : null;
+			smith = one != null && one.isAlive() ? one : smith;
+		}
+
+		net.minecraft.world.Container till = TownNotices.till(server, town);
+		if (smith == null || till == null || of(smith.getUUID(), player.getUUID()) != null) {
+			return false;
+		}
+
+		double has = DrifterApi.moneyHeld(till) * 6.0;
+		Item best = null;
+		double bestPrice = 0.0;
+		for (Item item : Trades.makes(town, smith)) {
+			double price = whole(Math.max(1, Market.price(smith, item)));
+			if (price <= has && (best == null || price > bestPrice)) {
+				best = item;
+				bestPrice = price;
+			}
+		}
+
+		if (best == null) {
+			return false;
+		}
+
+		List<ItemStack> paid = new ArrayList<>();
+		double left = TownNotices.take(till, bestPrice, paid);
+		till.setChanged();
+		for (ItemStack money : paid) {
+			keep(smith, money);
+		}
+
+		Order order = new Order(player.getUUID(), player.getGameProfile().getName(), smith.getUUID(), smith.getName().getString(), town.id, town.name, best,
+			best.getDefaultInstance().is(net.minecraft.tags.ItemTags.TRIMMABLE_ARMOR), bestPrice, server.overworld().getGameTime());
+		order.paid = bestPrice - Math.max(0.0, left);
+		order.gift = true;
+		order.state = PLACED;
+		order.day = Chronicle.day(server);
+		orders.add(order);
+		DrifterApi.think(smith, "the town paid for " + order.what() + " for " + order.playerName);
+		DrifterCivilizations.LOGGER.info("[orders] {} gave {} {} made by {}, paid from the till", town.name, order.playerName, order.what(), order.smithName);
+		save(server);
+		return true;
+	}
+
 	// ---------------------------------------------------------------------------------------------
 	// Paying
 	// ---------------------------------------------------------------------------------------------
@@ -487,6 +541,20 @@ final class Orders {
 
 	/** What was paid toward it, back out of its pockets (as much of it as it has). */
 	private static void refund(DrifterEntity smith, Player player, Order order) {
+		// (A gift: the town paid, so back to its till. Found in review: it was the player's money to have.)
+		if (order.gift) {
+			MinecraftServer server = smith.getServer();
+			Town town = server == null ? null : Diplomacy.byId(order.town.toString());
+			int emeralds = (int)Math.floor(order.paid / 6.0);
+			int moved = emeralds <= 0 || town == null ? 0 : DrifterApi.moneyTake(smith.getInventory(), emeralds);
+			if (moved > 0) {
+				Diplomacy.till(server, town, moved);
+			}
+
+			order.paid = 0;
+			return;
+		}
+
 		// (As the piece of money that's worth it, out of its pockets: whole emeralds only left coins' small change with it.)
 		ItemStack owed = order.paid <= 0 ? ItemStack.EMPTY : DrifterApi.money(order.paid);
 		order.paid = 0;
@@ -548,6 +616,7 @@ final class Orders {
 				Order order = new Order(o.getUUID("player"), o.getString("playerName"), o.getUUID("smith"), o.getString("smithName"), o.getUUID("town"),
 					o.getString("townName"), item, o.getBoolean("trim"), o.getDouble("price"), 0L);
 				order.paid = o.getDouble("paid");
+				order.gift = o.getBoolean("gift");
 				order.state = o.getInt("state");
 				order.day = o.getLong("day");
 				if (o.contains("piece")) {
@@ -587,6 +656,7 @@ final class Orders {
 				o.putBoolean("trim", order.trim);
 				o.putDouble("price", order.price);
 				o.putDouble("paid", order.paid);
+				o.putBoolean("gift", order.gift);
 				o.putInt("state", order.state);
 				o.putLong("day", order.day);
 				if (!order.piece.isEmpty()) {

@@ -3517,6 +3517,48 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.65: quests pay properly; board notices priced by how hard things are to get** (the user, 2026-11-14: "i feel
+  like im getting little compensation and just their thanks, it doesnt even raise the relationship. i did a quest, and
+  after i came back i was still a stranger", "thanks rewards should be much rarer, and when you recieve those thanks you
+  get a bunch of XP (nobody is aware that you got xp ...)", "a few silver coins, more or less depending on how far the
+  quest is", "for harder quests maybe a enchantment book, alot of money, a custom enchanted item, some rare mob drops, an
+  artifact (mod), or a bunch of high valued food", "every board quest is 30 silver ... can the reward be varied on how
+  valued the item is ... and how far the town is"; "Yes, build it").
+  - **Closer for it** (`Rewards.warmer`): a quest done adds closeness enough to make a stranger an acquaintance (8, the
+    friends' threshold) and more trust than before (12 for bring, word and a grave; 16 find; 20 deal; 4 more for a big job).
+  - **Paid from what's really there** (`Rewards.give`): the money promised (still more the further the word goes), from
+    the giver's pockets, then its own house chests (new: they count toward what it can promise), then for the town's
+    business the till; short of what the job was worth (`Quest.worth`, saved "Worth"), something of worth instead out of
+    its pockets and chests (not money, not what it wears or works with, not plain food).
+  - **A big job's prize** (worth 8 emeralds or more, finding someone, dealing with a bandit, a war's supplies): the best
+    fitting thing it has besides: an enchanted book or piece, a rare drop (ender pearl, blaze rod, ghast tear, a golden
+    apple, a diamond...), a mod's rare or epic thing (an artifact), or good food (Farmer's Delight meals that nourish
+    first); for dealing with a bandit with no such thing, a piece made by the town's smith, paid to the smith out of the
+    till (`Orders.gift`), ready in a day or two as a made-to-order piece.
+  - **Thanks alone, now rare**: only with nothing at all to give; then a lump of experience (40, and 12 for each emerald
+    the job was worth, up to 400), unmentioned.
+  - **Board notices** (`TownNotices.price`): by how hard a thing is to get (common things like cobblestone and logs a
+    little; glass, paper, bread more; iron, leather, string, wool, coal more again; diamonds, ender pearls, blaze rods a
+    lot), the least an emerald (it was 3, so nearly all paid 30 silver). **A neighbour's notice**: one morning in three a
+    made town 200 to 1,200 blocks off puts one up ("wanted in Ashford: 24 iron ingot, paying ... bring them to priya
+    there"), paying more the further it is (up to two and a half times), up five days, paid there from that town's till;
+    not on Bountiful's board.
+  - **Tested** in the dev client: a leader's sealed letter delivered and finished; the leader had no money, and gave things
+    it had instead ("2 iron ingot, 10 apple and 8 baked potato": plain food is no longer given since); no experience
+    then, rightly. **Not tested:** a prize, the smith's piece, thanks alone with its experience, the new notice prices
+    and a neighbour's notice in the game, closeness reaching acquaintance (by the numbers it does).
+  - **Review** (one fresh reviewer; fixed, built): the town's stores counted as one person's own chests when it had none
+    (the till counted twice, a personal favour paid from the town); things taken from its chests from anywhere, not
+    within reach (now only a chest of its own within 4.5 blocks; what it promises counts only its pockets and, for the
+    town, the till); an enchanted tool out of its pockets given as a prize; a neighbour's notice described as the board
+    town's own everywhere (journal, talk, chronicle); a piece the town paid the smith for turned into cash for the player
+    if it came to nothing (now back to the till); also: thanks with experience only once a day from the same giver, a short
+    payment said as such, room on the board checked, a gone keeper's notice put up by the leader, money never a prize, in
+    kind no more than half again what's owed, a neighbour's notice no longer hides the town's own ask.
+  - **Deferred minors:** a neighbour town's notices aren't reserved against its money (several can promise the same
+    till, later ones paying short); an item the far town's own stall sells could be bought there and handed in (the far
+    rate is up to four times worth); with the poster's own notice and a neighbour's for the same thing, the first found
+    takes the delivery.
 - **0.23.64: a hired sword; finding people; what a word says, and handing it over** (shops worth more than looting,
   part 3, the second money-only thing; the user, 2026-11-13, away: "automatically go with your reccomendation"; and
   2026-11-14 of quests: "when people tell me to give a word, its hard to look for the drifter because they could be

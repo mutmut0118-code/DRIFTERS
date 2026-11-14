@@ -309,7 +309,8 @@ final class TownTalk {
 					TownNotices.Notice notice = town.notices.get(drifter.getRandom().nextInt(town.notices.size()));
 					String what = notice.count + " " + new net.minecraft.world.item.ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
 						net.minecraft.resources.ResourceLocation.parse(notice.item))).getHoverName().getString().toLowerCase(Locale.ROOT);
-					say(drifter, player, "town.talk.work.notice", null, "what", what, "who", notice.posterName);
+					say(drifter, player, "town.talk.work.notice", null, "what", what, "who", notice.from != null ? notice.posterName + " over in " + notice.fromName
+						: notice.posterName);
 				}
 			}
 			case "whats_on" -> {
