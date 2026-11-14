@@ -18,17 +18,25 @@ final class Counter {
 	static int trade(DrifterEntity customer, DrifterEntity keeper, ShopKeeper.ShopOffer offer, int times) {
 		int made = 0;
 		ItemStack pay = offer.pay();
+		// (A price to the bronze has a second coin (0.23.68): paid too. Found in review: it was left out, and the till lost it.)
+		ItemStack payB = offer.payB();
 		ItemStack goods = offer.goods();
 		// (As the keeper carries them: its shop may hand them over with a maker's line added.)
 		ItemStack carried = keeper.getShop() != null ? keeper.getShop().takes(keeper, offer) : goods;
 		for (int i = 0; i < times; i++) {
 			if (customer.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, pay)) < pay.getCount()
+				|| !payB.isEmpty() && customer.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, payB)) < payB.getCount()
 				|| keeper.getInventory().count(stack -> ItemStack.isSameItemSameComponents(stack, carried)) < carried.getCount()) {
 				break;
 			}
 
 			DrifterMerchant.take(customer.getInventory(), pay);
 			DrifterMerchant.give(keeper, pay.copy());
+			if (!payB.isEmpty()) {
+				DrifterMerchant.take(customer.getInventory(), payB);
+				DrifterMerchant.give(keeper, payB.copy());
+			}
+
 			DrifterMerchant.take(keeper.getInventory(), carried);
 			DrifterMerchant.give(customer, goods.copy());
 			made++;

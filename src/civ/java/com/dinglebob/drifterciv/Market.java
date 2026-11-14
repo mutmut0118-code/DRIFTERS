@@ -350,7 +350,9 @@ public final class Market {
 		// a tenth of its worth, so a carrot isn't dearer than bread.)
 		Double paid = DrifterApi.listedPoints(item, false);
 		if (paid != null && worth > 0) {
-			return Math.max(0.0005, paid * COIN_RESALE * price(keeper, item) / worth);
+			// (Food at less: raw meat was dearer than the cooked, three times what's paid for it. Found by the user, 2026-11-14.)
+			double resale = new ItemStack(item).has(net.minecraft.core.component.DataComponents.FOOD) ? COIN_FOOD_RESALE : COIN_RESALE;
+			return Math.max(0.0005, paid * resale * price(keeper, item) / worth);
 		}
 
 		return price(keeper, item) * SELLS_AT * (DrifterApi.coins() && new ItemStack(item).has(net.minecraft.core.component.DataComponents.FOOD) ? COIN_FOOD : 1.0);
@@ -360,6 +362,8 @@ public final class Market {
 	private static final double COIN_FOOD = 0.1;
 	/** With Numismatic Overhaul: a thing that mod only buys is sold at this many times what it pays. */
 	private static final double COIN_RESALE = 3.0;
+	/** ...and food it only buys, this many times (raw beef bought at 40 bronze sells near the cooked's 75). */
+	private static final double COIN_FOOD_RESALE = 1.8;
 
 	/** What its stall pays for one, in points: its price marked down; with Numismatic Overhaul, that mod's own where it has one. */
 	static double buys(DrifterEntity keeper, Item item) {
@@ -461,7 +465,18 @@ public final class Market {
 		ItemStack goods = new ItemStack(item, Math.min(bundle, item.getDefaultMaxStackSize()));
 		if (sells) {
 			int times = carried / goods.getCount();
-			return times > 0 ? new ShopKeeper.ShopOffer(money, ItemStack.EMPTY, goods, times) : null;
+			// (Its price to the bronze, in two coins: one coin rounded to the nearest made everything between 65 and 149 bronze
+			// "1 silver". Found by the user, 2026-11-14: "most things cost one silver coin".)
+			List<ItemStack> exact = DrifterApi.moneyStacksPoints(each * bundle);
+			ItemStack second = ItemStack.EMPTY;
+			if (exact.size() == 2 && exact.get(0).getCount() <= exact.get(0).getMaxStackSize() && exact.get(1).getCount() <= exact.get(1).getMaxStackSize()) {
+				money = exact.get(0);
+				second = exact.get(1);
+			} else if (exact.size() == 1 && exact.get(0).getCount() <= exact.get(0).getMaxStackSize()) {
+				money = exact.get(0);
+			}
+
+			return times > 0 ? new ShopKeeper.ShopOffer(money, second, goods, times) : null;
 		}
 
 		return new ShopKeeper.ShopOffer(goods, ItemStack.EMPTY, money, 1);

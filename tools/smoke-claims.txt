@@ -1,4 +1,4 @@
-# Lines said only when they're so (0.23.67-side.5): two Drifters with no armor talk gear and weather, in sun and then in
+# Lines said only when they're so (0.23.68-side.1): two Drifters with no armor talk gear and weather, in sun and then in
 # rain. In the sun: no "i'm gonna watch the rain", "this storm is scary"; to one in no armor: no "your armor looks good",
 # no "my netherite set is maxed". In the rain: no "nice weather". Fresh pairs each time (they wander off).
 # Then: a name called from right beside one ("yeah?", not "wheres that coming from"); a far-off Drifter's name alone

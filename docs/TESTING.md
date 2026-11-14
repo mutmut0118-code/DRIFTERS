@@ -4035,6 +4035,16 @@ In a **new world**.
       it: it asks you to do something.
 - [ ] **Your journal (J), Quests page, Letters**: the letters that reached you, and what they said.
 
+## 0.23.68: the economy balanced (new)
+
+- [ ] **Board notices** pay about what the goods are worth now: 32 wool a few silver, 32 iron about 15 silver, a notice
+      from another town more. Its journal page shows the same sum as the notice.
+- [ ] **Quests** pay a few silver for carrying word (more the further), 15 to 25 for finding someone a home, 30 to 50 for a
+      bandit. A hired guard is 7 silver a day.
+- [ ] **Stall prices** are exact: a price can be two coins (silver and bronze), not everything "1 silver". Raw meat is
+      cheaper than cooked; a block of coal costs about nine coal.
+- Debug: `/drifterciv economy` lists sample prices.
+
 ## 0.23.67-side.1: talk fixes from play (new)
 
 From the user's screenshots (2026-11-14): "cmere", "come", "wait", "heres your food" understood; "heck yea", "yeah" are
@@ -4063,7 +4073,7 @@ here" got "ok" from the town's keeper, which went on keeping its stall (0.79) ov
 player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
 somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.
 
-## 0.23.67-side.5: it only says what's so (new)
+## 0.23.68-side.1: it only says what's so (new)
 
 1. **Gear and weather lines.** Take your armor off and chat with Drifters a while (or let one bring something up with
    you: `/drifter talk me`). Nobody should say "nice gear", "your armor looks good" or "nice sword" unless you're wearing

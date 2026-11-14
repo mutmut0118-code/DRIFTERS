@@ -462,6 +462,160 @@ public final class Money {
 		}
 	}
 
+	// ----- Sums in points, to the bronze (the economy balanced, 0.23.68: rewards and fees in silver and bronze, not whole emeralds) -----
+
+	/** Points as whole bronze (with coins), or whole emeralds (without: at least one for any sum). */
+	private static long units(double points) {
+		if (COINS) {
+			return Math.max(0, Math.round(points / BRONZE_POINTS));
+		}
+
+		return points <= 0 ? 0 : Math.max(1, Math.round(points / EMERALD_POINTS));
+	}
+
+	/** This many points, in words: "35 silver", "1 gold and 5 silver", "40 bronze"; without coins, "2 emeralds". */
+	public static String wordsPoints(double points) {
+		long n = units(points);
+		if (!COINS) {
+			return n + (n == 1 ? " emerald" : " emeralds");
+		}
+
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		if (n / GOLD > 0) {
+			parts.add(n / GOLD + " gold");
+		}
+
+		if (n % GOLD / SILVER > 0) {
+			parts.add(n % GOLD / SILVER + " silver");
+		}
+
+		if (n % SILVER > 0 || parts.isEmpty()) {
+			parts.add(n % SILVER + " bronze");
+		}
+
+		return String.join(" and ", parts);
+	}
+
+	/** This many points as stacks to hand over: the fewest coins, to the bronze; without coins, whole emeralds. */
+	public static java.util.List<ItemStack> stacksPoints(double points) {
+		java.util.List<ItemStack> out = new java.util.ArrayList<>();
+		long n = units(points);
+		look();
+		if (COINS && bronze != null) {
+			for (Item coin : new Item[] {gold, silver, bronze}) {
+				long value = coinValue(coin);
+				long count = coin == null || value <= 0 ? 0 : n / value;
+				n -= count * value;
+				while (count > 0) {
+					int now = (int)Math.min(count, coin.getDefaultMaxStackSize());
+					out.add(new ItemStack(coin, now));
+					count -= now;
+				}
+			}
+
+			return out;
+		}
+
+		while (n > 0) {
+			int now = (int)Math.min(n, 64);
+			out.add(new ItemStack(Items.EMERALD, now));
+			n -= now;
+		}
+
+		return out;
+	}
+
+	/** The money in a chest, in points (coins and emeralds both). */
+	public static double heldPoints(net.minecraft.world.Container chest) {
+		double points = 0;
+		for (int i = 0; i < chest.getContainerSize(); i++) {
+			points += worth(chest.getItem(i));
+		}
+
+		return points;
+	}
+
+	/**
+	 * Up to this many points taken out of a chest: its coins first (all taken out, what's over put back as the fewest coins),
+	 * then whole emeralds (an emerald broken into coins when that's what's short). What came out, in points. Nothing made,
+	 * nothing lost.
+	 */
+	public static double takePoints(net.minecraft.world.Container chest, double points) {
+		long want = units(points);
+		if (want <= 0) {
+			return 0.0;
+		}
+
+		if (!COINS) {
+			return take(chest, (int)want) * EMERALD_POINTS;
+		}
+
+		look();
+		long have = 0;
+		for (int i = 0; i < chest.getContainerSize(); i++) {
+			have += coinValue(chest.getItem(i).getItem()) * chest.getItem(i).getCount();
+		}
+
+		// (Short in coins: emeralds into the pot, a whole one at a time, as a shopkeeper would change one.)
+		int emeralds = 0;
+		while (have < want) {
+			int got = 0;
+			for (int i = 0; i < chest.getContainerSize() && got == 0; i++) {
+				if (chest.getItem(i).is(Items.EMERALD)) {
+					chest.getItem(i).shrink(1);
+					got = 1;
+				}
+			}
+
+			if (got == 0) {
+				break;
+			}
+
+			emeralds++;
+			have += EMERALD_BRONZE;
+		}
+
+		long taken = Math.min(want, have);
+		if (taken <= 0) {
+			return 0.0;
+		}
+
+		for (int i = 0; i < chest.getContainerSize(); i++) {
+			if (isCoin(chest.getItem(i))) {
+				chest.setItem(i, ItemStack.EMPTY);
+			}
+		}
+
+		long rest = have - taken;
+		long homeless = 0;
+		for (Item coin : new Item[] {gold, silver, bronze}) {
+			long value = coinValue(coin);
+			long count = coin == null || value <= 0 ? 0 : rest / value;
+			rest -= count * value;
+			homeless += add(chest, coin, count) * value;
+		}
+
+		// (Change with no room left for it goes with what was taken: handed over, never lost. Found in review: a full chest
+		// lost it.)
+		chest.setChanged();
+		return (taken + homeless + rest) * BRONZE_POINTS;
+	}
+
+	/** This many points into a chest, as the fewest coins (or whole emeralds): what went in, in points. */
+	public static double putPoints(net.minecraft.world.Container chest, double points) {
+		double done = 0;
+		for (ItemStack stack : stacksPoints(points)) {
+			long left = add(chest, stack.getItem(), stack.getCount());
+			done += worth(stack.copyWithCount((int)(stack.getCount() - left)));
+		}
+
+		if (done > 0) {
+			chest.setChanged();
+		}
+
+		return done;
+	}
+
 	/** What a stack of money is worth in {@code ItemValues} points (0 if it isn't money). */
 	public static double worth(ItemStack money) {
 		return money.is(Items.EMERALD) ? 6.0 * money.getCount() : coinValue(money.getItem()) * BRONZE_POINTS * money.getCount();

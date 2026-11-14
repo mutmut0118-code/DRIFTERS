@@ -49,7 +49,7 @@ final class Hires {
 	}
 
 	/** A day of it, in money points (an emerald is 6), before what its town thinks of the hirer. */
-	private static final double DAY_PRICE = 18.0;
+	private static final double DAY_PRICE = Prices.GUARD_DAY;
 	private static final int MOST_DAYS = 7;
 	private static final long DAY = 24000L;
 	/** A price asked for and not paid lapses. */

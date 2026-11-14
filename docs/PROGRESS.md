@@ -3517,6 +3517,36 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.68: the economy balanced** (the user, 2026-11-14: "just correct the whole economy to where its balanced. i feel
+  like doing one board quest makes me mega rich with trading, since most things cost one silver coin"; also a notice of
+  "52 silver" showing "50 silver" in the journal, and a stall's coal block and raw meat).
+  - **Why:** the stalls follow Numismatic Overhaul's own prices (bread 18 bronze, iron 1.5 silver: the user's rule), but
+    notices, quests, hired guards and made-to-order were priced in whole emeralds (10 silver each), several times
+    richer; and a shop price was one coin rounded, so 65 to 149 bronze all read "1 silver".
+  - **One scale** (`Prices.java`): goods asked for (a notice, a town's shortage, a war's) pay a little over what a stall
+    gives for them, and never more than the cheapest a stall would sell them for (no profit in buying to hand in); a
+    neighbour's notice up to 1.8 times that for the journey. Work in silver: carrying word 3 silver and 2 more a 300 blocks
+    (to 30), finding a newcomer 15 (25 for a friend), dealing with a bandit 30 (50), a guard 7 a day, a big job from 25.
+    Made-to-order at the stall's own price. Fines and town business (taxes, wages, tribute) unchanged.
+  - **To the bronze** (API 17: `moneyWordsPoints`, `moneyStacksPoints`, `moneyHeldPoints`, `moneyTakePoints` with change,
+    `moneyPutPoints`): rewards, notices and Bountiful's board pay exact sums, change made; a stall's price is two coins
+    ("1 silver" and "50 bronze") instead of one rounded; Drifter customers pay both. Quests saved in points (`PayPts`,
+    `WorthPts`; old ones migrated, their promise kept).
+  - **Also:** raw food a stall only buys resells at 1.8 times (raw meat was dearer than cooked); blocks of nine are worth
+    their nine (a coal block sold for 13 bronze); a notice's journal page shows the notice's own sum; money said "52
+    silver", not "52 silver coin".
+  - **Checked** headless with stand-in coins (`/drifterciv economy`, new): 32 wool about 4 silver (7 far), 32 iron 15
+    (28 far), 32 leather 20, a word 5 to 13 silver. **Not tested in the game:** a stall's two-coin price, a quest paid
+    to the bronze, the real coin mod (it can't load in the dev game).
+  - **Review** (one fresh reviewer; fixed, built, checked again): change with no room in a full chest was lost (now handed
+    over with the sum); Drifter customers paid only the first coin of a two-coin price; notices and Bountiful's board still
+    paid a whole piece at a time (a silver's notice paid from an emerald gave ten); the cap against buying to hand in used
+    the list price, not a stocked stall's (0.32 of it); no cap at all without the coin mod; food's cap used the old 3x;
+    without coins, pay from two places rounded up twice.
+  - **Rulings (my calls):** the coin mod's prices are the measure, the emerald stays a thousand bronze; fines left as they
+    are (a punishment); a far notice's bonus can beat a stocked stall in the town it's for (it's short of them).
+  - **Deferred minors:** constants of the old scale left unused in Quests; a far town that does stock what it asks for
+    could be bought from for a small profit.
 - **0.23.67: letters that come to you** (words, part 2; the user, 2026-11-14: "think of ways that a word can be
   delivered to the player", then "Yes, part 2").
   - **What they say** (`Mail.java`, saved "drifter_civ_mail" v1, `mail.json`), each from something true: thanks again for
@@ -7022,7 +7052,7 @@ here" got "ok" from the town's keeper, which went on keeping its stall (0.79) ov
 player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
 somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.
 
-## 0.23.67-side.5: it only says what's so (new)
+## 0.23.68-side.1: it only says what's so (new)
 
 From the user's play screenshots (2026-11-14: "nice gear btw" with no armor on; "can you check that for the rest of the
 lines? so if someone says something it actually makes sense"):
@@ -7051,7 +7081,7 @@ lines? so if someone says something it actually makes sense"):
 - Thank-you letters wait a day ("a few days on", as written): organ's came from another Drifter seconds after organ
   thanked the player to their face. Their wording says what was done ("you carrying my word to bravebolt"), not the
   quest's title in brackets.
-- API 17: `TalkApi.askedName`, `TalkApi.knowsOf`.
+- API 18: `TalkApi.askedName`, `TalkApi.knowsOf`.
 
 Not tested in game: the wrong-town answers and the word hand-in by chat (needs a town and a word quest); headless tested:
 claims in sun and rain, gear praise to a Drifter in no armor, a name called from beside, a far Drifter's name alone,

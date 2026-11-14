@@ -97,8 +97,11 @@ final class Quests {
 		String item = "";
 		int count;
 		int given;
-		/** What they'd pay, in emeralds' worth (0: thanks alone). */
+		/** What they'd pay, in emeralds' worth (0: thanks alone). Before 0.23.68 only; {@link #payPts} since. */
 		int pay;
+		/** What they'd pay (points: an emerald is 6, a silver 0.6), and what the job is worth (Prices, Rewards). */
+		double payPts;
+		double worthPts;
 		/** Carry word: to whom, of where; a letter (else by word of mouth). Deal with someone: whom ({@code to}, {@code toName}). */
 		@Nullable
 		UUID to;
@@ -161,6 +164,8 @@ final class Quests {
 			tag.putInt("Count", this.count);
 			tag.putInt("Given", this.given);
 			tag.putInt("Pay", this.pay);
+			tag.putDouble("PayPts", this.payPts);
+			tag.putDouble("WorthPts", this.worthPts);
 			if (this.to != null) {
 				tag.putUUID("To", this.to);
 			}
@@ -229,6 +234,9 @@ final class Quests {
 			q.reply = tag.getString("Reply");
 			q.replyMoney = tag.getInt("ReplyMoney");
 			q.worth = tag.getInt("Worth");
+			// (From before the economy was balanced: its sums were whole emeralds.)
+			q.payPts = tag.contains("PayPts") ? tag.getDouble("PayPts") : q.pay * 6.0;
+			q.worthPts = tag.contains("WorthPts") ? tag.getDouble("WorthPts") : Math.max(q.worth, q.pay) * 6.0;
 			q.at = tag.contains("At") ? BlockPos.of(tag.getLong("At")) : null;
 			q.about = tag.getString("About");
 			q.war = tag.getBoolean("War");
@@ -379,7 +387,7 @@ final class Quests {
 				for (Quest q : quests.values()) {
 					if (q.player.equals(player.getUUID())) {
 						lines.add("#" + q.id + " " + q.kind + " " + stateWord(q.state) + ": " + title(q) + " (" + q.giverName + " of " + q.townName + ")"
-							+ (q.at == null ? "" : " at " + q.at.toShortString()) + (q.kind.equals("word") ? ", for " + q.toName + (q.to == null ? " (nobody there yet)" : "") : "") + (q.pay > 0 ? ", pays " + DrifterApi.moneyWords(q.pay) : ""));
+							+ (q.at == null ? "" : " at " + q.at.toShortString()) + (q.kind.equals("word") ? ", for " + q.toName + (q.to == null ? " (nobody there yet)" : "") : "") + (q.payPts > 0 ? ", pays " + Prices.say(q.payPts) : ""));
 					}
 				}
 
@@ -1238,23 +1246,20 @@ final class Quests {
 			q.item = id;
 			q.count = COUNTS[level];
 			q.about = war ? enemy : "";
-			// (By what a stall sells it for where Numismatic Overhaul lists a price, else by its worth: never so much over that
-			// buying it at a stall to hand in would pay.)
-			Double listed = DrifterApi.listedPoints(item, true);
-			double each = listed != null ? listed : DrifterApi.worth(new ItemStack(item));
-			int wanted = (int)Math.max(1, Math.round(each * q.count * (war ? WAR_PREMIUM : SHORT_PREMIUM) / 6.0));
-			q.pay = Math.min(wanted, Rewards.money(server, town, giver, true));
-			q.worth = wanted;
+			// (Over what a stall gives for them, never as much as it sells them for: Prices.)
+			double wanted = Prices.goods(item, q.count, war ? Prices.WAR : Prices.SHORT, 1.0, Prices.SILVER);
+			q.payPts = Math.min(wanted, Rewards.money(server, town, giver, true));
+			q.worthPts = wanted;
 			q.due = Friends.now() + (war ? WAR_DAYS : SHORT_DAYS) * DAY;
 			String what = things(q.count, item);
 			q.why = war ? town.name + " is at war with " + enemy + ", and its stores are short of " + plural(name(item)) + "."
 				: town.name + " has no " + plural(name(item)) + " left in its stores.";
 			q.said = CivLines.pick(giver, war ? "quest.ask.war" : "quest.ask.short", war ? "we're at war with " + enemy + " and short of " + plural(name(item))
-				+ ". could you bring " + what + "? " + (q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it")
+				+ ". could you bring " + what + "? " + (q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it")
 				: "we're clean out of " + plural(name(item)) + ". could you bring " + what + "? "
-					+ (q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it"),
+					+ (q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it"),
 				"player", TalkApi.callName(giver, player), "what", what, "thing", plural(name(item)), "enemy", enemy == null ? "" : enemy, "town", town.name,
-				"pay", q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it");
+				"pay", q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it");
 			return q;
 		}
 
@@ -1314,14 +1319,13 @@ final class Quests {
 			q.sealed = d.sealed;
 			q.anon = d.anon;
 			q.about = d.about;
-			// (A stranger is offered half.)
-			int wanted = (int)Math.min(WORD_PAY_MOST, WORD_PAY + far / WORD_PAY_EVERY);
-			wanted = level == 0 ? Math.max(1, wanted / 2) : wanted;
-			q.pay = Math.min(wanted, Rewards.money(server, town, giver, q.forTown));
-			q.worth = wanted;
+			// (A few silver, more the further; a stranger is offered half: Prices.)
+			double wanted = Prices.word(far, level);
+			q.payPts = Math.min(wanted, Rewards.money(server, town, giver, q.forTown));
+			q.worthPts = wanted;
 			q.due = Friends.now() + WORD_DAYS * DAY;
 			q.why = d.why;
-			String pay = q.pay > 0 ? "i'll pay " + DrifterApi.moneyWords(q.pay) + " when you're back" : "i cant pay but id owe you one";
+			String pay = q.payPts > 0 ? "i'll pay " + Prices.say(q.payPts) + " when you're back" : "i cant pay but id owe you one";
 			q.said = d.ask.contains("{pay}") ? d.ask.replace("{pay}", pay) : d.ask + " " + pay;
 			return q;
 		}
@@ -1384,14 +1388,14 @@ final class Quests {
 		Quest q = new Quest();
 		q.kind = "find";
 		q.forTown = true;
-		q.pay = Math.min(FIND_PAY[level], Rewards.money(server, town, giver, true));
-		q.worth = FIND_PAY[level];
+		q.payPts = Math.min(Prices.FIND[level], Rewards.money(server, town, giver, true));
+		q.worthPts = Prices.FIND[level];
 		q.due = Friends.now() + FIND_DAYS * DAY;
 		long day = Chronicle.day(server);
 		String lost = town.lastLeft != null && day - town.lastLeftDay <= 30 ? town.lastLeft + " left, and their house stands empty. " : "A house in "
 			+ town.name + " stands empty. ";
 		q.why = lost + town.name + " wants someone to live in it and take up work.";
-		String pay = q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it";
+		String pay = q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it";
 		q.said = CivLines.pick(giver, "quest.ask.find", "we've a house standing empty and work going. if you meet someone with no home, bring them to us? " + pay,
 			"player", TalkApi.callName(giver, player), "town", town.name, "pay", pay);
 		return q;
@@ -1435,15 +1439,15 @@ final class Quests {
 			q.forTown = true;
 			q.to = one.getUUID();
 			q.toName = one.getName().getString();
-			q.pay = Math.min(DEAL_PAY[level], Rewards.money(server, town, giver, true));
-			q.worth = DEAL_PAY[level];
+			q.payPts = Math.min(Prices.DEAL[level], Rewards.money(server, town, giver, true));
+			q.worthPts = Prices.DEAL[level];
 			q.due = Friends.now() + DEAL_DAYS * DAY;
 			double dx = one.getX() - town.center.getX();
 			double dz = one.getZ() - town.center.getZ();
 			String way = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? "east" : "west") : (dz > 0 ? "south" : "north");
 			q.toRole = way;
 			q.why = q.toName + " is a bandit, about to the " + way + " of " + town.name + ", and its people aren't safe on the roads.";
-			String pay = q.pay > 0 ? "the town will pay " + DrifterApi.moneyWords(q.pay) : "the till's empty but we won't forget it";
+			String pay = q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it";
 			q.said = CivLines.pick(giver, "quest.ask.deal", "there's a bandit called " + q.toName + " out " + way + " of here. deal with them and " + pay,
 				"player", TalkApi.callName(giver, player), "who", q.toName, "way", way, "town", town.name, "pay", pay);
 			return q;
@@ -1664,21 +1668,21 @@ final class Quests {
 		if (!q.reply.isEmpty()) {
 			TalkApi.sayTo(giver, player, CivLines.pick(giver, "word.reply.heard." + (q.wordKind.isEmpty() ? "news" : q.wordKind), "they said that? thank you for bringing it back",
 				"player", TalkApi.callName(giver, player), "who", q.toName, "reply", q.reply));
-			if (q.pay > 0) {
-				q.pay += REPLY_PAY;
+			if (q.payPts > 0) {
+				q.payPts += Prices.REPLY;
 			}
 		}
 
 		// What it's worth (the promise, from before 0.23.65 only the money), and whether it's a big job: Rewards pays it from
 		// what's really there, money first, then in kind, a prize for a big one; nothing at all, their thanks (and experience).
-		int worth = Math.max(Math.max(q.worth, q.pay), q.kind.equals("dead") ? DEAD_WORTH : 1);
-		boolean big = worth >= Rewards.BIG || q.kind.equals("deal") || q.kind.equals("find") || q.kind.equals("bring") && q.war;
-		Rewards.Given given = Rewards.give(server, q, town, giver, player, q.pay, worth, big);
-		int paid = given.money();
+		double worth = Math.max(Math.max(q.worthPts, q.payPts), q.kind.equals("dead") ? Prices.DEAD : Prices.SILVER);
+		boolean big = worth >= Prices.BIG || q.kind.equals("deal") || q.kind.equals("find") || q.kind.equals("bring") && q.war;
+		Rewards.Given given = Rewards.give(server, q, town, giver, player, q.payPts, worth, big);
+		double paid = given.money();
 		String called = TalkApi.callName(giver, player);
 		String thanks = given.nothing() ? CivLines.pick(giver, q.kind.equals("dead") ? "quest.thanks.dead" : "quest.thanks.unpaid", "thank you. really", "player", called,
 			"dead", q.about, "who", q.toName)
-			: paid > 0 && paid < q.pay && given.things().isEmpty() && !given.made() ? CivLines.pick(giver, "town.notice.short", "thats all i have, sorry")
+			: paid > 0 && paid + 0.01 < q.payPts && given.things().isEmpty() && !given.made() ? CivLines.pick(giver, "town.notice.short", "thats all i have, sorry")
 			: paid > 0 && given.things().isEmpty() && !given.made() ? CivLines.pick(giver, "quest.thanks." + q.kind, "thank you! here, as promised", "player", called,
 				"dead", q.about, "who", q.toName)
 			: CivLines.pick(giver, "quest.thanks.gift", "thank you. here, take " + Rewards.words(given), "player", called, "what", Rewards.words(given));
@@ -1776,9 +1780,9 @@ final class Quests {
 	}
 
 	private static String payWords(Quest q) {
-		boolean big = Math.max(q.worth, q.pay) >= Rewards.BIG || q.kind.equals("deal") || q.kind.equals("find") || q.kind.equals("bring") && q.war;
+		boolean big = Math.max(q.worthPts, q.payPts) >= Prices.BIG || q.kind.equals("deal") || q.kind.equals("find") || q.kind.equals("bring") && q.war;
 		String more = big ? " A job like this may earn something more besides." : "";
-		return q.pay > 0 ? capital(DrifterApi.moneyWords(q.pay)) + (q.forTown ? ", from " + q.townName + "'s till. And " + q.townName + " will think the better of you."
+		return q.payPts > 0 ? capital(Prices.say(q.payPts)) + (q.forTown ? ", from " + q.townName + "'s till. And " + q.townName + " will think the better of you."
 			: ", from their own pockets. And they'll think the better of you.") + more
 			: q.kind.equals("dead") ? "Their thanks. It would mean a lot to them." : q.forTown ? "The till's short of money: something of the town's instead, or its thanks."
 				+ more : "No money to promise: something of theirs instead, or their thanks." + more;
@@ -2172,7 +2176,8 @@ final class Quests {
 		els.add(el(Journal.ITEM, n.item, capital(things(n.count, item)), Journal.PLAIN, more));
 		els.add(text("Throw them to " + n.posterName + " in " + where + ".", Journal.FAINT));
 		els.add(sub("What you'd get"));
-		els.add(text(capital(DrifterApi.moneyWords(Math.max(1, Math.round(n.points / 6.0)))) + ", from " + n.posterName + "'s pockets, then " + where + "'s till.",
+		// (The same sum the notice says, not rounded to emeralds: the user, 2026-11-14, a notice of 52 silver showing 50 here.)
+		els.add(text(capital(TownNotices.describe(DrifterApi.money(n.points))) + ", from " + n.posterName + "'s pockets, then " + where + "'s till.",
 			Journal.PLAIN));
 		els.add(sub("How long"));
 		long left = (n.from != null ? TownNotices.FAR_STAYS : TownNotices.STAYS) - (today - n.day);

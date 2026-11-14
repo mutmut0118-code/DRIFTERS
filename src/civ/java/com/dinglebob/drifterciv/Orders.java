@@ -316,7 +316,8 @@ final class Orders {
 			&& plain.is(net.minecraft.tags.ItemTags.TRIMMABLE_ARMOR);
 		// (In whole pieces of money, so what it says and what it takes are the same: found in testing, "half now, 1 emerald",
 		// then "1 emerald more".)
-		double price = whole(Math.max(1, Market.price(drifter, item) * Friends.price(drifter, player, standing.prices)));
+		// (What its stall would sell one for: the same scale as everything else, 0.23.68.)
+		double price = whole(Math.max(1, Market.sells(drifter, item) * Friends.price(drifter, player, standing.prices)));
 		double thrown = open == null ? 0.0 : open.paid;
 		orders.remove(open);
 		Order order = new Order(player.getUUID(), player.getGameProfile().getName(), drifter.getUUID(), drifter.getName().getString(), town.id, town.name, item,
@@ -346,11 +347,11 @@ final class Orders {
 			return false;
 		}
 
-		double has = DrifterApi.moneyHeld(till) * 6.0;
+		double has = DrifterApi.moneyHeldPoints(till);
 		Item best = null;
 		double bestPrice = 0.0;
 		for (Item item : Trades.makes(town, smith)) {
-			double price = whole(Math.max(1, Market.price(smith, item)));
+			double price = whole(Math.max(1, Market.sells(smith, item)));
 			if (price <= has && (best == null || price > bestPrice)) {
 				best = item;
 				bestPrice = price;

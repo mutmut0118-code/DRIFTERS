@@ -337,7 +337,7 @@ An addon adds its own things to ask through the chat handler above, and these:
 | `TalkApi.registerHistory(drifter -> list)` | What happened round it lately, as it would tell it ({what, when}, newest first): "what happened here" (API 16). |
 | `TalkApi.registerOwner((drifter, pos) -> name)` | Whose a place is, as it knows ("whose house is this") (API 16). |
 | `TalkApi.itemNamed(text)`, `comeHelp(drifter, player)` | The item a message names; it comes to a player's side to help (API 16). |
-| `TalkApi.askedName(text)`, `knowsOf(drifter, player, text)` | The name asked after in "where is X" when X looks like someone; whether it knows of whoever a message names (API 17). |
+| `TalkApi.askedName(text)`, `knowsOf(drifter, player, text)` | The name asked after in "where is X" when X looks like someone; whether it knows of whoever a message names (API 18). |
 
 `/drifter hear <text>` (debug): the nearest Drifter hears it as if a player beside it had typed it (the player running
 it; from the console, a stand-in player), for testing a talk without a client.
@@ -388,6 +388,10 @@ silver). Sums an addon keeps (a tax, a fine, a tribute) are counted in emeralds'
 | `DrifterApi.moneyTake(chest, emeralds)` / `moneyPut(chest, emeralds)` | Up to that much out of, or into, a chest; how much moved. Coins are changed as need be; nothing is made or lost. |
 | `DrifterApi.inCoins(text)` | Words that name a sum in emeralds ("a fine of 6 emeralds"), in coins when that mod is here. |
 | `DrifterApi.listedPoints(item, sells)` | What a stall sells or pays for one, in points, by that mod's own prices; null if it has none. |
+
+## Sums to the bronze (API 17)
+
+`DrifterApi.moneyWordsPoints(points)`, `moneyStacksPoints(points)`, `moneyHeldPoints(chest)`, `moneyTakePoints(chest, points)` (coins taken with change made, an emerald broken into coins when short; change with no room comes out with the sum) and `moneyPutPoints(chest, points)`: sums in points (an emerald 6, a silver 0.6), exact to the bronze with Numismatic Overhaul, whole emeralds (at least one) without it.
 
 ## Rules for the addon
 

@@ -117,13 +117,9 @@ final class TownNotices {
 	 * What it'll pay over an item's worth (a request pays a good deal better than the stall), and the least a notice pays
 	 * (money points: 3 emeralds; the user, 2026-11-07, "yes please" to more than "16 paper for 1 emerald").
 	 */
-	private static final double PREMIUM = 1.6;
-	/** The least a notice pays (money points: an emerald; it was 3, and every notice paid that: the user, 2026-11-14, "every board
-	 * quest is 30 silver ... can the reward be varied on how valued the item is (how easy it is to get)"). */
-	private static final double LEAST = 6.0;
 	/** Another town's notice: how far off it is (blocks) adds this much again for each this many blocks, up to this many times. */
-	private static final double FAR_EVERY = 600.0;
-	private static final double FAR_MOST = 2.5;
+	private static final double FAR_EVERY = 1500.0;
+	private static final double FAR_MOST = 1.8;
 	private static final double FAR_LEAST = 200.0;
 	private static final double FAR_REACH = 1200.0;
 	/** Another town's notice stays up this long (days): it's a journey. */
@@ -186,30 +182,9 @@ final class TownNotices {
 	 * made, farmed, mined, hunted, more; rare ones a lot), and {@code far} times for another town's.
 	 */
 	static double price(Item item, int count, double far) {
-		double each = Math.max(effort(item), DrifterApi.worth(new ItemStack(item)));
-		return Math.max(LEAST, Math.round(each * count * PREMIUM * far));
-	}
-
-	/** How hard one is to come by (points each), whatever it sells for. */
-	private static double effort(Item item) {
-		ItemStack stack = new ItemStack(item);
-		if (item == Items.DIAMOND || item == Items.ENDER_PEARL || item == Items.BLAZE_ROD || item == Items.GHAST_TEAR || item == Items.OBSIDIAN
-			|| item == Items.EMERALD || item == Items.SLIME_BALL || item == Items.PHANTOM_MEMBRANE) {
-			return 4.0;
-		}
-
-		if (item == Items.IRON_INGOT || item == Items.GOLD_INGOT || item == Items.COPPER_INGOT || item == Items.LEATHER || item == Items.STRING
-			|| item == Items.COAL || item == Items.FEATHER || item == Items.GUNPOWDER || item == Items.BONE || item == Items.REDSTONE || item == Items.LAPIS_LAZULI
-			|| item == Items.WHITE_WOOL || stack.is(net.minecraft.tags.ItemTags.WOOL)) {
-			return 0.6;
-		}
-
-		if (item == Items.GLASS || item == Items.PAPER || item == Items.STONE_BRICKS || item == Items.BREAD || item == Items.TORCH || item == Items.BRICK
-			|| item == Items.BOOK || stack.has(net.minecraft.core.component.DataComponents.FOOD)) {
-			return 0.35;
-		}
-
-		return 0.15;
+		// (Over what a stall gives, never as much as it sells for: one scale with the stalls (Prices; the user, 2026-11-14,
+		// "doing one board quest makes me mega rich").)
+		return Prices.goods(item, count, Prices.NOTICE, far, Prices.NOTICE_LEAST);
 	}
 
 	/**
@@ -365,14 +340,16 @@ final class TownNotices {
 
 	/** It pays the player this much: its own money first, then the till's, handed over (tossed to them). */
 	private static void pay(MinecraftServer server, Town town, DrifterEntity poster, Player player, double points) {
-		List<ItemStack> paid = new ArrayList<>();
-		double left = points;
-		left = take(poster.getInventory(), left, paid);
+		// (To the bronze, change made, not a whole piece at a time: found in review, a silver's notice paid from a till whose
+		// first money was an emerald paid ten silver.)
+		double got = DrifterApi.moneyTakePoints(poster.getInventory(), points);
 		Container till = till(server, town);
-		if (left > 0 && till != null) {
-			left = take(till, left, paid);
-			till.setChanged();
+		if (got + 0.001 < points && till != null) {
+			got += DrifterApi.moneyTakePoints(till, points - got);
 		}
+
+		double left = points - got;
+		List<ItemStack> paid = DrifterApi.moneyStacksPoints(got);
 
 		poster.getCamera().track(player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
 		// (Alike together: a handful of emeralds, not one at a time.)
@@ -408,8 +385,11 @@ final class TownNotices {
 		return points;
 	}
 
+	/** Money as it's said: "52 silver", "3 emeralds" (not "52 silver coin"; the user, 2026-11-14). */
 	static String describe(ItemStack money) {
-		return money.getCount() + " " + money.getHoverName().getString().toLowerCase(java.util.Locale.ROOT);
+		String name = money.getHoverName().getString().toLowerCase(java.util.Locale.ROOT);
+		String unit = name.endsWith(" coin") ? name.substring(0, name.length() - 5) : money.getCount() == 1 || name.endsWith("s") ? name : name + "s";
+		return money.getCount() + " " + unit;
 	}
 
 	/** Its notices up now, said (and the warning). */
