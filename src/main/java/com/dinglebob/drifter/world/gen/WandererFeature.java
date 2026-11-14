@@ -40,6 +40,10 @@ public class WandererFeature extends Feature<NoneFeatureConfiguration> {
 
 	@Override
 	public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+		if (!DrifterFeatures.realWorld(context.level())) {
+			return false;
+		}
+
 		if (!DrifterConfig.worldgenWanderers()) {
 			return false;
 		}

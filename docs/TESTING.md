@@ -6,6 +6,20 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.62-side.1: two fixes for Voxy SeedGen (new, 2026-11-14)
+
+With Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST):
+
+1. **Far land round your town, not round the first spot.** Make a new world, pick a nation in "Who are you?" and press
+   Begin. Wanted: within a few seconds the far land starts filling in round the town you're put in, not thousands of
+   blocks away with a gap of air between. (Before: it finished a huge circle round the default start first.) The same
+   after any long `/tp`. In the log (`logs/latest.log`) there's a line
+   `[far] moved a long way (to x, z): Voxy SeedGen's fill stopped, to start over here`.
+2. **Your Voxy SeedGen "keep up with me" setting stays on** after that (Sodium's video settings, Voxy SeedGen page).
+3. **No phantom wanderers.** Nothing to see in game; in the log there should be no
+   `[Drifter] world gen: ... wanderer at` lines from a `VoxySeedGen worker` (there were 1,408 in one session). Wanderers
+   and camps in the real world are as before.
+
 ## Getting the latest version (no coding needed)
 
 **Local sessions (since session 2):** Claude builds the mod on your computer and copies the new jar straight into the

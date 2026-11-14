@@ -36,10 +36,29 @@ No product code yet.
 5. *Voxy + Voxy SeedGen* (the user, 2026-11-14: "there is actually another mod", then "Voxy first"): **tried, works**,
    lamps glow (run D; a guarded mixin on Voxy SeedGen's column writers). It's the first hookup to be built (plan Task
    5b), then Distant Horizons, then Meridian.
-6. *Two compat bugs found with Voxy SeedGen, not paper towns* (findings file, last section): the far land is filled
-   round the default start, not the nation's town the player is then moved to (the user's "chunks always generate at
-   0,0"); and Voxy SeedGen runs Drifter's wanderer world-gen feature in its own stand-in world (1,408 phantom
-   "wanderer" lines in the user's log). Fixes proposed, waiting for the user's yes.
+6. *Two compat bugs found with Voxy SeedGen, not paper towns*: **fixed in 0.23.62-side.1** (the user: "Yes, bugs
+   first"; see "0.23.62-side.1" below).
+
+## 0.23.62-side.1: two fixes for Voxy SeedGen (2026-11-14, branch `claude/elastic-leakey-afebd2`)
+
+Found while trying paper towns in Voxy; read from the user's own log. Not yet in the main line
+(`claude/gifted-archimedes-n6yen5` is at 0.23.62): merge this branch there.
+
+- **Far land filled round the wrong place** (the user: "the chunks always generate at 0,0 and not where the player is
+  spawned ... a huge wall of chunks and air before the chunks loaded in the town im in"). Voxy SeedGen fills round where
+  the player stood when its fill began (the default start), a pass of 945,024 chunks (114 s), and looks at the player's
+  place again only when the pass is done; "Who are you?" had by then moved the player to their nation's town 3,200
+  blocks off. Fix: `client/FarFollow` (addon, client): a move of more than 512 blocks in one tick, with `voxyseedgen`
+  loaded and its "keep up" setting on, calls `mobius.voxyseedgen.voxy.SeedFill.stopForWorldClosing()` by name; Voxy
+  SeedGen starts a new fill round the new place within a second (tested in the dev client: "fill started ... from chunk
+  -269, 256" a second after a 2,700 block `/tp`). **Not `SeedFill.stop()`**: that one is the player's own stop, it
+  switches "keep up" off in their settings and saves it (found in the first test).
+- **Phantom wanderers.** Voxy SeedGen (and DH SeedGen) run every mod's world-gen features in a stand-in world of their
+  own, off the server thread; `WandererFeature` made a Drifter each time (1,408 in one session of the user's).
+  `DrifterFeatures.realWorld(level)` (a `WorldGenRegion`, or the `ServerLevel` for `/place`): `WandererFeature` and
+  `CampFeature` do nothing elsewhere. Dev client with Voxy SeedGen: 0 such lines (before: dozens in the first seconds).
+- Known and left: Voxy SeedGen logs once that it "could not paint drifter:cave_torches into a chunk in memory" and
+  leaves it out (harmless).
 
 ## Current state (session 2, local, 2026-10-15 afternoon)
 

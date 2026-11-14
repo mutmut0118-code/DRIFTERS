@@ -28,6 +28,16 @@ public final class DrifterFeatures {
 	private DrifterFeatures() {
 	}
 
+	/**
+	 * Is this the game's own world being made (a chunk's generation region, or the level itself for /place)? Far-view mods
+	 * (Voxy SeedGen, Distant Horizons SeedGen) run every mod's features in a stand-in world of their own, off the server
+	 * thread, to see what to draw: features that make Drifters must do nothing there (found 2026-11-14: 1,408 wanderers
+	 * "placed" in Voxy SeedGen's stand-in world in one session, each making a Drifter and asking the census).
+	 */
+	static boolean realWorld(net.minecraft.world.level.WorldGenLevel level) {
+		return level instanceof net.minecraft.server.level.WorldGenRegion || level instanceof net.minecraft.server.level.ServerLevel;
+	}
+
 	private static <F extends Feature<?>> F register(String name, F feature) {
 		return Registry.register(BuiltInRegistries.FEATURE, Drifter.id(name), feature);
 	}
