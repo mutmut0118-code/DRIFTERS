@@ -14,7 +14,7 @@ import net.fabricmc.loader.api.FabricLoader;
  * other, and nothing of it is touched (the far view is then drawn without the sketched towns).
  */
 public final class FarVoxyPlugin implements IMixinConfigPlugin {
-	static final boolean WANTED = FabricLoader.getInstance().getModContainer("voxyseedgen")
+	public static final boolean WANTED = FabricLoader.getInstance().getModContainer("voxyseedgen")
 		.map(mod -> mod.getMetadata().getVersion().getFriendlyString().startsWith("0.3.")).orElse(false);
 
 	@Override

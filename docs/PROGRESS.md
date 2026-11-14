@@ -4,7 +4,7 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Towns and roads in the far view (paper towns): built for Voxy, 0.23.63-side.1 (2026-11-14)
+## Towns and roads in the far view (paper towns): built for Voxy and Distant Horizons, 0.23.63-side.2 (2026-11-14)
 
 Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`,
 the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings.md`. Branch
@@ -32,8 +32,21 @@ the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings
   `src/voxyStub`, in no jar). Dev client, seed 779: unbuilt towns and lit roads in Voxy's far view, day and midnight
   (`docs/superpowers/shots/paper-voxy-*.png`); without Voxy the game starts clean.
 
-**Not done yet:** Task 5 (sketches sent to a LAN guest), Task 6 (Distant Horizons), Task 7 (Meridian), Task 8 (LAN,
-timing, the whole-branch review). **Not yet checked:** the installed (remapped) jar with Voxy in the user's own game
+- **Task 6, the Distant Horizons hookup** (0.23.63-side.2; DH 3.3.x; `FarDh`, common code: it runs where the world is
+  hosted). A world generator override that wraps the generator DH would have used (its own, or DH SeedGen's) and
+  paints the result, as the spike proved; DH's API from Modrinth's maven, compile-only
+  (`distant_horizons_version=3.3.3-1.21.1`). Dev client, seed 779: an unbuilt city in DH's far view by day, lit at
+  midnight (`docs/superpowers/shots/paper-dh-*.png`); 30 touched pieces painted in 108 ms on DH's threads. Not built:
+  holding a piece back until a place's sketch is ready (as with Voxy: a brand-new world's first seconds). Not run in
+  the product with DH SeedGen (the spike ran that pairing).
+- **Task 5, sketches to a guest** (0.23.63-side.2; `FarSync`, `client/FarView`): a guest whose own game draws the far
+  view (Voxy with Voxy SeedGen) asks once; the server sends every sketch and road compressed (18 sketches and 16 roads:
+  28 KB, one part; parts of 400,000 bytes at most), again when they change, and a small state packet whenever a place
+  is built or a road piece laid. Tested by the game sending them to itself (`DRIFTER_FAR_TEST=1`: the counts the client
+  held matched the server's). **Not tested with a real second player over LAN.** A guest stops drawing a place when
+  the host says it's built (not when its own game loads it, as the plan first had it).
+
+**Not done yet:** Task 7 (Meridian), Task 8 (a real LAN run, timing against the main line, the whole-branch review). **Not yet checked:** the installed (remapped) jar with Voxy in the user's own game
 (the hookup was only run in the dev game); walking up to a sketched town and watching the real one take over; a world
 whose far land Voxy had already filled before this version (its old far view stays where it was filled).
 

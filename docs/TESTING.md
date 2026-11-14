@@ -26,6 +26,15 @@ already played, far land Voxy has already filled in keeps its old look.
 Debug (cheats on): `/drifterciv sketch info` (the nearest planned place's sketch), `/drifterciv sketch check`,
 `/drifterciv sketch painted`.
 
+**With Distant Horizons instead (0.23.63-side.2, new):** switch Voxy and Voxy SeedGen off and Distant Horizons on (with
+or without its SeedGen), make a new world, and check the same four things (towns far away, roads, night, walking up).
+Distant Horizons makes far land slowly without SeedGen: give it a few minutes. Log line:
+`[far] Distant Horizons: towns and roads are painted into its far view (ready)`.
+
+**LAN (0.23.63-side.2, new, not yet tried with two players):** a friend who joins your world with Voxy and Voxy SeedGen
+(and both Drifter jars) should see the far towns and roads too. Their log should say
+`[far] N sketches and M roads came from the server`.
+
 ## 0.23.63-side.1 (first out as 0.23.62-side.1): two fixes for Voxy SeedGen (new, 2026-11-14)
 
 With Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST):

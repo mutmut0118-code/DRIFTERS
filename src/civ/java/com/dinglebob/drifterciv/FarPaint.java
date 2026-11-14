@@ -468,6 +468,12 @@ public final class FarPaint {
 	// ---------------------------------------------------------------------------------------------
 
 	private static long stamp = Long.MIN_VALUE;
+	private static volatile List<Road> serverRoads = List.of();
+
+	/** The roads the server's painter holds now (for sending to a client: {@link FarSync}). */
+	static List<Road> serverRoads() {
+		return serverRoads;
+	}
 
 	static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -477,6 +483,7 @@ public final class FarPaint {
 		});
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			SERVER.clear();
+			serverRoads = List.of();
 			stamp = Long.MIN_VALUE;
 		});
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> dispatcher.register(
@@ -594,6 +601,7 @@ public final class FarPaint {
 			roads.add(new Road(h, line, bridge, road.built, seed ^ road.from.getLeastSignificantBits() * 31L ^ road.to.getMostSignificantBits()));
 		}
 
+		serverRoads = roads;
 		SERVER.set(Sketches.all(), built, roads);
 	}
 }
