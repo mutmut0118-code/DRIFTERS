@@ -47,12 +47,18 @@ final class RoadLamps {
 	private RoadLamps() {
 	}
 
-	/** A lamp every this many blocks along a road. */
-	static final int EVERY = 28;
+	/** A lamp every this many blocks along a road (the user, 2026-11-14: "make the lamps a bit closer to eachother"; was 28). */
+	static final int EVERY = 22;
 	/** None this near a road's ends (the towns' own streets). */
 	static final int END_GAP = 24;
-	/** A distance sign at the first lamp out of each town, and every this many lamps after (about 250 blocks). */
-	static final int SIGN_EVERY = 9;
+	/**
+	 * A distance sign every this many lamps (about 500 blocks; the user, 2026-11-14: "with rarer distance signs"), besides the
+	 * one where a road leaves each town ({@link #START}).
+	 */
+	static final int SIGN_EVERY = 23;
+	/** Where a road leaves a town, a lamp with a distance sign this far along it (the user: "replace the sign at the start of
+	 * every road from a town to a distance sign"; it was a standing signpost). */
+	static final double START = 8;
 	/** One lamp in this many is the one with two lanterns (where there's one). */
 	static final int DOUBLE_ONE_IN = 6;
 	/** Its post this far out from the road's line (the road reaches about three: a block of grass between). */
@@ -102,7 +108,7 @@ final class RoadLamps {
 				continue;
 			}
 
-			boolean sign = k == first || k == last || k % SIGN_EVERY == 0;
+			boolean sign = k % SIGN_EVERY == 0;
 			boolean twin = !sign && hash(k, salt) < 1.0 / DOUBLE_ONE_IN;
 			int side = (k & 1) == 0 ? 1 : -1;
 			if (one(level, points, s, at, side, sign, twin, from, to, total, ways)) {
@@ -111,6 +117,19 @@ final class RoadLamps {
 		}
 
 		return count;
+	}
+
+	/**
+	 * The lamp with a distance sign where the road leaves a town: at its start ({@code atStart}, the {@code from} town's end)
+	 * or its end, on the side a signpost stood. Whether it stood.
+	 */
+	static boolean leaving(ServerLevel level, List<double[]> points, double[] s, boolean atStart, String from, String to, Set<Long> ways) {
+		double total = s[s.length - 1];
+		if (total < 2 * START) {
+			return false;
+		}
+
+		return one(level, points, s, atStart ? START : total - START, atStart ? 1 : -1, true, false, from, to, total, ways);
 	}
 
 	/** One lamp {@code at} this far along, on this side ({@code 1} left of the way it goes): tried a few blocks either way. */
@@ -268,26 +287,42 @@ final class RoadLamps {
 			// (Its front faces this way; one reading it looks, and walks, the other.)
 			Direction faces = Direction.fromYRot(rotation * 22.5);
 			boolean frontTo = -faces.getStepX() * hx - faces.getStepZ() * hz > 0;
-			entity.setText(text(frontTo ? to : from, frontTo ? total - at : at), true);
-			entity.setText(text(frontTo ? from : to, frontTo ? at : total - at), false);
+			long seed = pos.asLong();
+			entity.setText(text(frontTo ? to : from, frontTo ? total - at : at, seed), true);
+			entity.setText(text(frontTo ? from : to, frontTo ? at : total - at, seed * 31 + 7), false);
 			entity.setChanged();
 			level.sendBlockUpdated(pos, state, level.getBlockState(pos), Block.UPDATE_CLIENTS);
 		}
 	}
 
-	/** A face of the sign: the town's name (on two lines if it's long) and how far. */
-	private static SignText text(String name, double far) {
-		String one = name;
-		String two = "";
-		int cut = name.lastIndexOf(' ', 11);
-		if (name.length() > 11 && cut > 0) {
-			one = name.substring(0, cut);
-			two = name.substring(cut + 1);
+	/**
+	 * A face of the sign, in a few words (the user, 2026-11-14: "make the distance signs prose"): the town and about how far
+	 * ("Ashford / lies some / 200 blocks / this way"); right by the town, a welcome. Hanging signs are narrow: ten letters or
+	 * so a line, the town's name on a line of its own.
+	 */
+	static SignText text(String name, double far, long seed) {
+		if (far < 60) {
+			return lines("Welcome to", name, "", "");
 		}
 
-		String distance = Math.round(far) + " blocks";
-		return two.isEmpty() ? new SignText().setMessage(1, Component.literal(one)).setMessage(2, Component.literal(distance))
-			: new SignText().setMessage(0, Component.literal(one)).setMessage(1, Component.literal(two)).setMessage(2, Component.literal(distance));
+		long n = far < 100 ? Math.max(10, Math.round(far / 10) * 10) : far < 1000 ? Math.round(far / 50) * 50 : Math.round(far / 100) * 100;
+		// (A name too long for a line: on two, and the distance plainly.)
+		int cut = name.lastIndexOf(' ', 11);
+		if (name.length() > 11 && cut > 0) {
+			return lines(name.substring(0, cut), name.substring(cut + 1), "some " + n, "blocks on");
+		}
+
+		return switch ((int)Math.floorMod(seed ^ (seed >>> 29), 4L)) {
+			case 0 -> lines(name, "lies some", n + " blocks", "this way");
+			case 1 -> lines("This road", "goes on to", name + ",", n + " blocks");
+			case 2 -> lines(name + " is", "about " + n, "blocks down", "this road");
+			default -> lines("Walk " + n, "blocks to", "reach", name);
+		};
+	}
+
+	private static SignText lines(String a, String b, String c, String d) {
+		return new SignText().setMessage(0, Component.literal(a)).setMessage(1, Component.literal(b)).setMessage(2, Component.literal(c))
+			.setMessage(3, Component.literal(d));
 	}
 
 	private static double hash(int k, long salt) {

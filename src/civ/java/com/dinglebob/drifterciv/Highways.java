@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.Blocks;
  * ({@link WorldPlan}), built a stretch at a time (about 48 blocks) as a player comes within twelve chunks of it, its land
  * loaded first, as towns are. A worn dirt path three wide, built up a block a step over dips, with a slab or stairs where it
  * climbs and a railed bridge on piers over water; the stretch at a town's end waits for the town and runs on to meet its
- * roads, a signpost there saying where it goes and how far.
+ * roads, a lamp with a distance sign there saying where it goes and how far.
  */
 final class Highways {
 	private Highways() {
@@ -38,7 +38,19 @@ final class Highways {
 	/** How far a stretch at a town's end may reach to meet its roads. */
 	private static final int MEET_WITHIN = 64;
 	private static final TicketType<ChunkPos> TICKET = TicketType.create("drifter_civ_road", Comparator.comparingLong(ChunkPos::toLong));
-	private static final Map<String, ChunkPos> loading = new HashMap<>();
+	/**
+	 * The stretches whose land is loading, by "road:stretch": the chunk its land is asked for round, the chunks out to the
+	 * town's roads it runs on to, and the tick it was asked for.
+	 */
+	private record Loading(ChunkPos chunk, List<ChunkPos> far, int since) {
+	}
+
+	private static final Map<String, Loading> loading = new HashMap<>();
+	/**
+	 * A stretch's land not loaded in this long is let go (asked for again later), so it doesn't hold a place in the
+	 * {@link #AT_ONCE} the others wait for.
+	 */
+	private static final int LOAD_PATIENCE = 1200;
 	/** Debug: build every stretch near this (forced, player or not). */
 	@Nullable
 	static BlockPos forcedNear;
@@ -77,6 +89,21 @@ final class Highways {
 		}
 
 		wanted.sort(Comparator.comparingInt(one -> one[2]));
+		// (Stretches no longer near enough, built, or waiting too long, let go with their land: kept, they held their places
+		// in the few loading at once for good, and no other road was built all game; the user, 2026-11-14: "some roads
+		// between towns are not spawning?". The loading screen ended with six of them, far out, a player flying or
+		// teleporting left them behind.)
+		java.util.Set<String> still = new java.util.HashSet<>();
+		for (int[] one : wanted) {
+			still.add(one[0] + ":" + one[1]);
+		}
+
+		for (String key : new ArrayList<>(loading.keySet())) {
+			if (!still.contains(key) || server.getTickCount() - loading.get(key).since() > LOAD_PATIENCE) {
+				release(level, key);
+			}
+		}
+
 		for (int[] one : wanted) {
 			int h = one[0];
 			int p = one[1];
@@ -119,22 +146,19 @@ final class Highways {
 					}
 
 					level.getChunkSource().addRegionTicket(TICKET, chunk, LOAD_RADIUS, chunk);
-					loading.put(key, chunk);
+					List<ChunkPos> fars = new ArrayList<>();
 					for (int[] end : ends) {
 						ChunkPos far = new ChunkPos(end[2] >> 4, end[3] >> 4);
 						level.getChunkSource().addRegionTicket(TICKET, far, LOAD_RADIUS, far);
+						fars.add(far);
 					}
 
+					loading.put(key, new Loading(chunk, fars, server.getTickCount()));
 					continue;
 				}
 
 				if (!loaded(level, road, a, b) || ends.stream().anyMatch(end -> !loadedAlong(level, end))) {
 					continue;
-				}
-
-				for (int[] end : ends) {
-					ChunkPos far = new ChunkPos(end[2] >> 4, end[3] >> 4);
-					level.getChunkSource().removeRegionTicket(TICKET, far, LOAD_RADIUS, far);
 				}
 
 				long started = System.nanoTime();
@@ -145,12 +169,24 @@ final class Highways {
 				}
 
 				road.built[p] = true;
-				level.getChunkSource().removeRegionTicket(TICKET, chunk, LOAD_RADIUS, chunk);
-				loading.remove(key);
+				release(level, key);
 				Towns.save(server);
 				// (One stretch a go: a few milliseconds each.)
 				return;
 			}
+		}
+	}
+
+	/** A stretch's land let go: its tickets taken back, its place in the loading freed. */
+	private static void release(ServerLevel level, String key) {
+		Loading was = loading.remove(key);
+		if (was == null) {
+			return;
+		}
+
+		level.getChunkSource().removeRegionTicket(TICKET, was.chunk(), LOAD_RADIUS, was.chunk());
+		for (ChunkPos far : was.far()) {
+			level.getChunkSource().removeRegionTicket(TICKET, far, LOAD_RADIUS, far);
 		}
 	}
 
@@ -224,7 +260,7 @@ final class Highways {
 		return true;
 	}
 
-	/** One stretch built: its points, joined at a town's end to the nearest of the town's roads, a signpost there. */
+	/** One stretch built: its points, joined at a town's end to the nearest of the town's roads, a lamp with a distance sign there. */
 	private static void build(ServerLevel level, WorldPlan.Highway road, int piece, int a, int b) {
 		List<double[]> corners = new ArrayList<>();
 		List<double[]> smooth = smooth(road);
@@ -258,12 +294,19 @@ final class Highways {
 			int[] q = road.points.get(road.points.size() - 2);
 			TownBuilder.dock(level, p[0], p[1], p[0] - q[0], p[1] - q[1], placeName(road.to));
 		}
-		if (first) {
-			sign(level, corners, true, road.to);
-		}
+		// (Where it leaves a town, a lamp with a distance sign; it was a standing signpost.)
+		if (first || last) {
+			List<double[]> smooth2 = smooth(road);
+			double[] s = RoadLamps.along(smooth2);
+			java.util.Set<Long> notOn = new java.util.HashSet<>(ways);
+			notOn.addAll(townRoads);
+			if (first) {
+				RoadLamps.leaving(level, smooth2, s, true, placeName(road.from), placeName(road.to), notOn);
+			}
 
-		if (last) {
-			sign(level, corners, false, road.from);
+			if (last) {
+				RoadLamps.leaving(level, smooth2, s, false, placeName(road.from), placeName(road.to), notOn);
+			}
 		}
 	}
 
@@ -468,36 +511,6 @@ final class Highways {
 		return line;
 	}
 
-	/** A signpost by the road a little out from a town: where the road goes, and how far. */
-	private static void sign(ServerLevel level, List<double[]> corners, boolean atStart, java.util.UUID to) {
-		WorldPlan.Place place = WorldPlan.place(to);
-		if (place == null || corners.size() < 3) {
-			return;
-		}
-
-		double[] at = atStart ? corners.get(2) : corners.get(corners.size() - 3);
-		double[] toward = atStart ? corners.get(3 < corners.size() ? 3 : corners.size() - 1) : corners.get(Math.max(0, corners.size() - 4));
-		double heading = Math.atan2(toward[1] - at[1], toward[0] - at[0]);
-		int x = (int)Math.floor(at[0] + Math.cos(heading + Math.PI / 2) * 3.7);
-		int z = (int)Math.floor(at[1] + Math.sin(heading + Math.PI / 2) * 3.7);
-		BlockPos spot = new BlockPos(x, TownBuilder.ground(level, x, z) + 1, z);
-		if (!level.getBlockState(spot).isAir() || !level.getBlockState(spot.below()).isFaceSturdy(level, spot.below(), net.minecraft.core.Direction.UP)) {
-			return;
-		}
-
-		// (Facing along the road the way it goes: a player walking out reads it.)
-		float yaw = (float)Math.toDegrees(heading) - 90;
-		int rotation = net.minecraft.util.Mth.floor((yaw + 180) * 16.0 / 360.0 + 0.5) & 15;
-		level.setBlock(spot, Blocks.OAK_SIGN.defaultBlockState().setValue(net.minecraft.world.level.block.StandingSignBlock.ROTATION, rotation), 3);
-		if (level.getBlockEntity(spot) instanceof net.minecraft.world.level.block.entity.SignBlockEntity sign) {
-			int far = (int)Math.round(Math.hypot(place.x - at[0], place.z - at[1]));
-			var text = new net.minecraft.world.level.block.entity.SignText().setMessage(1, Component.literal(place.name)).setMessage(2, Component.literal(far
-				+ " blocks"));
-			sign.setText(text, true);
-			sign.setText(text, false);
-		}
-	}
-
 	/**
 	 * Debug: a road from {@code from} the way {@code yaw} looks, bending a little as it goes, built in stretches as the
 	 * plan's roads are (each told of the others' ways), on land that's loaded. How many stretches.
@@ -575,6 +588,7 @@ final class Highways {
 			}
 		}
 
-		return WorldPlan.highways.size() + " roads, " + built + " of " + pieces + " stretches built";
+		// (And the stretches whose land is loading now, road:stretch at chunk: a stretch never let go of held up every road.)
+		return WorldPlan.highways.size() + " roads, " + built + " of " + pieces + " stretches built; loading " + loading.size() + " " + loading.keySet();
 	}
 }

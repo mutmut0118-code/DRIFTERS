@@ -406,8 +406,6 @@ public final class TownBuilder {
 	 */
 	private static final int PAD_REACH = 2;
 	private static final int GROUND_PIECE = 24;
-	/** This many households or fewer: a hamlet (its roads and paths dirt and gravel). */
-	private static final int HAMLET = 5;
 
 	public static Result spawn(ServerLevel level, BlockPos at, int households, @Nullable String wanted) {
 		String dimension = level.dimension().location().toString();
@@ -2276,7 +2274,7 @@ public final class TownBuilder {
 		/**
 		 * Its roads' blocks (W1; the user, 2026-10-30: "when the roads are mixed, it should be of the same type, like stone
 		 * texturing for cities, and planks for towns, just path blocks for hamlets"): a city's stone bricks (some cracked, some
-		 * mossy; sandstone in the desert), a town's planks of its own wood, a hamlet's dirt path.
+		 * mossy; sandstone in the desert); a town's and a hamlet's the worn mix of the roads between towns.
 		 */
 		private BlockState paving() {
 			float roll = this.random.nextFloat();
@@ -2285,41 +2283,37 @@ public final class TownBuilder {
 					: roll < 0.7F ? Blocks.STONE_BRICKS : roll < 0.85F ? Blocks.CRACKED_STONE_BRICKS : Blocks.MOSSY_STONE_BRICKS).defaultBlockState();
 			}
 
-			if (this.households > HAMLET) {
-				return wood("planks").defaultBlockState();
-			}
-
-			// (A hamlet's streets: the worn mix the roads between towns have; the user, 2026-11-13. Sandstone in a desert.)
+			// (A town's and a hamlet's streets: the worn mix the roads between towns have; the user, 2026-11-13 for hamlets, and
+			// 2026-11-14 for towns: "replace the wooden paths with the road paths (hamlet paths) in a town". Sandstone in a
+			// desert.)
 			return (this.look == Style.DESERT ? Blocks.SMOOTH_SANDSTONE : roll < 0.5F ? Blocks.PACKED_MUD : roll < 0.78F ? Blocks.ROOTED_DIRT : Blocks.COARSE_DIRT)
 				.defaultBlockState();
 		}
 
 		/**
-		 * The slab where its roads and paths climb, half a block between two levels: a city's stone brick (sandstone), a town's
-		 * wood, a hamlet's path slab if Terrain Slabs is installed (its wood's otherwise).
+		 * The slab where its roads and paths climb, half a block between two levels: a city's stone brick (sandstone); a town's
+		 * and a hamlet's packed mud slab if Terrain Slabs is installed (its wood's otherwise).
 		 */
 		private BlockState pavingSlab() {
 			if (this.city) {
 				return (this.look == Style.DESERT ? Blocks.SMOOTH_SANDSTONE_SLAB : Blocks.STONE_BRICK_SLAB).defaultBlockState();
 			}
 
-			if (this.households <= HAMLET) {
-				if (this.look == Style.DESERT) {
-					return Blocks.SMOOTH_SANDSTONE_SLAB.defaultBlockState();
-				}
+			if (this.look == Style.DESERT) {
+				return Blocks.SMOOTH_SANDSTONE_SLAB.defaultBlockState();
+			}
 
-				BlockState mudSlab = WildRoad.slabOf(Blocks.PACKED_MUD.defaultBlockState());
-				if (mudSlab != null) {
-					return mudSlab;
-				}
+			BlockState mudSlab = WildRoad.slabOf(Blocks.PACKED_MUD.defaultBlockState());
+			if (mudSlab != null) {
+				return mudSlab;
 			}
 
 			return wood("slab").defaultBlockState();
 		}
 
-		/** A hamlet: dirt roads and paths, climbing by path slabs alone. */
+		/** A town or a hamlet: worn dirt roads and paths, climbing by slabs alone. */
 		private boolean gentle() {
-			return !this.city && this.households <= HAMLET;
+			return !this.city;
 		}
 
 		/**
