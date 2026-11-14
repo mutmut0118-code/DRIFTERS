@@ -4,11 +4,35 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
-## Waiting for a go: towns and roads in the far view (paper towns), 2026-11-14
+## Towns and roads in the far view (paper towns): spike done, at the gate (2026-11-14)
 
-Design approved (`docs/superpowers/specs/2026-11-14-lod-towns-design.md`), plan written and approved by the user
-("Looks right"): `docs/superpowers/plans/2026-11-14-lod-towns.md`. **On hold**: the user, 2026-11-14, "hold on building it
-because bug fixes will be coming up". Nothing is built, not even the spike (Task 0). Start only when the user says go.
+Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`
+(approved, "Looks right"; the user said "go" on 2026-11-14). **Task 0 (the throwaway spike) is done**; findings in
+`docs/superpowers/specs/2026-11-14-lod-towns-spike-findings.md`, screenshots `docs/superpowers/shots/lod-spike-*.png`.
+No product code yet.
+
+- **Distant Horizons 3.3.3: works**, through DH's API alone (a world generator override that wraps DH's own generator
+  and paints the result). Town, road, bridge deck and glowing lamps at night drawn; about 1 ms a touched section, on
+  DH's threads.
+- **DH + SeedGen 0.9.1: works with the same hook** (it wraps SeedGen's generator the same way).
+- **Meridian 0.3.0: half.** Our columns get into its pipeline (a backend under its own name, our blocks added to the
+  sampler's block table) and change the picture, but houses don't read as houses yet. No light: Meridian has no lighting
+  system (the user, 2026-11-14).
+- **Next (the plan's gate):** Tasks 5 to 7 are rewritten from the findings; the user looks at the result and answers the
+  design questions below, then Part 2 starts with Task 1.
+
+**Design questions (paper towns), each with my recommendation:**
+
+1. *Meridian's houses aren't proven.* Recommendation: build everything for Distant Horizons first (Tasks 1 to 6, ship
+   it), then give Meridian its own short try-out (Task 7); if houses still don't read there, ship Meridian with streets,
+   plazas and roads only, or ask Meridian's author for a way in.
+2. *A world whose far view was made before this feature keeps its old far view* (DH has no call to redo it) until the
+   land is visited or DH's saved data for the world is deleted. Recommendation: accept it and say so in TESTING (new
+   worlds are fine).
+3. *SeedGen may draw its own stand-in buildings where our town markers' structure sets would place something.* To be
+   checked in Task 6; recommendation if it does: stop those sets placing anything in a planned world.
+4. *LAN guests with DH* get the far view from the host only as far as DH's own networking sends it (not tested).
+   Recommendation: test in Task 8; if it doesn't arrive, leave LAN guests on DH for a later step.
 
 ## Current state (session 2, local, 2026-10-15 afternoon)
 
