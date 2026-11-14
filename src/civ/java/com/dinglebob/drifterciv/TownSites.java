@@ -247,7 +247,8 @@ final class TownSites {
 				site.ruin = place.ruin();
 			}
 
-			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin);
+			job = new TownBuilder.Job(level, site.x, site.z, site.households, place != null ? place.name : null, true, site.ruin,
+				place != null ? Sketches.seedOf(level.getSeed(), place.id) : null);
 			if (place != null) {
 				job.plannedId = place.id;
 				job.gates = List.copyOf(place.gates);

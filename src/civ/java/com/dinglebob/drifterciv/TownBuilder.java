@@ -181,7 +181,7 @@ public final class TownBuilder {
 	 * A road (the user, 2026-10-30: "curved and bending roads, roads that follow the land"): its middle line a block a step,
 	 * bending as it goes, and the columns it covers (three wide), each with the step of the line it's nearest.
 	 */
-	private static final class Road {
+	static final class Road {
 		final double[] xs;
 		final double[] zs;
 		final double[] headings;
@@ -460,8 +460,29 @@ public final class TownBuilder {
 	 * lights a piece at a time, each step a few to some tens of milliseconds. The land it's on loaded first. {@code
 	 * world}: made by world generation (where a village would be) rather than for testing.
 	 */
+	/**
+	 * A place's main roads as they'd be laid over this land (paper towns: its sketch), with what the land was found to be.
+	 * The real town's job lays its own with the same code, shape, headings and seed ({@link Job#wantShape}).
+	 */
+	record Streets(Shape shape, double[] headings, List<Road> roads, int mains, Rect plaza, boolean river, boolean coast, boolean hill, double toWater,
+		double waterAway, double waterLine, int riverWidth, double uphill) {
+	}
+
+	/** Safe off the server thread: reads the land only through {@code land}, and nothing of the town builder's shared state. */
+	static Streets streets(TownLand land, long seed, String name, int cx, int cz, int households, boolean ruin, List<Double> gates) {
+		Job job = new Job(land, seed, name, cx, cz, households, ruin);
+		job.gates = gates;
+		job.plaza = new Rect(cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA);
+		job.taken.add(job.plaza);
+		job.mainRoads();
+		return new Streets(job.shape, job.headings, List.copyOf(job.roads), job.mains, job.plaza, job.river, job.coast, job.hill, job.toWater, job.waterAway,
+			job.waterLine, job.riverWidth, job.uphill);
+	}
+
 	static final class Job {
 		final ServerLevel level;
+		/** The land its roads are laid over: the level's, or (a sketch) the land as the generator says it will be. */
+		final TownLand land;
 		final MinecraftServer server;
 		final RandomSource random;
 		final String dimension;
@@ -501,6 +522,16 @@ public final class TownBuilder {
 		/** Its shape, and how many of its roads leave the plaza (the rest are side roads off them). */
 		Shape shape;
 		private int mains;
+		/** How long its main roads are and how far it reaches (a city's are longer), its own: a sketch is made off the server thread. */
+		private final int armOf;
+		private final int reachOf;
+		/** From its sketch (paper towns): the shape and the ways its main roads leave the plaza, taken as they are. */
+		@Nullable
+		Shape wantShape;
+		@Nullable
+		double[] wantHeadings;
+		/** The ways its main roads left the plaza (none: a river's or a harbour's, which go by the water). */
+		double[] headings = new double[0];
 		private BlockPos storeAt;
 		private Direction storeFront = Direction.WEST;
 		private Direction penFront = Direction.EAST;
@@ -577,9 +608,17 @@ public final class TownBuilder {
 		private final java.util.Set<Long> pathCells = new java.util.HashSet<>();
 
 		Job(ServerLevel level, int cx, int cz, int households, @Nullable String wanted, boolean world, boolean ruin) {
+			this(level, cx, cz, households, wanted, world, ruin, null);
+		}
+
+		/** With a seed (a planned place's, {@link Sketches#seedOf}): its choices come from it, the same as its sketch's. */
+		Job(ServerLevel level, int cx, int cz, int households, @Nullable String wanted, boolean world, boolean ruin, @Nullable Long seed) {
 			this.level = level;
+			this.land = TownLand.of(level);
 			this.server = level.getServer();
-			this.random = level.getRandom();
+			// (Debug, DRIFTER_TOWN_SEED=<number>: every town's choices from that seed, so two builds' towns can be compared.)
+			String debugSeed = System.getenv("DRIFTER_TOWN_SEED");
+			this.random = debugSeed != null ? RandomSource.create(Long.parseLong(debugSeed)) : seed != null ? RandomSource.create(seed) : level.getRandom();
 			this.dimension = level.dimension().location().toString();
 			this.name = wanted != null ? wanted : Towns.newName(this.random);
 			this.cx = cx;
@@ -588,8 +627,32 @@ public final class TownBuilder {
 			this.world = world;
 			this.ruin = ruin;
 			this.city = households >= CITY && !ruin;
+			this.armOf = this.city ? CITY_ARM : ARM;
+			this.reachOf = this.city ? CITY_REACH : REACH;
 			this.shape = forcedShape != null ? forcedShape : this.city ? cityByChance(this.random) : households <= 5 ? Shape.MAIN_STREET : byChance(this.random);
 			this.steps.add(new Step("layout", this::layout));
+		}
+
+		/**
+		 * Only its main roads, over land that isn't there yet (a sketch: {@link TownBuilder#streets}): no level, nothing built.
+		 * The same draws from its seed, in the same order, as the real job's.
+		 */
+		private Job(TownLand land, long seed, String name, int cx, int cz, int households, boolean ruin) {
+			this.level = null;
+			this.land = land;
+			this.server = null;
+			this.random = RandomSource.create(seed);
+			this.dimension = "";
+			this.name = name;
+			this.cx = cx;
+			this.cz = cz;
+			this.households = households;
+			this.world = true;
+			this.ruin = ruin;
+			this.city = households >= CITY && !ruin;
+			this.armOf = this.city ? CITY_ARM : ARM;
+			this.reachOf = this.city ? CITY_REACH : REACH;
+			this.shape = forcedShape != null ? forcedShape : this.city ? cityByChance(this.random) : households <= 5 ? Shape.MAIN_STREET : byChance(this.random);
 		}
 
 		/** One step done; false when it's all made (or there's nothing to make it with). */
@@ -677,6 +740,18 @@ public final class TownBuilder {
 				DrifterCivilizations.LOGGER.info("[town] {}: {} columns already built on, kept off", this.name, this.standing.size());
 			}
 
+			this.mainRoads();
+			this.then("lots", this::lots);
+		}
+
+		/**
+		 * Its main roads, by its shape: the land looked over, the shape picked, the roads out of the plaza, a ring's or a
+		 * grid's streets, the roads out to its gates. Reads the land only through {@link #land} (a sketch's has no level).
+		 */
+		private void mainRoads() {
+			int cx = this.cx;
+			int cz = this.cz;
+			int arm = this.armOf;
 			this.survey();
 			this.pickShape();
 			// (A main street a third longer: it's most of the town.)
@@ -685,7 +760,14 @@ public final class TownBuilder {
 				case RIVER -> this.riverRoads(length);
 				case HARBOUR -> this.harbourRoads(length);
 				default -> {
-					for (double heading : this.mainHeadings()) {
+					// (Always worked out, so the draws from its seed stay in step with its sketch's; its sketch's taken if it has them.)
+					double[] ways = this.mainHeadings();
+					if (this.wantHeadings != null && this.wantHeadings.length == ways.length) {
+						ways = this.wantHeadings;
+					}
+
+					this.headings = ways;
+					for (double heading : ways) {
 						this.main(heading, length, this.laying());
 					}
 				}
@@ -732,7 +814,6 @@ public final class TownBuilder {
 			this.mains = this.roads.size();
 			DrifterCivilizations.LOGGER.info("[town] {}: {} ({} roads from the plaza{})", this.name, this.shape.id, this.mains, this.river ? ", a river "
 				+ this.riverWidth + " wide " + (int)this.waterAway + " off" : this.coast ? ", the shore " + (int)this.waterAway + " off" : this.hill ? ", a hill" : "");
-			this.then("lots", this::lots);
 		}
 
 		/**
@@ -776,22 +857,22 @@ public final class TownBuilder {
 		private double flattestAxis() {
 			double best = 0;
 			double bestCost = Double.MAX_VALUE;
-			int middle = ground(this.level, this.cx, this.cz);
+			int middle = this.land.ground(this.cx, this.cz);
 			for (int k = 0; k < 8; k++) {
 				double way = k * Math.PI / 8;
 				// (Ties broken at random, so a flat plain's streets don't all run east to west.)
 				double cost = this.random.nextDouble() * 2;
 				for (int sign = -1; sign <= 1; sign += 2) {
 					int last = middle;
-					for (int d = PLAZA + 6; d <= arm; d += 6) {
+					for (int d = PLAZA + 6; d <= this.armOf; d += 6) {
 						int x = Mth.floor(this.cx + 0.5 + sign * Math.cos(way) * d);
 						int z = Mth.floor(this.cz + 0.5 + sign * Math.sin(way) * d);
 						if (!this.inReach(x, z, 4)) {
 							break;
 						}
 
-						int g = ground(this.level, x, z);
-						cost += Math.abs(g - last) + (wet(this.level, x, z) ? 10 : 0);
+						int g = this.land.ground(x, z);
+						cost += Math.abs(g - last) + (this.land.wet(x, z) ? 10 : 0);
 						last = g;
 					}
 				}
@@ -864,7 +945,7 @@ public final class TownBuilder {
 					break;
 				}
 
-				if (wet(this.level, bx, bz)) {
+				if (this.land.wet(bx, bz)) {
 					if (++wetRun > laying.bridge()) {
 						break;
 					}
@@ -889,7 +970,7 @@ public final class TownBuilder {
 
 		/** The way on from here (of five, up to 30 degrees either side) that climbs least over the next twelve blocks. */
 		private double choose(double x, double z, double way, double heading, Laying laying) {
-			int here = ground(this.level, Mth.floor(x), Mth.floor(z));
+			int here = this.land.ground(Mth.floor(x), Mth.floor(z));
 			double best = way;
 			double bestCost = Double.MAX_VALUE;
 			for (int k = -2; k <= 2; k++) {
@@ -905,8 +986,8 @@ public final class TownBuilder {
 						break;
 					}
 
-					int g = ground(this.level, ax, az);
-					cost += Math.abs(g - last) + (wet(this.level, ax, az) ? laying.wetCost() : 0) + (ahead > 4 && this.nearRoad(ax, az, 3) ? 4 : 0);
+					int g = this.land.ground(ax, az);
+					cost += Math.abs(g - last) + (this.land.wet(ax, az) ? laying.wetCost() : 0) + (ahead > 4 && this.nearRoad(ax, az, 3) ? 4 : 0);
 					last = g;
 				}
 
@@ -940,7 +1021,7 @@ public final class TownBuilder {
 		 * and falls (a hill: 14 blocks or more between its highest and lowest).
 		 */
 		private void survey() {
-			int h0 = ground(this.level, this.cx, this.cz);
+			int h0 = this.land.ground(this.cx, this.cz);
 			int high = h0;
 			int low = h0;
 			double ux = 0;
@@ -957,12 +1038,12 @@ public final class TownBuilder {
 					}
 
 					samples++;
-					if (wet(this.level, x, z)) {
+					if (this.land.wet(x, z)) {
 						water.add(new int[] {x, z});
 						continue;
 					}
 
-					int h = ground(this.level, x, z);
+					int h = this.land.ground(x, z);
 					if (d <= 48) {
 						high = Math.max(high, h);
 						low = Math.min(low, h);
@@ -1000,7 +1081,7 @@ public final class TownBuilder {
 						break;
 					}
 
-					if (wet(this.level, x, z)) {
+					if (this.land.wet(x, z)) {
 						first = first < 0 ? d : first;
 						across++;
 					} else if (first >= 0) {
@@ -1068,7 +1149,9 @@ public final class TownBuilder {
 		/** The shape the land picks (a river, a shore, a hill), unless it's set (debug) or a city; the chance one otherwise. */
 		private void pickShape() {
 			Shape picked = this.shape;
-			if (forcedShape == null && !this.city) {
+			if (forcedShape == null && this.wantShape != null) {
+				picked = this.wantShape;
+			} else if (forcedShape == null && !this.city) {
 				picked = this.river ? Shape.RIVER : this.coast ? Shape.HARBOUR : this.hill ? Shape.HILL : this.shape;
 			} else if (forcedShape == null) {
 				// (A city on a river or a shore: a river city, a harbour city; never a hill town's terraces.)
@@ -1097,7 +1180,7 @@ public final class TownBuilder {
 			int after = -1;
 			for (int t = 0; t < bridge.length(); t++) {
 				BlockPos at = bridge.at(t);
-				boolean w = wet(this.level, at.getX(), at.getZ());
+				boolean w = this.land.wet(at.getX(), at.getZ());
 				if (w && before < 0) {
 					before = t - 1;
 				} else if (!w && before >= 0 && after < 0) {
@@ -1167,7 +1250,7 @@ public final class TownBuilder {
 					break;
 				}
 
-				wetRun = wet(this.level, bx, bz) ? wetRun + 1 : 0;
+				wetRun = this.land.wet(bx, bz) ? wetRun + 1 : 0;
 				if (wetRun > LONGEST_BRIDGE) {
 					break;
 				}
@@ -1213,7 +1296,7 @@ public final class TownBuilder {
 				int bx = Mth.floor(px);
 				int bz = Mth.floor(pz);
 				boolean ok = this.inReach(bx, bz, 2);
-				wetRun = ok && wet(this.level, bx, bz) ? wetRun + 1 : 0;
+				wetRun = ok && this.land.wet(bx, bz) ? wetRun + 1 : 0;
 				if (!ok || wetRun > LONGEST_BRIDGE) {
 					for (int left = Math.min(wetRun, LONGEST_BRIDGE); left > 0 && !line.isEmpty(); left--) {
 						line.remove(line.size() - 1);
@@ -1400,7 +1483,7 @@ public final class TownBuilder {
 
 		/** Inside the town's reach, with this much to spare. */
 		private boolean inReach(int x, int z, int spare) {
-			return Math.abs(x - this.cx) <= reach - spare && Math.abs(z - this.cz) <= reach - spare;
+			return Math.abs(x - this.cx) <= this.reachOf - spare && Math.abs(z - this.cz) <= this.reachOf - spare;
 		}
 
 		private boolean inReach(Rect rect) {
