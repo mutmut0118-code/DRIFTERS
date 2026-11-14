@@ -158,6 +158,15 @@
         "good, {who}'s heard. i owe you"
       ]
     },
+    "quest.thanks.gift": {
+      "any": [
+        "thank you {player}. here, {what}. you earned it",
+        "you did it! take {what}, its the least i can do",
+        "here, {what}. dont argue, take it",
+        "{what}. for your trouble. thank you",
+        "thats worth more than thanks. here, {what}"
+      ]
+    },
     "quest.thanks.unpaid": {
       "any": [
         "you did it. thank you {player}, i owe you one",

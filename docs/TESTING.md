@@ -3965,3 +3965,17 @@ In a **new world**.
       letter, or stand right next to them. They stop, turn to you, read it, react to what it says, and often give you a
       reply to take back. Go back to whoever sent you: they hear the reply and pay you. If the reply came with money, it
       has to be handed over first.
+
+## 0.23.65: better quest rewards; board notices priced by the item (new)
+
+- [ ] **Do a quest, then check your journal (J), People.** Whoever asked it should no longer be a stranger (an
+      acquaintance after one quest).
+- [ ] **What you're given.** Money as they promised; if they're short of money, something of theirs instead (iron, a
+      tool's worth of things, good food; not handfuls of apples). A big job (a long trip, finding someone, dealing with a
+      bandit, a war's supplies) can earn something more: an enchanted book, a rare drop, a modded rare item, good
+      Farmer's Delight food, or for a bandit dealt with, the smith making you a piece (go back in a day or two).
+- [ ] **Just thanks** should be rare now. When it happens, check your experience bar: you got a lump of XP (nobody
+      says so).
+- [ ] **Board notices** pay different amounts now: cheap things a little, iron and leather more, rare things a lot.
+      Some mornings a notice is from another town ("wanted in Ashford: ... bring them to ... there"): take the things
+      there, to the person named, and you're paid more the further it was.

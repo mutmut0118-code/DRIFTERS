@@ -280,9 +280,9 @@
     "word.reply.leader.greet.bad": {"any": ["tell {who} we got it", "tell {who} noted"]},
     "word.reply.heard.family": {"any": ["they said that? ha. thank you for bringing it back", "good. thats good to hear"]},
     "word.reply.heard.death": {"any": ["thank you. i hope they do come", "thank you for doing that"]},
-    "word.reply.heard.leader": {"any": ["{reply}? hm. thank you", "so thats their answer. thank you"]},
+    "word.reply.heard.leader": {"any": ["so thats their answer. thank you", "hm. good to know where we stand"]},
     "word.reply.heard.warning": {"any": ["good. glad they listened", "thank you for bringing it back"]},
-    "word.reply.heard.trade": {"any": ["{reply}? well, its an answer", "thank you for asking them"]},
+    "word.reply.heard.trade": {"any": ["well, its an answer", "thank you for asking them"]},
     "word.reply.heard.debt": {"any": ["about time", "well. thank you for bringing it"]},
     "word.reply.heard.news": {"any": ["they said that? thank you for bringing it back", "good to hear from them"]},
     "word.money.where": {
