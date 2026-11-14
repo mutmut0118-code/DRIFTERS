@@ -1025,14 +1025,15 @@ public class MineTripActivity extends Activity {
 		int start = Math.floorMod(home.mineTrips, n);
 		for (int i = 0; i < n; i++) {
 			Home.MineFace face = faces.get((start + i) % n);
-			if (face.dig() != Home.Dig.DOWN && Math.abs(face.at().getY() - targetY) <= 12) {
+			if (face.dig() != Home.Dig.DOWN && Math.abs(face.at().getY() - targetY) <= 12 && !com.dinglebob.drifter.social.talk.Dangers.near(this.drifter, face.at())) {
 				home.mineTrips = start + i + 1;
 				this.townFace = face;
 				return face;
 			}
 		}
 
-		java.util.List<Home.MineFace> down = faces.stream().filter(face -> face.dig() == Home.Dig.DOWN).toList();
+		java.util.List<Home.MineFace> down = faces.stream().filter(face -> face.dig() == Home.Dig.DOWN
+			&& !com.dinglebob.drifter.social.talk.Dangers.near(this.drifter, face.at())).toList();
 		if (!down.isEmpty() && down.get(0).at().getY() - targetY > 12) {
 			home.mineTrips++;
 			this.townFace = down.get(Math.floorMod(home.mineTrips, down.size()));

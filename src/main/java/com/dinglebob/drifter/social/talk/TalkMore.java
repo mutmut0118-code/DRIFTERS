@@ -53,19 +53,19 @@ final class TalkMore {
 	}
 
 	/** The glue: matched only when nothing older is meant. */
-	static final String[] GLUE = {"gm", "back", "gg_said", "later", "ew", "anyway", "btw", "already_said", "ignoring", "shut_up", "leave_me", "repeat",
+	static final String[] GLUE = {"gm", "back", "gg_said", "later", "ew", "anyway", "btw", "already_said", "ignoring", "repeat",
 		"sure", "when_q", "how_q", "who_meant", "where_that", "tell_more", "ask_me", "im_bored", "im_sad", "im_happy", "im_angry", "im_lonely",
 		"logging_off", "im_busy", "saved_me", "good_job", "condolence", "lost_stuff", "distress", "did_it", "missed_you", "love", "fun_fact",
 		"correction", "rematch", "fight_me", "are_we_good", "we_friends", "owe_me", "ready", "done_outing", "deal", "no_deal", "hurry", "slow_down"};
 	/** Things to ask and tell: matched over an older meaning when they say more. */
-	static final String[] TOPICS = {"how_long", "from_where", "what_kind", "why_doing", "standing", "next_plan", "hungry_q", "inventory", "rich",
+	static final String[] TOPICS = {"shut_up", "leave_me", "how_long", "from_where", "what_kind", "why_doing", "standing", "next_plan", "hungry_q", "inventory", "rich",
 		"item_story", "saving_for", "pets", "deaths_q", "best_find", "been_nether", "story", "dream", "building_what", "favorite", "hate_what",
 		"think_of", "rate", "good_at", "brave_q", "lonely_q", "like_here", "miss_x", "best_friend", "enemies", "strongest", "group_q", "make_up",
 		"where_find", "where_died", "which_way", "biome_q", "over_there", "bandits_q", "what_killed", "weather_q", "who_here", "who_stole", "whose",
 		"x_doing", "where_everyone", "gossip", "recipe", "ylevel", "fight_tips", "go_away", "move_aside", "meet_me", "come_up", "show_where",
 		"walk_me_home", "explore", "calm_together", "race", "eat_together", "bring_me", "craft_me", "rescue", "work_for_me", "attack_that",
 		"run_away", "stop_attacking", "yield_q", "want_this", "name_price", "give_back", "rob", "use_station", "take_from_chest", "pet_animals",
-		"dont_touch", "what_should_i_do", "look_my_house", "relay", "new_gear", "safe_now", "home_alarm", "x_died"};
+		"dont_touch", "what_should_i_do", "look_my_house", "relay", "new_gear", "safe_now", "home_alarm", "x_died", "what_happened"};
 
 	/** "a or b?" (two short choices, the whole message). */
 	private static final Pattern EITHER = Pattern.compile("^\\s*([a-z]+(?: [a-z]+)?) or ([a-z]+(?: [a-z]+)?)\\s*\\??\\s*$");
@@ -430,7 +430,7 @@ final class TalkMore {
 				if (doing == null || goal == null) {
 					say(drifter, player, "more.why_doing.nothing");
 				} else {
-					say(drifter, player, "more.why_doing", "goal", goal.name(null == null ? null : null).toLowerCase(Locale.ROOT), "doing", doing);
+					say(drifter, player, "more.why_doing", "doing", doing);
 				}
 			}
 			case "standing" -> say(drifter, player, "more.standing");
@@ -712,7 +712,10 @@ final class TalkMore {
 			}
 			case "what_killed", "x_died" -> {
 				Deaths.Death death = Deaths.named(drifter, text);
-				if (death == null) {
+				if (death == null && mine.equals("x_died") && relayTarget(drifter, text) == null) {
+					// (No one it knows named: it's about them, or someone it doesn't know.)
+					say(drifter, player, "convo.sympathy");
+				} else if (death == null) {
 					say(drifter, player, mine.equals("x_died") ? "more.x_died.doubt" : "more.killed.unknown");
 				} else {
 					var bond = drifter.getBonds().get(death.id());
@@ -934,7 +937,7 @@ final class TalkMore {
 				ItemStack offered = item != null ? new ItemStack(item) : held;
 				boolean food = offered.has(DataComponents.FOOD);
 				boolean wants = !offered.isEmpty() && (food && drifter.getFoodData().getFoodLevel() < 18 || offered.getItem() instanceof ArmorItem armor
-					&& drifter.getItemBySlot(armor.getEquipmentSlot()).isEmpty() || com.dinglebob.drifter.brain.ItemValues.of(offered) >= 5.0);
+					&& drifter.getItemBySlot(armor.getEquipmentSlot()).isEmpty() || com.dinglebob.drifter.social.ItemValues.of(offered) >= 5.0);
 				say(drifter, player, offered.isEmpty() ? "more.want.what" : wants ? "more.want.yes" : "more.want.no", "item",
 					offered.getHoverName().getString().toLowerCase(Locale.ROOT));
 			}
@@ -1168,6 +1171,14 @@ final class TalkMore {
 			if (bond.name != null && !bond.name.isBlank() && com.dinglebob.drifter.social.SocialWatcher.called(words, bond.name)
 				&& (best == null || bond.name.length() > best.length())) {
 				best = bond.name;
+			}
+		}
+
+		if (best == null) {
+			for (DrifterEntity near : drifter.level().getEntitiesOfClass(DrifterEntity.class, drifter.getBoundingBox().inflate(48.0), d -> d != drifter && d.isAlive())) {
+				if (com.dinglebob.drifter.social.SocialWatcher.called(words, near.getName().getString())) {
+					best = near.getName().getString();
+				}
 			}
 		}
 

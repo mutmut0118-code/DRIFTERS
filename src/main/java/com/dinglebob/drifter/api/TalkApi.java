@@ -101,6 +101,65 @@ public final class TalkApi {
 		void threatened(DrifterEntity drifter, ServerPlayer player, boolean all);
 	}
 
+	/** The words for its work a player might call it by ("guard", "smith", "shopkeeper", "mayor"...): lower case. */
+	@FunctionalInterface
+	public interface Roles {
+		java.util.Set<String> roles(DrifterEntity drifter);
+	}
+
+	/** What happened round it lately, as it would tell it: each {what (lower case, no full stop), when ("yesterday"...)}, newest first. */
+	@FunctionalInterface
+	public interface History {
+		java.util.List<String[]> history(DrifterEntity drifter);
+	}
+
+	/** Whose this place is (a house in its town), by name, as it knows; or null. */
+	@FunctionalInterface
+	public interface Owner {
+		@Nullable
+		String owner(DrifterEntity drifter, net.minecraft.core.BlockPos pos);
+	}
+
+	private static Roles rolesOf = drifter -> java.util.Set.of();
+	private static History historyOf = drifter -> java.util.List.of();
+	private static Owner ownerOf = (drifter, pos) -> null;
+
+	public static void registerRoles(Roles roles) {
+		rolesOf = roles;
+	}
+
+	public static void registerHistory(History history) {
+		historyOf = history;
+	}
+
+	public static void registerOwner(Owner owner) {
+		ownerOf = owner;
+	}
+
+	public static java.util.Set<String> roles(DrifterEntity drifter) {
+		return rolesOf.roles(drifter);
+	}
+
+	public static java.util.List<String[]> history(DrifterEntity drifter) {
+		return historyOf.history(drifter);
+	}
+
+	@Nullable
+	public static String owner(DrifterEntity drifter, net.minecraft.core.BlockPos pos) {
+		return ownerOf.owner(drifter, pos);
+	}
+
+	/** It comes to this player's side and helps them (fights what's at them a while), as when they call "help". */
+	public static void comeHelp(DrifterEntity drifter, ServerPlayer player) {
+		com.dinglebob.drifter.social.talk.PlayerConvo.helpPlayer(drifter, player);
+	}
+
+	/** Which of these items this message names (an item's own name, "dias", "planks"...), or null. */
+	@Nullable
+	public static net.minecraft.world.item.Item itemNamed(String text) {
+		return com.dinglebob.drifter.social.talk.PlayerTalk.itemIn(text);
+	}
+
 	private static Places placesOf = drifter -> Map.of();
 	private static ConvoFacts convoFacts = (drifter, player, words) -> {
 	};

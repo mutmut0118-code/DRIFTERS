@@ -35,6 +35,7 @@ final class TownTalk {
 		"whats_on", "tour", "take_me", "your_job"};
 
 	static void register() {
+		TownTalkMore.register();
 		TalkApi.registerPlaces(TownTalk::places);
 		TalkApi.registerConvoFacts((drifter, player, words) -> {
 			Town town = Market.townOf(drifter);
@@ -61,6 +62,11 @@ final class TownTalk {
 	private static boolean within(Town town, ServerPlayer player) {
 		return player.level().dimension().location().toString().equals(town.dimension)
 			&& Math.hypot(player.getX() - town.center.getX(), player.getZ() - town.center.getZ()) < town.land() + 16;
+	}
+
+	@Nullable
+	static String leaderName(Town town) {
+		return leader(town);
 	}
 
 	@Nullable
@@ -170,6 +176,11 @@ final class TownTalk {
 		Town town = Market.townOf(drifter);
 		if (town == null) {
 			return false;
+		}
+
+		// (Batch 2's town questions first: prices, the nation, wars...)
+		if (TownTalkMore.heard(player, drifter, text, intent, town)) {
+			return true;
 		}
 
 		String mine = TalkApi.better(text, intent, INTENTS);

@@ -1,0 +1,3264 @@
+{
+ "_comment": "Batch 2 of talking with a player (docs/PLAYER_TALK.md, rows marked 2; social/talk/TalkMore.java). 'answers': the phrases players type; 'lines': its replies by voice. Started by tools/chat_more/more_seed.py; more lines added with merge.py.",
+ "answers": {
+  "gm": [
+   "gm",
+   "good morning",
+   "morning",
+   "mornin",
+   "gm all",
+   "morning all",
+   "gm everyone",
+   "rise and shine everyone"
+  ],
+  "back": [
+   "im back",
+   "back",
+   "bk",
+   "ok im back",
+   "back now",
+   "and im back",
+   "im here now",
+   "returned",
+   "back again"
+  ],
+  "gg_said": [
+   "gg",
+   "ggs",
+   "good game",
+   "gg wp",
+   "wp",
+   "well played",
+   "gj",
+   "good job everyone",
+   "nice one everyone"
+  ],
+  "later": [
+   "later",
+   "not yet",
+   "in a bit",
+   "tomorrow",
+   "after this",
+   "maybe later",
+   "not right now",
+   "some other time",
+   "another time",
+   "soon"
+  ],
+  "ew": [
+   "ew",
+   "eww",
+   "gross",
+   "cringe",
+   "weird",
+   "sus",
+   "yikes",
+   "bruh",
+   "thats weird",
+   "thats gross",
+   "thats cringe",
+   "wtf",
+   "what the heck"
+  ],
+  "anyway": [
+   "anyway",
+   "anyways",
+   "moving on",
+   "new topic",
+   "change of subject",
+   "lets talk about something else",
+   "enough about that"
+  ],
+  "btw": [
+   "btw",
+   "by the way",
+   "oh and",
+   "one more thing",
+   "quick question",
+   "also btw",
+   "oh also",
+   "wait one more thing"
+  ],
+  "already_said": [
+   "you already said that",
+   "you said that already",
+   "you asked me that already",
+   "i told you already",
+   "i already told you",
+   "you just said that",
+   "you keep saying that",
+   "stop repeating yourself",
+   "broken record"
+  ],
+  "ignoring": [
+   "why are you ignoring me",
+   "why wont you answer",
+   "why dont you answer",
+   "rude",
+   "thats rude",
+   "ignoring me",
+   "hello rude",
+   "why are you so quiet",
+   "why arent you talking"
+  ],
+  "shut_up": [
+   "shut up",
+   "be quiet",
+   "stop talking",
+   "shh",
+   "shhh",
+   "too loud",
+   "stop spamming",
+   "quiet",
+   "zip it",
+   "pipe down",
+   "enough talking",
+   "talk less"
+  ],
+  "leave_me": [
+   "leave me alone",
+   "go away from me",
+   "stop following me",
+   "back off",
+   "dont talk to me",
+   "stop talking to me",
+   "leave me be",
+   "get away from me",
+   "stop bothering me",
+   "buzz off",
+   "dont follow me"
+  ],
+  "repeat": [
+   "say that again",
+   "what did you say",
+   "repeat that",
+   "i missed that",
+   "come again",
+   "say again",
+   "repeat",
+   "once more",
+   "huh say that again",
+   "what was that"
+  ],
+  "sure": [
+   "are you sure",
+   "you sure",
+   "positive",
+   "how do you know",
+   "how would you know",
+   "really sure",
+   "for sure",
+   "you certain"
+  ],
+  "when_q": [
+   "when",
+   "since when",
+   "how long ago",
+   "when was that",
+   "when did that happen"
+  ],
+  "how_q": [
+   "how",
+   "how so",
+   "hows that work",
+   "how did you do that",
+   "how come",
+   "how does that work"
+  ],
+  "who_meant": [
+   "who",
+   "whos that",
+   "which one",
+   "who do you mean",
+   "who are you talking about",
+   "who is that"
+  ],
+  "where_that": [
+   "where",
+   "where was that",
+   "whereabouts",
+   "where at",
+   "where is that"
+  ],
+  "tell_more": [
+   "tell me more",
+   "go on",
+   "and then",
+   "then what",
+   "what happened next",
+   "continue",
+   "keep going"
+  ],
+  "ask_me": [
+   "ask me something",
+   "ask me a question",
+   "what do you wanna know",
+   "ask me anything",
+   "got any questions",
+   "any questions for me"
+  ],
+  "im_bored": [
+   "im bored",
+   "so bored",
+   "bored",
+   "im so bored",
+   "nothing to do",
+   "theres nothing to do"
+  ],
+  "im_sad": [
+   "im sad",
+   "im feeling sad",
+   "im down",
+   "feeling down",
+   "im upset",
+   "i feel bad",
+   "im not feeling great"
+  ],
+  "im_happy": [
+   "im happy",
+   "im so happy",
+   "feeling good",
+   "im in a good mood",
+   "great day",
+   "im having a great day",
+   "best day ever"
+  ],
+  "im_angry": [
+   "im angry",
+   "im mad",
+   "im so mad",
+   "im furious",
+   "this makes me angry",
+   "im annoyed",
+   "im pissed"
+  ],
+  "im_lonely": [
+   "im lonely",
+   "i feel lonely",
+   "nobody talks to me",
+   "im all alone",
+   "i have no friends",
+   "can you stay"
+  ],
+  "logging_off": [
+   "im logging off",
+   "logging off",
+   "gtg for today",
+   "see you tomorrow",
+   "see ya tomorrow",
+   "im off for the night",
+   "done for today",
+   "time to log off",
+   "im heading out",
+   "signing off"
+  ],
+  "im_busy": [
+   "im busy",
+   "not now",
+   "cant talk",
+   "cant talk rn",
+   "busy rn",
+   "talk later",
+   "im in the middle of something"
+  ],
+  "saved_me": [
+   "you saved me",
+   "thanks for saving me",
+   "thanks for the help",
+   "couldnt have done it without you",
+   "you saved my life",
+   "lifesaver"
+  ],
+  "good_job": [
+   "good job",
+   "well done",
+   "nice shot",
+   "nice fight",
+   "youre good",
+   "nicely done",
+   "great job",
+   "good work",
+   "nice work",
+   "you did great"
+  ],
+  "condolence": [
+   "sorry about",
+   "sorry for your loss",
+   "rip your friend",
+   "sorry they died",
+   "my condolences",
+   "im sorry they died",
+   "sorry to hear about"
+  ],
+  "lost_stuff": [
+   "i lost all my stuff",
+   "i died and lost everything",
+   "lost everything",
+   "lost all my items",
+   "all my stuff is gone",
+   "i lost my stuff",
+   "my stuff despawned"
+  ],
+  "distress": [
+   "i want to die",
+   "i hate my life",
+   "i hate myself",
+   "i want to disappear",
+   "nobody cares about me",
+   "everything is pointless",
+   "i cant do this anymore"
+  ],
+  "did_it": [
+   "i did it",
+   "finally",
+   "lets gooo",
+   "i made it",
+   "yes finally",
+   "i finally did it",
+   "look i did it",
+   "ayy i did it"
+  ],
+  "missed_you": [
+   "i missed you",
+   "missed you",
+   "glad youre here",
+   "good to see you",
+   "long time no see",
+   "its been a while",
+   "did you miss me",
+   "havent seen you in ages",
+   "nice to see you again"
+  ],
+  "love": [
+   "love you",
+   "ily",
+   "i love you",
+   "hug",
+   "hugs",
+   "<3",
+   "luv u",
+   "love ya",
+   "big hug"
+  ],
+  "fun_fact": [
+   "tell me a fun fact",
+   "fun fact",
+   "did you know",
+   "tell me something interesting",
+   "teach me something",
+   "random fact"
+  ],
+  "correction": [
+   "it is raining actually",
+   "its night actually",
+   "no thats wrong",
+   "thats not right",
+   "actually its",
+   "youre wrong",
+   "thats not true",
+   "no it isnt",
+   "no its not"
+  ],
+  "rematch": [
+   "rematch",
+   "again",
+   "one more round",
+   "run it back",
+   "lets go again",
+   "best two out of three",
+   "another round"
+  ],
+  "fight_me": [
+   "fight me",
+   "come at me",
+   "you scared",
+   "coward",
+   "chicken",
+   "1v1 me bro",
+   "square up",
+   "lets fight",
+   "wanna go"
+  ],
+  "are_we_good": [
+   "are we good",
+   "are we cool",
+   "we good",
+   "we cool",
+   "are we ok",
+   "are we okay",
+   "still mad at me",
+   "are you still mad"
+  ],
+  "we_friends": [
+   "were friends remember",
+   "we're friends remember",
+   "but were friends",
+   "i thought we were friends",
+   "arent we friends"
+  ],
+  "owe_me": [
+   "you owe me",
+   "pay me back",
+   "wheres my payment",
+   "you promised",
+   "you said you would",
+   "remember your promise"
+  ],
+  "ready": [
+   "you ready",
+   "ready",
+   "are you coming",
+   "lets go",
+   "go go",
+   "you coming",
+   "come on lets go",
+   "lets move",
+   "hurry lets go"
+  ],
+  "done_outing": [
+   "im done",
+   "thats enough",
+   "lets stop",
+   "lets head back",
+   "lets go home",
+   "thats enough for today",
+   "head back",
+   "we can stop"
+  ],
+  "deal": [
+   "deal",
+   "ok deal",
+   "its a deal",
+   "you got a deal",
+   "sounds good",
+   "agreed then"
+  ],
+  "no_deal": [
+   "no deal",
+   "too much",
+   "too expensive",
+   "forget it then",
+   "thats a rip off",
+   "nah too pricey"
+  ],
+  "hurry": [
+   "hurry up",
+   "faster",
+   "keep up",
+   "move faster",
+   "speed up",
+   "hurry"
+  ],
+  "slow_down": [
+   "slow down",
+   "wait for me",
+   "not so fast",
+   "youre too fast",
+   "slow"
+  ],
+  "how_long": [
+   "how long have you been here",
+   "when did you join",
+   "how long have you lived here",
+   "how long you been here",
+   "are you new here",
+   "how old are you in game",
+   "been here long",
+   "how many days have you been here"
+  ],
+  "from_where": [
+   "where are you from",
+   "where did you come from",
+   "you from round here",
+   "are you from here",
+   "where do you come from",
+   "whats your home town"
+  ],
+  "what_kind": [
+   "what kind of player are you",
+   "whats your thing",
+   "what are you",
+   "what do you like doing",
+   "what type of player are you",
+   "whats your playstyle"
+  ],
+  "why_doing": [
+   "why are you doing that",
+   "whats that for",
+   "why are you doing",
+   "what for",
+   "why that",
+   "whats the point of that"
+  ],
+  "standing": [
+   "why are you just standing there",
+   "are you afk",
+   "are you stuck",
+   "why are you standing still",
+   "are you lost",
+   "what are you staring at"
+  ],
+  "next_plan": [
+   "whats next",
+   "what are you doing after",
+   "got plans",
+   "whats the plan today",
+   "what are you doing tomorrow",
+   "any plans",
+   "what are you up to later",
+   "whats the plan"
+  ],
+  "hungry_q": [
+   "are you hungry",
+   "did you eat",
+   "you hungry",
+   "have you eaten",
+   "you need food",
+   "hungry"
+  ],
+  "inventory": [
+   "whats in your inventory",
+   "what you got",
+   "show me your stuff",
+   "what do you have on you",
+   "whats in your bag",
+   "what are you carrying"
+  ],
+  "rich": [
+   "how many diamonds do you have",
+   "are you rich",
+   "how much money do you have",
+   "you rich",
+   "how many dias you got",
+   "got any diamonds on you"
+  ],
+  "item_story": [
+   "where did you get that",
+   "how did you make that",
+   "is that enchanted",
+   "where did you get your sword",
+   "wheres that from",
+   "what enchants does that have"
+  ],
+  "saving_for": [
+   "what are you saving up for",
+   "what are you working toward",
+   "whats your next upgrade",
+   "what do you want to get next"
+  ],
+  "pets": [
+   "do you have a farm",
+   "any pets",
+   "got a horse",
+   "do you have pets",
+   "whats your dog called",
+   "got a dog",
+   "got a cat",
+   "do you have animals"
+  ],
+  "deaths_q": [
+   "have you died",
+   "how many times have you died",
+   "how did you die last",
+   "worst death",
+   "ever died",
+   "how many deaths"
+  ],
+  "best_find": [
+   "whats the best thing youve found",
+   "found anything good",
+   "best find",
+   "whats your best find",
+   "found anything cool lately"
+  ],
+  "been_nether": [
+   "have you been to the nether",
+   "been to the nether",
+   "have you been to the end",
+   "seen the dragon",
+   "fought the dragon",
+   "killed the dragon",
+   "been to the end",
+   "ever been to the nether"
+  ],
+  "story": [
+   "tell me a story",
+   "got any stories",
+   "story time",
+   "tell me about yourself",
+   "whats the scariest thing thats happened to you",
+   "funniest thing thats happened to you",
+   "dumbest thing youve done"
+  ],
+  "dream": [
+   "whats your goal",
+   "what do you want",
+   "whats your dream",
+   "what do you want most",
+   "whats your big goal",
+   "if you could have anything"
+  ],
+  "building_what": [
+   "what are you building",
+   "what will it be",
+   "whats that going to be",
+   "what is that build",
+   "what are you making"
+  ],
+  "favorite": [
+   "whats your favorite",
+   "favorite",
+   "fav",
+   "whats your fav",
+   "what is your favorite",
+   "favourite"
+  ],
+  "hate_what": [
+   "what do you hate",
+   "least favorite mob",
+   "what annoys you",
+   "what do you hate most",
+   "what bugs you",
+   "least favorite"
+  ],
+  "think_of": [
+   "what do you think of villagers",
+   "what do you think about villagers",
+   "thoughts on villagers",
+   "how do you feel about villagers",
+   "what do you think of pvp",
+   "what do you think about pvp",
+   "thoughts on pvp",
+   "how do you feel about pvp",
+   "what do you think of the nether",
+   "what do you think about the nether",
+   "thoughts on the nether",
+   "how do you feel about the nether",
+   "what do you think of nether",
+   "what do you think about nether",
+   "thoughts on nether",
+   "how do you feel about nether",
+   "what do you think of the end",
+   "what do you think about the end",
+   "thoughts on the end",
+   "how do you feel about the end",
+   "what do you think of creepers",
+   "what do you think about creepers",
+   "thoughts on creepers",
+   "how do you feel about creepers",
+   "what do you think of endermen",
+   "what do you think about endermen",
+   "thoughts on endermen",
+   "how do you feel about endermen",
+   "what do you think of phantoms",
+   "what do you think about phantoms",
+   "thoughts on phantoms",
+   "how do you feel about phantoms",
+   "what do you think of mining",
+   "what do you think about mining",
+   "thoughts on mining",
+   "how do you feel about mining",
+   "what do you think of building",
+   "what do you think about building",
+   "thoughts on building",
+   "how do you feel about building",
+   "what do you think of farming",
+   "what do you think about farming",
+   "thoughts on farming",
+   "how do you feel about farming",
+   "what do you think of fishing",
+   "what do you think about fishing",
+   "thoughts on fishing",
+   "how do you feel about fishing",
+   "what do you think of diamonds",
+   "what do you think about diamonds",
+   "thoughts on diamonds",
+   "how do you feel about diamonds",
+   "what do you think of redstone",
+   "what do you think about redstone",
+   "thoughts on redstone",
+   "how do you feel about redstone",
+   "what do you think of zombies",
+   "what do you think about zombies",
+   "thoughts on zombies",
+   "how do you feel about zombies",
+   "what do you think of skeletons",
+   "what do you think about skeletons",
+   "thoughts on skeletons",
+   "how do you feel about skeletons",
+   "what do you think of piglins",
+   "what do you think about piglins",
+   "thoughts on piglins",
+   "how do you feel about piglins",
+   "what do you think of wolves",
+   "what do you think about wolves",
+   "thoughts on wolves",
+   "how do you feel about wolves",
+   "what do you think of cats",
+   "what do you think about cats",
+   "thoughts on cats",
+   "how do you feel about cats",
+   "what do you think of night",
+   "what do you think about night",
+   "thoughts on night",
+   "how do you feel about night",
+   "what do you think of rain",
+   "what do you think about rain",
+   "thoughts on rain",
+   "how do you feel about rain",
+   "what do you think of caves",
+   "what do you think about caves",
+   "thoughts on caves",
+   "how do you feel about caves"
+  ],
+  "rate": [
+   "rate my",
+   "out of 10",
+   "out of ten",
+   "how would you rate",
+   "rate it",
+   "rate this",
+   "give it a score"
+  ],
+  "good_at": [
+   "what are you good at",
+   "are you a builder",
+   "do you mine",
+   "whats your best skill",
+   "what are you best at",
+   "are you good at building"
+  ],
+  "brave_q": [
+   "are you brave",
+   "are you scared of creepers",
+   "are you scared of the dark",
+   "are you scared of dying",
+   "are you afraid",
+   "you scared of anything"
+  ],
+  "lonely_q": [
+   "are you lonely",
+   "do you get bored",
+   "do you get lonely",
+   "dont you get lonely",
+   "are you ever bored"
+  ],
+  "like_here": [
+   "do you like it here",
+   "do you like this place",
+   "hows life here",
+   "is it nice here",
+   "you like it here"
+  ],
+  "miss_x": [
+   "do you miss",
+   "are you sad about",
+   "do you think about",
+   "you miss"
+  ],
+  "best_friend": [
+   "whos your best friend",
+   "who do you trust most",
+   "best friend",
+   "who do you like most",
+   "whos your closest friend"
+  ],
+  "enemies": [
+   "who do you hate",
+   "got any enemies",
+   "whos your rival",
+   "any enemies",
+   "who dont you like",
+   "who do you not like"
+  ],
+  "strongest": [
+   "whos the strongest",
+   "who is the strongest",
+   "strongest person here",
+   "whos the best fighter",
+   "who has the best gear"
+  ],
+  "group_q": [
+   "are you in a group",
+   "whats your crew",
+   "whos your leader",
+   "who do you belong to",
+   "are you in a team",
+   "whats your group called"
+  ],
+  "make_up": [
+   "how do i make it up to you",
+   "what can i do",
+   "how do we become friends",
+   "how can i make it right",
+   "what do you want from me",
+   "how do i make you like me"
+  ],
+  "where_find": [
+   "where can i find",
+   "where do i find",
+   "where can i get",
+   "wheres some",
+   "where is there",
+   "know where to find",
+   "where are there",
+   "where are the",
+   "where do you get",
+   "anywhere to find",
+   "where should i look for"
+  ],
+  "where_died": [
+   "where did i die",
+   "have you seen my stuff",
+   "where are my items",
+   "where did my stuff go",
+   "do you know where i died",
+   "where is my stuff"
+  ],
+  "which_way": [
+   "which way is north",
+   "which way is south",
+   "which way is east",
+   "which way is west",
+   "where is north",
+   "which way is spawn",
+   "where is spawn",
+   "how do i get to spawn",
+   "point me north",
+   "which way to spawn"
+  ],
+  "biome_q": [
+   "what biome is this",
+   "what biome are we in",
+   "whats this biome",
+   "which biome is this"
+  ],
+  "over_there": [
+   "whats over there",
+   "whats up there",
+   "whats down there",
+   "whats in that cave",
+   "what is that",
+   "whats that over there"
+  ],
+  "bandits_q": [
+   "are there bandits",
+   "any raiders",
+   "is the road safe",
+   "any bandits",
+   "bandits around",
+   "are there raiders around"
+  ],
+  "what_killed": [
+   "what killed",
+   "how did * die",
+   "who killed",
+   "what happened to",
+   "how did they die"
+  ],
+  "weather_q": [
+   "is it going to rain",
+   "hows the weather",
+   "nice day huh",
+   "ugh rain",
+   "nice weather",
+   "is it raining",
+   "what a storm",
+   "lovely day"
+  ],
+  "who_here": [
+   "who was here",
+   "did anyone come by",
+   "whos around",
+   "who else is here",
+   "anyone around",
+   "seen anyone"
+  ],
+  "who_stole": [
+   "who took my stuff",
+   "who stole from me",
+   "who broke my wall",
+   "who took my things",
+   "who robbed me",
+   "who griefed me"
+  ],
+  "whose": [
+   "who built that",
+   "whose farm is this",
+   "whose chest is this",
+   "whose horse is this",
+   "whose house is that",
+   "who owns this",
+   "who owns that"
+  ],
+  "x_doing": [
+   "what is * doing",
+   "whats * doing",
+   "what is * up to",
+   "what are they doing",
+   "whats he doing",
+   "whats she doing",
+   "what are they up to"
+  ],
+  "where_everyone": [
+   "where is everyone",
+   "why is it so quiet",
+   "why is the town empty",
+   "wheres everybody",
+   "so quiet here"
+  ],
+  "gossip": [
+   "any gossip",
+   "spill",
+   "whats the drama",
+   "spill the tea",
+   "any drama",
+   "got any gossip",
+   "whats the tea"
+  ],
+  "recipe": [
+   "how do i make",
+   "how do you make",
+   "whats the recipe for",
+   "recipe for",
+   "what do i need for",
+   "how do i craft",
+   "how to craft",
+   "what do i need to make"
+  ],
+  "ylevel": [
+   "what level for",
+   "best y level",
+   "where do i mine",
+   "what y level",
+   "what layer for",
+   "how deep for",
+   "where do i dig for"
+  ],
+  "fight_tips": [
+   "how do i kill",
+   "how do you kill",
+   "tips for fighting",
+   "how do i beat",
+   "how do i fight",
+   "tips against",
+   "how to kill"
+  ],
+  "go_away": [
+   "go away",
+   "leave now",
+   "please leave",
+   "you can leave",
+   "get out",
+   "get out of my house",
+   "shoo",
+   "scram",
+   "beat it",
+   "get lost"
+  ],
+  "move_aside": [
+   "move",
+   "youre in my way",
+   "scoot",
+   "let me through",
+   "back up",
+   "excuse me move",
+   "out of the way",
+   "step aside"
+  ],
+  "meet_me": [
+   "meet me at",
+   "meet me in",
+   "meet me by",
+   "wait for me at",
+   "meet me there",
+   "see you at the"
+  ],
+  "come_up": [
+   "come in",
+   "come inside",
+   "come out",
+   "come up here",
+   "come down here",
+   "come down",
+   "get over here"
+  ],
+  "show_where": [
+   "show me where",
+   "take me to the diamonds",
+   "take me there",
+   "lead me to",
+   "can you show me where",
+   "show me the way to the"
+  ],
+  "walk_me_home": [
+   "walk me home",
+   "come with me to my base",
+   "escort me",
+   "take me home",
+   "walk me back",
+   "can you walk me home"
+  ],
+  "explore": [
+   "lets explore",
+   "wanna go on an adventure",
+   "lets go somewhere",
+   "lets go exploring",
+   "adventure time",
+   "wanna explore"
+  ],
+  "calm_together": [
+   "lets go fishing",
+   "lets go farming",
+   "lets chop trees",
+   "wanna go fishing",
+   "lets fish",
+   "lets get some wood",
+   "lets farm"
+  ],
+  "race": [
+   "race you",
+   "wanna race",
+   "first to the",
+   "lets race",
+   "race me"
+  ],
+  "eat_together": [
+   "lets eat",
+   "wanna share a meal",
+   "lunch",
+   "dinner time",
+   "lets have food",
+   "eat with me",
+   "sit by the fire with me"
+  ],
+  "bring_me": [
+   "can you get me",
+   "bring me",
+   "fetch me",
+   "can you bring me",
+   "get me some",
+   "i need some"
+  ],
+  "craft_me": [
+   "craft me",
+   "make me a",
+   "cook this",
+   "smelt this",
+   "can you craft",
+   "can you make me"
+  ],
+  "rescue": [
+   "come get me",
+   "im stuck",
+   "help im trapped",
+   "rescue me",
+   "im trapped",
+   "save me",
+   "get me out of here"
+  ],
+  "work_for_me": [
+   "work for me",
+   "ill pay you",
+   "how much to do it",
+   "can i hire you",
+   "ill give you emeralds",
+   "be my worker"
+  ],
+  "attack_that": [
+   "kill that",
+   "attack it",
+   "get the skeleton",
+   "shoot it",
+   "kill it",
+   "attack that",
+   "get it",
+   "get that zombie"
+  ],
+  "run_away": [
+   "run",
+   "retreat",
+   "get back",
+   "get out of there",
+   "fall back",
+   "run away",
+   "flee"
+  ],
+  "stop_attacking": [
+   "dont attack",
+   "stop fighting",
+   "leave it",
+   "its mine",
+   "thats my pet",
+   "stop attacking",
+   "dont hurt it",
+   "leave it alone"
+  ],
+  "yield_q": [
+   "do you yield",
+   "give up",
+   "surrender",
+   "do you give up",
+   "yield"
+  ],
+  "want_this": [
+   "do you want",
+   "need a",
+   "want some",
+   "you want this",
+   "do you need",
+   "want a"
+  ],
+  "name_price": [
+   "what do you want for it",
+   "name your price",
+   "what would you take for",
+   "how much for yours",
+   "whats it worth to you"
+  ],
+  "give_back": [
+   "give it back",
+   "thats mine",
+   "you took my",
+   "return it",
+   "give me my",
+   "thats my stuff"
+  ],
+  "rob": [
+   "give me your stuff",
+   "drop your diamonds",
+   "pay up",
+   "hand it over",
+   "give me everything",
+   "drop it",
+   "drop your sword",
+   "your money or your life",
+   "empty your pockets"
+  ],
+  "use_station": [
+   "can i use your crafting table",
+   "can i use your furnace",
+   "can i use your anvil",
+   "can i use your chest",
+   "mind if i use your",
+   "can i borrow your crafting table",
+   "can i use your bed"
+  ],
+  "take_from_chest": [
+   "can i take some",
+   "can i have some from your chest",
+   "can i grab some",
+   "mind if i take",
+   "can i take this"
+  ],
+  "pet_animals": [
+   "can i pet your dog",
+   "can i ride your horse",
+   "can i feed them",
+   "can i pet your cat",
+   "can i pet it",
+   "can i feed your animals"
+  ],
+  "dont_touch": [
+   "dont touch my stuff",
+   "stay out of my house",
+   "thats my chest",
+   "dont touch that",
+   "keep your hands off",
+   "stay away from my base"
+  ],
+  "what_should_i_do": [
+   "what should i do",
+   "im bored what now",
+   "any ideas",
+   "what now",
+   "give me something to do",
+   "what do you suggest"
+  ],
+  "look_my_house": [
+   "look at my house",
+   "come see my base",
+   "what do you think of my build",
+   "come see my house",
+   "check out my base",
+   "wanna see my house"
+  ],
+  "relay": [
+   "tell * i said hi",
+   "tell * hi",
+   "say hi to",
+   "tell * im looking for",
+   "tell * thanks",
+   "tell * sorry",
+   "let * know",
+   "pass it on to",
+   "give * a message",
+   "tell them i said hi"
+  ],
+  "new_gear": [
+   "i got a new sword",
+   "look what i found",
+   "i got new armor",
+   "check out my new",
+   "look at my new",
+   "i just got"
+  ],
+  "safe_now": [
+   "its safe now",
+   "i killed them",
+   "i cleared the cave",
+   "its clear now",
+   "i cleared it",
+   "its safe",
+   "all clear"
+  ],
+  "home_alarm": [
+   "your house is on fire",
+   "your door is open",
+   "your animals got out",
+   "someones in your house",
+   "theres someone in your house",
+   "your house is burning",
+   "theres a fire at your house"
+  ],
+  "x_died": [
+   "is dead",
+   "got killed",
+   "was killed",
+   "passed away",
+   "died yesterday",
+   "died today",
+   "is gone"
+  ],
+  "what_happened": [
+   "what happened here",
+   "can you tell me what happened",
+   "tell me what happened",
+   "what happened",
+   "tell me about what happened here",
+   "what has been going on",
+   "what happened around here",
+   "anything happen here"
+  ]
+ },
+ "lines": {
+  "more.gm": {
+   "any": [
+    "gm",
+    "morning",
+    "gm o/",
+    "mornin",
+    "morning, sleep ok?"
+   ]
+  },
+  "more.gm.night": {
+   "any": [
+    "gm? its night lol",
+    "its the middle of the night",
+    "morning? look at the sky",
+    "gm i guess, its dark tho"
+   ]
+  },
+  "more.back": {
+   "any": [
+    "wb",
+    "welcome back",
+    "oh hey, wb",
+    "wb, missed anything?"
+   ]
+  },
+  "more.gg_said": {
+   "any": [
+    "gg",
+    "ggs",
+    "gg wp",
+    "gg o7"
+   ]
+  },
+  "more.rematch": {
+   "any": [
+    "nah im good",
+    "maybe later",
+    "not rn",
+    "another time"
+   ]
+  },
+  "more.later": {
+   "any": [
+    "kk",
+    "ok lmk",
+    "sure, later",
+    "whenever",
+    "np, later then"
+   ]
+  },
+  "more.ew": {
+   "any": [
+    "lol",
+    "what",
+    "ok fair",
+    "bruh",
+    "harsh"
+   ]
+  },
+  "more.anyway": {
+   "any": [
+    "anyway",
+    "so yeah",
+    "ok, whats up",
+    "sure, what else"
+   ]
+  },
+  "more.btw": {
+   "any": [
+    "yeah?",
+    "go on",
+    "whats up",
+    "ya?"
+   ]
+  },
+  "more.already_said": {
+   "any": [
+    "oh right mb",
+    "oops, mb",
+    "did i? lol",
+    "yeah yeah"
+   ]
+  },
+  "more.ignoring": {
+   "any": [
+    "sorry, didnt see",
+    "im here, whats up",
+    "not ignoring you lol",
+    "my bad, what"
+   ]
+  },
+  "more.ignoring.busy": {
+   "any": [
+    "sorry, kinda busy",
+    "busy, one sec",
+    "working, gimme a sec"
+   ]
+  },
+  "more.ignoring.cold": {
+   "any": [
+    "maybe i am",
+    "and?",
+    "not in the mood"
+   ]
+  },
+  "more.shut_up": {
+   "any": [
+    "ok ok",
+    "fine",
+    "sorry",
+    "geez ok"
+   ]
+  },
+  "more.shut_up.back": {
+   "any": [
+    "make me",
+    "you shut up",
+    "lol no",
+    "whatever"
+   ]
+  },
+  "more.leave_me": {
+   "any": [
+    "ok, sorry",
+    "fine, im going",
+    "alright, alright",
+    "ok ill leave you be"
+   ]
+  },
+  "more.repeat": {
+   "any": [
+    "i said {last}",
+    "{last}",
+    "like i said, {last}"
+   ]
+  },
+  "more.sure": {
+   "any": [
+    "pretty sure",
+    "yeah",
+    "i think so",
+    "not really honestly"
+   ]
+  },
+  "more.sure.heard": {
+   "any": [
+    "thats what i heard",
+    "someone told me, so",
+    "heard it, didnt see it"
+   ]
+  },
+  "more.sure.mine": {
+   "any": [
+    "yeah im sure",
+    "its my stuff, i know",
+    "100%"
+   ]
+  },
+  "more.when_q": {
+   "any": [
+    "a while back",
+    "not long ago",
+    "dont remember exactly",
+    "recently i think"
+   ]
+  },
+  "more.how_q": {
+   "any": [
+    "no idea honestly",
+    "just did lol",
+    "practice i guess",
+    "dunno, it worked"
+   ]
+  },
+  "more.who_meant": {
+   "any": [
+    "nobody, nevermind",
+    "just someone",
+    "doesnt matter"
+   ]
+  },
+  "more.where_that": {
+   "any": [
+    "round here",
+    "not far",
+    "cant remember exactly"
+   ]
+  },
+  "more.tell_more": {
+   "any": [
+    "thats about it",
+    "not much more to say",
+    "thats all i know"
+   ]
+  },
+  "more.ask_me": {
+   "any": [
+    "ok, been here long?",
+    "found any diamonds yet?",
+    "whats your base like?",
+    "ok, whats your favorite mob?"
+   ]
+  },
+  "more.feel.bored": {
+   "any": [
+    "same honestly. wanna do something?",
+    "go mining?",
+    "bored? lets go explore",
+    "relatable"
+   ]
+  },
+  "more.feel.sad": {
+   "any": [
+    "aw, whats wrong?",
+    "sorry. want to talk?",
+    "that sucks, im here"
+   ]
+  },
+  "more.feel.happy": {
+   "any": [
+    "nice!",
+    "love that",
+    "good vibes",
+    "glad to hear it"
+   ]
+  },
+  "more.feel.angry": {
+   "any": [
+    "what happened?",
+    "who made you mad",
+    "breathe lol",
+    "uh oh, whats up"
+   ]
+  },
+  "more.feel.lonely": {
+   "any": [
+    "im here",
+    "ill hang out a bit",
+    "you got me",
+    "stick around then"
+   ]
+  },
+  "more.logoff": {
+   "any": [
+    "cya",
+    "bye o/",
+    "later",
+    "take care"
+   ]
+  },
+  "more.logoff.friend": {
+   "any": [
+    "cya tmrw",
+    "bye! come back soon",
+    "gn, see you next time",
+    "later friend"
+   ]
+  },
+  "more.im_busy": {
+   "any": [
+    "ok np",
+    "kk, later",
+    "sure, catch you later"
+   ]
+  },
+  "more.saved_me": {
+   "any": [
+    "anytime",
+    "np, glad youre ok",
+    "thats what friends are for",
+    "you owe me one lol"
+   ]
+  },
+  "more.good_job": {
+   "any": [
+    "ty",
+    "thanks!",
+    "i try",
+    "ty ty"
+   ]
+  },
+  "more.condolence.grief": {
+   "any": [
+    "thanks. means a lot",
+    "ty... miss them",
+    "yeah. thanks"
+   ]
+  },
+  "more.condolence.none": {
+   "any": [
+    "for what?",
+    "im ok, ty",
+    "huh?"
+   ]
+  },
+  "more.lost_stuff": {
+   "any": [
+    "oof, rip",
+    "thats rough",
+    "unlucky, go get it back quick"
+   ]
+  },
+  "more.lost_stuff.offer": {
+   "any": [
+    "rip, want some food at least?",
+    "oof. need food? i got spare"
+   ]
+  },
+  "more.distress": {
+   "any": [
+    "hey, im here if you want to talk",
+    "hope youre ok. im around",
+    "take it easy, ok? im here"
+   ]
+  },
+  "more.did_it": {
+   "any": [
+    "lets gooo",
+    "W",
+    "gg!!",
+    "nice, told you"
+   ]
+  },
+  "more.missed.friend": {
+   "any": [
+    "missed you too",
+    "good to see you",
+    "same here"
+   ]
+  },
+  "more.missed.long": {
+   "any": [
+    "been ages! where were you",
+    "finally, missed you",
+    "look who's back"
+   ]
+  },
+  "more.missed.stranger": {
+   "any": [
+    "do i know you?",
+    "uh, hi?",
+    "have we met?"
+   ]
+  },
+  "more.love.friend": {
+   "any": [
+    "lol ily2",
+    "aw <3",
+    "love ya bro"
+   ]
+  },
+  "more.love.stranger": {
+   "any": [
+    "ok weirdo",
+    "uh, thanks?",
+    "lol ok"
+   ]
+  },
+  "more.fun_fact": {
+   "any": [
+    "axolotls regenerate",
+    "creepers were a pig mistake",
+    "gold tools mine fastest",
+    "you can sleep through thunder"
+   ]
+  },
+  "more.correction": {
+   "any": [
+    "oh. so it is lol",
+    "mb",
+    "huh, my bad",
+    "fair, you're right"
+   ]
+  },
+  "more.fight_me.no": {
+   "any": [
+    "no thanks",
+    "nah im good",
+    "why would i",
+    "not interested"
+   ]
+  },
+  "more.we_good.yes": {
+   "any": [
+    "yeah were good",
+    "all good",
+    "always"
+   ]
+  },
+  "more.we_good.almost": {
+   "any": [
+    "getting there",
+    "mostly",
+    "almost"
+   ]
+  },
+  "more.we_good.no": {
+   "any": [
+    "no",
+    "not yet",
+    "after what you did? no"
+   ]
+  },
+  "more.remember.yes": {
+   "any": [
+    "of course",
+    "yeah, were friends",
+    "always"
+   ]
+  },
+  "more.remember.sort_of": {
+   "any": [
+    "kinda, i guess",
+    "sort of",
+    "were getting there"
+   ]
+  },
+  "more.remember.no": {
+   "any": [
+    "since when",
+    "we barely know each other",
+    "are we?"
+   ]
+  },
+  "more.owe.yes": {
+   "any": [
+    "yeah fair, i owe you",
+    "i havent forgotten",
+    "ill pay you back"
+   ]
+  },
+  "more.owe.no": {
+   "any": [
+    "i dont owe you anything",
+    "dont think so",
+    "nope"
+   ]
+  },
+  "more.ready.yes": {
+   "any": [
+    "ready",
+    "lets go",
+    "right behind you"
+   ]
+  },
+  "more.ready.what": {
+   "any": [
+    "ready for what",
+    "uh, ready?",
+    "for what lol"
+   ]
+  },
+  "more.done": {
+   "any": [
+    "ok, good run",
+    "alright, see you",
+    "gg, nice trip"
+   ]
+  },
+  "more.done.ore": {
+   "any": [
+    "good run, got some {ore}",
+    "nice, came out with {ore}",
+    "gg, {ore} for me"
+   ]
+  },
+  "more.done.mob": {
+   "any": [
+    "gg, killed a few {mob}s",
+    "good hunt",
+    "nice, cleared some {mob}s"
+   ]
+  },
+  "more.deal": {
+   "any": [
+    "deal",
+    "nice",
+    "good"
+   ]
+  },
+  "more.no_deal": {
+   "any": [
+    "suit yourself",
+    "ok, your loss",
+    "fine"
+   ]
+  },
+  "more.hurry": {
+   "any": [
+    "im going im going",
+    "ok ok",
+    "faster? fine"
+   ]
+  },
+  "more.slow_down": {
+   "any": [
+    "ok, slowing down",
+    "sorry",
+    "kk"
+   ]
+  },
+  "more.dots": {
+   "any": [
+    "...",
+    "what",
+    "yes?",
+    "hm?"
+   ]
+  },
+  "more.how_long": {
+   "any": [
+    "like {days} days",
+    "{days} days now",
+    "been here {days} days",
+    "about {days} days"
+   ]
+  },
+  "more.how_long.new": {
+   "any": [
+    "just got here",
+    "only a day or so",
+    "im pretty new"
+   ]
+  },
+  "more.from.town": {
+   "any": [
+    "{town}",
+    "im from {town}",
+    "{town}, born and raised"
+   ]
+  },
+  "more.from.road": {
+   "any": [
+    "everywhere",
+    "the road",
+    "nowhere really, i move around"
+   ]
+  },
+  "more.from.around": {
+   "any": [
+    "round here",
+    "not far",
+    "a bit that way"
+   ]
+  },
+  "more.kind": {
+   "any": [
+    "i do a bit of everything",
+    "just a normal player",
+    "a bit of all of it"
+   ]
+  },
+  "more.kind.builder": {
+   "any": [
+    "i build",
+    "builder mostly",
+    "i make stuff look nice"
+   ]
+  },
+  "more.kind.miner": {
+   "any": [
+    "i mine",
+    "miner",
+    "caves and ore"
+   ]
+  },
+  "more.kind.pvp_sweat": {
+   "any": [
+    "pvp",
+    "i fight",
+    "pvp all day"
+   ]
+  },
+  "more.kind.homebody": {
+   "any": [
+    "i like home stuff",
+    "farming and cozy stuff",
+    "homebody"
+   ]
+  },
+  "more.kind.nomad": {
+   "any": [
+    "i wander",
+    "traveller",
+    "always on the move"
+   ]
+  },
+  "more.kind.speedrunner": {
+   "any": [
+    "i go fast",
+    "speedrun stuff",
+    "efficient"
+   ]
+  },
+  "more.kind.hermit": {
+   "any": [
+    "keep to myself",
+    "hermit",
+    "i like quiet"
+   ]
+  },
+  "more.kind.hoarder": {
+   "any": [
+    "i collect stuff",
+    "collector",
+    "i keep everything"
+   ]
+  },
+  "more.kind.helper": {
+   "any": [
+    "i help people",
+    "helper",
+    "i like helping out"
+   ]
+  },
+  "more.kind.bandit": {
+   "any": [
+    "you dont want to know",
+    "business",
+    "i take what i want"
+   ]
+  },
+  "more.kind.newbie": {
+   "any": [
+    "im new lol",
+    "learning",
+    "noob tbh"
+   ]
+  },
+  "more.why_doing": {
+   "any": [
+    "need to {doing}",
+    "gotta {doing}",
+    "because i need to {doing}"
+   ]
+  },
+  "more.why_doing.nothing": {
+   "any": [
+    "im not doing anything",
+    "nothing much",
+    "just hanging out"
+   ]
+  },
+  "more.standing": {
+   "any": [
+    "talking to you lol",
+    "just thinking",
+    "waiting",
+    "taking a break"
+   ]
+  },
+  "more.hungry.yes": {
+   "any": [
+    "yeah kinda",
+    "starving",
+    "a bit"
+   ]
+  },
+  "more.hungry.no": {
+   "any": [
+    "nah im good",
+    "just ate",
+    "im fine"
+   ]
+  },
+  "more.inv": {
+   "any": [
+    "{items}",
+    "got {items}",
+    "{items}, nothing special"
+   ]
+  },
+  "more.inv.guarded": {
+   "any": [
+    "none of your business",
+    "stuff",
+    "why do you want to know"
+   ]
+  },
+  "more.rich.yes": {
+   "any": [
+    "{count} diamonds, not bad",
+    "doing alright",
+    "rich enough"
+   ]
+  },
+  "more.rich.some": {
+   "any": [
+    "a couple dias",
+    "{count}, so not really",
+    "a little"
+   ]
+  },
+  "more.rich.no": {
+   "any": [
+    "broke",
+    "no diamonds",
+    "nope, poor"
+   ]
+  },
+  "more.item.nothing": {
+   "any": [
+    "nothing in my hand",
+    "what?",
+    "im not holding anything"
+   ]
+  },
+  "more.item.made": {
+   "any": [
+    "made it myself",
+    "crafted it",
+    "made it"
+   ]
+  },
+  "more.item.found": {
+   "any": [
+    "found it",
+    "got lucky",
+    "traded for it"
+   ]
+  },
+  "more.item.enchanted": {
+   "any": [
+    "its got {enchants}",
+    "{enchants} on it",
+    "enchanted with {enchants}"
+   ]
+  },
+  "more.saving": {
+   "any": [
+    "{goal}",
+    "working on {goal}",
+    "saving for {goal}"
+   ]
+  },
+  "more.pets.none": {
+   "any": [
+    "no pets",
+    "nope",
+    "not yet"
+   ]
+  },
+  "more.deaths.none": {
+   "any": [
+    "never died",
+    "not once",
+    "zero, knock on wood"
+   ]
+  },
+  "more.deaths.some": {
+   "any": [
+    "{count} times",
+    "like {count}",
+    "{count} deaths, dont judge"
+   ]
+  },
+  "more.deaths.last": {
+   "any": [
+    "{count} times. last one, i {death}",
+    "{count}. i {death}"
+   ]
+  },
+  "more.best_find": {
+   "any": [
+    "{ore}",
+    "found {ore} once",
+    "{ore}, best find"
+   ]
+  },
+  "more.best_find.none": {
+   "any": [
+    "nothing great yet",
+    "not much",
+    "still looking"
+   ]
+  },
+  "more.been_nether.yes": {
+   "any": [
+    "yeah, its rough",
+    "been there",
+    "yep"
+   ]
+  },
+  "more.been_nether.no": {
+   "any": [
+    "not yet",
+    "nope",
+    "too scared lol"
+   ]
+  },
+  "more.been_end.yes": {
+   "any": [
+    "yeah",
+    "been there",
+    "seen it"
+   ]
+  },
+  "more.been_end.no": {
+   "any": [
+    "not yet",
+    "no",
+    "one day"
+   ]
+  },
+  "more.story": {
+   "any": [
+    "not really",
+    "nothing interesting",
+    "maybe another time"
+   ]
+  },
+  "more.dream": {
+   "any": [
+    "a big house",
+    "best gear",
+    "just to survive",
+    "be left alone"
+   ]
+  },
+  "more.building.yes": {
+   "any": [
+    "{doing}",
+    "working on {doing}",
+    "just {doing}"
+   ]
+  },
+  "more.building.no": {
+   "any": [
+    "nothing rn",
+    "not building",
+    "nothing yet"
+   ]
+  },
+  "more.fav": {
+   "any": [
+    "{pick}",
+    "{pick} for sure",
+    "gotta be {pick}"
+   ]
+  },
+  "more.fav.what": {
+   "any": [
+    "favorite what",
+    "of what?",
+    "depends what you mean"
+   ]
+  },
+  "more.hate": {
+   "any": [
+    "{pick}",
+    "{pick}, easy",
+    "{pick} for sure"
+   ]
+  },
+  "more.pick": {
+   "any": [
+    "{pick}",
+    "{pick}, easy",
+    "definitely {pick}"
+   ]
+  },
+  "more.think": {
+   "any": [
+    "its alright",
+    "not sure",
+    "never thought about it"
+   ]
+  },
+  "more.rate": {
+   "any": [
+    "{n}/10",
+    "solid {n}",
+    "i'd say {n}",
+    "{n} out of 10"
+   ]
+  },
+  "more.good_at": {
+   "any": [
+    "a bit of everything",
+    "nothing special",
+    "surviving"
+   ]
+  },
+  "more.brave.yes": {
+   "any": [
+    "yeah",
+    "pretty brave",
+    "not much scares me"
+   ]
+  },
+  "more.brave.no": {
+   "any": [
+    "not really",
+    "im a scaredy cat",
+    "creepers scare me ok"
+   ]
+  },
+  "more.brave.mid": {
+   "any": [
+    "kinda",
+    "depends",
+    "sometimes"
+   ]
+  },
+  "more.brave.last_life": {
+   "any": [
+    "not anymore. one more death and im done",
+    "cant afford to be, last life",
+    "no. one life left"
+   ]
+  },
+  "more.lonely.yes": {
+   "any": [
+    "sometimes",
+    "kinda",
+    "a bit"
+   ]
+  },
+  "more.lonely.no": {
+   "any": [
+    "nah",
+    "i got friends",
+    "not really"
+   ]
+  },
+  "more.lonely.loner": {
+   "any": [
+    "i like being alone",
+    "nope",
+    "quiet is good"
+   ]
+  },
+  "more.like_here.yes": {
+   "any": [
+    "yeah its nice",
+    "love it",
+    "its home"
+   ]
+  },
+  "more.like_here.passing": {
+   "any": [
+    "just passing through",
+    "its ok",
+    "for now"
+   ]
+  },
+  "more.like_here.sad": {
+   "any": [
+    "its been hard lately",
+    "used to",
+    "not today"
+   ]
+  },
+  "more.miss.friend": {
+   "any": [
+    "yeah. every day",
+    "a lot",
+    "miss {who} so much"
+   ]
+  },
+  "more.miss.barely": {
+   "any": [
+    "barely knew {who}",
+    "a bit",
+    "sad it happened"
+   ]
+  },
+  "more.miss.alive": {
+   "any": [
+    "they're not dead lol",
+    "miss who?",
+    "they're around"
+   ]
+  },
+  "more.best_friend": {
+   "any": [
+    "{who}",
+    "probably {who}",
+    "{who} for sure"
+   ]
+  },
+  "more.best_friend.none": {
+   "any": [
+    "dont really have one",
+    "no one",
+    "still looking"
+   ]
+  },
+  "more.enemies": {
+   "any": [
+    "{who}",
+    "{who}, ugh",
+    "dont like {who}"
+   ]
+  },
+  "more.enemies.none": {
+   "any": [
+    "no one",
+    "nah",
+    "dont have any"
+   ]
+  },
+  "more.enemies.secret": {
+   "any": [
+    "not saying",
+    "wouldnt you like to know",
+    "no comment"
+   ]
+  },
+  "more.strongest": {
+   "any": [
+    "{who}",
+    "{who} probably",
+    "{who} has the best gear"
+   ]
+  },
+  "more.strongest.me": {
+   "any": [
+    "me obviously",
+    "me lol",
+    "you're looking at them"
+   ]
+  },
+  "more.strongest.none": {
+   "any": [
+    "no idea",
+    "nobody around",
+    "dunno"
+   ]
+  },
+  "more.group": {
+   "any": [
+    "{group}, {leader} leads",
+    "im with {group}",
+    "{group}"
+   ]
+  },
+  "more.group.lead": {
+   "any": [
+    "i lead {group}",
+    "{group}, my crew",
+    "im in charge of {group}"
+   ]
+  },
+  "more.group.none": {
+   "any": [
+    "no group",
+    "solo",
+    "just me"
+   ]
+  },
+  "more.make_up.hit": {
+   "any": [
+    "say sorry for hitting me",
+    "dont hit me again",
+    "start with sorry"
+   ]
+  },
+  "more.make_up.theft": {
+   "any": [
+    "give my stuff back",
+    "return what you took",
+    "my stuff first"
+   ]
+  },
+  "more.make_up.grief": {
+   "any": [
+    "fix what you broke",
+    "repair my place",
+    "fix it"
+   ]
+  },
+  "more.make_up.insult": {
+   "any": [
+    "take back what you said",
+    "say sorry",
+    "be nice"
+   ]
+  },
+  "more.make_up.nothing": {
+   "any": [
+    "were fine",
+    "nothing, we're good",
+    "you dont need to"
+   ]
+  },
+  "more.make_up.time": {
+   "any": [
+    "give it time",
+    "just be around",
+    "be nice and we'll see"
+   ]
+  },
+  "more.find.yes": {
+   "any": [
+    "{what} at {coords}",
+    "saw {what} at {coords}",
+    "{coords}, theres {what}"
+   ]
+  },
+  "more.find.way": {
+   "any": [
+    "{what} {way}, about {dist} blocks",
+    "head {way} for {what}",
+    "{way}, maybe {dist} blocks"
+   ]
+  },
+  "more.find.no": {
+   "any": [
+    "not telling",
+    "find your own",
+    "sorry, keeping that one"
+   ]
+  },
+  "more.find.none": {
+   "any": [
+    "havent seen {what}",
+    "no idea where {what} is",
+    "dunno, sorry"
+   ]
+  },
+  "more.find.what": {
+   "any": [
+    "find what?",
+    "where can you find what",
+    "what are you looking for"
+   ]
+  },
+  "more.show_where.yes": {
+   "any": [
+    "ok follow me",
+    "sure, this way",
+    "come on"
+   ]
+  },
+  "more.show_where.here": {
+   "any": [
+    "right here",
+    "this is it",
+    "here"
+   ]
+  },
+  "more.your_death.yes": {
+   "any": [
+    "{way}, about {dist} blocks",
+    "you died {way}, like {dist} blocks",
+    "{way}. {when}"
+   ]
+  },
+  "more.your_death.no": {
+   "any": [
+    "didnt see",
+    "no idea",
+    "wasnt there"
+   ]
+  },
+  "more.way.spawn": {
+   "any": [
+    "{way}, like {dist} blocks",
+    "spawns {way}",
+    "head {way}"
+   ]
+  },
+  "more.way.point": {
+   "any": [
+    "that way",
+    "{way} is there",
+    "there"
+   ]
+  },
+  "more.way.what": {
+   "any": [
+    "which way to what",
+    "to where?",
+    "where to"
+   ]
+  },
+  "more.biome": {
+   "any": [
+    "{biome}",
+    "its {biome}",
+    "looks like {biome}"
+   ]
+  },
+  "more.over_there.known": {
+   "any": [
+    "{what} i think",
+    "theres {what} over there",
+    "{what}"
+   ]
+  },
+  "more.over_there.unknown": {
+   "any": [
+    "no clue",
+    "never been",
+    "dunno, wanna look?"
+   ]
+  },
+  "more.bandits.warning": {
+   "any": [
+    "{warning}",
+    "yeah, {warning}",
+    "careful, {warning}"
+   ]
+  },
+  "more.bandits.seen": {
+   "any": [
+    "saw some earlier",
+    "yeah, careful",
+    "a few around"
+   ]
+  },
+  "more.bandits.none": {
+   "any": [
+    "havent seen any",
+    "dont think so",
+    "seems quiet"
+   ]
+  },
+  "more.killed.known": {
+   "any": [
+    "{who} {how}",
+    "{who} {how}. {when}",
+    "heard {who} {how}"
+   ]
+  },
+  "more.killed.unknown": {
+   "any": [
+    "no idea",
+    "didnt hear",
+    "dunno"
+   ]
+  },
+  "more.x_died.friend": {
+   "any": [
+    "no... {who}? i know. {who} {how}",
+    "yeah... {who} {how}",
+    "dont remind me"
+   ]
+  },
+  "more.x_died.known": {
+   "any": [
+    "yeah, {who} {how}",
+    "heard. {who} {how}",
+    "i know"
+   ]
+  },
+  "more.x_died.doubt": {
+   "any": [
+    "wait what? really?",
+    "no way",
+    "are you sure?"
+   ]
+  },
+  "more.weather.rain": {
+   "any": [
+    "ugh, rain",
+    "yep, raining",
+    "wet day"
+   ]
+  },
+  "more.weather.thunder": {
+   "any": [
+    "storm out there",
+    "loud one",
+    "stay inside"
+   ]
+  },
+  "more.weather.night": {
+   "any": [
+    "dark out",
+    "night time",
+    "cant see the weather lol"
+   ]
+  },
+  "more.weather.clear": {
+   "any": [
+    "nice day",
+    "clear skies",
+    "good weather"
+   ]
+  },
+  "more.who_here": {
+   "any": [
+    "{who}",
+    "saw {who}",
+    "{who} around"
+   ]
+  },
+  "more.who_here.nobody": {
+   "any": [
+    "nobody",
+    "just us",
+    "no one"
+   ]
+  },
+  "more.who_stole": {
+   "any": [
+    "didnt see",
+    "wasnt watching",
+    "no idea, sorry"
+   ]
+  },
+  "more.whose.mine": {
+   "any": [
+    "mine",
+    "thats mine",
+    "mine lol"
+   ]
+  },
+  "more.whose.known": {
+   "any": [
+    "{who}'s",
+    "thats {who}'s",
+    "{who} owns that"
+   ]
+  },
+  "more.whose.unknown": {
+   "any": [
+    "no idea",
+    "dunno",
+    "not sure"
+   ]
+  },
+  "more.x_doing": {
+   "any": [
+    "{who}'s trying to {doing}",
+    "{doing}",
+    "{who}? {doing}"
+   ]
+  },
+  "more.x_doing.nothing": {
+   "any": [
+    "nothing much",
+    "just standing",
+    "no idea"
+   ]
+  },
+  "more.x_doing.unknown": {
+   "any": [
+    "who?",
+    "cant see them",
+    "dunno"
+   ]
+  },
+  "more.everyone.night": {
+   "any": [
+    "asleep probably",
+    "its night",
+    "in bed"
+   ]
+  },
+  "more.everyone.day": {
+   "any": [
+    "around somewhere",
+    "working",
+    "busy"
+   ]
+  },
+  "more.gossip.likes": {
+   "any": [
+    "{who}'s cool",
+    "i like {who}",
+    "{who} is alright"
+   ]
+  },
+  "more.gossip.hates": {
+   "any": [
+    "{who}, dont get me started",
+    "{who}... ugh",
+    "dont trust {who}"
+   ]
+  },
+  "more.gossip.none": {
+   "any": [
+    "nothing juicy",
+    "all quiet",
+    "no drama"
+   ]
+  },
+  "more.gossip.no": {
+   "any": [
+    "i dont gossip",
+    "not my thing",
+    "no"
+   ]
+  },
+  "more.recipe": {
+   "any": [
+    "{needs}",
+    "{item}: {needs}",
+    "you need {needs}"
+   ]
+  },
+  "more.recipe.unknown": {
+   "any": [
+    "no idea",
+    "cant make that",
+    "dunno"
+   ]
+  },
+  "more.recipe.what": {
+   "any": [
+    "make what?",
+    "recipe for what",
+    "what do you want to make"
+   ]
+  },
+  "more.ylevel.diamond": {
+   "any": [
+    "deep, like -58",
+    "bottom of the world",
+    "y -59"
+   ]
+  },
+  "more.ylevel.iron": {
+   "any": [
+    "around 16, or mountains",
+    "y 16",
+    "mountains have tons"
+   ]
+  },
+  "more.ylevel.gold": {
+   "any": [
+    "around -16",
+    "badlands",
+    "deep"
+   ]
+  },
+  "more.ylevel.coal": {
+   "any": [
+    "anywhere, up high",
+    "mountains",
+    "everywhere"
+   ]
+  },
+  "more.ylevel.copper": {
+   "any": [
+    "around 48",
+    "dripstone caves",
+    "mid levels"
+   ]
+  },
+  "more.ylevel.lapis": {
+   "any": [
+    "around 0",
+    "y 0",
+    "middle"
+   ]
+  },
+  "more.ylevel.redstone": {
+   "any": [
+    "deep, near diamonds",
+    "bottom",
+    "-58"
+   ]
+  },
+  "more.ylevel.emerald": {
+   "any": [
+    "mountains",
+    "up high",
+    "mountains only"
+   ]
+  },
+  "more.ylevel.debris": {
+   "any": [
+    "nether, y 15",
+    "y 15 in the nether",
+    "nether, low"
+   ]
+  },
+  "more.tips.general": {
+   "any": [
+    "shield up",
+    "hit and back off",
+    "dont get surrounded",
+    "eat before you fight"
+   ]
+  },
+  "more.tips.creeper": {
+   "any": [
+    "hit it and back off",
+    "shield",
+    "dont let it get close"
+   ]
+  },
+  "more.tips.skeleton": {
+   "any": [
+    "shield and charge",
+    "use cover",
+    "get close fast"
+   ]
+  },
+  "more.tips.enderman": {
+   "any": [
+    "dont look at it",
+    "stand under 2 blocks",
+    "water"
+   ]
+  },
+  "more.go_away": {
+   "any": [
+    "ok ok",
+    "fine",
+    "geez, going"
+   ]
+  },
+  "more.go_away.my_house": {
+   "any": [
+    "its my house??",
+    "you leave lol",
+    "this is my place"
+   ]
+  },
+  "more.move_aside": {
+   "any": [
+    "oops",
+    "sorry",
+    "mb"
+   ]
+  },
+  "more.meet.yes": {
+   "any": [
+    "ok see you there",
+    "sure, be there soon",
+    "on my way"
+   ]
+  },
+  "more.meet.no": {
+   "any": [
+    "dont know you that well",
+    "no",
+    "maybe not"
+   ]
+  },
+  "more.meet.where": {
+   "any": [
+    "where?",
+    "meet you where",
+    "where exactly"
+   ]
+  },
+  "more.walk_home.yes": {
+   "any": [
+    "ok, lead on... wait i'll lead",
+    "sure, this way",
+    "come on"
+   ]
+  },
+  "more.walk_home.no": {
+   "any": [
+    "nah",
+    "you can make it",
+    "not today"
+   ]
+  },
+  "more.walk_home.unknown": {
+   "any": [
+    "where do you live?",
+    "dunno where your base is",
+    "where is it?"
+   ]
+  },
+  "more.walk_home.here": {
+   "any": [
+    "here you go",
+    "home sweet home",
+    "made it"
+   ]
+  },
+  "more.explore.yes": {
+   "any": [
+    "lets go",
+    "adventure time",
+    "im in"
+   ]
+  },
+  "more.calm_together.yes": {
+   "any": [
+    "sure",
+    "sounds nice",
+    "ok, im in"
+   ]
+  },
+  "more.race": {
+   "any": [
+    "nah im good",
+    "not rn",
+    "maybe later"
+   ]
+  },
+  "more.eat.yes": {
+   "any": [
+    "sure, want some?",
+    "ok, im hungry too",
+    "lets eat"
+   ]
+  },
+  "more.eat.none": {
+   "any": [
+    "no food on me",
+    "i got nothing",
+    "out of food"
+   ]
+  },
+  "more.bring.yes": {
+   "any": [
+    "sure, here",
+    "ok coming",
+    "one sec"
+   ]
+  },
+  "more.bring.none": {
+   "any": [
+    "no {item} on me",
+    "dont have any {item}",
+    "out of {item}"
+   ]
+  },
+  "more.bring.no": {
+   "any": [
+    "nah",
+    "get your own",
+    "no"
+   ]
+  },
+  "more.bring.what": {
+   "any": [
+    "bring you what",
+    "what do you need",
+    "what?"
+   ]
+  },
+  "more.craft_me": {
+   "any": [
+    "cant rn",
+    "ask the smith",
+    "do it yourself lol"
+   ]
+  },
+  "more.rescue.yes": {
+   "any": [
+    "on my way",
+    "coming!",
+    "hold on"
+   ]
+  },
+  "more.rescue.no": {
+   "any": [
+    "sorry, cant",
+    "you'll be ok",
+    "nah"
+   ]
+  },
+  "more.work_for_me": {
+   "any": [
+    "not for hire",
+    "im good",
+    "no thanks"
+   ]
+  },
+  "more.attack.yes": {
+   "any": [
+    "on it",
+    "got it",
+    "coming"
+   ]
+  },
+  "more.attack.no": {
+   "any": [
+    "thats not a monster",
+    "no",
+    "why"
+   ]
+  },
+  "more.attack.what": {
+   "any": [
+    "attack what",
+    "what?",
+    "where"
+   ]
+  },
+  "more.attack.scared": {
+   "any": [
+    "no way",
+    "you do it",
+    "not me"
+   ]
+  },
+  "more.run": {
+   "any": [
+    "run from what",
+    "ok",
+    "why"
+   ]
+  },
+  "more.run.fighting": {
+   "any": [
+    "go go go",
+    "running!",
+    "ok!"
+   ]
+  },
+  "more.stop_attacking.yes": {
+   "any": [
+    "ok sorry",
+    "fine",
+    "stopping"
+   ]
+  },
+  "more.stop_attacking.nothing": {
+   "any": [
+    "im not attacking anything",
+    "what?",
+    "huh"
+   ]
+  },
+  "more.stop_attacking.monster": {
+   "any": [
+    "its a monster",
+    "nope",
+    "it started it"
+   ]
+  },
+  "more.yield.yes": {
+   "any": [
+    "ok ok i give up",
+    "fine. you win",
+    "gg"
+   ]
+  },
+  "more.yield.no": {
+   "any": [
+    "never",
+    "no",
+    "not yet"
+   ]
+  },
+  "more.want.yes": {
+   "any": [
+    "yes please",
+    "ooh yes",
+    "sure"
+   ]
+  },
+  "more.want.no": {
+   "any": [
+    "nah",
+    "no thanks",
+    "im good"
+   ]
+  },
+  "more.want.what": {
+   "any": [
+    "want what",
+    "what?",
+    "what is it"
+   ]
+  },
+  "more.name_price": {
+   "any": [
+    "not selling",
+    "its not for sale",
+    "its mine"
+   ]
+  },
+  "more.give_back.gift": {
+   "any": [
+    "you gave it to me",
+    "it was a gift",
+    "no take backs"
+   ]
+  },
+  "more.give_back.nothing": {
+   "any": [
+    "i didnt take anything",
+    "what?",
+    "i dont have your stuff"
+   ]
+  },
+  "more.rob.gives": {
+   "any": [
+    "ok ok take it",
+    "here, just leave me alone",
+    "fine, take it"
+   ]
+  },
+  "more.rob.nothing": {
+   "any": [
+    "i got nothing",
+    "nothing to give",
+    "im broke"
+   ]
+  },
+  "more.rob.brave": {
+   "any": [
+    "make me",
+    "try it",
+    "no"
+   ]
+  },
+  "more.use.yes": {
+   "any": [
+    "sure",
+    "go ahead",
+    "yeah"
+   ]
+  },
+  "more.use.chest_no": {
+   "any": [
+    "not the chest",
+    "dont touch the chest",
+    "no"
+   ]
+  },
+  "more.take.yes": {
+   "any": [
+    "sure, take some",
+    "go ahead",
+    "help yourself"
+   ]
+  },
+  "more.take.hoarder": {
+   "any": [
+    "fine. just a little",
+    "one. only one",
+    "ugh fine"
+   ]
+  },
+  "more.take.no": {
+   "any": [
+    "no",
+    "dont",
+    "absolutely not"
+   ]
+  },
+  "more.pet_animals": {
+   "any": [
+    "sure",
+    "go ahead",
+    "be gentle"
+   ]
+  },
+  "more.dont_touch": {
+   "any": [
+    "ok",
+    "wasnt going to",
+    "fine"
+   ]
+  },
+  "more.suggest.night": {
+   "any": [
+    "sleep",
+    "go to bed",
+    "wait for morning"
+   ]
+  },
+  "more.suggest.gear": {
+   "any": [
+    "get some armor",
+    "go mining",
+    "make some iron armor"
+   ]
+  },
+  "more.suggest.explore": {
+   "any": [
+    "go explore",
+    "find a village",
+    "go to the nether"
+   ]
+  },
+  "more.look_house.yes": {
+   "any": [
+    "sure, show me",
+    "ok lead the way",
+    "lets see it"
+   ]
+  },
+  "more.look_house.no": {
+   "any": [
+    "maybe later",
+    "nah",
+    "not now"
+   ]
+  },
+  "more.look_house.opinion": {
+   "any": [
+    "nice place",
+    "not bad",
+    "cozy"
+   ]
+  },
+  "more.look_house.builder": {
+   "any": [
+    "needs more detail",
+    "roof could be better",
+    "decent"
+   ]
+  },
+  "more.relay.ok": {
+   "any": [
+    "sure, ill tell {who}",
+    "ok, will do",
+    "ill pass it on"
+   ]
+  },
+  "more.relay.who": {
+   "any": [
+    "tell who?",
+    "who?",
+    "tell who what"
+   ]
+  },
+  "more.relay.deliver": {
+   "any": [
+    "hey {who}, {from} {what}",
+    "{who}, {from} {what}",
+    "oh {who}, {from} {what}"
+   ]
+  },
+  "more.relay.heard": {
+   "any": [
+    "oh ty",
+    "ok cool",
+    "tell them hi back"
+   ]
+  },
+  "more.new_gear": {
+   "any": [
+    "nice {item}",
+    "ooh, {item}",
+    "sick {item}"
+   ]
+  },
+  "more.new_gear.nothing": {
+   "any": [
+    "what?",
+    "i dont see anything",
+    "show me"
+   ]
+  },
+  "more.safe_now": {
+   "any": [
+    "oh nice, ty",
+    "good to know",
+    "thanks for clearing it"
+   ]
+  },
+  "more.safe_now.doubt": {
+   "any": [
+    "sure",
+    "ill see for myself",
+    "hm"
+   ]
+  },
+  "more.home_alarm.go": {
+   "any": [
+    "WHAT",
+    "on my way",
+    "no no no"
+   ]
+  },
+  "more.home_alarm.real": {
+   "any": [
+    "ty for telling me!!",
+    "phew, thanks",
+    "thanks!!"
+   ]
+  },
+  "more.home_alarm.false": {
+   "any": [
+    "theres nothing wrong",
+    "not funny",
+    "liar"
+   ]
+  },
+  "more.walked_in": {
+   "any": [
+    "uh, hello?",
+    "can i help you?",
+    "this is my house"
+   ]
+  },
+  "more.walked_in.friend": {
+   "any": [
+    "oh hey, come in",
+    "make yourself at home",
+    "hey!"
+   ]
+  },
+  "more.walked_in.hoarder": {
+   "any": [
+    "dont touch anything",
+    "eyes off the chests",
+    "out"
+   ]
+  },
+  "more.dead_named": {
+   "any": [
+    "{who}'s gone. {who} {how}",
+    "{who} {how}. {when}",
+    "{who}... {how}"
+   ]
+  },
+  "more.history": {
+   "any": [
+    "{when}, {event}",
+    "{event}",
+    "well, {event}"
+   ]
+  },
+  "more.history.none": {
+   "any": [
+    "nothing much",
+    "quiet lately",
+    "not that i know"
+   ]
+  }
+ }
+}

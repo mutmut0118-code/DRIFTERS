@@ -155,9 +155,11 @@ public final class PlayerTalk {
 
 		// A place said in chat is read by every Drifter close by (whoever it was said to).
 		Telling.overheard(player, text, now);
-		DrifterEntity drifter = addressee(player, text, focused, now, Telling.aboutOthers(intent));
+		// ("tell bobby i said hi" is said to someone else, about bobby.)
+		DrifterEntity drifter = addressee(player, text, focused, now, Telling.aboutOthers(intent) || Lines.answer(text, "relay") != null);
 		if (drifter == null) {
-			return false;
+			// Someone named who's dead: one near who knew says so (docs/PLAYER_TALK.md I4.9).
+			return PlayerTalk.deadNamed(player, text, now);
 		}
 
 		// What it is of the newer things to say to one (docs/PLAYER_TALK.md): a topic that says more than the older intent
@@ -196,10 +198,19 @@ public final class PlayerTalk {
 			return true;
 		}
 
+		// Someone it knows is dead, asked after ("wheres reed"): it says so.
+		if (mine == null && (intent == null || intent.equals("where_is") || intent.equals("opinion")) && Deaths.named(drifter, text) != null) {
+			Deaths.Death death = Deaths.named(drifter, text);
+			talkedTo(drifter, player, now);
+			PlayerConvo.say(drifter, player, "more.dead_named", null, "who", death.who(), "how", death.how(), "when", Deaths.when(death.at(), now));
+			return true;
+		}
+
 		// One of the newer things: answered there.
 		if (mine != null && !itemAnswer) {
 			talkedTo(drifter, player, now);
 			PlayerConvo.handle(drifter, player, text, mine, now);
+			alsoNamed(player, drifter, text, intent, mine, now);
 			return true;
 		}
 
@@ -218,6 +229,7 @@ public final class PlayerTalk {
 			// Nothing it knows how to answer: it still says something (a ritual said to it, a shrug, a question back).
 			talkedTo(drifter, player, now);
 			PlayerConvo.handle(drifter, player, text, null, now);
+			alsoNamed(player, drifter, text, null, null, now);
 			return true;
 		}
 
@@ -233,6 +245,7 @@ public final class PlayerTalk {
 		}
 
 		answer(drifter, player, intent, text, now);
+		alsoNamed(player, drifter, text, intent, null, now);
 		// Someone standing by may add their bit ("lmao", "ooh fight", "me too pls").
 		if (Lines.has("chime." + intent)) {
 			Map<String, List<String>> chime = Lines.voices("chime." + intent);
@@ -242,6 +255,52 @@ public final class PlayerTalk {
 		}
 
 		return true;
+	}
+
+	/** No one near is called, but a dead one is: the nearest who knew of the death and sees them says so. */
+	private static boolean deadNamed(ServerPlayer player, String text, long now) {
+		for (DrifterEntity drifter : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(16.0),
+			d -> d.isAlive() && !d.isTemporary() && !d.isSleeping() && d.encounter() == null && !Mode.atOdds(d, player))) {
+			Deaths.Death death = Deaths.named(drifter, text);
+			if (death != null && drifter.getSocial().watcher().sees(player)) {
+				talkedTo(drifter, player, now);
+				PlayerConvo.say(drifter, player, "more.dead_named", null, "who", death.who(), "how", death.how(), "when", Deaths.when(death.at(), now));
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Others named in the same message ("frog and teal come here", "hi dani and bob"): each answers too, for the things a
+	 * group can be asked or greeted with.
+	 */
+	private static final java.util.Set<String> GROUPABLE = java.util.Set.of("follow", "come", "stop", "team", "help", "wait_up", "stay", "hunt_with",
+		"mine_with", "explore", "laugh", "gm", "bye", "logging_off", "you_there");
+
+	private static void alsoNamed(ServerPlayer player, DrifterEntity first, String text, @Nullable String intent, @Nullable String mine, long now) {
+		boolean ritual = intent == null && mine == null && Lines.answer(text, "greeting", "night", "bye", "thanks") != null;
+		if (!ritual && !(intent != null && GROUPABLE.contains(intent)) && !(mine != null && GROUPABLE.contains(mine))) {
+			return;
+		}
+
+		String words = " " + text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", " ") + " ";
+		int more = 0;
+		for (DrifterEntity other : player.serverLevel().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(SocialWatcher.NAME_RANGE),
+			d -> d != first && d.isAlive() && !d.isTemporary() && d.encounter() == null)) {
+			if (more >= 3 || !SocialWatcher.called(words, other.getName().getString())) {
+				continue;
+			}
+
+			more++;
+			talkedTo(other, player, now);
+			if (mine != null || intent == null) {
+				PlayerConvo.handle(other, player, text, mine, now);
+			} else {
+				answer(other, player, intent, text, now);
+			}
+		}
 	}
 
 	/** Things asked of it that have it moving (it doesn't stand and wait for the next message). */
@@ -383,6 +442,27 @@ public final class PlayerTalk {
 				if (named == null || drifter.distanceTo(player) < named.distanceTo(player)) {
 					named = drifter;
 				}
+			}
+		}
+
+		// By its work ("guard, can you help me", "hey smith"): said to the nearest with that job (docs/PLAYER_TALK.md I3.3); not
+		// "where's the guard" (that's asking about one).
+		if (named == null && !words.contains(" where ") && !words.contains(" wheres ") && !words.contains(" find ") && !words.contains(" seen ")) {
+			String[] first = words.trim().split(" ");
+			String lead = first.length == 0 ? "" : java.util.Set.of("hey", "hi", "yo", "oi", "excuse", "um", "sir", "ok", "okay").contains(first[0])
+				&& first.length > 1 ? first[1] : first[0];
+			if (lead.equals("me") && first.length > 2) {
+				lead = first[2];
+			}
+
+			for (DrifterEntity drifter : near) {
+				if (com.dinglebob.drifter.api.TalkApi.roles(drifter).contains(lead) && (named == null || drifter.distanceTo(player) < named.distanceTo(player))) {
+					named = drifter;
+				}
+			}
+
+			if (named != null) {
+				return named;
 			}
 		}
 
@@ -815,6 +895,35 @@ public final class PlayerTalk {
 		}
 
 		return best;
+	}
+
+	/** For an addon: the item a message names. */
+	@Nullable
+	public static Item itemIn(String text) {
+		return namedItem(text);
+	}
+
+	/** As {@link #answer}, for an intent found another way (batch 2: "whats next" is "going"). */
+	static void answerAs(DrifterEntity drifter, ServerPlayer player, String intent, String text, long now) {
+		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+		answer(drifter, player, intent, text, now);
+	}
+
+	/** The item they named, or null ("food" and "wood" aren't one). */
+	@Nullable
+	static Item namedItem(String text) {
+		String called = named(text);
+		if (called == null || called.equals("food") || called.equals("wood")) {
+			return null;
+		}
+
+		for (Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+			if (new ItemStack(item).getHoverName().getString().toLowerCase(Locale.ROOT).equals(called)) {
+				return item;
+			}
+		}
+
+		return null;
 	}
 
 	/**

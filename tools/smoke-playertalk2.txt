@@ -1,0 +1,89 @@
+# Batch 1 leftovers and batch 2 of talking with players (docs/PLAYER_TALK.md), headless: /drifter hear says things to the
+# nearest Drifter as a stand-in player beside it.
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-48 ~-48 ~48 ~48
+drifter spawn Alice
+execute positioned ~6 ~ ~ run drifter spawn Bobby
+drifter giveall iron_sword
+drifter giveall stone_pickaxe
+drifter giveall bread 6
+drifter giveall diamond 3
+wait 3
+drifter hear hey alice
+wait 4
+drifter hear how long have you been here
+wait 4
+drifter hear what kind of player are you
+wait 4
+drifter hear whats your favorite food
+wait 4
+drifter hear sword or axe?
+wait 4
+drifter hear what do you think of creepers
+wait 4
+drifter hear how many diamonds do you have
+wait 4
+drifter hear have you died
+wait 4
+drifter hear where can i find iron
+wait 4
+drifter hear what biome is this
+wait 4
+drifter hear hows the weather
+wait 4
+drifter hear how do i make a shield
+wait 4
+drifter hear what level for diamonds
+wait 4
+drifter hear how do i kill a creeper
+wait 4
+drifter hear whos your best friend
+wait 4
+drifter hear are you brave
+wait 4
+drifter hear rate my sword out of 10
+wait 4
+drifter hear tell bobby i said hi
+wait 4
+drifter hear ?
+wait 4
+drifter hear tell me more
+wait 4
+drifter hear im bored
+wait 4
+drifter hear youre in my way
+wait 6
+drifter hear can i take some wheat from your chest
+wait 4
+drifter hear what should i do
+wait 4
+drifter hear do you want this
+wait 4
+drifter hear shut up
+wait 4
+drifter hear alice and bobby come here
+wait 6
+drifter hear i lost all my stuff
+wait 4
+drifter hear what happened here
+wait 4
+kill @e[type=drifter:drifter,name=Bobby]
+wait 4
+drifter hear wheres bobby
+wait 4
+drifter hear what killed bobby
+wait 4
+drifter hear gibberish qqq
+wait 3
+drifter hear zzz qqq
+wait 3
+drifter hear blorp
+wait 3
+drifter hear flarp
+wait 3
+drifter hear im logging off
+wait 4
+execute as @e[type=drifter:drifter] at @s run drifter brain
+stop

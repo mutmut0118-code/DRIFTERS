@@ -60,6 +60,16 @@ public final class PlayerConvo {
 		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
 	private static final Set<String> WEAK = Set.of("who_is", "look");
+	/** These and batch 2's (TalkMore). */
+	private static final String[] ALL_TOPICS = join(TOPICS, TalkMore.TOPICS);
+	private static final String[] ALL_GLUE = join(GLUE, TalkMore.GLUE);
+
+	private static String[] join(String[] a, String[] b) {
+		String[] out = java.util.Arrays.copyOf(a, a.length + b.length);
+		System.arraycopy(b, 0, out, a.length, b.length);
+		return out;
+	}
+
 	/** Asked while it sleeps or fights, these still get through. */
 	private static final Set<String> PRESSING = Set.of("warning", "offer", "truce", "wake_up", "help");
 
@@ -340,11 +350,15 @@ public final class PlayerConvo {
 	}
 
 	private static void tick(MinecraftServer server) {
-		if (convos.isEmpty() || server.getTickCount() % 10 != 0) {
+		if (server.getTickCount() % 10 != 0) {
 			return;
 		}
 
 		long now = server.overworld().getGameTime();
+		if (server.getTickCount() % 20 == 0) {
+			TalkMore.tick(server, now);
+		}
+
 		for (Iterator<Map.Entry<UUID, Convo>> it = convos.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<UUID, Convo> entry = it.next();
 			Convo c = entry.getValue();
@@ -389,7 +403,7 @@ public final class PlayerConvo {
 	}
 
 	/** True the first time in {@code every} ticks for this pair and thing. */
-	private static boolean onceIn(DrifterEntity drifter, ServerPlayer player, String what, long now, long every) {
+	static boolean onceIn(DrifterEntity drifter, ServerPlayer player, String what, long now, long every) {
 		String key = drifter.getUUID() + "|" + player.getUUID() + "|" + what;
 		Long last = once.get(key);
 		if (last != null && now - last < every) {
@@ -415,10 +429,14 @@ public final class PlayerConvo {
 	 */
 	@Nullable
 	static String intent(String text, @Nullable String old) {
-		String topic = Lines.answer(text, TOPICS);
+		String topic = Lines.answer(text, ALL_TOPICS);
 		if (topic != null) {
 			if (old == null) {
-				return topic;
+				// (A longer bit of glue says more: "tell me more" isn't "tell X ...".)
+				String glue = Lines.answer(text, ALL_GLUE);
+				String topicSaid = Lines.phrase(text, topic);
+				String glueSaid = glue == null ? null : Lines.phrase(text, glue);
+				return glueSaid != null && topicSaid != null && glueSaid.length() > topicSaid.length() ? glue : topic;
 			}
 
 			if (WEAK.contains(topic)) {
@@ -430,7 +448,7 @@ public final class PlayerConvo {
 			return mine != null && (theirs == null || mine.length() >= theirs.length()) ? topic : null;
 		}
 
-		return old == null ? Lines.answer(text, GLUE) : null;
+		return old == null ? Lines.answer(text, ALL_GLUE) : null;
 	}
 
 	/** Said to no one by name, but to all of them ("you guys", "anyone"). */
@@ -663,8 +681,39 @@ public final class PlayerConvo {
 				return;
 			}
 
-			// Nothing it knows: it says so, or brings something up itself.
+			// "?", "...": it says it again plainer, or waits.
+			String bare = text.trim();
+			if (!bare.isEmpty() && bare.matches("[?!.]+")) {
+				String[] last = lastSaid.get(drifter.getUUID());
+				if (bare.startsWith("?") && last != null) {
+					say(drifter, player, "convo.wdym", null, "last", last[1]);
+				} else {
+					say(drifter, player, "more.dots", null);
+				}
+
+				return;
+			}
+
+			// "sword or axe?": it picks.
+			String either = TalkMore.either(text);
+			if (either != null) {
+				TalkMore.handle(drifter, player, either, "this_or_that", r, r.trust >= Mode.FRIENDLY_TRUST, r.trust >= PlayerTalk.KNOWS_THEM, now);
+				return;
+			}
+
+			// Someone it knows is dead, named ("wheres reed"): it says so.
+			Deaths.Death death = Deaths.named(drifter, text);
+			if (death != null) {
+				say(drifter, player, "more.dead_named", null, "who", death.who(), "how", death.how(), "when", Deaths.when(death.at(), now));
+				return;
+			}
+
+			// Nothing it knows: it says so, or brings something up itself; after a few in a row, it stops answering nonsense.
 			int unknowns = c == null ? 0 : c.unknowns++;
+			if (unknowns >= 3) {
+				return;
+			}
+
 			say(drifter, player, unknowns == 0 ? "convo.unknown" : "convo.unknown_again", null);
 			followUp(drifter, c, now, 0.5);
 			return;
@@ -886,13 +935,140 @@ public final class PlayerConvo {
 				boolean hoarder = drifter.getPersonality().archetype() == Archetype.HOARDER;
 				boolean yes = friend || knows && !night && !hoarder || helper && r.trust >= 0.0 && !night;
 				say(drifter, player, yes ? "convo.come_in.yes" : night && knows ? "convo.come_in.night" : "convo.come_in.no", null);
+				if (yes) {
+					askedIn.put(drifter.getUUID() + "|" + player.getUUID(), now + 20L * 60 * 10);
+				}
 			}
 			case "wake_up" -> say(drifter, player, "convo.wake_up.awake", null);
-			default -> say(drifter, player, "convo.unknown", null);
+			case "what_happened" -> {
+				List<String[]> history = com.dinglebob.drifter.api.TalkApi.history(drifter);
+				if (!history.isEmpty()) {
+					String[] event = history.get(drifter.getRandom().nextInt(Math.min(3, history.size())));
+					say(drifter, player, "more.history", null, "event", event[0], "when", event[1]);
+				} else if (!say(drifter, player, "convo.news.yes", null)) {
+					say(drifter, player, "more.history.none", null);
+				}
+			}
+			default -> {
+				if (!TalkMore.handle(drifter, player, text, mine, r, friend, knows, now)) {
+					say(drifter, player, "convo.unknown", null);
+				}
+			}
 		}
 	}
 
 	/** Now and then, a talk going quiet, it brings something up itself a few seconds on. */
+	/** The talk with them waits this much longer. */
+	static void extend(ServerPlayer player, long ticks) {
+		Convo c = convos.get(player.getUUID());
+		if (c != null) {
+			c.until = Math.max(c.until, player.level().getGameTime() + ticks);
+		}
+	}
+
+	/** What it said to them last: the line's kind and the line; or null. */
+	@Nullable
+	static String[] lastSaid(DrifterEntity drifter) {
+		return lastSaid.get(drifter.getUUID());
+	}
+
+	/** It offers them food, and takes their yes or no. */
+	static void askFood(DrifterEntity drifter, ServerPlayer player, long now) {
+		PlayerTalk.ask(drifter, player, new Topics.Question(Lines.voices("convo.food.give"), "give_food", Lines.voices("convo.food.declined")),
+			vars(drifter, player), now, "food_offer");
+	}
+
+	/** It comes to their side to help (a guard called). */
+	public static void helpPlayer(DrifterEntity drifter, ServerPlayer player) {
+		RequestGoal.ask(drifter, RequestGoal.Kind.HELP, player, null, 0);
+	}
+
+	static void offerDuelTo(DrifterEntity drifter, ServerPlayer player, long now) {
+		offerDuel(drifter, player, now);
+	}
+
+	/** Its words for lines in a talk with them (its facts, an addon's), as a map. */
+	static Map<String, Object> facts(DrifterEntity drifter, ServerPlayer player) {
+		Map<String, Object> words = new HashMap<>(Facts.of(drifter, null).words);
+		com.dinglebob.drifter.api.TalkApi.convoFacts(drifter, player, words);
+		return words;
+	}
+
+	/** It looks where it's pointing them for a moment. */
+	static void pointAt(ServerPlayer player, Vec3 at, long now) {
+		Convo c = convos.get(player.getUUID());
+		if (c != null) {
+			c.lookAt = at;
+			c.lookUntil = now + 20L * 4;
+		}
+	}
+
+	/** Told to be quiet ("shut up", "leave me alone"): it opens no talk with them, and keeps its own chatter down near them, till then. */
+	private static final Map<String, Long> quiet = new HashMap<>();
+
+	static void quiet(DrifterEntity drifter, ServerPlayer player, long until) {
+		quiet.put(drifter.getUUID() + "|" + player.getUUID(), until);
+	}
+
+	public static boolean quieted(DrifterEntity drifter, ServerPlayer player) {
+		Long until = quiet.get(drifter.getUUID() + "|" + player.getUUID());
+		return until != null && drifter.level().getGameTime() < until;
+	}
+
+	/** Someone near told it to be quiet. */
+	public static boolean quietNear(DrifterEntity drifter) {
+		if (quiet.isEmpty() || drifter.getServer() == null) {
+			return false;
+		}
+
+		long now = drifter.level().getGameTime();
+		for (Map.Entry<String, Long> entry : quiet.entrySet()) {
+			if (now < entry.getValue() && entry.getKey().startsWith(drifter.getUUID() + "|")) {
+				ServerPlayer player = drifter.getServer().getPlayerList().getPlayer(UUID.fromString(entry.getKey().substring(entry.getKey().indexOf('|') + 1)));
+				if (player != null && player.level() == drifter.level() && player.distanceTo(drifter) < 32.0) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/** It said they could use its chests ("can i take some wheat?" "sure"): opening them till then isn't theft. */
+	private static final Map<String, Long> chests = new HashMap<>();
+
+	static void allowChests(DrifterEntity drifter, ServerPlayer player, long until) {
+		chests.put(drifter.getUUID() + "|" + player.getUUID(), until);
+	}
+
+	public static boolean chestsAllowed(DrifterEntity drifter, net.minecraft.world.entity.player.Player player) {
+		Long until = chests.get(drifter.getUUID() + "|" + player.getUUID());
+		return until != null && drifter.level().getGameTime() < until;
+	}
+
+	/** It asked them in ("can i come in?" "sure"): walking in then isn't intruding, till then. */
+	private static final Map<String, Long> askedIn = new HashMap<>();
+
+	/**
+	 * They walked into its house (docs/PLAYER_TALK.md E7.1): unasked, it says something (a friend: "come in"; anyone else:
+	 * "uh, hello?"), once in a while, and the talk starts there.
+	 */
+	public static void walkedIn(DrifterEntity drifter, ServerPlayer player) {
+		long now = drifter.level().getGameTime();
+		Long asked = askedIn.get(drifter.getUUID() + "|" + player.getUUID());
+		if (asked != null && now < asked || drifter.isSleeping() || drifter.inAFight() || PlayerTalk.answering(drifter)
+			|| !onceIn(drifter, player, "walked_in", now, 20L * 60 * 5) || !com.dinglebob.drifter.DrifterConfig.chatLines()) {
+			return;
+		}
+
+		Relationship r = drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
+		String key = r.trust >= Mode.FRIENDLY_TRUST ? "more.walked_in.friend" : drifter.getPersonality().archetype() == Archetype.HOARDER
+			? "more.walked_in.hoarder" : "more.walked_in";
+		touch(player, drifter, now, false);
+		PlayerTalk.focusOn(player, drifter, now);
+		say(drifter, player, key, null);
+	}
+
 	private static void followUp(DrifterEntity drifter, @Nullable Convo c, long now, double chance) {
 		if (c != null && c.exchanges >= 2 && drifter.getRandom().nextDouble() < chance * (0.4 + drifter.getPersonality().get(Trait.SOCIABILITY))) {
 			c.followAt = now + 20L * 5 + drifter.getRandom().nextInt(40);

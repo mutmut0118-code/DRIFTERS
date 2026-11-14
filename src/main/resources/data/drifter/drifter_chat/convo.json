@@ -565,27 +565,7 @@
    "is it safe round here",
    "whats dangerous around here"
   ],
-  "news": [
-   "any news",
-   "whats new",
-   "whats been going on",
-   "what did i miss",
-   "whats going on around here",
-   "anything happen",
-   "anything new",
-   "whats the news",
-   "got any news",
-   "heard anything",
-   "what happened here",
-   "can you tell me what happened",
-   "tell me what happened",
-   "what happened",
-   "whats been happening",
-   "any gossip",
-   "whats the tea",
-   "tell me about what happened here",
-   "what has been going on"
-  ],
+  "news": ["any news", "whats new", "whats been going on", "what did i miss", "whats going on around here", "anything happen", "anything new", "whats the news", "got any news", "heard anything", "whats been happening", "any gossip", "whats the tea"],
   "who_died": [
    "who died",
    "did anyone die",

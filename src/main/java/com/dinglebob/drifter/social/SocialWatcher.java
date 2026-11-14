@@ -525,6 +525,14 @@ public class SocialWatcher {
 				continue;
 			}
 
+			// Inside its own house: it says something (docs/PLAYER_TALK.md E7.1).
+			if (now % 20 == 0 && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer && distance < 12.0) {
+				Home home = this.drifter.getDrifterBrain().home();
+				if (home != null && (home.planBox() != null ? home.inOwnBuilding(player.blockPosition(), 0) : home.center.closerThan(player.blockPosition(), 4.0))) {
+					com.dinglebob.drifter.social.talk.PlayerConvo.walkedIn(this.drifter, serverPlayer);
+				}
+			}
+
 			Relationship r = this.drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName());
 			r.lastSeenAt = now;
 			r.lastSeenPos = player.blockPosition();
@@ -836,8 +844,9 @@ public class SocialWatcher {
 					return;
 				}
 
-				// One of its chests opened (seen, or heard while it knew who was there).
-				if (home.isChest(pos) && !player.isSecondaryUseActive() && watcher.noticed(player, pos)) {
+				// One of its chests opened (seen, or heard while it knew who was there); not when it said they could.
+				if (home.isChest(pos) && !player.isSecondaryUseActive() && watcher.noticed(player, pos)
+					&& !com.dinglebob.drifter.social.talk.PlayerConvo.chestsAllowed(watcher.drifter, player)) {
 					home.lastOpenedBy = player.getUUID();
 					home.lastOpenedByName = player.getGameProfile().getName();
 					home.lastOpenedAt = level.getGameTime();

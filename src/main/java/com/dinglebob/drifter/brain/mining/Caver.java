@@ -120,6 +120,12 @@ public final class Caver {
 			return null;
 		}
 
+		// A place it was warned of, or saw someone killed in: it turns back.
+		if (com.dinglebob.drifter.social.talk.Dangers.near(this.drifter, feet, com.dinglebob.drifter.social.talk.Dangers.AROUND * 0.75)) {
+			this.say("turned back: somewhere it knows is dangerous");
+			return null;
+		}
+
 		BlockPos target = this.frontier(feet);
 		if (target == null) {
 			this.say("nothing left in this cave it can get to " + debugCounts(this.drifter, feet, SEARCH_RADIUS, this.visited, this.unreachable));
@@ -296,7 +302,7 @@ public final class Caver {
 		terrain.forEachKnown(around, radius, pos -> {
 			// Not its own tunnels (user's report: it took its old strip mine for a cave).
 			if (visited.contains(region(pos)) || unreachable.contains(pos) || drifter.dugOut(pos.asLong()) || !terrain.isKnown(pos.below())
-				|| !KnownBlocks.isStandable(level, pos) || !underground(drifter, pos)) {
+				|| !KnownBlocks.isStandable(level, pos) || !underground(drifter, pos) || com.dinglebob.drifter.social.talk.Dangers.near(drifter, pos)) {
 				return;
 			}
 

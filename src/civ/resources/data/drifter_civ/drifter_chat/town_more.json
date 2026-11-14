@@ -1,0 +1,602 @@
+{
+ "_comment": "Batch 2 of asking a townsperson about its town (docs/PLAYER_TALK.md section D; TownTalkMore.java). Started by tools/chat_more/more_seed.py; more lines added with merge.py.",
+ "answers": {
+  "price": [
+   "how much is",
+   "how much for",
+   "how much does",
+   "whats the price of",
+   "price of",
+   "how much are",
+   "what does it cost",
+   "how much do you want for"
+  ],
+  "buys": [
+   "do you buy",
+   "what do you buy",
+   "wanna buy this",
+   "how much will you give me",
+   "will you buy",
+   "what will you pay for",
+   "do you take"
+  ],
+  "money_take": [
+   "what do you take as payment",
+   "do you take diamonds",
+   "do you take emeralds",
+   "what money do you use",
+   "what currency",
+   "do you take coins"
+  ],
+  "live_here": [
+   "can i live here",
+   "can i join the town",
+   "can i move in",
+   "can i stay here for good",
+   "can i be part of the town",
+   "can i join"
+  ],
+  "build_here": [
+   "can i build here",
+   "where can i build",
+   "is this spot taken",
+   "can i put a house here",
+   "where can i put my house"
+  ],
+  "nation": [
+   "what nation is this",
+   "who do you belong to",
+   "wheres the capital",
+   "which nation",
+   "what kingdom is this",
+   "whats the capital"
+  ],
+  "like_town": [
+   "is this a good town",
+   "do you like it here",
+   "hows life here",
+   "is it nice living here",
+   "do you like this town"
+  ],
+  "allies": [
+   "who are your allies",
+   "who are your enemies",
+   "do you have allies",
+   "who are you friends with",
+   "any allies",
+   "who do you trade with"
+  ],
+  "war": [
+   "are you at war",
+   "who are you fighting",
+   "whos winning",
+   "are you fighting anyone",
+   "is there a war",
+   "any wars"
+  ],
+  "wanted_list": [
+   "whos wanted",
+   "any bounties",
+   "whos the criminal",
+   "any criminals",
+   "who is wanted here",
+   "wanted list"
+  ],
+  "join_festival": [
+   "can i join the party",
+   "can i come to the festival",
+   "can i join the contest",
+   "can i join",
+   "am i invited",
+   "can i come too"
+  ],
+  "leader_opinion": [
+   "what do you think of the leader",
+   "is the leader good",
+   "taxes too high",
+   "do you like the leader",
+   "is the mayor good",
+   "how is the leader"
+  ],
+  "who_lives": [
+   "who lives here",
+   "whose house is this",
+   "who lives in this house",
+   "is this house taken",
+   "who owns this house"
+  ],
+  "guards_call": [
+   "guards",
+   "help thief",
+   "call the guards",
+   "get the guards",
+   "guard help",
+   "somebody call the guards"
+  ],
+  "didnt_do_it": [
+   "i didnt do it",
+   "it wasnt me",
+   "i was framed",
+   "im innocent",
+   "wasnt me",
+   "i didnt steal",
+   "i didnt kill anyone"
+  ],
+  "sorry_guard": [
+   "ill pay",
+   "i wont do it again",
+   "can i pay the fine",
+   "how do i pay",
+   "who do i pay",
+   "how much is my fine",
+   "can i pay it"
+  ],
+  "haggle": [
+   "lower",
+   "discount",
+   "can you do better",
+   "cheaper",
+   "any discount",
+   "give me a deal",
+   "come on lower",
+   "ill give you less"
+  ],
+  "buy_it": [
+   "ill take it",
+   "i want to buy",
+   "sell me",
+   "ill buy",
+   "can i buy",
+   "i want one"
+  ],
+  "job_done": [
+   "heres the stuff",
+   "i got your iron",
+   "job done",
+   "heres what you wanted",
+   "i finished the job",
+   "got it for you"
+  ],
+  "market_when": [
+   "when is market day",
+   "when is the festival",
+   "when is the contest",
+   "when is the next market",
+   "is there a market soon"
+  ],
+  "report_crime": [
+   "stole from me",
+   "hit me",
+   "attacked me",
+   "i want to report a crime",
+   "report a crime",
+   "someone stole",
+   "theres a thief",
+   "killed someone"
+  ],
+  "raid_coming": [
+   "a raid is coming",
+   "bandits are coming",
+   "theyre going to attack the town",
+   "raiders are coming",
+   "theres a raid coming",
+   "pillagers are coming",
+   "the town is going to be attacked"
+  ]
+ },
+ "lines": {
+  "town.more.price": {
+   "any": [
+    "{who} sells {item} for {price}",
+    "{item}? {price} at the stall",
+    "about {price}"
+   ]
+  },
+  "town.more.price.mine": {
+   "any": [
+    "{item}? {price}",
+    "{price} for {item}",
+    "{price}"
+   ]
+  },
+  "town.more.price.not_sold": {
+   "any": [
+    "nobody sells {item} here",
+    "no {item} at the stall",
+    "we dont sell {item}"
+   ]
+  },
+  "town.more.price.what": {
+   "any": [
+    "how much is what",
+    "price of what?",
+    "what do you want"
+   ]
+  },
+  "town.more.buy.mine": {
+   "any": [
+    "{price}, right click me",
+    "ok, {price}",
+    "{price}, throw it or trade"
+   ]
+  },
+  "town.more.buys.list": {
+   "any": [
+    "{who} buys {goods}",
+    "mostly {goods}",
+    "{goods}"
+   ]
+  },
+  "town.more.buys.item": {
+   "any": [
+    "{who} pays {price} for {item}",
+    "about {price}",
+    "{price} each"
+   ]
+  },
+  "town.more.money.emeralds": {
+   "any": [
+    "emeralds",
+    "we take emeralds",
+    "emeralds only"
+   ]
+  },
+  "town.more.money.coins": {
+   "any": [
+    "coins",
+    "we take coins",
+    "bronze, silver, gold"
+   ]
+  },
+  "town.more.live.welcome": {
+   "any": [
+    "ask {leader}, but youd be welcome",
+    "sure, talk to {leader}",
+    "id like that"
+   ]
+  },
+  "town.more.live.maybe": {
+   "any": [
+    "ask {leader}",
+    "maybe, talk to {leader}",
+    "depends on {leader}"
+   ]
+  },
+  "town.more.live.no": {
+   "any": [
+    "i dont think so",
+    "no",
+    "not after what happened"
+   ]
+  },
+  "town.more.build.inside": {
+   "any": [
+    "not in the middle of town",
+    "theres no room here",
+    "outside town maybe"
+   ]
+  },
+  "town.more.build.outside": {
+   "any": [
+    "out here's fine",
+    "sure, just not on the road",
+    "go for it"
+   ]
+  },
+  "town.more.nation": {
+   "any": [
+    "{nation}, capitals {capital}",
+    "were part of {nation}",
+    "{nation}"
+   ]
+  },
+  "town.more.nation.capital": {
+   "any": [
+    "this is the capital of {nation}",
+    "{nation}, and youre in the capital",
+    "{nation}"
+   ]
+  },
+  "town.more.nation.none": {
+   "any": [
+    "no nation",
+    "were on our own",
+    "just this town"
+   ]
+  },
+  "town.more.like.yes": {
+   "any": [
+    "yeah its nice",
+    "love it here",
+    "its home"
+   ]
+  },
+  "town.more.like.taxes": {
+   "any": [
+    "taxes are too high",
+    "its ok",
+    "could be better"
+   ]
+  },
+  "town.more.like.sad": {
+   "any": [
+    "its been hard",
+    "used to be",
+    "not lately"
+   ]
+  },
+  "town.more.allies": {
+   "any": [
+    "{them}",
+    "friends with {them}",
+    "{them}, mostly"
+   ]
+  },
+  "town.more.allies.none": {
+   "any": [
+    "nobody",
+    "we keep to ourselves",
+    "no allies"
+   ]
+  },
+  "town.more.allies.enemies_only": {
+   "any": [
+    "no friends, just {enemies}",
+    "at war with {enemies}",
+    "{enemies}, and theyre not friends"
+   ]
+  },
+  "town.more.war": {
+   "any": [
+    "{them}",
+    "were fighting {them}",
+    "war with {them}"
+   ]
+  },
+  "town.more.war.none": {
+   "any": [
+    "no war",
+    "peaceful",
+    "nope"
+   ]
+  },
+  "town.more.wanted": {
+   "any": [
+    "{who}",
+    "{who} is wanted",
+    "watch out for {who}"
+   ]
+  },
+  "town.more.wanted.none": {
+   "any": [
+    "nobody",
+    "no one",
+    "clean town"
+   ]
+  },
+  "town.more.join.yes": {
+   "any": [
+    "sure, come on",
+    "everyone's welcome",
+    "yeah!"
+   ]
+  },
+  "town.more.join.nothing": {
+   "any": [
+    "nothing on today",
+    "no party today",
+    "nothing going on"
+   ]
+  },
+  "town.more.market.today": {
+   "any": [
+    "today!",
+    "its today",
+    "right now"
+   ]
+  },
+  "town.more.market.tomorrow": {
+   "any": [
+    "tomorrow",
+    "tmrw",
+    "next day"
+   ]
+  },
+  "town.more.market.soon": {
+   "any": [
+    "in {days} days",
+    "{days} days",
+    "soon"
+   ]
+  },
+  "town.more.market.none": {
+   "any": [
+    "no market",
+    "dunno",
+    "not soon"
+   ]
+  },
+  "town.more.leader.good": {
+   "any": [
+    "{leader}'s good",
+    "fine",
+    "i like {leader}"
+   ]
+  },
+  "town.more.leader.careful": {
+   "any": [
+    "cant complain",
+    "theyre ok",
+    "no comment"
+   ]
+  },
+  "town.more.leader.frank": {
+   "any": [
+    "honestly? not great",
+    "taxes are killing us",
+    "between us, no"
+   ]
+  },
+  "town.more.leader.me": {
+   "any": [
+    "im doing my best",
+    "you tell me",
+    "pretty good, if i say so"
+   ]
+  },
+  "town.more.who_lives": {
+   "any": [
+    "{who}",
+    "{who} lives here",
+    "this is {who}'s"
+   ]
+  },
+  "town.more.who_lives.me": {
+   "any": [
+    "me",
+    "i do",
+    "this is mine"
+   ]
+  },
+  "town.more.who_lives.nobody": {
+   "any": [
+    "nobody",
+    "its empty",
+    "no one"
+   ]
+  },
+  "town.more.guards.coming": {
+   "any": [
+    "guards are coming!",
+    "help is coming",
+    "theyre on their way"
+   ]
+  },
+  "town.more.guards.none": {
+   "any": [
+    "no guards near",
+    "theyre not around",
+    "nobody coming"
+   ]
+  },
+  "town.more.report": {
+   "any": [
+    "tell a guard",
+    "the guards should hear",
+    "go to the guards"
+   ]
+  },
+  "town.more.report.guard": {
+   "any": [
+    "ill keep an eye out",
+    "noted",
+    "ill look into it"
+   ]
+  },
+  "town.more.innocent.nothing": {
+   "any": [
+    "nobody said you did",
+    "did what?",
+    "youre fine"
+   ]
+  },
+  "town.more.innocent.guard": {
+   "any": [
+    "tell it to the leader",
+    "sure",
+    "everyone says that"
+   ]
+  },
+  "town.more.innocent.friend": {
+   "any": [
+    "i believe you",
+    "ok",
+    "i know you"
+   ]
+  },
+  "town.more.innocent.doubt": {
+   "any": [
+    "sure",
+    "right",
+    "if you say so"
+   ]
+  },
+  "town.more.sorry.fine": {
+   "any": [
+    "pay the {fine} to a guard",
+    "{fine}, to a guard",
+    "throw it to a guard"
+   ]
+  },
+  "town.more.sorry.leader": {
+   "any": [
+    "only the leader can pardon you",
+    "talk to the leader",
+    "too late for sorry"
+   ]
+  },
+  "town.more.sorry.nothing": {
+   "any": [
+    "you dont owe anything",
+    "nothing to pay",
+    "youre clear"
+   ]
+  },
+  "town.more.haggle.no": {
+   "any": [
+    "prices are prices",
+    "no",
+    "nope"
+   ]
+  },
+  "town.more.haggle.friend": {
+   "any": [
+    "for you, a little",
+    "ok fine, a bit off",
+    "only for you"
+   ]
+  },
+  "town.more.haggle.never": {
+   "any": [
+    "never",
+    "no discounts",
+    "full price"
+   ]
+  },
+  "town.more.haggle.not_mine": {
+   "any": [
+    "not my stall",
+    "ask the keeper",
+    "not mine"
+   ]
+  },
+  "town.more.job_done": {
+   "any": [
+    "give it to whoever asked",
+    "nice, go tell them",
+    "the one who asked'll want it"
+   ]
+  },
+  "town.more.raid.believe": {
+   "any": [
+    "really?? ill tell people",
+    "oh no, ty",
+    "ill warn everyone"
+   ]
+  },
+  "town.more.raid.guard": {
+   "any": [
+    "ill be ready",
+    "thanks, ill watch",
+    "noted. ill tell the others"
+   ]
+  },
+  "town.more.raid.doubt": {
+   "any": [
+    "sure",
+    "why should i believe you",
+    "hm"
+   ]
+  }
+ }
+}
