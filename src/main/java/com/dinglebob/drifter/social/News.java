@@ -73,4 +73,14 @@ public record News(String key, Kind kind, @Nullable UUID about, String aboutName
 			return null;
 		}
 	}
+
+	/** What happened, as this one tells it: itself named in it is "me" ("muto gave me something", not "...gave PastorGhost something"). */
+	public String whatSaidBy(java.util.UUID teller) {
+		if (this.other == null || !this.other.equals(teller) || this.otherName == null || this.otherName.isBlank()) {
+			return this.what;
+		}
+
+		String quoted = java.util.regex.Pattern.quote(this.otherName);
+		return this.what.replaceAll("(?i)\\b" + quoted + "'s\\b", "my").replaceAll("(?i)\\b" + quoted + "\\b", "me");
+	}
 }

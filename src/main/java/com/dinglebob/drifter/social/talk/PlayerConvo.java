@@ -708,9 +708,10 @@ public final class PlayerConvo {
 				return;
 			}
 
-			// Nothing it knows: it says so, or brings something up itself; after a few in a row, it stops answering nonsense.
+			// Nothing it knows: it says so, or brings something up itself; after a few in a row, it moves the talk on itself.
 			int unknowns = c == null ? 0 : c.unknowns++;
-			if (unknowns >= 3) {
+			if (unknowns >= 2 && Conversations.idle(drifter) && PlayerChats.start(drifter, player, null, now) != null) {
+				c.unknowns = 0;
 				return;
 			}
 
