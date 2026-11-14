@@ -56,6 +56,7 @@ public final class DrifterCivilizations implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		Sketches.register();
+		FarPaint.register();
 		CivConfig.load();
 		ServerLifecycleEvents.SERVER_STARTING.register(started -> server = started);
 		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> server = null);

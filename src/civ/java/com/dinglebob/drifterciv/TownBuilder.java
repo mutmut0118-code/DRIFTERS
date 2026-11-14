@@ -137,6 +137,17 @@ public final class TownBuilder {
 			return of(level.getBiome(pos));
 		}
 
+		/** The style of this name (plains if there's none such). */
+		static Style byName(String name) {
+			for (Style style : new Style[] {PLAINS, DESERT, SAVANNA, TAIGA, SNOWY}) {
+				if (style.name.equals(name)) {
+					return style;
+				}
+			}
+
+			return PLAINS;
+		}
+
 		/** The style for this biome. */
 		static Style of(net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> biome) {
 			return biome.is(net.minecraft.tags.BiomeTags.HAS_VILLAGE_DESERT) || biome.is(net.minecraft.tags.BiomeTags.IS_BADLANDS) ? DESERT
