@@ -99,6 +99,10 @@ public final class FarSync {
 
 			List<FarPaint.Road> roads = FarPaint.serverRoads();
 			long data = Sketches.changes() * 31L + roads.size();
+			for (FarPaint.Road road : roads) {
+				data += road.heights().length * 7L;
+			}
+
 			long state = 0;
 			List<UUID> built = new ArrayList<>();
 			for (WorldPlan.Place place : WorldPlan.places) {
@@ -170,6 +174,7 @@ public final class FarSync {
 			one.putLongArray("Line", line);
 			one.putByteArray("Bridge", bridge);
 			one.putInt("Pieces", road.built().length);
+			one.putIntArray("Heights", road.heights());
 			one.putLong("Salt", road.salt());
 			lines.add(one);
 		}
@@ -233,7 +238,7 @@ public final class FarSync {
 					bridge[i] = i < bridges.length && bridges[i] == 1;
 				}
 
-				lines.add(new FarPaint.Road(h, line, bridge, new boolean[Math.max(1, one.getInt("Pieces"))], one.getLong("Salt")));
+				lines.add(new FarPaint.Road(h, line, bridge, new boolean[Math.max(1, one.getInt("Pieces"))], one.getLong("Salt"), one.getIntArray("Heights")));
 			}
 
 			sketches = read;

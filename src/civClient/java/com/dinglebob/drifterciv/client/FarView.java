@@ -28,6 +28,13 @@ public final class FarView {
 		return painter;
 	}
 
+	private static volatile int minY = -64;
+
+	/** The world's floor (a far-view mod counts a column's heights from it). */
+	public static int minY() {
+		return minY;
+	}
+
 	/** A far-view hookup that runs in this game is on (Voxy with Voxy SeedGen; Distant Horizons draws on the host). */
 	private static boolean hookup() {
 		return FarVoxyPlugin.WANTED;
@@ -48,6 +55,10 @@ public final class FarView {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			boolean host = client.getSingleplayerServer() != null;
 			painter = host ? FarPaint.SERVER : FarPaint.CLIENT;
+			if (client.level != null) {
+				minY = client.level.getMinBuildHeight();
+			}
+
 			// (Asked once, when the game's in the world and the server knows the packet: a server without the addon never does.)
 			if (!asked && client.player != null && (TEST || !host && hookup()) && ClientPlayNetworking.canSend(FarSync.Want.TYPE)) {
 				asked = true;

@@ -57,8 +57,9 @@ public final class FarVoxy {
 
 	private static void rewrite(ColumnSpans spans, FarPaint.Column column) {
 		int count = spans.count();
+		// (The ground: the highest span that isn't air, a tree or a plant. The top one is often a treetop.)
 		int ground = count - 1;
-		while (ground >= 0 && spans.state(ground).isAir()) {
+		while (ground >= 0 && !FarPaint.ground(spans.state(ground))) {
 			ground--;
 		}
 
@@ -66,13 +67,13 @@ public final class FarVoxy {
 			return;
 		}
 
-		int[] bottoms = new int[ground + 1];
-		int[] tops = new int[ground + 1];
-		BlockState[] states = new BlockState[ground + 1];
+		int[] bottoms = new int[count];
+		int[] tops = new int[count];
+		BlockState[] states = new BlockState[count];
 		@SuppressWarnings("unchecked")
-		Holder<Biome>[] biomes = new Holder[ground + 1];
-		int[] lights = new int[ground + 1];
-		for (int i = 0; i <= ground; i++) {
+		Holder<Biome>[] biomes = new Holder[count];
+		int[] lights = new int[count];
+		for (int i = 0; i < count; i++) {
 			bottoms[i] = spans.bottom(i);
 			tops[i] = spans.top(i);
 			states[i] = spans.state(i);
@@ -80,32 +81,58 @@ public final class FarVoxy {
 			lights[i] = spans.light(i);
 		}
 
-		// Everything under the ground as it was; the ground with the painter's block and light; then what stands on it, air
-		// between (what stood there before, a tree, is gone: a house is there now).
 		spans.clear();
-		for (int i = 0; i < ground; i++) {
-			spans.add(bottoms[i], tops[i], states[i], biomes[i], lights[i] >> 4, lights[i] & 15);
+		if (column.lightOnly()) {
+			// Only a lamp's glow on it: everything as it was (its trees too), the ground and the air over it lit.
+			for (int i = 0; i < count; i++) {
+				int block = i == ground || i == ground + 1 ? Math.max(column.light(), lights[i] >> 4) : lights[i] >> 4;
+				spans.add(bottoms[i], tops[i], states[i], biomes[i], block, lights[i] & 15);
+			}
+
+			return;
+		}
+
+		// The ground's top, where the far land has it or (a road's bed, a house's plot) where it's asked for, the land cut
+		// down or filled up to it; under it as it was; what grew on it gone.
+		Holder<Biome> biome = biomes[ground];
+		boolean water = !states[ground].getFluidState().isEmpty();
+		int top = tops[ground];
+		if (column.y() != FarPaint.NO_Y && !water) {
+			int asked = column.y() + 1 - FarView.minY();
+			if (Math.abs(asked - top) <= FarPaint.MOST_GRADE && asked - 1 > bottoms[0]) {
+				top = asked;
+			}
+		}
+
+		int laid = bottoms[0];
+		for (int i = 0; i <= ground; i++) {
+			int upTo = Math.min(tops[i], top - 1);
+			if (upTo > bottoms[i]) {
+				spans.add(bottoms[i], upTo, states[i], biomes[i], lights[i] >> 4, lights[i] & 15);
+				laid = upTo;
+			}
+		}
+
+		if (laid < top - 1) {
+			spans.add(laid, top - 1, water ? states[ground] : Blocks.DIRT.defaultBlockState(), biome, 0, 0);
 		}
 
 		boolean roofed = !column.spans().isEmpty();
-		Holder<Biome> biome = biomes[ground];
-		int surface = tops[ground];
-		spans.add(bottoms[ground], surface, column.surface() == null ? states[ground] : column.surface(), biome, Math.max(column.light(), lights[ground] >> 4),
-			roofed ? 0 : 15);
-		int cursor = surface;
+		spans.add(top - 1, top, column.surface() == null ? states[ground] : column.surface(), biome, Math.max(column.light(), lights[ground] >> 4), roofed ? 0 : 15);
+		int cursor = top;
 		BlockState air = Blocks.AIR.defaultBlockState();
 		for (FarPaint.Span span : column.spans()) {
-			if (surface + span.bottom() > cursor) {
-				spans.add(cursor, surface + span.bottom(), air, biome, column.light(), 0);
+			if (top + span.bottom() > cursor) {
+				spans.add(cursor, top + span.bottom(), air, biome, column.light(), 0);
 			}
 
-			spans.add(surface + span.bottom(), surface + span.top(), span.block(), biome, span.light(), 15);
-			cursor = surface + span.top();
+			spans.add(top + span.bottom(), top + span.top(), span.block(), biome, span.light(), 15);
+			cursor = top + span.top();
 		}
 
 		if (!roofed && column.light() > 0) {
 			// (Lit air over the ground, so its glow shows on the ground's top whichever voxel Voxy takes the light from.)
-			spans.add(surface, surface + 1, air, biome, column.light(), 15);
+			spans.add(top, top + 1, air, biome, column.light(), 15);
 		}
 	}
 }

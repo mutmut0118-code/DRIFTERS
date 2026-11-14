@@ -95,6 +95,12 @@ final class Sketches {
 		return worldSeed ^ place.getMostSignificantBits() * 31 ^ place.getLeastSignificantBits();
 	}
 
+	/** The land as the generator says it is (null: no planned world open). */
+	@Nullable
+	static TownLand predicted() {
+		return land;
+	}
+
 	@Nullable
 	static Sketch of(UUID place) {
 		return MADE.get(place);

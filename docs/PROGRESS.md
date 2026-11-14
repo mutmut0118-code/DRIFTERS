@@ -46,7 +46,26 @@ the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings
   held matched the server's). **Not tested with a real second player over LAN.** A guest stops drawing a place when
   the host says it's built (not when its own game loads it, as the plan first had it).
 
-**Not done yet:** Task 7 (Meridian), Task 8 (a real LAN run, timing against the main line, the whole-branch review). **Not yet checked:** the installed (remapped) jar with Voxy in the user's own game
+- **The rework after the user's first look (0.23.63-side.3; the user, 2026-11-14, with pictures of a road's blocks
+  and lamps on treetops and a road in loose blocks over every bump: "we need to rework the routes and paper towns to
+  be a little more accurate than being painted over"; "an lod that showed a ruin town turned out to be just an actual
+  town").** The hookups stood everything on the highest thing in a column, a treetop in a forest. Now:
+  `FarPaint.ground(state)` finds the ground under trees and plants (Voxy and DH hookups both); where a road, a street,
+  a plaza or a house goes, what grew there is cleared; a column may ask for its surface's height
+  (`FarPaint.Column.y`): a road's bed (the generator's land at each of its points, smoothed along it, worked out in
+  the background: `FarPaint.grade`), a house's plot (`Sketch.Box.base`), the plaza (`Sketch.y0`), and the far land is
+  cut down or filled up to it (within `MOST_GRADE` 8 blocks; never on water); a column with only a lamp's glow on it
+  keeps its trees. The ruin: a place's sketch and its real town are a ruin by the same flag (`Place.ruin()`), so it was
+  most likely a hill town's houses standing broken at treetop and bump heights (Oakstead in the user's log: 4 of its
+  13 sketched houses near a real one); not confirmed. Dev client with Voxy, seed 779: a road cut clean through a
+  jungle to a city (`docs/superpowers/shots/grade-road-day.png`). The user's own game ran 0.23.63-side.2 fine (31
+  places sketched in 4.8 s, Voxy painting, the far land starting over after a move): the installed jar's hookup works.
+
+**Not done yet:** Task 7 (Meridian), Task 8 (a real LAN run, timing against the main line, the whole-branch review).
+Also open: far land Voxy wrote with 0.23.63-side.2 keeps its old look (the treetop roads) until that world's far view
+is made again; a road's bed may be asked for a second or two after a world opens (worked out in the background), so
+the first columns Voxy SeedGen writes can still lie ungraded; at coarse detail a 3-wide road is sampled every 2 or 4
+blocks and can look dotted. **Not yet checked:** the installed (remapped) jar with Voxy in the user's own game
 (the hookup was only run in the dev game); walking up to a sketched town and watching the real one take over; a world
 whose far land Voxy had already filled before this version (its old far view stays where it was filled).
 

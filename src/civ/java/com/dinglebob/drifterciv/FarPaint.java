@@ -41,12 +41,51 @@ public final class FarPaint {
 	public record Span(int bottom, int top, BlockState block, int light) {
 	}
 
-	/** A column's answer: the block its surface becomes (null: as it is), what stands on it bottom up, the block light on it. */
-	public record Column(@Nullable BlockState surface, List<Span> spans, int light) {
+	/** No height asked for: the surface stays where the far land has it. */
+	public static final int NO_Y = Integer.MIN_VALUE;
+	/** A height asked for is taken only this near the far land's own (further: the land was read differently; left alone). */
+	public static final int MOST_GRADE = 8;
+
+	/**
+	 * A column's answer: the block its surface becomes (null: as it is), what stands on it bottom up, the block light on
+	 * it, and the height its surface is to be at ({@link #NO_Y}: where it is): a road's graded bed, a house's levelled
+	 * plot. The far land is cut down or filled up to it, as the real builder does, and whatever grew there is cleared.
+	 */
+	public record Column(@Nullable BlockState surface, List<Span> spans, int light, int y) {
+		public Column(@Nullable BlockState surface, List<Span> spans, int light) {
+			this(surface, spans, light, NO_Y);
+		}
+
+		/** Only light on the ground: nothing's cleared, cut or filled. */
+		public boolean lightOnly() {
+			return this.surface == null && this.spans.isEmpty() && this.y == NO_Y;
+		}
 	}
 
-	/** A road between two places: its smoothed line, which of its points are a bridge's, which pieces of it are laid. */
-	record Road(int index, List<double[]> line, boolean[] bridge, boolean[] built, long salt) {
+	/**
+	 * The ground, as against what grows or lies on it: not air, not a tree's leaves or logs, not a plant or snow layer.
+	 * (The top of a column of far land is often a treetop; a road painted there ran over the canopy: the user's pictures,
+	 * 2026-11-14.) Water counts: a column's surface there is the water's.
+	 */
+	public static boolean ground(BlockState state) {
+		if (state.isAir()) {
+			return false;
+		}
+
+		if (!state.getFluidState().isEmpty()) {
+			return true;
+		}
+
+		return !state.is(net.minecraft.tags.BlockTags.LEAVES) && !state.is(net.minecraft.tags.BlockTags.LOGS) && !TownBuilder.plant(state)
+			&& !(state.getBlock() instanceof net.minecraft.world.level.block.VineBlock) && !state.is(Blocks.BAMBOO) && !state.is(Blocks.CACTUS)
+			&& !state.is(Blocks.SUGAR_CANE) && !state.is(Blocks.MUSHROOM_STEM) && !state.is(Blocks.RED_MUSHROOM_BLOCK) && !state.is(Blocks.BROWN_MUSHROOM_BLOCK);
+	}
+
+	/**
+	 * A road between two places: its smoothed line, which of its points are a bridge's, which pieces of it are laid, and
+	 * the height of its bed at each point (empty: not worked out yet, it lies on the land as it is).
+	 */
+	record Road(int index, List<double[]> line, boolean[] bridge, boolean[] built, long salt, int[] heights) {
 	}
 
 	/** The side of the squares everything's sorted into, to find what's near a column. */
@@ -154,7 +193,8 @@ public final class FarPaint {
 		Map<Long, List<RoadEntry>> roadCells = new HashMap<>();
 		for (Road road : roads) {
 			RoadEntry old = road.index() < before.roads.size() ? before.roads.get(road.index()) : null;
-			RoadEntry entry = old != null && old.road.line() == road.line() && old.road.built() == road.built() ? old : new RoadEntry(road);
+			RoadEntry entry = old != null && old.road.line() == road.line() && old.road.built() == road.built() && old.road.heights() == road.heights() ? old
+				: new RoadEntry(road);
 			roadEntries.add(entry);
 			for (double[] point : road.line()) {
 				for (int i = Math.floorDiv(Mth.floor(point[0]) - 16, CELL); i <= Math.floorDiv(Mth.floor(point[0]) + 16, CELL); i++) {
@@ -276,7 +316,7 @@ public final class FarPaint {
 			}
 		}
 
-		Column paving = new Column(style.paving().defaultBlockState(), List.of(), 0);
+		Column paving = new Column(style.paving().defaultBlockState(), List.of(), 0, sketch.y0());
 		int[] plaza = sketch.plaza();
 		for (int x = plaza[0]; x <= plaza[2]; x++) {
 			for (int z = plaza[1]; z <= plaza[3]; z++) {
@@ -294,7 +334,7 @@ public final class FarPaint {
 						// A ruin: broken walls round nothing, each column of them its own height.
 						if (edge) {
 							int high = 1 + (int)(Math.floorMod(x * 73428767L ^ z * 912931L, 1000) / 1000.0 * box.wall());
-							out.put(BlockPos.asLong(x, 0, z), new Column(null, List.of(new Span(0, high, walls, 0)), 0));
+							out.put(BlockPos.asLong(x, 0, z), new Column(null, List.of(new Span(0, high, walls, 0)), 0, box.base()));
 						} else {
 							out.remove(BlockPos.asLong(x, 0, z));
 						}
@@ -306,7 +346,7 @@ public final class FarPaint {
 					int in = box.ridgeAlongX() ? Math.min(z - box.z0(), box.z1() - z) : Math.min(x - box.x0(), box.x1() - x);
 					int high = Math.min(in + 1, box.roof());
 					out.put(BlockPos.asLong(x, 0, z), new Column(null, List.of(new Span(0, box.wall(), walls, edge && box.lit() ? WINDOW_LIGHT : 0),
-						new Span(box.wall(), box.wall() + high, roof, 0)), 0));
+						new Span(box.wall(), box.wall() + high, roof, 0)), 0, box.base()));
 				}
 			}
 
@@ -352,7 +392,7 @@ public final class FarPaint {
 			if (column == null) {
 				out.put(entry.getKey(), new Column(null, List.of(), entry.getValue()));
 			} else if (column.spans().isEmpty() && column.light() < entry.getValue()) {
-				out.put(entry.getKey(), new Column(column.surface(), List.of(), entry.getValue()));
+				out.put(entry.getKey(), new Column(column.surface(), List.of(), entry.getValue(), column.y()));
 			}
 		}
 	}
@@ -399,12 +439,16 @@ public final class FarPaint {
 			stroke(cells, line.get(i)[0], line.get(i)[1], line.get(i + 1)[0], line.get(i + 1)[1], ROAD_HALF);
 			boolean bridge = road.bridge()[i] || road.bridge()[i + 1];
 			int piece = i / Highways.PIECE;
+			boolean graded = road.heights().length == n;
 			for (var cell : cells.entrySet()) {
 				int x = BlockPos.getX(cell.getKey());
 				int z = BlockPos.getZ(cell.getKey());
+				// (Its bed's height here: the nearer of the stretch's two ends'.)
+				boolean first = Math.hypot(x + 0.5 - line.get(i)[0], z + 0.5 - line.get(i)[1]) <= Math.hypot(x + 0.5 - line.get(i + 1)[0], z + 0.5 - line.get(i + 1)[1]);
+				int y = graded ? road.heights()[first ? i : i + 1] : NO_Y;
 				// (A bridge: a deck a block over the water it crosses. Else the road's worn mix, as it's really laid.)
 				Column column = bridge ? new Column(null, List.of(new Span(1, 2, deck, 0)), 0)
-					: new Column(WildRoad.mix(x, z, cell.getValue(), road.salt()), List.of(), 0);
+					: new Column(WildRoad.mix(x, z, cell.getValue(), road.salt()), List.of(), 0, y);
 				out.putIfAbsent(cell.getKey(), new RoadColumn(column, piece));
 			}
 		}
@@ -456,7 +500,7 @@ public final class FarPaint {
 			if (had == null) {
 				out.put(entry.getKey(), new RoadColumn(new Column(null, List.of(), entry.getValue()), pieces.getOrDefault(entry.getKey(), 0)));
 			} else if (had.column.spans().isEmpty() && had.column.light() < entry.getValue()) {
-				out.put(entry.getKey(), new RoadColumn(new Column(had.column.surface(), List.of(), entry.getValue()), had.piece));
+				out.put(entry.getKey(), new RoadColumn(new Column(had.column.surface(), List.of(), entry.getValue(), had.column.y()), had.piece));
 			}
 		}
 
@@ -468,6 +512,41 @@ public final class FarPaint {
 	// ---------------------------------------------------------------------------------------------
 
 	private static long stamp = Long.MIN_VALUE;
+	/** Each road's bed heights, once worked out (in the background: the generator's asked for the land along it). */
+	private static final Map<WorldPlan.Highway, int[]> HEIGHTS = java.util.Collections.synchronizedMap(new java.util.IdentityHashMap<>());
+	private static volatile int graded;
+	private static volatile boolean grading;
+
+	/**
+	 * A road's bed: the land's height at each of its points as the generator says it is, smoothed along the road (each the
+	 * middle of itself and the two either side), so the far road is a graded way through the land, cut and filled like
+	 * the real one, not a stripe laid over every bump.
+	 */
+	private static int[] grade(TownLand land, List<double[]> line, boolean[] bridge) {
+		int n = line.size();
+		int[] raw = new int[n];
+		for (int i = 0; i < n; i++) {
+			raw[i] = land.ground(Mth.floor(line.get(i)[0]), Mth.floor(line.get(i)[1]));
+		}
+
+		int[] out = new int[n];
+		for (int i = 0; i < n; i++) {
+			double sum = 0;
+			double weights = 0;
+			for (int k = -2; k <= 2; k++) {
+				int j = i + k;
+				if (j >= 0 && j < n && !bridge[j]) {
+					double w = 3 - Math.abs(k);
+					sum += raw[j] * w;
+					weights += w;
+				}
+			}
+
+			out[i] = weights == 0 ? raw[i] : (int)Math.round(sum / weights);
+		}
+
+		return out;
+	}
 	private static volatile List<Road> serverRoads = List.of();
 
 	/** The roads the server's painter holds now (for sending to a client: {@link FarSync}). */
@@ -484,6 +563,7 @@ public final class FarPaint {
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			SERVER.clear();
 			serverRoads = List.of();
+			HEIGHTS.clear();
 			stamp = Long.MIN_VALUE;
 		});
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> dispatcher.register(
@@ -559,7 +639,7 @@ public final class FarPaint {
 				.append(span.light() > 0 ? " lit " + span.light() : "");
 		}
 
-		return text + ", light " + column.light();
+		return text + ", light " + column.light() + (column.y() == NO_Y ? "" : ", surface at y " + column.y());
 	}
 
 	/** The server's painter brought up to the plan: new sketches, places made, another world. Cheap when nothing's changed. */
@@ -573,7 +653,8 @@ public final class FarPaint {
 			return;
 		}
 
-		long now = Sketches.changes() * 1_000_003L + WorldPlan.highways.size() * 7919L;
+		long now = Sketches.changes() * 1_000_003L + WorldPlan.highways.size() * 7919L + graded * 104_729L;
+		List<Object[]> ungraded = new ArrayList<>();
 		Set<UUID> built = new java.util.HashSet<>();
 		for (WorldPlan.Place place : WorldPlan.places) {
 			if (place.made) {
@@ -598,7 +679,36 @@ public final class FarPaint {
 			}
 
 			// (Its pieces' laid marks are the plan's own: a piece laid stops being drawn with no word from anyone.)
-			roads.add(new Road(h, line, bridge, road.built, seed ^ road.from.getLeastSignificantBits() * 31L ^ road.to.getMostSignificantBits()));
+			int[] heights = HEIGHTS.get(road);
+			roads.add(new Road(h, line, bridge, road.built, seed ^ road.from.getLeastSignificantBits() * 31L ^ road.to.getMostSignificantBits(),
+				heights == null ? new int[0] : heights));
+			if (heights == null) {
+				ungraded.add(new Object[] {road, line, bridge});
+			}
+		}
+
+		// The beds of the roads that have none yet, in the background; the painter's brought up again when they're done.
+		TownLand land = Sketches.predicted();
+		if (!ungraded.isEmpty() && land != null && !grading) {
+			grading = true;
+			Thread thread = new Thread(() -> {
+				try {
+					for (Object[] one : ungraded) {
+						@SuppressWarnings("unchecked")
+						List<double[]> line = (List<double[]>)one[1];
+						HEIGHTS.put((WorldPlan.Highway)one[0], grade(land, line, (boolean[])one[2]));
+					}
+
+					graded++;
+				} catch (RuntimeException e) {
+					DrifterCivilizations.LOGGER.warn("[far] the roads' beds couldn't be worked out ({}); they're drawn on the land as it is", e.toString());
+				} finally {
+					grading = false;
+				}
+			}, "Drifter road beds");
+			thread.setDaemon(true);
+			thread.setPriority(Thread.MIN_PRIORITY);
+			thread.start();
 		}
 
 		serverRoads = roads;

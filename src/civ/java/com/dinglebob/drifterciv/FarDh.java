@@ -186,6 +186,15 @@ public final class FarDh {
 			return blocks.computeIfAbsent(state, s -> DhApi.Delayed.wrapperFactory.getBlockStateWrapper(new Object[] {s}, level));
 		}
 
+		/** The ground, as against what grows on it ({@link FarPaint#ground}). */
+		private static boolean ground(DhApiTerrainDataPoint point) {
+			if (point.blockStateWrapper.isAir()) {
+				return false;
+			}
+
+			return !(point.blockStateWrapper.getWrappedMcObject() instanceof BlockState state) || FarPaint.ground(state);
+		}
+
 		private void paint(int originX, int originZ, byte detail, IDhApiFullDataSource source) {
 			int width = source.getWidthInDataColumns();
 			int step = 1 << detail;
@@ -204,8 +213,9 @@ public final class FarDh {
 
 					List<DhApiTerrainDataPoint> points = new ArrayList<>(source.getApiDataPointColumn(rx, rz));
 					points.sort(Comparator.comparingInt((DhApiTerrainDataPoint p) -> p.topYBlockPos).reversed());
+					// (The ground: the highest point that isn't air, a tree or a plant. The top one is often a treetop.)
 					int at = 0;
-					while (at < points.size() && points.get(at).blockStateWrapper.isAir()) {
+					while (at < points.size() && !ground(points.get(at))) {
 						at++;
 					}
 
@@ -216,41 +226,73 @@ public final class FarDh {
 					DhApiTerrainDataPoint ground = points.get(at);
 					IDhApiBiomeWrapper biome = ground.biomeWrapper;
 					IDhApiBlockStateWrapper air = DhApi.Delayed.wrapperFactory.getAirBlockStateWrapper();
+					List<DhApiTerrainDataPoint> made = new ArrayList<>();
+					int ceiling = points.get(0).topYBlockPos;
+					if (col.lightOnly()) {
+						// Only a lamp's glow on it: everything as it was (its trees too), the ground lit.
+						for (int i = 0; i < points.size(); i++) {
+							DhApiTerrainDataPoint point = points.get(i);
+							made.add(i == at ? DhApiTerrainDataPoint.create((byte)0, Math.max(col.light(), point.blockLightLevel), point.skyLightLevel,
+								point.bottomYBlockPos, point.topYBlockPos, point.blockStateWrapper, point.biomeWrapper) : point);
+						}
+
+						source.setApiDataPointColumn(rx, rz, EDhApiWorldGenerationStep.LIGHT, made);
+						columns++;
+						continue;
+					}
+
+					// The ground's top, where the far land has it or (a road's bed, a house's plot) where it's asked for, the land
+					// cut down or filled up to it; under it as it was; what grew on it gone.
+					boolean water = ground.blockStateWrapper.isLiquid();
 					int surface = ground.topYBlockPos;
-					int top = at > 0 ? points.get(0).topYBlockPos : surface;
+					int floor = points.get(points.size() - 1).bottomYBlockPos;
+					if (col.y() != FarPaint.NO_Y && !water && Math.abs(col.y() + 1 - surface) <= FarPaint.MOST_GRADE && col.y() > floor) {
+						surface = col.y() + 1;
+					}
+
+					int top = surface;
 					for (FarPaint.Span span : col.spans()) {
 						top = Math.max(top, surface + span.top());
 					}
 
-					List<DhApiTerrainDataPoint> made = new ArrayList<>();
-					int cursor = top;
+					ceiling = Math.max(ceiling, top);
+					int cursor = ceiling;
 					boolean roofed = false;
 					List<FarPaint.Span> spans = new ArrayList<>(col.spans());
 					spans.sort(Comparator.comparingInt(FarPaint.Span::top).reversed());
 					for (FarPaint.Span span : spans) {
 						int spanTop = surface + span.top();
 						int spanBottom = surface + span.bottom();
-						if (spanTop > top) {
-							continue;
-						}
-
 						if (cursor > spanTop) {
-							made.add(DhApiTerrainDataPoint.create((byte) 0, col.light(), roofed ? 0 : 15, spanTop, cursor, air, biome));
+							made.add(DhApiTerrainDataPoint.create((byte)0, col.light(), roofed ? 0 : 15, spanTop, cursor, air, biome));
 						}
 
-						made.add(DhApiTerrainDataPoint.create((byte) 0, span.light(), roofed ? 0 : 15, spanBottom, spanTop, wrap(span.block()), biome));
+						made.add(DhApiTerrainDataPoint.create((byte)0, span.light(), roofed ? 0 : 15, spanBottom, spanTop, wrap(span.block()), biome));
 						roofed = true;
 						cursor = spanBottom;
 					}
 
 					if (cursor > surface) {
-						made.add(DhApiTerrainDataPoint.create((byte) 0, col.light(), roofed ? 0 : 15, surface, cursor, air, biome));
+						made.add(DhApiTerrainDataPoint.create((byte)0, col.light(), roofed ? 0 : 15, surface, cursor, air, biome));
 					}
 
-					made.add(DhApiTerrainDataPoint.create((byte) 0, Math.max(col.light(), ground.blockLightLevel), roofed ? 0 : ground.skyLightLevel,
-							ground.bottomYBlockPos, ground.topYBlockPos, col.surface() == null ? ground.blockStateWrapper : wrap(col.surface()), biome));
-					for (int i = at + 1; i < points.size(); i++) {
-						made.add(points.get(i));
+					// (The surface's own block, a block thick; then the land under it, down from there.)
+					made.add(DhApiTerrainDataPoint.create((byte)0, Math.max(col.light(), ground.blockLightLevel), roofed ? 0 : 15, surface - 1, surface,
+						col.surface() == null ? ground.blockStateWrapper : wrap(col.surface()), biome));
+					int under = surface - 1;
+					for (int i = at; i < points.size(); i++) {
+						DhApiTerrainDataPoint point = points.get(i);
+						int pointTop = Math.min(point.topYBlockPos, under);
+						if (i == at && pointTop < under) {
+							// (Filled up to its bed.)
+							made.add(DhApiTerrainDataPoint.create((byte)0, 0, 0, pointTop, under, wrap(net.minecraft.world.level.block.Blocks.DIRT.defaultBlockState()), biome));
+						}
+
+						if (pointTop > point.bottomYBlockPos) {
+							made.add(DhApiTerrainDataPoint.create((byte)0, point.blockLightLevel, point.skyLightLevel, point.bottomYBlockPos, pointTop,
+								point.blockStateWrapper, point.biomeWrapper));
+							under = point.bottomYBlockPos;
+						}
 					}
 
 					source.setApiDataPointColumn(rx, rz, EDhApiWorldGenerationStep.LIGHT, made);

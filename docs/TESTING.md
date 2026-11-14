@@ -26,6 +26,12 @@ already played, far land Voxy has already filled in keeps its old look.
 Debug (cheats on): `/drifterciv sketch info` (the nearest planned place's sketch), `/drifterciv sketch check`,
 `/drifterciv sketch painted`.
 
+**0.23.63-side.3 (re-test after fix): roads and towns on the real ground.** In a **new world** (far land already
+filled by the last version keeps its old look): a far road should be one clean path cut through the land, trees
+cleared along it, no road blocks or lamps on treetops; far houses stand on level plots, not at odd heights. If a far
+town still looks like a ruin and the real one isn't, tell me its name (it's in the journal or on the signs) or the
+coordinates.
+
 **With Distant Horizons instead (0.23.63-side.2, new):** switch Voxy and Voxy SeedGen off and Distant Horizons on (with
 or without its SeedGen), make a new world, and check the same four things (towns far away, roads, night, walking up).
 Distant Horizons makes far land slowly without SeedGen: give it a few minutes. Log line:
