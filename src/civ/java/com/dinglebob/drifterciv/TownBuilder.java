@@ -3957,7 +3957,7 @@ public final class TownBuilder {
 			Chronicle.quiet = false;
 			this.compareHouses();
 			if (this.ruin) {
-				Chronicle.add(this.server, "town", "The ruins of " + this.name + " stand where a village might have: " + this.houses.size()
+				Chronicle.add(this.server, "town", "The ruins of " + this.name + " stand where a village would have stood: " + this.houses.size()
 					+ " houses fallen in, nobody living there for a long time");
 				DrifterCivilizations.LOGGER.info("[town] the ruins of {} made: {} houses, {} ms of work; the longest step {} ms ({})", this.name,
 					this.houses.size(), this.worked / 1_000_000, this.longest / 1_000_000, this.longestStep);
@@ -3966,7 +3966,7 @@ public final class TownBuilder {
 				return;
 			}
 
-			Chronicle.add(this.server, "town", this.name + (this.world ? " stands where a village might have" : " was founded") + (this.city ? ": a city" : "")
+			Chronicle.add(this.server, "town", this.name + (this.world ? " stands where a village would have stood" : " was founded") + (this.city ? ": a city" : "")
 				+ ", with " + this.people.size() + " people in " + this.houses.size() + " houses" + (this.world ? "" : " (made ready, for testing)"));
 			long seconds = Math.round((System.nanoTime() - this.startedAt) / 1e9);
 			DrifterCivilizations.LOGGER.info("[town] {} made: {} people in {} houses, {} ms of work over {} s; the longest step {} ms ({}); over 50 ms: {}",

@@ -7157,3 +7157,19 @@ instead of 'u got food' ... more variations on replies, just like they got more 
   asking).
 
 Not tested in game; headless: all 90 phrasings in the smoke script taken as meant, and the replies of a dozen.
+
+## 0.23.69-side.3: the crier's news whole (new)
+
+From the user's screenshot (2026-11-15: Lyra_Basalt crying Ashbrook's news):
+
+- A headline was cut at 80 letters in the middle of a word ("a tax of 10 silv..."). Now up to 140, and a longer one is
+  cut after a whole item of a list ("..., and more") or a whole word ("...").
+- A line typed in two parts ("...laws for Ashbrook: no stealing" ... "no killing, a tax of ...") had its second part
+  come after the crier's next two headlines. What it was still typing now goes before its next line, and a list after a
+  colon is never split.
+- "Ashbrook stands where a village might have" said nothing: "...where a village would have stood" (old entries are
+  worded the new way in headlines and the paper too).
+- EsmeThePulsar's "f" in the screenshot was its answer to Cashew_TTV's "anyway couldn't find my way home" (their own
+  talk, in the log as "f [to cashew]"); the crier's news just came in between. Left as is.
+
+Not tested in game; the headline cut checked on the screenshot's laws line and longer ones.

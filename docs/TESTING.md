@@ -4132,3 +4132,12 @@ Talk to a Drifter however you like, with typos, extra words or words mixed up. A
 6. "im hungry" is you telling it you're hungry (it says "eat then" or offers a tip), not it saying whether it's hungry.
 
 If something you type gets "no idea what that means" or the wrong answer, send a screenshot.
+
+## 0.23.69-side.3: the crier's news whole (new)
+
+In a town of a morning, listen to the crier on the plaza:
+
+1. A long headline (a town's laws with a tax) comes out whole, or cut after a whole item ("..., and more"), never
+   in the middle of a word.
+2. A headline split in two parts has its second part right after the first, not after the next headlines.
+3. A town made with the world says "<town> stands where a village would have stood, with N people in N houses".

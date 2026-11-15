@@ -47,6 +47,16 @@ public final class Typing {
 			return;
 		}
 
+		// (The rest of what it was typing goes first: found in play, a town crier's "...laws for Ashbrook: no stealing" had its
+		// "no killing, a tax of ..." come after the next two headlines.)
+		for (Iterator<Later> it = later.iterator(); it.hasNext();) {
+			Later part = it.next();
+			if (part.drifter() == drifter) {
+				it.remove();
+				ChatLines.deliver(drifter, part.text());
+			}
+		}
+
 		RandomSource random = drifter.getRandom();
 		long now = drifter.level().getGameTime();
 		List<String> parts = split(text, random);
@@ -69,15 +79,19 @@ public final class Typing {
 		}
 	}
 
-	/** The line in one or two parts: at its first ", " (or a "? " or "! " midway), when both halves say something. */
+	/**
+	 * The line in one or two parts: at its first ", " (or a "? " or "! " midway), when both halves say something. Not in a
+	 * list after a colon ("laws for Ashbrook: no stealing, no killing" is one thing).
+	 */
 	private static List<String> split(String text, RandomSource random) {
 		if (text.length() < 16 || random.nextDouble() > SPLIT) {
 			return List.of(text);
 		}
 
+		int colon = text.indexOf(": ");
 		for (String mark : new String[] {", ", "? ", "! "}) {
 			int at = text.indexOf(mark);
-			if (at >= 6 && text.length() - at - mark.length() >= 3) {
+			if (at >= 6 && text.length() - at - mark.length() >= 3 && (colon < 0 || at < colon)) {
 				String first = mark.equals(", ") ? text.substring(0, at) : text.substring(0, at + 1);
 				return List.of(first, text.substring(at + mark.length()));
 			}
