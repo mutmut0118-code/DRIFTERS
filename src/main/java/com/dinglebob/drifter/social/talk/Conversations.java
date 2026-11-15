@@ -766,6 +766,14 @@ public final class Conversations {
 		return fitting.isEmpty() ? null : fitting.get(fitting.size() - 1);
 	}
 
+	/** Its answer to the other's question, of these (not one that isn't so: "my netherite set is maxed" in no armor). */
+	@Nullable
+	private static String answer(Talk talk, DrifterEntity speaker, List<String> answers) {
+		Map<String, List<String>> sayable = Claims.sayable(Map.of("any", answers), speaker == talk.a ? talk.aFacts : talk.bFacts,
+			speaker == talk.a ? talk.bFacts : talk.aFacts, talk.world, talk.topic == null ? List.of() : talk.topic.needs());
+		return sayable == null ? null : Lines.pickFrom(speaker, sayable, vars(talk));
+	}
+
 	/** The next turn said (turns that don't come up skipped); false when there are no more. */
 	private static boolean step(Talk talk, long now) {
 		while (talk.turn < talk.topic.turns().size()) {
@@ -775,7 +783,7 @@ public final class Conversations {
 			if (talk.answers != null && speaker != talk.asker) {
 				List<String> answers = talk.answers;
 				talk.answers = null;
-				String answer = Lines.pickFrom(speaker, Map.of("any", answers), vars(talk));
+				String answer = answer(talk, speaker, answers);
 				if (answer != null) {
 					say(talk, speaker, answer, now);
 					return true;
@@ -798,7 +806,13 @@ public final class Conversations {
 				continue;
 			}
 
-			String template = Lines.template(speaker, option.lines(), vars(talk));
+			// (Not a line that isn't so: "nice gear" to one in no armor, "this rain" in the sun.)
+			List<String> conditions = new ArrayList<>(talk.topic.needs());
+			conditions.addAll(turn.conditions());
+			conditions.addAll(option.conditions());
+			Map<String, List<String>> sayable = Claims.sayable(option.lines(), speaker == talk.a ? talk.aFacts : talk.bFacts,
+				speaker == talk.a ? talk.bFacts : talk.aFacts, talk.world, conditions);
+			String template = sayable == null ? null : Lines.template(speaker, sayable, vars(talk));
 			if (template == null) {
 				continue;
 			}
@@ -815,7 +829,10 @@ public final class Conversations {
 
 			String line = addressed(talk, speaker, Lines.filled(speaker, template, vars(talk)));
 			if (talk.segue != null) {
-				line = talk.segue + " " + line;
+				// ("random question!" before what isn't one is a random thought. Found in play: "random question! the wandering trader
+				// is the most useless mob".)
+				String segue = line.trim().endsWith("?") ? talk.segue : talk.segue.replace("question", "thought");
+				line = segue + " " + line;
 				talk.segue = null;
 			}
 
@@ -826,7 +843,7 @@ public final class Conversations {
 		// (A last question still gets its answer.)
 		if (talk.answers != null) {
 			DrifterEntity other = talk.partnerOf(talk.asker);
-			String answer = Lines.pickFrom(other, Map.of("any", talk.answers), vars(talk));
+			String answer = answer(talk, other, talk.answers);
 			talk.answers = null;
 			if (answer != null) {
 				say(talk, other, answer, now);

@@ -1,0 +1,49 @@
+# Lines said only when they're so (0.23.68-side.1): two Drifters with no armor talk gear and weather, in sun and then in
+# rain. In the sun: no "i'm gonna watch the rain", "this storm is scary"; to one in no armor: no "your armor looks good",
+# no "my netherite set is maxed". In the rain: no "nice weather". Fresh pairs each time (they wander off).
+# Then: a name called from right beside one ("yeah?", not "wheres that coming from"); a far-off Drifter's name alone
+# (nobody answers); "where is" someone it never met ("never heard of ..."); "wheres the village" (not that).
+until Done_( 900
+wait 3
+time set 6000
+weather clear
+forceload add ~-32 ~-32 ~32 ~32
+forceload add ~300 ~300 ~330 ~330
+drifter spawn Zedfaraway
+wait 1
+tp @e[type=drifter:drifter,name=Zedfaraway] ~310 ~ ~310
+drifter spawn Alice
+drifter spawn Bobby
+wait 2
+drifter talk compliment_gear
+wait 15
+drifter spawn Cara
+drifter spawn Dan
+wait 1
+drifter talk g_deep_weather_rain_mood
+wait 30
+weather rain
+drifter spawn Erin
+drifter spawn Finn
+wait 1
+drifter talk g_deep_weather_rain_mood
+wait 30
+drifter spawn Gwen
+drifter spawn Hugo
+wait 1
+drifter talk g_random_small_silence_awkward
+wait 15
+drifter spawn Ivy
+wait 1
+drifter hear ivy
+wait 4
+drifter hear zedfaraway
+wait 4
+drifter hear ZEDFARAWAY!
+wait 4
+drifter hear do you know where zedfaraway is
+wait 4
+drifter hear do you know where bravebolt is
+wait 4
+drifter hear wheres the village
+wait 4

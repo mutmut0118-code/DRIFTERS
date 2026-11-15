@@ -7085,3 +7085,38 @@ From the user's screenshot and log (slickrustt, 2026-11-14: "they understand it,
 here" got "ok" from the town's keeper, which went on keeping its stall (0.79) over going to the player (0.70). What a
 player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
 somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.
+
+## 0.23.68-side.1: it only says what's so (new)
+
+From the user's play screenshots (2026-11-14: "nice gear btw" with no armor on; "can you check that for the rest of the
+lines? so if someone says something it actually makes sense"):
+
+- **Claims** (`social/talk/Claims.java`): a topic line that says something about now is left out when it isn't so, and
+  the speaker says another line of the turn: praise of the other's armor (they wear some) or of what they hold (they
+  hold one), "where's your armor?" (they wear none), its own armor ("my netherite set": it wears it), rain or a storm
+  now (it's raining), "nice weather"/"sun's out" (it isn't), "morning!"/"gm" (it's morning), "it's getting dark" (it's
+  evening or night), "i'm so hungry" (it is). Topic, turn or option conditions that already name the thing leave the
+  line alone ("nice armor. oh wait" under its armor conditions). Replies to a question are checked too. 349 lines of
+  the 305,495 are checked (the log's topic line says so). Chat lines said whatever the moment were reworded by hand
+  ("yo, nice sword", "hi o/ nice weather huh", "morning {who}" at a shop, "evening traveller", "getting late", "morning
+  paper!", "nice gear {player}. 1v1?", "ok, im hungry too", "hey i'm hungry too").
+- "random question!" before a line that isn't a question is "random thought!".
+- Its name called by one standing right in front of it (8 blocks, in line of sight) is "yeah?", not "im here! wheres
+  that coming from" (slickrustt at its stall). After it has answered what they said with its name, no second "yeah?
+  whos that".
+- Just another Drifter's name called out ("BOLT!", "xXBraveBoltXx!"), one not close by: none of those near answers it.
+- "Where is X" for someone it never met: "never heard of X" (not silence). In a town, it knows its own people: "no X in
+  Copperford, wrong town?"; and if they carry word for X, the letter says where: "X lives in Copperstead, head
+  north-east" (the user had gone to Copperford for bravebolt of Copperstead). Its own name before "where" is them
+  getting its attention ("sculkteo do yk where bravebolt is" got "youre looking at them").
+- Words: "i got a word" to the wrong one: "not for me, thats for bravebolt". To the right one from too far: "come
+  closer". "gave the word" / "the quest is done" to whoever gave the job: handed in at once (it was "eh?", then the thanks
+  after); just after, "thats it?" gets "yep, thats it". "no problem", "will do", "i will tell them" are understood.
+- Thank-you letters wait a day ("a few days on", as written): organ's came from another Drifter seconds after organ
+  thanked the player to their face. Their wording says what was done ("you carrying my word to bravebolt"), not the
+  quest's title in brackets.
+- API 18: `TalkApi.askedName`, `TalkApi.knowsOf`.
+
+Not tested in game: the wrong-town answers and the word hand-in by chat (needs a town and a word quest); headless tested:
+claims in sun and rain, gear praise to a Drifter in no armor, a name called from beside, a far Drifter's name alone,
+"where is" someone unknown.

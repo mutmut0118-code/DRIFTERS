@@ -187,16 +187,18 @@ public final class Topics {
 		byTag = tags;
 		loaded.addAll(withPlayers);
 		int lines = 0;
+		int claims = 0;
 		for (Topic topic : loaded) {
 			for (Turn turn : topic.turns()) {
 				for (Option option : turn.options()) {
 					lines += option.lines().values().stream().mapToInt(List::size).sum() + option.then().values().stream().mapToInt(List::size).sum();
+					claims += (int)option.lines().values().stream().flatMap(List::stream).filter(Claims::claims).count();
 				}
 			}
 		}
 
-		Drifter.LOGGER.info("Loaded {} Drifter conversation topics, {} to bring up with players ({} lines; {} tags in the web)", topics.size(), playerTopics.size(),
-			lines, tags.size());
+		Drifter.LOGGER.info("Loaded {} Drifter conversation topics, {} to bring up with players ({} lines, {} said only when so; {} tags in the web)",
+			topics.size(), playerTopics.size(), lines, claims, tags.size());
 	}
 
 	/** Topics some topic names as its {@code next} (a story's part 3, a debate's round 2). */

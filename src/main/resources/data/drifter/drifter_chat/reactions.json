@@ -33,7 +33,7 @@
         "yo {player}, whats new",
         "hi, what you up to",
         "hey neighbor",
-        "hi o/ nice weather huh",
+        "hi o/ hows it going",
         "yo, survived the night?",
         "heya {player} o/",
         "hey, how goes it",
@@ -141,9 +141,9 @@
         "yo",
         "sup",
         "hey 1v1 later?",
-        "o/ nice gear",
+        "o/ you look ready",
         "yo {player}",
-        "yo, nice sword",
+        "yo, whats up",
         "sup, still alive?"
       ],
       "bandit": [
@@ -410,7 +410,7 @@
         "gg, dont come back",
         "gg, that hurt tho",
         "and stay down",
-        "gg, nice armor btw",
+        "gg, good fight btw",
         "gg, that was intense",
         "gg, your bed better be close"
       ],
@@ -2904,7 +2904,7 @@
         "buying {what}",
         "{what}. whats it cost",
         "sell me some {what}?",
-        "morning {who}, got any {what} left?",
+        "hey {who}, got any {what} left?",
         "any {what} for me?",
         "wanna buy {what}",
         "let me see the {what}",

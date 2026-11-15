@@ -337,6 +337,7 @@ An addon adds its own things to ask through the chat handler above, and these:
 | `TalkApi.registerHistory(drifter -> list)` | What happened round it lately, as it would tell it ({what, when}, newest first): "what happened here" (API 16). |
 | `TalkApi.registerOwner((drifter, pos) -> name)` | Whose a place is, as it knows ("whose house is this") (API 16). |
 | `TalkApi.itemNamed(text)`, `comeHelp(drifter, player)` | The item a message names; it comes to a player's side to help (API 16). |
+| `TalkApi.askedName(text)`, `knowsOf(drifter, player, text)` | The name asked after in "where is X" when X looks like someone; whether it knows of whoever a message names (API 18). |
 
 `/drifter hear <text>` (debug): the nearest Drifter hears it as if a player beside it had typed it (the player running
 it; from the console, a stand-in player), for testing a talk without a client.

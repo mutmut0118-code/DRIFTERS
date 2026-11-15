@@ -158,7 +158,7 @@ public final class PlayerTalk {
 		// A place said in chat is read by every Drifter close by (whoever it was said to).
 		Telling.overheard(player, text, now);
 		// ("tell bobby i said hi" is said to someone else, about bobby.)
-		DrifterEntity drifter = addressee(player, text, focused, now, Telling.aboutOthers(intent) || Lines.answer(text, "relay") != null);
+		DrifterEntity drifter = addressee(player, text, focused, now, Telling.aboutOthers(intent) || Lines.answer(text, "relay") != null, intent);
 		if (drifter == null) {
 			// Someone named who's dead: one near who knew says so (docs/PLAYER_TALK.md I4.9).
 			return PlayerTalk.deadNamed(player, text, now);
@@ -426,7 +426,30 @@ public final class PlayerTalk {
 	 * if there's nobody else).
 	 */
 	@Nullable
-	private static DrifterEntity addressee(ServerPlayer player, String text, @Nullable Focus focused, long now, boolean aboutOthers) {
+	/** Words that come with calling a name ("hey", "excuse me", "you there"). */
+	private static final java.util.Set<String> CALLING = java.util.Set.of("hey", "hi", "yo", "oi", "oy", "hello", "excuse", "me", "sir", "maam", "pls",
+		"please", "u", "you", "there", "ya", "hellooo", "heyy", "heyyy", "ayo", "hiii", "um", "uh");
+
+	/** The message is only a name (and "hey"), of a Drifter somewhere in the world but none of those {@code near}. */
+	private static boolean callsSomeoneElse(ServerLevel level, String words, List<DrifterEntity> near) {
+		List<String> rest = java.util.Arrays.stream(words.trim().split(" ")).filter(word -> !word.isEmpty() && !CALLING.contains(word)).toList();
+		if (rest.isEmpty() || rest.size() > 2) {
+			return false;
+		}
+
+		for (ServerLevel any : level.getServer().getAllLevels()) {
+			for (net.minecraft.world.entity.Entity entity : any.getAllEntities()) {
+				if (entity instanceof DrifterEntity drifter && !near.contains(drifter) && SocialWatcher.called(words, drifter.getName().getString())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static DrifterEntity addressee(ServerPlayer player, String text, @Nullable Focus focused, long now, boolean aboutOthers,
+		@Nullable String intent) {
 		ServerLevel level = player.serverLevel();
 		List<DrifterEntity> near = level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(SocialWatcher.NAME_RANGE),
 			drifter -> drifter.isAlive() && !drifter.isTemporary() || drifter.isAlive() && drifter.encounter() != null);
@@ -479,6 +502,12 @@ public final class PlayerTalk {
 			}
 
 			return named;
+		}
+
+		// Just someone else's name called out ("BOLT!", "BRAVEBOLT", one not close by): not for any of these. (Found in play:
+		// SculkTeo, the one they'd been talking with, answered "ok. whatever" and "hey, new here?" to bravebolt's name.)
+		if (named == null && intent == null && PlayerConvo.intent(text, null) == null && callsSomeoneElse(level, words, near)) {
+			return null;
 		}
 
 		// (About the one named: said to someone else.)

@@ -556,9 +556,35 @@ final class Words {
 
 	/** Said to whoever a word of theirs is for (anything at all): it's handed over (true: answered). */
 	static boolean heard(ServerPlayer player, DrifterEntity drifter, String text, @Nullable String intent) {
+		// A job of theirs it gave them, done: handed in when they say so.
+		if (Quests.handIn(player.server, drifter, player, text)) {
+			return true;
+		}
+
 		Quests.Quest q = Quests.wordFor(drifter.getUUID(), player.getUUID());
+		// "I got a word" to someone it isn't for: whose it is (found in play: "i got a word" to the wrong one, "what are you on
+		// about").
+		if (q == null) {
+			Quests.Quest carried = Quests.wordCarried(player.getUUID());
+			String said = " " + text.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", " ") + " ";
+			if (carried != null && carried.toName != null && (said.contains(" word ") || said.contains(" letter ") || said.contains(" message "))
+				&& !said.contains(" where ") && !said.contains(" wheres ")) {
+				return TalkApi.answer(drifter, player, "word.not_me", null, "who", carried.toName);
+			}
+		}
+
 		// (Face to face only: a name called from across the town is a call, not the word handed over. Found in review.)
-		if (q == null || player.level() != drifter.level() || player.distanceTo(drifter) > NEAR_ENOUGH || !drifter.hasLineOfSight(player)) {
+		if (q == null || player.level() != drifter.level()) {
+			return false;
+		}
+
+		if (player.distanceTo(drifter) > NEAR_ENOUGH || !drifter.hasLineOfSight(player)) {
+			// "I have a word" from off a way: it'll have it face to face.
+			String said = " " + text.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", " ") + " ";
+			if (said.contains(" word ") || said.contains(" letter ") || said.contains(" message ")) {
+				return TalkApi.answer(drifter, player, "word.come_closer", null, "who", q.giverName);
+			}
+
 			return false;
 		}
 

@@ -341,6 +341,7 @@
     "convo.called": {"any": ["yeah?", "hm?", "whats up", "yes?", "thats me, whats up"], "hermit": ["what."], "helper": ["yes? need something?"]},
     "convo.called_back": {"any": ["yeah? whos that", "over here!", "who said my name?", "hello? where are you", "im here! wheres that coming from"], "hermit": ["what."], "bandit": ["who wants to know"]},
     "ask.where_me": {"any": ["right here lol", "uh, here?", "im right here", "here lol", "you're looking at me"], "hermit": ["here."]},
+    "ask.where_never": {"any": ["never heard of {who}", "who's {who}?", "dont know any {who}", "{who}? never met them", "no idea who {who} is", "{who}? doesnt ring a bell", "never met a {who}", "cant help, dont know {who}", "who? never heard of them", "{who}? not from around here i think"], "casual": ["who tf is {who} lol", "{who}? no clue who that is"], "newbie": ["i dont know {who} yet, sorry!", "im new, i dont know a {who}"], "hermit": ["dont know them.", "never heard."], "helper": ["sorry, i dont know {who}. ask around town?", "hm, dont know {who}. someone else might"], "bandit": ["never heard of em. why, they owe you?"]},
     "ask.where_unknown": {"any": ["no idea", "havent seen {who}", "dunno", "havent seen {who} around", "not sure, sorry"], "hermit": ["dont know"]},
     "ask.where_no": {"any": ["why do you wanna know", "not telling", "ask {who} yourself", "idk you well enough", "why?"], "bandit": ["what's it worth to you"]},
     "when.just": ["just now", "a sec ago", "like a minute ago"],

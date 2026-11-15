@@ -147,7 +147,7 @@
         "you won't believe this one. {news}",
         "news! news! {news}",
         "todays top story: {news}",
-        "morning paper! {news}",
+        "news! {news}",
         "hot off the press! {news}",
         "{news}! read it in todays paper!",
         "{news}! more inside, come grab a copy",
@@ -181,7 +181,7 @@
         "...news. {news}"
       ],
       "helper": [
-        "good morning everyone! todays news: {news}"
+        "hey everyone! todays news: {news}"
       ],
       "nomad": [
         "news from the roads: {news}"

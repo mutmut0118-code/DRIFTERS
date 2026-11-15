@@ -3,7 +3,7 @@
   "lines": {
     "mail.msg.thanks": {
       "any": [
-        "i keep thinking about what you did for us ({what}). thank you, truly. if you're ever in {town}, there's a place at our fire.",
+        "i keep thinking about you {what}. thank you, truly. if you're ever in {town}, there's a place at our fire.",
         "just wanted to say it again: thank you for {what}. people here still talk about it.",
         "{player}, i never thanked you properly for {what}. so: thank you. come by {town} sometime."
       ]

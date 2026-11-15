@@ -160,6 +160,17 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.talk.PlayerTalk.itemIn(text);
 	}
 
+	/** The name asked after ("where is bravebolt", "seen josie?"), as typed, when it looks like someone; null if not (API 18). */
+	@Nullable
+	public static String askedName(String text) {
+		return com.dinglebob.drifter.social.talk.Telling.askedName(text);
+	}
+
+	/** Whether it knows of whoever this message names (met them, or sees them now) (API 18). */
+	public static boolean knowsOf(DrifterEntity drifter, ServerPlayer player, String text) {
+		return com.dinglebob.drifter.social.talk.Telling.subject(drifter, player, text) != null;
+	}
+
 	private static Places placesOf = drifter -> Map.of();
 	private static ConvoFacts convoFacts = (drifter, player, words) -> {
 	};
