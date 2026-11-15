@@ -3524,7 +3524,9 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
     300 names); one in ten a whole word of its own (Saltmarsh, Candlewick, Hawksnest; 60 of them); about one in seven two
     words, a word before or after (Lower Snowmarsh, High Sparrowbridge, Highmoor Cross). Never a piece twice (Hollowhollow,
     Brookbrook), nor three letters the same in a row, nor a vowel run against a vowel.
-  - Nations named on their own, as countries, from pieces of their own (Val + doria, Cael + march) in one of 15 forms: the
+  - Nations named on their own, as countries, from pieces of their own (123 beginnings, 63 endings, and three times in ten
+    a syllable between: Val + en + doria; about 50,000 names, the user: "make sure there are many nation names aswell") in
+    one of 15 forms: the
     Kingdom of / Realm of / Crown of / Duchy of / Lands of / Principality of / Commonwealth of / Free Cities of / Republic
     of X, the X Union / League / Accord / Dominion / Confederacy, or just X. Never a place's name or another nation's.
   - Debug commands that take a town's name take a two-word one with an underscore (`Highmoor_Cross`).

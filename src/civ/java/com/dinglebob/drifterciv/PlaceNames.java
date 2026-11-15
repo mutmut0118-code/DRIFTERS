@@ -49,9 +49,17 @@ final class PlaceNames {
 	/** Pieces of a nation's name, run together (Val + doria, Ald + mark). */
 	private static final String[] REALM_FIRST = {"Val", "Ald", "Vel", "Nor", "Cael", "Thal", "Ost", "Mer", "Bran", "Dun", "Eld", "Gal", "Hal", "Kor",
 		"Lor", "Mar", "Or", "Pel", "Rav", "Sar", "Tor", "Ul", "Wes", "Ys", "Bel", "Cor", "Dra", "Fen", "Gar", "Hel", "Ist", "Kael", "Lys", "Mor", "Nev",
-		"Ar", "Ber", "Car", "Der", "Est", "Fal", "Gwen", "Ivar", "Jor", "Kal", "Lan", "Mal", "Nim", "Ros", "Sil", "Tam", "Vor", "Wyn", "Zar"};
+		"Ar", "Ber", "Car", "Der", "Est", "Fal", "Gwen", "Ivar", "Jor", "Kal", "Lan", "Mal", "Nim", "Ros", "Sil", "Tam", "Vor", "Wyn", "Zar", "Ab",
+		"Aer", "Alb", "Ambr", "Ast", "Aud", "Bar", "Bor", "Bryn", "Cal", "Cas", "Cind", "Cyr", "Dal", "Dor", "Ed", "Elm", "Ev", "Far", "Fin", "Gil",
+		"Gond", "Gry", "Ham", "Har", "Hes", "Hy", "Il", "Ith", "Jas", "Kar", "Ker", "Kyl", "Lae", "Leth", "Lin", "Lund", "Mael", "Myr", "Nar", "Nes",
+		"Oak", "Od", "Ol", "Pal", "Per", "Quel", "Rhen", "Rin", "Rud", "Sab", "Sel", "Sten", "Syl", "Tel", "Thor", "Tir", "Tyr", "Ul", "Ur", "Vad",
+		"Ven", "Vin", "Wal", "Wil", "Xan", "Yar", "Zel", "Zen"};
+	/** A middle syllable now and then (Val + en + doria). */
+	private static final String[] REALM_MIDDLE = {"an", "en", "er", "is", "or", "el", "ar", "in", "on", "al", "ir", "ad", "eth", "ul"};
 	private static final String[] REALM_LAST = {"doria", "mark", "land", "ia", "oria", "heim", "reach", "wald", "gard", "ovia", "aria", "anor", "mere",
-		"wyn", "dor", "ost", "vale", "moor", "ica", "esse", "ara", "endor", "ithia", "oth", "uin", "march", "fell", "holt"};
+		"wyn", "dor", "ost", "vale", "moor", "ica", "esse", "ara", "endor", "ithia", "oth", "uin", "march", "fell", "holt", "ania", "avia", "berg",
+		"burg", "dal", "dell", "enia", "eria", "ford", "garde", "hal", "helm", "holm", "ika", "ion", "istan", "kar", "lund", "mont", "mora", "nia",
+		"nor", "ova", "rath", "rian", "rond", "stad", "thar", "thia", "ura", "vel", "via", "wick", "ynn", "zar"};
 	/** Its kind of country. */
 	private static final String[] REALM_FORMS = {"the Kingdom of %s", "the Realm of %s", "the Crown of %s", "the Duchy of %s", "the Lands of %s",
 		"the Principality of %s", "the Commonwealth of %s", "the Free Cities of %s", "the %s Union", "the %s League", "the %s Accord", "the %s Dominion",
@@ -90,6 +98,16 @@ final class PlaceNames {
 		String base = "Valdoria";
 		for (int i = 0; i < 40; i++) {
 			String first = REALM_FIRST[random.nextInt(REALM_FIRST.length)];
+			// (Now and then a syllable between: Valendoria, Korisheim.)
+			if (random.nextDouble() < 0.3) {
+				String middle = REALM_MIDDLE[random.nextInt(REALM_MIDDLE.length)];
+				if (!fits(first, middle)) {
+					continue;
+				}
+
+				first = first + middle;
+			}
+
 			String last = REALM_LAST[random.nextInt(REALM_LAST.length)];
 			if (fits(first, last)) {
 				base = first + last;
