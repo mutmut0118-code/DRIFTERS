@@ -3517,6 +3517,33 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.71: nations' banners with a design, woven at a loom** (the user, 2026-11-14: "i would love to have the town banner
+  to have an actual design instead of their color", then picked "Teach Drifters the loom"; design approved 2026-11-15).
+  - Each nation's design (`BannerDesigns`): its colour behind, a division of the field (half, quarter, diagonal, stripes,
+    gradient, bricks...), a charge on it (cross, saltire, roundel, lozenge, a pale or fess, a bend, indents, a bordure
+    indented) and, near half the time, a border or a band; in two dyes besides its own, those the other nations use least.
+    Only patterns a loom makes with a dye alone (vanilla's `no_item_required`), only dyes from common flowers and bone meal
+    (and purple). Its own among the world's nations; saved with the nation (`Design`); nations from before get one as they
+    load.
+  - Towns made with the world have theirs stood on the plaza as they're made (`Nations.raise`, facing the plaza; only a
+    town still in the nation: its plan's nation may have lost it in its history).
+  - Drifters make the rest at a loom, by player rules (Drifter: `TownWork.Banner` now carries its patterns, `Layer`; the
+    banner goal works through what it lacks: the plain banner of the colour, then a dye at a time for the patterns left,
+    then a loom if it knows none near and carries none; `LoomActivity`: home first if it carries its loom, puts it down,
+    then at it `LoomTask` weaves one pattern a go through the game's own loom menu (a short look at the patterns, the dye
+    used up, as a player). Looms are now stations Drifters remember. Its banner goal ranks above going mining with a
+    friend.
+  - Banners already up in old worlds stay as they are; one that's taken or knocked down is made anew with the design.
+  - The journal's banners (nations' pages, the history's) show the design.
+  - Also: townsfolk loaded with a world now get their town's work as soon as their town and group have loaded (tried a
+    while after they load: loaded from their chunks first, they had none, and all went down the mine with nothing to stop
+    them).
+  - Tested in the dev client (seed 779 copy): every made town's banner up with its design (picture
+    `docs/shots/nation-banners.png`, the world's eight); Hollylea's knocked down, its leader given a plain banner, two dyes
+    and a loom: carried the loom home, set it up, wove the two patterns, stood the banner on the plaza ("_C_O_ raised the
+    banner of Eldoth over Hollylea"), its block's patterns exactly the design. After the world reloaded from its save, 0
+    then 2 then 3 of 17 down the mine.
+
 - **0.23.70: place names from bigger lists, of one word and of two; nations named as countries** (the user, 2026-11-15:
   "bigger lists / single word and two word / no doubles / and make the nation name different from the capital name, kinda
   like a country, and its states"). Addon only, new worlds (names already given keep).

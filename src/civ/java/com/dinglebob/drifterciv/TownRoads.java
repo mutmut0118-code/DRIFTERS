@@ -581,13 +581,35 @@ final class TownRoads {
 	 */
 	static void register() {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
-			if (entity instanceof DrifterEntity drifter && drifter.getTownWork() == null) {
-				Town town = Diplomacy.townOf(drifter.getUUID());
-				if (town != null) {
-					DrifterApi.setTownWork(drifter, works.compute(town.id, (key, work) -> work != null && work.town == town ? work : new Work(town)));
-				}
+			if (entity instanceof DrifterEntity drifter && drifter.getTownWork() == null && !giveWork(drifter)) {
+				// (Loaded from its chunk as a world opens, before the towns and groups it belongs to are: tried again a while.)
+				waiting.put(drifter, level.getServer().getTickCount() + WAIT_FOR_TOWN);
 			}
 		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			if (waiting.isEmpty()) {
+				return;
+			}
+
+			int now = server.getTickCount();
+			waiting.entrySet().removeIf(one -> one.getKey().isRemoved() || one.getKey().getTownWork() != null || giveWork(one.getKey()) || now > one.getValue());
+		});
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPED.register(server -> waiting.clear());
+	}
+
+	/** Those waiting for their town's work, and till when (server ticks). */
+	private static final java.util.Map<DrifterEntity, Integer> waiting = new java.util.WeakHashMap<>();
+	private static final int WAIT_FOR_TOWN = 20 * 30;
+
+	/** Its town's work given it, if it's one of a town's people. */
+	private static boolean giveWork(DrifterEntity drifter) {
+		Town town = Diplomacy.townOf(drifter.getUUID());
+		if (town == null) {
+			return false;
+		}
+
+		DrifterApi.setTownWork(drifter, works.compute(town.id, (key, work) -> work != null && work.town == town ? work : new Work(town)));
+		return true;
 	}
 
 	static void setWork(MinecraftServer server, Town town, Iterable<java.util.UUID> members) {

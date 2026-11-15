@@ -748,6 +748,13 @@ final class Annals {
 
 	/** A power's picture: its banner's colour ("b" and the dye's id), or a free town's leader's head ("s" and the skin), or "-". */
 	static String picture(UUID power) {
+		// (A nation's banner as it is: its colour and its design.)
+		for (Nations.Nation nation : Nations.all()) {
+			if (nation.id.equals(power)) {
+				return "b" + nation.colour.getId() + BannerDesigns.words(nation.design);
+			}
+		}
+
 		Integer colour = WorldPlan.powerColour(power);
 		if (colour != null) {
 			return "b" + colour;

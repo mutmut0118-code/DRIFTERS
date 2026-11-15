@@ -313,7 +313,47 @@ public interface TownWork {
 		}
 	}
 
-	/** A banner of this colour (a banner item, e.g. {@code Items.RED_BANNER}) to stand at {@code spot}, and why (its thought). */
-	record Banner(net.minecraft.world.item.Item item, BlockPos spot, String what) {
+	/**
+	 * A banner of this colour (a banner item, e.g. {@code Items.RED_BANNER}) with these patterns on it, bottom first (none: a
+	 * plain one), to stand at {@code spot}, and why (its thought). Its patterns it puts on at a loom, a dye each, as a player
+	 * does (the user, 2026-11-15: nations' banners with a real design).
+	 */
+	record Banner(net.minecraft.world.item.Item item, java.util.List<Layer> layers, BlockPos spot, String what) {
+		public Banner(net.minecraft.world.item.Item item, BlockPos spot, String what) {
+			this(item, java.util.List.of(), spot, what);
+		}
+
+		/** A stack that is this banner: its colour, its patterns in order. */
+		public boolean is(net.minecraft.world.item.ItemStack stack) {
+			if (!stack.is(this.item)) {
+				return false;
+			}
+
+			var on = stack.getOrDefault(net.minecraft.core.component.DataComponents.BANNER_PATTERNS,
+				net.minecraft.world.level.block.entity.BannerPatternLayers.EMPTY).layers();
+			if (on.size() != this.layers.size()) {
+				return false;
+			}
+
+			for (int i = 0; i < on.size(); i++) {
+				var layer = on.get(i);
+				if (layer.color() != this.layers.get(i).colour() || !layer.pattern().unwrapKey().map(key -> key.location().toString())
+					.orElse("").equals(this.layers.get(i).pattern())) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		/** One of this banner's plain stacks (its colour, nothing on it yet). */
+		public boolean plain(net.minecraft.world.item.ItemStack stack) {
+			return stack.is(this.item) && stack.getOrDefault(net.minecraft.core.component.DataComponents.BANNER_PATTERNS,
+				net.minecraft.world.level.block.entity.BannerPatternLayers.EMPTY).layers().isEmpty();
+		}
+	}
+
+	/** A pattern on a banner: the pattern's id ({@code minecraft:stripe_bottom}) and its dye's colour. */
+	record Layer(String pattern, net.minecraft.world.item.DyeColor colour) {
 	}
 }

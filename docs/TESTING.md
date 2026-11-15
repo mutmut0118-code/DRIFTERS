@@ -4162,3 +4162,16 @@ In a **new world**.
 - [ ] **Nations have a country's name of their own** (the Kingdom of Valdoria, the Caelmarch Dominion, Eldoth), not their
       capital's. Their capital is a town with its own name.
 
+## 0.23.71: nation banners with a design (new)
+
+In a **new world** (old worlds: nations get a design now; banners already up stay plain until one's made anew).
+
+- [ ] **Every nation's banner has its own design**: its colour plus two or three patterns (stripes, halves, crosses,
+      diamonds, borders...) in other colours. No two nations alike.
+- [ ] **Towns made with the world** have the banner standing on the plaza, facing it.
+- [ ] **A Drifter makes a new one**: break a town's banner (`/drifterciv nations` shows which towns have theirs up).
+      Its leader makes a plain banner of the colour, gets the dyes, finds or sets up a loom near home, weaves the patterns
+      on and stands it back on the plaza. (It can take a while: wool, flowers, string for a loom, and they finish what
+      they're doing first, a mining trip can be 15 minutes.)
+- [ ] **The journal** shows nations' banners with their designs.
+
