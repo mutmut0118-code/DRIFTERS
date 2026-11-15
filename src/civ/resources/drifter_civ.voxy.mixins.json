@@ -6,7 +6,8 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"VoxyChunkWriterMixin",
-		"LadderWriterMixin"
+		"LadderWriterMixin",
+		"StructuresMixin"
 	],
 	"injectors": {
 		"defaultRequire": 0

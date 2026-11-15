@@ -246,8 +246,8 @@ public final class FarDh {
 					boolean water = ground.blockStateWrapper.isLiquid();
 					int surface = ground.topYBlockPos;
 					int floor = points.get(points.size() - 1).bottomYBlockPos;
-					if (col.y() != FarPaint.NO_Y && !water && Math.abs(col.y() + 1 - surface) <= FarPaint.MOST_GRADE && col.y() > floor) {
-						surface = col.y() + 1;
+					if (col.grade() != 0 && !water && surface + col.grade() - 1 > floor) {
+						surface += col.grade();
 					}
 
 					int top = surface;

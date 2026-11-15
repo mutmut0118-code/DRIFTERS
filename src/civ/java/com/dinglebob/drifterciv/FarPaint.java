@@ -41,25 +41,36 @@ public final class FarPaint {
 	public record Span(int bottom, int top, BlockState block, int light) {
 	}
 
-	/** No height asked for: the surface stays where the far land has it. */
-	public static final int NO_Y = Integer.MIN_VALUE;
-	/** A height asked for is taken only this near the far land's own (further: the land was read differently; left alone). */
-	public static final int MOST_GRADE = 8;
+	/** The most a road's bed is cut under the land, and raised over it (a road dug in reads as a road; one banked up, as a wall). */
+	public static final int MOST_CUT = 6;
+	public static final int MOST_FILL = 1;
+	/** The most a house's plot or the plaza is cut or filled to level it. */
+	public static final int MOST_LEVEL = 3;
 
 	/**
 	 * A column's answer: the block its surface becomes (null: as it is), what stands on it bottom up, the block light on
-	 * it, and the height its surface is to be at ({@link #NO_Y}: where it is): a road's graded bed, a house's levelled
-	 * plot. The far land is cut down or filled up to it, as the real builder does, and whatever grew there is cleared.
+	 * it, and how far its surface is moved from where the far land has it ({@code grade}: down, cut; up, filled; 0, as it
+	 * is): a road's graded bed, a house's levelled plot. A difference, not a height: worked out from the land as the
+	 * generator says it is and put onto the far-view mod's own land, whose heights can sit a block or two off the
+	 * generator's (a bed given as a height stood proud of the far land all along the road: the user, 2026-11-15, "roads
+	 * between towns stick out from the ground alot"). Whatever grew there is cleared.
 	 */
-	public record Column(@Nullable BlockState surface, List<Span> spans, int light, int y) {
+	public record Column(@Nullable BlockState surface, List<Span> spans, int light, int grade) {
 		public Column(@Nullable BlockState surface, List<Span> spans, int light) {
-			this(surface, spans, light, NO_Y);
+			this(surface, spans, light, 0);
 		}
 
 		/** Only light on the ground: nothing's cleared, cut or filled. */
 		public boolean lightOnly() {
-			return this.surface == null && this.spans.isEmpty() && this.y == NO_Y;
+			return this.surface == null && this.spans.isEmpty() && this.grade == 0;
 		}
+	}
+
+	/** A far-view hookup has asked this game's painter for a column: far towns are being shown. */
+	private static volatile boolean used;
+
+	public static boolean used() {
+		return used;
 	}
 
 	/**
@@ -254,6 +265,7 @@ public final class FarPaint {
 	/** This column's answer, or null where nothing's to be drawn (most of the world). */
 	@Nullable
 	public Column column(int x, int z) {
+		used = true;
 		Kept now = this.kept;
 		if (now == NOTHING) {
 			return null;
@@ -303,7 +315,11 @@ public final class FarPaint {
 			}
 		}
 
-		Column path = new Column(style.path().defaultBlockState(), List.of(), 0);
+		// (Its streets as the real ones are laid: a city's stone brick, cracked and mossy here and there; a town's and a
+		// hamlet's the worn mix the roads between towns have; sandstone in a desert. They were all one brown path: the
+		// user, 2026-11-15.)
+		boolean city = sketch.reach() >= TownBuilder.CITY_REACH;
+		boolean desert = style == TownBuilder.Style.DESERT;
 		for (int[] street : sketch.streets()) {
 			double half = street[0] / 2.0;
 			Map<Long, Double> cells = new HashMap<>();
@@ -312,15 +328,19 @@ public final class FarPaint {
 			}
 
 			for (long cell : cells.keySet()) {
-				out.put(cell, path);
+				double roll = Math.floorMod(BlockPos.getX(cell) * 73428767L ^ BlockPos.getZ(cell) * 912931L ^ sketch.seed(), 1000) / 1000.0;
+				Block paved = city ? desert ? roll < 0.7 ? Blocks.SMOOTH_SANDSTONE : Blocks.CUT_SANDSTONE
+					: roll < 0.7 ? Blocks.STONE_BRICKS : roll < 0.85 ? Blocks.CRACKED_STONE_BRICKS : Blocks.MOSSY_STONE_BRICKS
+					: desert ? Blocks.SMOOTH_SANDSTONE : roll < 0.5 ? Blocks.PACKED_MUD : roll < 0.78 ? Blocks.ROOTED_DIRT : Blocks.COARSE_DIRT;
+				out.put(cell, new Column(paved.defaultBlockState(), List.of(), 0));
 			}
 		}
 
-		Column paving = new Column(style.paving().defaultBlockState(), List.of(), 0, sketch.y0());
+		TownLand land = Sketches.predicted();
 		int[] plaza = sketch.plaza();
 		for (int x = plaza[0]; x <= plaza[2]; x++) {
 			for (int z = plaza[1]; z <= plaza[3]; z++) {
-				out.put(BlockPos.asLong(x, 0, z), paving);
+				out.put(BlockPos.asLong(x, 0, z), new Column(style.paving().defaultBlockState(), List.of(), 0, level(land, x, z, sketch.y0())));
 			}
 		}
 
@@ -334,7 +354,7 @@ public final class FarPaint {
 						// A ruin: broken walls round nothing, each column of them its own height.
 						if (edge) {
 							int high = 1 + (int)(Math.floorMod(x * 73428767L ^ z * 912931L, 1000) / 1000.0 * box.wall());
-							out.put(BlockPos.asLong(x, 0, z), new Column(null, List.of(new Span(0, high, walls, 0)), 0, box.base()));
+							out.put(BlockPos.asLong(x, 0, z), new Column(null, List.of(new Span(0, high, walls, 0)), 0, level(land, x, z, box.base())));
 						} else {
 							out.remove(BlockPos.asLong(x, 0, z));
 						}
@@ -346,7 +366,7 @@ public final class FarPaint {
 					int in = box.ridgeAlongX() ? Math.min(z - box.z0(), box.z1() - z) : Math.min(x - box.x0(), box.x1() - x);
 					int high = Math.min(in + 1, box.roof());
 					out.put(BlockPos.asLong(x, 0, z), new Column(null, List.of(new Span(0, box.wall(), walls, edge && box.lit() ? WINDOW_LIGHT : 0),
-						new Span(box.wall(), box.wall() + high, roof, 0)), 0, box.base()));
+						new Span(box.wall(), box.wall() + high, roof, 0)), 0, level(land, x, z, box.base())));
 				}
 			}
 
@@ -392,9 +412,21 @@ public final class FarPaint {
 			if (column == null) {
 				out.put(entry.getKey(), new Column(null, List.of(), entry.getValue()));
 			} else if (column.spans().isEmpty() && column.light() < entry.getValue()) {
-				out.put(entry.getKey(), new Column(column.surface(), List.of(), entry.getValue(), column.y()));
+				out.put(entry.getKey(), new Column(column.surface(), List.of(), entry.getValue(), column.grade()));
 			}
 		}
+	}
+
+	/**
+	 * How far this column's surface is moved to level a plot whose ground is at {@code base}: the difference from the
+	 * land here as the generator says it is, a few blocks at most. 0 with no generator to ask (a guest's game).
+	 */
+	private static int level(@Nullable TownLand land, int x, int z, int base) {
+		if (land == null || land.wet(x, z)) {
+			return 0;
+		}
+
+		return Mth.clamp(base - land.ground(x, z), -MOST_LEVEL, MOST_LEVEL);
 	}
 
 	/** The columns within {@code half} of the line from a to b, each with how far off the line it is (the least, if asked twice). */
@@ -434,18 +466,20 @@ public final class FarPaint {
 		}
 
 		BlockState deck = Blocks.SPRUCE_PLANKS.defaultBlockState();
+		TownLand land = Sketches.predicted();
 		for (int i = 0; i + 1 < n; i++) {
 			Map<Long, Double> cells = new HashMap<>();
 			stroke(cells, line.get(i)[0], line.get(i)[1], line.get(i + 1)[0], line.get(i + 1)[1], ROAD_HALF);
 			boolean bridge = road.bridge()[i] || road.bridge()[i + 1];
 			int piece = i / Highways.PIECE;
-			boolean graded = road.heights().length == n;
+			boolean graded = road.heights().length == n && land != null;
 			for (var cell : cells.entrySet()) {
 				int x = BlockPos.getX(cell.getKey());
 				int z = BlockPos.getZ(cell.getKey());
 				// (Its bed's height here: the nearer of the stretch's two ends'.)
 				boolean first = Math.hypot(x + 0.5 - line.get(i)[0], z + 0.5 - line.get(i)[1]) <= Math.hypot(x + 0.5 - line.get(i + 1)[0], z + 0.5 - line.get(i + 1)[1]);
-				int y = graded ? road.heights()[first ? i : i + 1] : NO_Y;
+				// (How far its bed is under or over the land here: cut freely, banked up a block at most.)
+				int y = graded && !land.wet(x, z) ? Mth.clamp(road.heights()[first ? i : i + 1] - land.ground(x, z), -MOST_CUT, MOST_FILL) : 0;
 				// (A bridge: a deck a block over the water it crosses. Else the road's worn mix, as it's really laid.)
 				Column column = bridge ? new Column(null, List.of(new Span(1, 2, deck, 0)), 0)
 					: new Column(WildRoad.mix(x, z, cell.getValue(), road.salt()), List.of(), 0, y);
@@ -500,7 +534,7 @@ public final class FarPaint {
 			if (had == null) {
 				out.put(entry.getKey(), new RoadColumn(new Column(null, List.of(), entry.getValue()), pieces.getOrDefault(entry.getKey(), 0)));
 			} else if (had.column.spans().isEmpty() && had.column.light() < entry.getValue()) {
-				out.put(entry.getKey(), new RoadColumn(new Column(had.column.surface(), List.of(), entry.getValue(), had.column.y()), had.piece));
+				out.put(entry.getKey(), new RoadColumn(new Column(had.column.surface(), List.of(), entry.getValue(), had.column.grade()), had.piece));
 			}
 		}
 
@@ -639,7 +673,7 @@ public final class FarPaint {
 				.append(span.light() > 0 ? " lit " + span.light() : "");
 		}
 
-		return text + ", light " + column.light() + (column.y() == NO_Y ? "" : ", surface at y " + column.y());
+		return text + ", light " + column.light() + (column.grade() == 0 ? "" : ", surface moved " + column.grade());
 	}
 
 	/** The server's painter brought up to the plan: new sketches, places made, another world. Cheap when nothing's changed. */

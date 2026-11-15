@@ -48,6 +48,8 @@ public final class WorldBuild {
 	private static int total;
 	/** Built this many chunks out past a player's view distance; before play, all this many out from spawn's. */
 	private static final int AHEAD_CHUNKS = 20;
+	/** How far out towns and roads are built while a far-view mod shows the unbuilt ones (blocks). */
+	private static final int FAR_VIEW_AHEAD = 1024;
 	private static final int FIRST_CHUNKS = 6;
 	/**
 	 * Before play, once what's in sight is built, more: the towns and roads this far from spawn, nearest first, till they're
@@ -279,6 +281,12 @@ public final class WorldBuild {
 		// (Before play: further, while the loading screen's up.)
 		if (building && more) {
 			return LOADING_REACH;
+		}
+
+		// (With towns shown in a far-view mod, the player sees one from far off and heads for it: built from as far as it
+		// goes, or they got there before it was made and found a field; the user, 2026-11-15.)
+		if (FarPaint.used()) {
+			return FAR_VIEW_AHEAD;
 		}
 
 		return Math.max(256, Math.min(1024, (server.getPlayerList().getViewDistance() + AHEAD_CHUNKS) * 16));

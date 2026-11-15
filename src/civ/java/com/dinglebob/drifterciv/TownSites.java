@@ -225,7 +225,7 @@ final class TownSites {
 
 			// Its land: asked for (made out of sight by the generator's own threads), then, once all of it's there, the town.
 			// (A town or two's land at a time besides the one being made, not every town ahead's at once.)
-			if (!site.loading && sites.stream().filter(other -> other.loading && other != making).count() >= (WorldBuild.building ? 2 : 1)) {
+			if (!site.loading && sites.stream().filter(other -> other.loading && other != making).count() >= (WorldBuild.building || FarPaint.used() ? 2 : 1)) {
 				continue;
 			}
 
