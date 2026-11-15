@@ -116,66 +116,6 @@ public final class PlayerTalk {
 		return kept.isEmpty() ? voices : kept;
 	}
 
-	/** A thing of its own praised ("i like your pickaxe", "nice iron boots"): its word. */
-	private static final Pattern PRAISED = Pattern.compile("\\b(?:your|ur|that|those|this|nice|cool|sick|sweet|fancy|great|awesome|neat|love the|loving the"
-		+ "|like the|dig the|digging the)\\s+(?:[a-z]+\\s+)?(pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|hoe|shovel|helmet|helm|chestplate"
-		+ "|leggings|pants|boots|armor|armour|elytra|rod)s?\\b");
-
-	/** The word for a thing of its own the message praises, or null. */
-	@Nullable
-	static String praisedThing(String text) {
-		Matcher m = PRAISED.matcher(text.toLowerCase(Locale.ROOT));
-		return m.find() ? m.group(1) : null;
-	}
-
-	/** What it has on it that the word means (held, or worn), or null if nothing. */
-	@Nullable
-	private static ItemStack praisedStack(DrifterEntity drifter, String thing) {
-		net.minecraft.world.entity.EquipmentSlot worn = switch (thing) {
-			case "helmet", "helm" -> net.minecraft.world.entity.EquipmentSlot.HEAD;
-			case "chestplate", "elytra" -> net.minecraft.world.entity.EquipmentSlot.CHEST;
-			case "leggings", "pants" -> net.minecraft.world.entity.EquipmentSlot.LEGS;
-			case "boots" -> net.minecraft.world.entity.EquipmentSlot.FEET;
-			default -> null;
-		};
-		if (thing.startsWith("armo")) {
-			for (net.minecraft.world.entity.EquipmentSlot slot : new net.minecraft.world.entity.EquipmentSlot[] {net.minecraft.world.entity.EquipmentSlot.CHEST,
-				net.minecraft.world.entity.EquipmentSlot.HEAD, net.minecraft.world.entity.EquipmentSlot.LEGS, net.minecraft.world.entity.EquipmentSlot.FEET}) {
-				if (!drifter.getItemBySlot(slot).isEmpty()) {
-					return drifter.getItemBySlot(slot);
-				}
-			}
-
-			return null;
-		}
-
-		if (worn != null) {
-			ItemStack stack = drifter.getItemBySlot(worn);
-			String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-			return stack.isEmpty() || thing.equals("elytra") != path.equals("elytra") ? null : stack;
-		}
-
-		for (ItemStack stack : new ItemStack[] {drifter.getMainHandItem(), drifter.getOffhandItem()}) {
-			String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
-			boolean is = switch (thing) {
-				case "pick", "pickaxe" -> path.contains("pickaxe");
-				case "axe" -> path.equals("axe") || path.endsWith("_axe");
-				case "rod" -> path.contains("rod");
-				default -> path.equals(thing) || path.endsWith("_" + thing);
-			};
-			if (!stack.isEmpty() && is) {
-				return stack;
-			}
-		}
-
-		return null;
-	}
-
-	/** "a pickaxe", "an axe", "any boots". */
-	private static String aThing(String thing) {
-		return thing.endsWith("s") ? "any " + thing : ("aeiou".indexOf(thing.charAt(0)) >= 0 ? "an " : "a ") + thing;
-	}
-
 	/** Not what "means something" is, understood loosely: a bare yes, no or thing isn't enough to go on. */
 	private static final java.util.Set<String> NOT_ENOUGH = java.util.Set.of("yes", "no", "ready", "unsure", "middle", "things", "everyone", "iam", "me");
 
@@ -628,12 +568,21 @@ public final class PlayerTalk {
 		return false;
 	}
 
+	/** How far a name shouted is heard ("BOB!", "bob!!"). */
+	private static final double SHOUTED = 64.0;
+
+	/** Shouted: with a "!", or in capitals. */
+	private static boolean shouted(String text) {
+		long letters = text.chars().filter(Character::isLetter).count();
+		return text.contains("!") || letters >= 3 && text.chars().noneMatch(Character::isLowerCase);
+	}
+
 	private static DrifterEntity addressee(ServerPlayer player, String text, @Nullable Focus focused, long now, boolean aboutOthers,
 		@Nullable String intent) {
 		ServerLevel level = player.serverLevel();
 		List<DrifterEntity> near = level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(SocialWatcher.NAME_RANGE),
 			drifter -> drifter.isAlive() && !drifter.isTemporary() || drifter.isAlive() && drifter.encounter() != null);
-		if (near.isEmpty()) {
+		if (near.isEmpty() && !shouted(text)) {
 			return null;
 		}
 
@@ -682,6 +631,27 @@ public final class PlayerTalk {
 			}
 
 			return named;
+		}
+
+		// Its name shouted from further off ("2JELLY!" across the market): it hears it, and calls back. (Found in play: nothing,
+		// till they were close.)
+		if (named == null && !aboutOthers && shouted(text)) {
+			DrifterEntity far = null;
+			for (DrifterEntity drifter : level.getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(SHOUTED),
+				one -> one.isAlive() && !one.isTemporary())) {
+				if (!near.contains(drifter) && SocialWatcher.called(words, drifter.getName().getString())
+					&& (far == null || drifter.distanceTo(player) < far.distanceTo(player))) {
+					far = drifter;
+				}
+			}
+
+			if (far != null) {
+				return far;
+			}
+		}
+
+		if (near.isEmpty()) {
+			return null;
 		}
 
 		// Just someone else's name called out ("BOLT!", "BRAVEBOLT", one not close by): not for any of these. (Found in play:
@@ -763,21 +733,6 @@ public final class PlayerTalk {
 
 		// Nice things and insults: what they said goes into how it feels about them.
 		if (intent.equals("compliment")) {
-			// A thing of its own praised: only so when it has it on it (found in play: "i like your pickaxe" to one with none).
-			String thing = praisedThing(text);
-			if (thing != null && !hostile) {
-				ItemStack stack = praisedStack(drifter, thing);
-				if (stack == null) {
-					reply(drifter, thing.startsWith("armo") ? "ask.compliment.no_armor" : "ask.compliment.not_mine", null, "player", name, "thing", thing,
-						"a_thing", aThing(thing));
-					return;
-				}
-
-				drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
-				reply(drifter, "ask.compliment.thing", null, "player", name, "thing", thing, "what", stack.getHoverName().getString().toLowerCase(Locale.ROOT));
-				return;
-			}
-
 			drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
 			reply(drifter, hostile ? "ask.hostile" : "ask.compliment", null, who);
 			return;
@@ -965,12 +920,29 @@ public final class PlayerTalk {
 		}
 	}
 
+	/** What each player last asked a Drifter about having: who, the thing, till when. */
+	private record Asked2(UUID drifter, String what, long until) {
+	}
+
+	private static final Map<UUID, Asked2> askedAbout = new HashMap<>();
+
+	/** They asked it whether it has this ("got any food?"): "can i have some?" next is this. */
+	static void askedAbout(ServerPlayer player, DrifterEntity drifter, String what) {
+		askedAbout.put(player.getUUID(), new Asked2(drifter.getUUID(), what, player.level().getGameTime() + 20L * 90));
+	}
+
 	/** "Can i have some bread?": from what it can spare, to someone it likes (or owes), about what they're worth to it. */
 	private static void give(DrifterEntity drifter, ServerPlayer player, Relationship r, String text, long now) {
 		String name = Heard.callName(drifter, player);
 		Focus focused = focus.get(player.getUUID());
 		boolean askedAlready = focused != null && focused.drifter().equals(drifter.getUUID()) && now < focused.wantsItemUntil();
 		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
+		// ("got any food?" ... "can i have some?": food. Found in play: "need what?")
+		Asked2 about = askedAbout.get(player.getUUID());
+		if (named(text) == null && about != null && about.drifter().equals(drifter.getUUID()) && now < about.until()) {
+			text = text + " " + about.what();
+		}
+
 		Item item = wanted(drifter, text);
 		if (item == null) {
 			// Something it doesn't carry ("bread", with none on it): it says so. It asks what they want only when it can't
@@ -1089,6 +1061,9 @@ public final class PlayerTalk {
 			}
 		}
 
+		// (As chat is read, letters run together once: "food" is "fod". Found in play: "food" ... "none, sorry" from one with plenty.)
+		boolean saysFood = said.contains("food") || said.contains(singular(Lines.normalize("food").trim()));
+		boolean saysWood = said.contains("wood") || said.contains(singular(Lines.normalize("wood").trim()));
 		Item best = null;
 		int bestScore = 0;
 		int bestCount = 0;
@@ -1106,11 +1081,11 @@ public final class PlayerTalk {
 				}
 			}
 
-			if (said.contains("food") && stack.has(DataComponents.FOOD)) {
+			if (saysFood && stack.has(DataComponents.FOOD)) {
 				score += 1;
 			}
 
-			if (said.contains("wood") && (stack.is(ItemTags.LOGS) || stack.is(ItemTags.PLANKS))) {
+			if (saysWood && (stack.is(ItemTags.LOGS) || stack.is(ItemTags.PLANKS))) {
 				score += 1;
 			}
 
@@ -1306,15 +1281,16 @@ public final class PlayerTalk {
 			return;
 		}
 
-		for (Iterator<Reply> it = replies.iterator(); it.hasNext();) {
-			Reply reply = it.next();
+		// (Over a copy: what's done once a reply is said can be another reply. Found in testing: a town's story, a line after a
+		// line, crashed the server.)
+		for (Reply reply : new ArrayList<>(replies)) {
 			if (!reply.drifter().isAlive() || reply.drifter().isRemoved()) {
-				it.remove();
+				replies.remove(reply);
 				continue;
 			}
 
 			if (reply.drifter().level().getGameTime() >= reply.at()) {
-				it.remove();
+				replies.remove(reply);
 				answeredAt.put(reply.drifter().getUUID(), reply.drifter().level().getGameTime());
 				// (To the player talking with it, if one is: its name in chat says so.)
 				if (reply.whisperTo() != null) {

@@ -1616,6 +1616,18 @@ final class Quests {
 		}
 	}
 
+	/** What a job to bring it things, this player's for this Drifter, still wants: "item id|count", or null. */
+	@Nullable
+	static String bringWanted(DrifterEntity drifter, Player player) {
+		for (Quest q : quests.values()) {
+			if (q.kind.equals("bring") && (q.state == OFFERED || q.state == TAKEN) && q.player.equals(player.getUUID()) && q.giver.equals(drifter.getUUID())) {
+				return q.item + "|" + Math.max(1, q.count - q.given);
+			}
+		}
+
+		return null;
+	}
+
 	/** Would a quest count this thing thrown to this Drifter (so a notice or a favor for the same leaves it be)? */
 	static boolean claims(DrifterEntity drifter, Player player, ItemStack stack) {
 		return bringFor(drifter, player, stack) != null;

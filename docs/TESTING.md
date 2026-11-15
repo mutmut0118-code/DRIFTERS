@@ -4159,3 +4159,11 @@ In a town of a morning, listen to the crier on the plaza:
 2. Back with whoever gave you a word to carry: "i told him" or "passed it on" hands it in.
 3. "thank yo" is a thanks.
 4. Shout the name of a Drifter who's far away ("2 JELLY!"): nobody close by answers.
+5. In a town, ask someone "tell me about this town" or "whats the history of this place". They tell it in several
+   messages: when it was founded (towns made with the world are old), something from its past, how it is now, how they
+   feel. Say something else partway: they stop.
+6. "nice to meet you": "you too".
+7. "got any food?", then "can i have some?": it's about food (yes or no), not "need what?".
+8. Shout a Drifter's name from far off ("JELLY!"): it calls back.
+9. Take a notice off the board, then tell its poster "i got your <thing>": "toss it over" (Q to throw it), or "you dont
+   have it on you" if you don't.

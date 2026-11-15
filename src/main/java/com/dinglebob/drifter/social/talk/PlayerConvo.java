@@ -57,7 +57,7 @@ public final class PlayerConvo {
 		"hunt_with", "warning", "truce", "offer", "come_in", "sleep_here", "danger_tell", "threat_all", "threat", "wake_up", "jk"};
 	/** The glue: reactions, asking it to explain, steering the talk. */
 	static final String[] GLUE = {"laugh", "nice", "wow", "agree", "doubt", "sympathy", "ack", "pushback", "why", "wdym", "nvm", "talk_to_me",
-		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good"};
+		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good", "met_you"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
 	private static final Set<String> WEAK = Set.of("who_is", "look");
 	/** These and batch 2's (TalkMore). */
@@ -826,6 +826,14 @@ public final class PlayerConvo {
 				say(drifter, player, mine.equals("ack") ? "convo.ack" : "convo.asked.middle", null);
 				followUp(drifter, c, now, 0.45);
 			}
+			case "met_you" -> {
+				// ("nice to meet you, im muto": they've met. Found in play: "thank you", the "nice" taken as a compliment.)
+				if (introduced(player, text)) {
+					r.addFamiliarity(3.0);
+				}
+
+				say(drifter, player, "convo.met_you", null);
+			}
 			case "im_good", "im_bad" -> {
 				say(drifter, player, "convo." + mine, null);
 				followUp(drifter, c, now, 0.35);
@@ -1180,6 +1188,8 @@ public final class PlayerConvo {
 			return;
 		}
 
+		PlayerTalk.askedAbout(player, drifter, what);
+
 		int count = drifter.getInventory().count(stack -> what.equals("food") ? stack.has(DataComponents.FOOD)
 			: what.equals("wood") ? stack.is(net.minecraft.tags.ItemTags.LOGS) || stack.is(net.minecraft.tags.ItemTags.PLANKS)
 			: stack.getHoverName().getString().toLowerCase(Locale.ROOT).equals(what));
@@ -1240,7 +1250,7 @@ public final class PlayerConvo {
 			drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
 			say(drifter, player, "convo.gear.look", null);
 		} else if (found.isEmpty()) {
-			say(drifter, player, "convo.gear.none", null, "what", what);
+			say(drifter, player, "convo.gear.none", null, "what", what, "a_what", what.endsWith("s") ? "any " + what : ("aeiou".indexOf(what.charAt(0)) >= 0 ? "an " : "a ") + what);
 		} else {
 			drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
 			say(drifter, player, found.isEnchanted() ? "convo.gear.enchanted" : "convo.gear.thanks", null, "what", what, "item",

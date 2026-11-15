@@ -202,13 +202,6 @@
       "(this|it) is (scary|creepy|terrifying)",
       "i (dont|do not) (like|want to go) (this|down there|in there)"
     ],
-    "compliment": [
-      "(i|i really) (like|love|dig) your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build)",
-      "(nice|cool|sick|sweet|fancy|great|awesome|neat) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat)",
-      "(love|loving|like|digging) the (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor)",
-      "your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build) (is|looks|are) (nice|cool|sick|great|awesome|good|sweet|fancy|neat)",
-      "(that|those) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor) (is|looks|are) (nice|cool|sick|great|awesome|sweet|fancy|neat)"
-    ],
     "agree": [
       "i know",
       "i know (man|dude|bro|right|lol)",
@@ -261,92 +254,25 @@
       "copy",
       "copy that",
       "say no more"
+    ],
+    "gear": [
+      "(i|i really) (like|love|dig) your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build)",
+      "(nice|cool|sick|sweet|fancy|great|awesome|neat) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat)",
+      "(love|loving|like|digging) the (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor)",
+      "your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build) (is|looks|are) (nice|cool|sick|great|awesome|good|sweet|fancy|neat)",
+      "(that|those) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor) (is|looks|are) (nice|cool|sick|great|awesome|sweet|fancy|neat)"
+    ],
+    "met_you": [
+      "(nice|good|great|cool|pleasure|pleased|glad|happy) (to meet|meeting) (you|ya)",
+      "(nice|good) to (finally )?meet you",
+      "pleasure to meet you",
+      "a pleasure",
+      "pleasure is mine",
+      "the pleasure is mine",
+      "nice meeting you"
     ]
   },
   "lines": {
-    "ask.compliment.thing": {
-      "any": [
-        "ty, {what} does the job",
-        "thanks! its just {what} lol",
-        "ty, had it a while",
-        "aw thanks",
-        "ty ty",
-        "thanks, good old {what}",
-        "haha ty, made it myself",
-        "thx, nothing special but it works",
-        "ty! {what} gang",
-        "appreciate it, {what} ftw"
-      ],
-      "newbie": [
-        "thank you!! its my first {thing}",
-        "omg ty, i just got it"
-      ],
-      "hermit": [
-        "hm. it works"
-      ],
-      "pvp_sweat": [
-        "obviously",
-        "ik. its my best"
-      ],
-      "hoarder": [
-        "not for sale",
-        "ty. dont get ideas"
-      ],
-      "bandit": [
-        "dont even think about it"
-      ]
-    },
-    "ask.compliment.thing.cold": {
-      "any": [
-        "its just {what}",
-        "and?",
-        "hm. thanks",
-        "dont get ideas",
-        "what do you want with it"
-      ]
-    },
-    "ask.compliment.not_mine": {
-      "any": [
-        "what {thing}? i dont have one",
-        "i dont have {a_thing} lol",
-        "what {thing}",
-        "uh, im not holding {a_thing}",
-        "{thing}? wrong person maybe",
-        "lol i wish i had {a_thing}",
-        "you sure youre looking at me?"
-      ],
-      "hermit": [
-        "what {thing}."
-      ],
-      "newbie": [
-        "i dont have {a_thing} yet :("
-      ]
-    },
-    "ask.compliment.not_mine.cold": {
-      "any": [
-        "what {thing}",
-        "i dont have {a_thing}. what do you want",
-        "are you blind"
-      ]
-    },
-    "ask.compliment.no_armor": {
-      "any": [
-        "what armor lol",
-        "im not wearing any",
-        "uh, i have no armor on",
-        "lol i wish",
-        "armor? where"
-      ],
-      "newbie": [
-        "i dont have any armor yet :("
-      ]
-    },
-    "ask.compliment.no_armor.cold": {
-      "any": [
-        "what armor",
-        "i have none. what do you want"
-      ]
-    },
     "ask.need_target_yes": {
       "any": [
         "yeah, {what}",
@@ -456,6 +382,37 @@
         "ok",
         "good for you",
         "hm"
+      ]
+    },
+    "convo.met_you": {
+      "any": [
+        "you too",
+        "likewise",
+        "same here",
+        "nice to meet you too",
+        "you too!",
+        "likewise :)",
+        "good to meet you too",
+        "o/ likewise"
+      ],
+      "hermit": [
+        "likewise."
+      ],
+      "newbie": [
+        "you too!! :D"
+      ],
+      "pvp_sweat": [
+        "ya. likewise"
+      ],
+      "helper": [
+        "you too! welcome!"
+      ]
+    },
+    "convo.met_you.cold": {
+      "any": [
+        "sure",
+        "mhm",
+        "if you say so"
       ]
     }
   }

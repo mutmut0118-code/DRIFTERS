@@ -1,0 +1,49 @@
+{
+  "_comment": "Said to a Drifter they've brought what its notice (or a job) asked for (TownNotices.talkedOf): {item}, {count} (still wanted), {has} (they carry). Things are handed over by tossing them (Q).",
+  "lines": {
+    "town.notice.toss": {
+      "any": [
+        "oh nice!! toss it over",
+        "you did? throw it here then",
+        "ooh, chuck it my way",
+        "finally! toss it here",
+        "nice, throw it over and ill pay you",
+        "yes! hand it over, just toss it"
+      ],
+      "hermit": [
+        "good. toss it here."
+      ],
+      "newbie": [
+        "omg yay!! throw it to me"
+      ],
+      "hoarder": [
+        "toss it here. carefully"
+      ]
+    },
+    "town.notice.toss_some": {
+      "any": [
+        "nice, toss what you got. need {count} in all",
+        "thats {has}, i need {count}. throw em over anyway",
+        "toss those, ill still need more"
+      ],
+      "hermit": [
+        "{has}. need {count}. toss them."
+      ]
+    },
+    "town.notice.not_on_you": {
+      "any": [
+        "you dont have it on you though",
+        "where? i dont see any {item} on you",
+        "bring it with you then",
+        "uh, you dont have it",
+        "come back when youve got the {item} on you"
+      ],
+      "hermit": [
+        "you dont have it."
+      ],
+      "newbie": [
+        "hm, i dont think you have it with you"
+      ]
+    }
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "_comment": "A town's story, told in a few lines one after the other (TownStory; the user, 2026-11-15: 'a 3+ part conversation where a drifter can yap'). founded: {ago} ('about 3 years'), {founder} (its first ruler, when known); past: {when} ('about 4 years back'), {what} (a chronicle line, said); now: {leader}, {people}, {character} ('a friendly market town'), {nation}; custom: {custom} ('theres a fishing contest every week'). {town} is filled in everywhere.",
+  "answers": {
+    "town_story": [
+      "(tell me|tell me more|teach me|talk to me) about (this|the|your) (town|place|village|city)",
+      "(whats|what is|any|know any) [the] (history|story|lore|past) (of|behind|about|for) (this|the|your) (town|place|village|city)",
+      "how old is (this|the|your) (town|place|village|city)",
+      "(who|when) (founded|built|started|made) (this|the|your) (town|place|village|city)",
+      "(what|whats) (happened|went on) (here|in this town|in this place) [before|in the past|back then]",
+      "(lore|backstory) [of this town|of this place|here]",
+      "(whats|what is) (this|the|your) (town|place|village|city) (about|like|known for)",
+      "(been|lived) here long",
+      "how long (have you|you) lived here"
+    ]
+  },
+  "lines": {
+    "town.story.founded": {
+      "any": [
+        "oh {town}'s old. founded {ago} ago, give or take",
+        "{town}? its been here {ago}. older than me",
+        "this place goes back {ago}, believe it or not",
+        "sure! {town} was founded {ago} ago",
+        "{town}'s been standing {ago} now",
+        "where do i start. {town} goes back {ago}",
+        "ok so. {town} was founded {ago} ago",
+        "its an old town, {ago} old"
+      ],
+      "newbie": [
+        "i only just learned this but {town} is like {ago} old!!",
+        "oh i know this one! {town} goes back {ago}"
+      ],
+      "hermit": [
+        "old. {ago}.",
+        "{ago} old. older than most"
+      ],
+      "helper": [
+        "oh id love to! {town} goes back {ago}",
+        "happy to! so, {town} was founded {ago} ago"
+      ],
+      "pvp_sweat": [
+        "k quick version. {town}, {ago} old"
+      ],
+      "builder": [
+        "{town}'s {ago} old, and every house has a story",
+        "{ago} of building, thats {town}"
+      ]
+    },
+    "town.story.founded.cold": {
+      "any": [
+        "its old. {ago}. happy?",
+        "{ago} old. look it up",
+        "been here {ago}. why do you care"
+      ]
+    },
+    "town.story.founded_by": {
+      "any": [
+        "{town} goes back {ago}. {founder} founded it, first one to rule here",
+        "oh its old. {founder} founded {town} {ago} ago",
+        "{ago} ago {founder} put {town} down right here",
+        "{town} was founded {ago} back, {founder} was the first ruler",
+        "so {founder} founded this place, {ago} ago now",
+        "ok story time. {ago} ago, {founder} founded {town}"
+      ],
+      "newbie": [
+        "ooh ok so {founder} founded {town} like {ago} ago!!"
+      ],
+      "hermit": [
+        "{founder} founded it. {ago} back."
+      ],
+      "helper": [
+        "oh id love to! {founder} founded {town}, {ago} ago now"
+      ]
+    },
+    "town.story.founded_by.cold": {
+      "any": [
+        "{founder} founded it {ago} ago. there. happy?",
+        "{ago} old. {founder} started it. why"
+      ]
+    },
+    "town.story.new": {
+      "any": [
+        "its brand new honestly, we only just started",
+        "we only just founded this place. no history yet, just us",
+        "new. so much left to build, i love it",
+        "nothing to tell yet, its a new town. give it time"
+      ],
+      "builder": [
+        "new! every block of it fresh"
+      ]
+    },
+    "town.story.past": {
+      "any": [
+        "{when}, {what}",
+        "old folks still talk about it. {when}, {what}",
+        "theres a story to it. {when}, {what}",
+        "it hasnt all been easy. {when}, {what}",
+        "you know what happened {when}? {what}",
+        "biggest thing i know of: {when}, {what}",
+        "{when}... {what}. people dont forget that",
+        "my grandparents told me this one. {when}, {what}"
+      ],
+      "hermit": [
+        "{when}, {what}. remember that."
+      ],
+      "newbie": [
+        "and {when}, {what}! crazy right"
+      ],
+      "bandit": [
+        "{when}, {what}. good times"
+      ]
+    },
+    "town.story.past_more": {
+      "any": [
+        "then {when}, {what}",
+        "and {when}, {what}",
+        "after that, {when}, {what}",
+        "oh and {when}, {what}",
+        "{when}, {what}. that changed a lot",
+        "not long after, well, {when}: {what}"
+      ],
+      "hermit": [
+        "then {what}. {when}."
+      ]
+    },
+    "town.story.now": {
+      "any": [
+        "these days {leader} runs things. {character}, {people} of us",
+        "now? {leader} leads us. its {character}, {people} people",
+        "anyway these days its {character}. {leader} in charge",
+        "{leader} leads now. {people} of us, {character}",
+        "today its {character}. {people} people, {leader} up top"
+      ],
+      "hermit": [
+        "{leader} leads. {people} of us. thats all"
+      ],
+      "newbie": [
+        "now {leader} is the leader! {people} of us live here"
+      ],
+      "builder": [
+        "now its {people} of us, {leader} leading. still building"
+      ]
+    },
+    "town.story.now_nation": {
+      "any": [
+        "these days were part of {nation}. {leader} runs {town}, {people} of us",
+        "now its {nation}'s town. {leader} leads here, {character}",
+        "anyway were with {nation} now. {leader} in charge, {people} people",
+        "{nation} these days. {leader} runs things, its {character}"
+      ],
+      "hermit": [
+        "{nation}'s now. {leader} leads."
+      ]
+    },
+    "town.story.now_noleader": {
+      "any": [
+        "these days nobodys really in charge. {people} of us, {character}",
+        "now? {character}, {people} people, no leader since"
+      ]
+    },
+    "town.story.custom": {
+      "any": [
+        "oh and {custom}",
+        "also, {custom}. you should come",
+        "and {custom}. its kind of our thing",
+        "fun fact, {custom}"
+      ],
+      "newbie": [
+        "and {custom}! its so fun"
+      ],
+      "hermit": [
+        "{custom}."
+      ]
+    },
+    "town.story.feel": {
+      "any": [
+        "its home. i wouldnt live anywhere else",
+        "i like it here. people are alright",
+        "its not perfect but its ours",
+        "anyway thats {town}. good place",
+        "honestly? best town around",
+        "its alright. quiet, mostly",
+        "thats the story. glad you asked",
+        "anyway, i could go on. you staying a while?"
+      ],
+      "hermit": [
+        "thats it.",
+        "its quiet. i like quiet"
+      ],
+      "nomad": [
+        "nice place. wont stay forever though",
+        "good town to rest in. i wander though"
+      ],
+      "pvp_sweat": [
+        "anyway. decent town. bad fighters"
+      ],
+      "hoarder": [
+        "good town. lots of chests",
+        "its fine. keep your hands off the store"
+      ],
+      "newbie": [
+        "i love it here!!",
+        "its the best, im so glad i live here"
+      ],
+      "helper": [
+        "i love it. hope you like it too!",
+        "anyway, welcome! hope you stay a while"
+      ],
+      "bandit": [
+        "good town. easy pickings. kidding. mostly"
+      ],
+      "builder": [
+        "still lots to build. come back and see"
+      ]
+    },
+    "town.story.feel.cold": {
+      "any": [
+        "thats it. now go",
+        "done. what else",
+        "thats all youre getting"
+      ]
+    },
+    "town.story.feel_leader": {
+      "any": [
+        "and now its mine to look after. i take that seriously",
+        "now its on me. i try to do right by them",
+        "i lead it now. hard work, worth it",
+        "anyway, its my town now. behave in it"
+      ],
+      "hermit": [
+        "mine now. i keep it quiet"
+      ]
+    },
+    "town.story.past_recent": {
+      "any": [
+        "not long ago, {what}",
+        "{when}, {what}",
+        "big news {when}: {what}",
+        "you missed it, {when} {what}",
+        "{when}? {what}. still settling in after that"
+      ],
+      "hermit": [
+        "{when}, {what}."
+      ],
+      "newbie": [
+        "oh and {when}, {what}!"
+      ]
+    },
+    "town.story.now_mine": {
+      "any": [
+        "and these days i lead it. {people} of us, {character}",
+        "now? im in charge. {people} people, {character}",
+        "these days its me running things. {character}"
+      ],
+      "hermit": [
+        "i lead it now. {people} of us."
+      ],
+      "newbie": [
+        "and now im the leader, crazy right! {people} of us"
+      ]
+    },
+    "town.story.now_mine_nation": {
+      "any": [
+        "these days were part of {nation}, and i lead {town}. {people} of us",
+        "now its {nation}'s town, and im in charge here"
+      ],
+      "hermit": [
+        "{nation}'s now. i lead it."
+      ]
+    }
+  }
+}
