@@ -1,0 +1,37 @@
+# Said in play (0.23.69-side.4): a thing of its own praised only thanked when it has it ("i like your pickaxe" to one with
+# none: "what pickaxe?"); "just making conversation"; "ik man"; "its been a busy day" (their day, not "what are you doing");
+# "u need help?" ("yeah, ...").
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+kill @e[type=drifter:drifter]
+wait 1
+drifter spawn Rosie
+wait 2
+drifter hear rosie
+wait 4
+drifter hear i like your pickaxe
+wait 5
+drifter hear nice boots
+wait 5
+item replace entity @e[type=drifter:drifter,name=Rosie,limit=1] weapon.mainhand with minecraft:stone_pickaxe
+wait 1
+drifter hear i like your pickaxe
+wait 5
+drifter hear just making conversation
+wait 5
+drifter hear ik man
+wait 5
+drifter hear its been a busy dayt
+wait 5
+drifter hear had a great day today
+wait 5
+drifter hear yea but like u seem off u need help?
+wait 5
+drifter hear what do you need
+wait 5
+drifter hear u right.
+wait 5
+drifter hear got you
+wait 5

@@ -57,7 +57,7 @@ public final class PlayerConvo {
 		"hunt_with", "warning", "truce", "offer", "come_in", "sleep_here", "danger_tell", "threat_all", "threat", "wake_up", "jk"};
 	/** The glue: reactions, asking it to explain, steering the talk. */
 	static final String[] GLUE = {"laugh", "nice", "wow", "agree", "doubt", "sympathy", "ack", "pushback", "why", "wdym", "nvm", "talk_to_me",
-		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone"};
+		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
 	private static final Set<String> WEAK = Set.of("who_is", "look");
 	/** These and batch 2's (TalkMore). */
@@ -434,6 +434,18 @@ public final class PlayerConvo {
 	@Nullable
 	static String intent(String text, @Nullable String old) {
 		String topic = Lines.answer(text, ALL_TOPICS);
+		// (A bit of talk that says more than an older intent found is that: "its been a busy day" isn't "busy?", what it's doing.
+		// Found in play.)
+		if (old != null) {
+			String glue = Lines.answer(text, ALL_GLUE);
+			String glueSaid = glue == null ? null : Lines.phrase(text, glue);
+			String theirs = Lines.phrase(text, old);
+			String topicSaid = topic == null ? null : Lines.phrase(text, topic);
+			if (glueSaid != null && theirs != null && glueSaid.length() > theirs.length() && (topicSaid == null || glueSaid.length() > topicSaid.length())) {
+				return glue;
+			}
+		}
+
 		if (topic != null) {
 			if (old == null) {
 				// (A longer bit of glue says more: "tell me more" isn't "tell X ...".)
@@ -468,6 +480,15 @@ public final class PlayerConvo {
 		}
 
 		return glue;
+	}
+
+	/**
+	 * Something it answers as it is, with nothing asked (so never understood loosely as something else): a "hi", a "bye" or
+	 * a thanks; them giving their name; its name called; a bare "?"; "this or that?"; someone dead, named.
+	 */
+	static boolean plainly(DrifterEntity drifter, ServerPlayer player, String text) {
+		return Lines.answer(text, "greeting", "night", "bye", "thanks") != null || introduced(player, text) || justCalled(drifter, text)
+			|| text.trim().matches("[?!.]+") || TalkMore.either(text) != null || Deaths.named(drifter, text) != null;
 	}
 
 	/** Said to no one by name, but to all of them ("you guys", "anyone"). */
@@ -782,7 +803,7 @@ public final class PlayerConvo {
 
 		switch (mine) {
 			// ----- The glue -----
-			case "laugh", "nice", "wow", "agree", "doubt", "sympathy", "pushback", "gl", "brb", "nvm", "you_there" -> {
+			case "laugh", "nice", "wow", "agree", "doubt", "sympathy", "pushback", "gl", "brb", "nvm", "you_there", "chatting", "my_day", "my_day_good" -> {
 				say(drifter, player, "convo." + mine, null);
 				if (mine.equals("brb") && c != null) {
 					c.until = Math.max(c.until, now + STAY);
@@ -1152,7 +1173,7 @@ public final class PlayerConvo {
 		boolean guarded = drifter.getPersonality().archetype() == Archetype.HOARDER
 			&& drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName()).trust < Mode.FRIENDLY_TRUST;
 		say(drifter, player, guarded ? "convo.have.guarded" : count > 0 ? "convo.have.yes" : "convo.have.no", null, "item", what, "count",
-			count >= 64 ? "a stack of" : count > 8 ? "plenty of" : count > 1 ? "a few" : "one");
+			count >= 64 ? "a stack of" : count > 8 ? "plenty of" : what.equals("food") || what.equals("wood") ? "some" : count > 1 ? "a few" : "one");
 	}
 
 	private static final Map<String, EquipmentSlot> WORN = Map.ofEntries(Map.entry("helmet", EquipmentSlot.HEAD), Map.entry("hat", EquipmentSlot.HEAD),

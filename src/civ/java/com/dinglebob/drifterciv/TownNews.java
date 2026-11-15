@@ -173,7 +173,7 @@ final class TownNews {
 		StringBuilder page = new StringBuilder(heading.toUpperCase(java.util.Locale.ROOT) + "\n\n");
 		int lines = 2;
 		for (Chronicle.Entry entry : entries) {
-			String text = Chronicle.dayName(entry.day()) + ": " + entry.text() + "\n\n";
+			String text = Chronicle.dayName(entry.day()) + ": " + worded(entry.text()) + "\n\n";
 			int takes = 2 + text.length() / 19;
 			if (lines + takes > 14 && lines > 2) {
 				pages.add(page(page.toString()));
@@ -186,6 +186,34 @@ final class TownNews {
 		}
 
 		pages.add(page(page.toString()));
+	}
+
+	/** The longest a headline is (said in chat; the paper has the rest). */
+	private static final int HEADLINE = 140;
+
+	/**
+	 * News as a headline: short, cut where a part of it ends, not in the middle of a word (found in play: "a tax of 10
+	 * silv..."): a list cut after a whole item, "and more"; anything else after a whole word, "...".
+	 */
+	static String headline(String text) {
+		if (text.length() <= HEADLINE) {
+			return text;
+		}
+
+		// (A list: after a colon, two commas or more.)
+		int colon = text.indexOf(": ");
+		int comma = text.lastIndexOf(", ", HEADLINE - 10);
+		if (colon >= 0 && comma > colon && text.indexOf(", ", colon) < comma) {
+			return text.substring(0, comma) + ", and more";
+		}
+
+		int space = text.lastIndexOf(' ', HEADLINE - 3);
+		return (space > HEADLINE / 2 ? text.substring(0, space) : text.substring(0, HEADLINE - 3)) + "...";
+	}
+
+	/** News as it's worded now (older entries were written before: "stands where a village might have", which says nothing). */
+	static String worded(String text) {
+		return text.replace(" where a village might have", " where a village would have stood");
 	}
 
 	/** The day's headlines (its own news first, then the world's biggest: wars, a town fallen, a leader), short. */
@@ -206,8 +234,7 @@ final class TownNews {
 				boolean big = entry.kind().equals("war") || entry.kind().equals("nation") || entry.kind().equals("law") || entry.kind().equals("festival");
 				if (day - entry.day() <= 1 && (pass == 0 ? ours : !ours && big)
 					&& (!entry.text().startsWith(History.AFAR) || reached.contains(entry.text()))) {
-					String text = entry.text();
-					heads.add(text.length() > 80 ? text.substring(0, 77) + "..." : text);
+					heads.add(headline(worded(entry.text())));
 				}
 			}
 		}

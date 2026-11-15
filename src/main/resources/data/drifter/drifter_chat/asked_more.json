@@ -1,0 +1,462 @@
+{
+  "_comment": "More ways to ask the same things (the user, 2026-11-14: 'can you find a way for me to ask/tell something how ever i want'). Patterns: (a|b) is one of these, [a|b] one of these or nothing. Write words plainly ('you', 'your', 'are'): slang ('u', 'ur', 'r', 'wanna') is put plainly before matching, on both sides. The longest phrase found wins, so a pattern here outweighs a shorter phrase of another meaning in the same message ('trade with me' over follow's 'with me').",
+  "answers": {
+    "have": [
+      "(do|did|does) you (have|carry|keep) (any|some|a|an|spare|extra)",
+      "you (have|got|carrying) (any|some|spare|extra) (food|wood|iron|coal|torches|arrows|bread|meat|stuff|tools|blocks|stone)",
+      "(got|have) (anything|something) to eat",
+      "anything to eat on you",
+      "(any|some) (food|bread|meat) on you",
+      "(do|would) you happen to have",
+      "you wouldnt have (any|a)"
+    ],
+    "name": [
+      "what (do|should|can|did) (i|we|they|people|folks|everyone) call you",
+      "what are you called",
+      "how (do|should) i call you",
+      "(tell me|say) your name",
+      "your name (is|again|please)",
+      "whats your name (again|friend|mate|stranger)",
+      "who (might|may) you be",
+      "and you are",
+      "name please",
+      "what (do|does) (your friends|everyone|people) call you",
+      "(i|we) (didnt|did not|never) (get|catch) your name",
+      "(do|have) you (got|have) a name"
+    ],
+    "wyd": [
+      "what are you doing (now|today|here|there|out here|right now)",
+      "what have you been (doing|up to)",
+      "what you been (doing|up to)",
+      "whats (going on|happening) with you",
+      "what are you (making|building|working on|busy with)",
+      "busy (now|right now|today)",
+      "what (brings|brought) you (here|out here|this way)",
+      "what are you doing (in|at|out) here"
+    ],
+    "hru": [
+      "how are (you|you all) (doing|feeling|holding up) [today|tonight|now|these days|lately]",
+      "how (is|was) your (day|night|morning|evening|week) [going|been]",
+      "you (good|okay|alright|fine|well) (mate|man|bro|dude|friend|buddy)",
+      "how (have|has) (you|it|things|life) been [lately|going|treating you]",
+      "how is (everything|life|it going) [with you]",
+      "hows (everything|life) [going|treating you|with you]",
+      "how goes it",
+      "how goes",
+      "you doing (fine|great|alright|okay|ok|good|well)",
+      "all good with you",
+      "you feeling (good|better|alright|okay|fine|well)",
+      "are you (alright|well|fine|feeling okay|feeling alright)",
+      "how are you feeling"
+    ],
+    "base": [
+      "where (do you|you) (live|stay|sleep|stay at night|call home)",
+      "where (is|s) your (place|crib|hut|home|house|base|camp|bed)",
+      "(do you|you) have a (base|house|home|place) [around here|nearby]",
+      "where (is|s) home for you",
+      "where (do you|you) (keep your stuff|sleep at night)",
+      "your (house|base|place|home) (where|is where)"
+    ],
+    "follow": [
+      "(can|could|will|would) you follow me",
+      "follow me (around|please|for a bit|for a while|now)",
+      "(stick|stay|come along|walk) with me",
+      "keep up with me",
+      "(lets|let us) go (together|somewhere|on an adventure|exploring together)",
+      "you (coming|coming with me|coming along)",
+      "(come|tag) along with me",
+      "join me (on|for) (a|my) (walk|trip|adventure)",
+      "(follow|come with) me (pls|please)",
+      "be my (escort|guard|bodyguard)"
+    ],
+    "stop": [
+      "(stop|quit|dont) (following|follow) me",
+      "you can stop (following|now|following me)",
+      "stop (coming|walking) (after|behind) me",
+      "(go|head) back home",
+      "you can go (home|now|back)",
+      "wait (here|there|for me|right here)",
+      "stay (put|here|there|right there|right here)",
+      "dont move",
+      "thats far enough",
+      "you can leave now"
+    ],
+    "come": [
+      "come (to|over to) me",
+      "come (over|here) (quick|fast|now|real quick)",
+      "(can|could) you come (here|over|to me|over here)",
+      "i need you (here|over here)",
+      "come find me",
+      "get here"
+    ],
+    "help": [
+      "(can|could|will|would) you help me",
+      "help me (out|with this|please|fight|now)",
+      "i need (your|some) help",
+      "(give|lend) me a hand",
+      "(im|i am) (being|getting) (attacked|chased|killed|jumped)",
+      "(theres|there are|there is) (a|some) (zombie|zombies|creeper|creepers|skeleton|skeletons|spider|spiders|mob|mobs|pillagers) (on me|chasing me|after me|attacking me)",
+      "(im|i am) (in trouble|surrounded)"
+    ],
+    "team": [
+      "(want|would you like) to (team|team up|duo|play together)",
+      "(lets|let us) (team up|work together|play together|stick together)",
+      "(can|could|should) we team up",
+      "be my (partner|duo|teammate)",
+      "join (my|our) (team|group|party|crew|squad)",
+      "work together"
+    ],
+    "give": [
+      "can i (have|get|borrow) (some|a|an|your)",
+      "(could|can|would) you (give|spare|lend|share) (me|some)",
+      "(give|toss|throw|drop|hand) me (some|a|an|your)",
+      "spare me (some|a|an)",
+      "i could use (some|a|an)",
+      "(do you|would you) mind (giving|sharing|sparing)",
+      "mind sharing"
+    ],
+    "trade": [
+      "trade with me",
+      "(can|could|would|will) you trade [with me]",
+      "want to trade [with me|something]",
+      "(do|will|would) you (trade|sell|buy)",
+      "what are you selling",
+      "what do you (have for sale|sell|buy)",
+      "(can|could|may) i buy",
+      "(lets|let us) (do a trade|make a deal|make a trade)",
+      "open to (trades|trading)",
+      "(any|got any|have any) trades"
+    ],
+    "duel": [
+      "(want|you want) to (fight|duel|pvp|spar|1v1)",
+      "(lets|let us) (fight|duel|pvp|spar|1v1)",
+      "fight me (now|bro|coward|then)",
+      "(i|ill|i will|i could) (fight|1v1|duel|beat) you",
+      "(bet|i bet) you cant beat me",
+      "(you think|think) you can beat me",
+      "(pvp|duel|1v1) me (now|then)",
+      "lets see who wins"
+    ],
+    "joke": [
+      "(tell|say) (me|us) (a|another|something) (joke|funny)",
+      "(know|got|have) (a|any) (good|funny) jokes",
+      "(know|got|have) a (good|funny) joke",
+      "make me (laugh|smile)",
+      "be funny",
+      "any jokes"
+    ],
+    "bot": [
+      "are you (a bot|a robot|an ai|human|a real person|a person|a player|a real player|an npc|a mob)",
+      "(is|are) this (a bot|an ai|real|a real person)",
+      "you are (a bot|an npc|fake|not real|a robot)",
+      "are you (controlled|played) by (someone|a person|a human)",
+      "is (someone|anyone) (playing|controlling) you"
+    ],
+    "mine_with": [
+      "(lets|let us|want to|should we|shall we|do you want to|you want to) [go ](mine|mining|dig|digging|caving|spelunking) [together|with me]",
+      "(go|going) (mining|caving|digging) together",
+      "mine together",
+      "(come|join me) (mining|caving|digging) [with me]",
+      "(come|join me) (in|down) the (mine|cave|caves)"
+    ],
+    "hunt_with": [
+      "(lets|let us|want to|should we|shall we|do you want to) [go ](hunt|hunting|monster hunting|kill mobs|fight mobs|kill monsters|kill some mobs) [together|with me]",
+      "(go|going) hunting together",
+      "hunt together"
+    ],
+    "sleep_here": [
+      "(can|could|may) i (sleep|stay|crash|spend the night) (here|at your place|at yours|at your house|with you|tonight|in your house)",
+      "where can i sleep",
+      "(do you|you) have (a|an) (spare|extra|free) bed",
+      "can i borrow your bed",
+      "(let|lemme) me (stay|sleep|crash) (here|at yours|with you|tonight)",
+      "need (a|somewhere) (bed|to sleep) (tonight|for the night)"
+    ],
+    "where_food": [
+      "where (can|do|could|should) i (get|find) (food|something to eat|stuff to eat)",
+      "(know|you know) where (to get|to find|i can get|i can find) food",
+      "where (is|s) (the|some) food",
+      "where (can|do) i (eat|get a meal)"
+    ],
+    "seen_village": [
+      "(do you|you) know where (a|the|any) village (is|was)",
+      "where (is|s) the (nearest|closest) village",
+      "(seen|found|know) (a|any) (village|villages) [around|nearby|around here|near here]",
+      "is there a village [around|nearby|around here|near here]",
+      "(any|are there) villages (around|nearby|near here|around here)"
+    ],
+    "im_lost": [
+      "(im|i am) (lost|so lost|completely lost|totally lost|stuck|kinda lost)",
+      "i (dont|do not) know (where i am|where to go|the way)",
+      "(i|ive|i have) (got|gotten) lost",
+      "how do i get (back|home|out)",
+      "i (cant|can not) find (my way|home|my house|my base|the way)"
+    ],
+    "im_hurt": [
+      "(im|i am) (hurt|injured|bleeding|low|dying|almost dead|nearly dead|on low health|on one heart|on half a heart)",
+      "i (need|could use) (healing|a heal|to heal)",
+      "(heal|help heal) me"
+    ],
+    "im_scared": [
+      "(im|i am) (scared|afraid|terrified|spooked|frightened|nervous|freaked out)",
+      "(this|it) is (scary|creepy|terrifying)",
+      "i (dont|do not) (like|want to go) (this|down there|in there)"
+    ],
+    "compliment": [
+      "(i|i really) (like|love|dig) your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build)",
+      "(nice|cool|sick|sweet|fancy|great|awesome|neat) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat)",
+      "(love|loving|like|digging) the (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor)",
+      "your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build) (is|looks|are) (nice|cool|sick|great|awesome|good|sweet|fancy|neat)",
+      "(that|those) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor) (is|looks|are) (nice|cool|sick|great|awesome|sweet|fancy|neat)"
+    ],
+    "agree": [
+      "i know",
+      "i know (man|dude|bro|right|lol)",
+      "i know (what|how) you mean",
+      "(you are|youre) (right|not wrong)",
+      "same (here|honestly|tbh)",
+      "me too (honestly|tbh|man)",
+      "i feel (you|that)"
+    ],
+    "chatting": [
+      "just (making|trying to make) (conversation|small talk)",
+      "(making|make) (conversation|small talk)",
+      "small talk",
+      "just (talking|chatting|asking|curious|wondering|saying hi|being friendly|being nice|checking in)",
+      "no reason (really|just asking)",
+      "just because",
+      "(i was|im) just (curious|wondering|asking)",
+      "(wanted|want) to (chat|talk|say hi)",
+      "thought (id|i would) (say hi|chat)"
+    ],
+    "my_day": [
+      "(its been|been|had|having|what) a (busy|long|rough|hard|tiring|crazy|weird|slow|boring|stressful) day [for me|today|honestly|lol]",
+      "today (was|has been|is) (busy|long|rough|hard|tiring|crazy|exhausting|stressful|a lot)",
+      "(busy|long|rough|crazy|hard) day (for me|today|honestly|huh)",
+      "been busy all day",
+      "ive been busy"
+    ],
+    "my_day_good": [
+      "(its been|been|had|having|what) a (good|great|nice|chill|fun|productive|lovely|awesome) day [for me|today|honestly|lol]",
+      "today (was|has been|is) (good|great|nice|fun|chill|productive|awesome)",
+      "(good|great|productive) day (for me|today|honestly)"
+    ],
+    "ack": [
+      "got you",
+      "i got you",
+      "gotchu",
+      "on it",
+      "im on it",
+      "consider it done",
+      "you got it",
+      "leave it to me",
+      "ill do it",
+      "i can do that",
+      "can do",
+      "sure (thing|can do)",
+      "(okay|ok|alright) (will do|got it|got you|on it)",
+      "understood",
+      "roger",
+      "roger that",
+      "copy",
+      "copy that",
+      "say no more"
+    ]
+  },
+  "lines": {
+    "ask.compliment.thing": {
+      "any": [
+        "ty, {what} does the job",
+        "thanks! its just {what} lol",
+        "ty, had it a while",
+        "aw thanks",
+        "ty ty",
+        "thanks, good old {what}",
+        "haha ty, made it myself",
+        "thx, nothing special but it works",
+        "ty! {what} gang",
+        "appreciate it, {what} ftw"
+      ],
+      "newbie": [
+        "thank you!! its my first {thing}",
+        "omg ty, i just got it"
+      ],
+      "hermit": [
+        "hm. it works"
+      ],
+      "pvp_sweat": [
+        "obviously",
+        "ik. its my best"
+      ],
+      "hoarder": [
+        "not for sale",
+        "ty. dont get ideas"
+      ],
+      "bandit": [
+        "dont even think about it"
+      ]
+    },
+    "ask.compliment.thing.cold": {
+      "any": [
+        "its just {what}",
+        "and?",
+        "hm. thanks",
+        "dont get ideas",
+        "what do you want with it"
+      ]
+    },
+    "ask.compliment.not_mine": {
+      "any": [
+        "what {thing}? i dont have one",
+        "i dont have {a_thing} lol",
+        "what {thing}",
+        "uh, im not holding {a_thing}",
+        "{thing}? wrong person maybe",
+        "lol i wish i had {a_thing}",
+        "you sure youre looking at me?"
+      ],
+      "hermit": [
+        "what {thing}."
+      ],
+      "newbie": [
+        "i dont have {a_thing} yet :("
+      ]
+    },
+    "ask.compliment.not_mine.cold": {
+      "any": [
+        "what {thing}",
+        "i dont have {a_thing}. what do you want",
+        "are you blind"
+      ]
+    },
+    "ask.compliment.no_armor": {
+      "any": [
+        "what armor lol",
+        "im not wearing any",
+        "uh, i have no armor on",
+        "lol i wish",
+        "armor? where"
+      ],
+      "newbie": [
+        "i dont have any armor yet :("
+      ]
+    },
+    "ask.compliment.no_armor.cold": {
+      "any": [
+        "what armor",
+        "i have none. what do you want"
+      ]
+    },
+    "ask.need_target_yes": {
+      "any": [
+        "yeah, {what}",
+        "actually yeah. {what}",
+        "if youve got {what}",
+        "kinda. im after {what}",
+        "yeah, im looking for {what}",
+        "{what} would help",
+        "now that you ask, {what}"
+      ],
+      "hermit": [
+        "{what}. if youre offering"
+      ],
+      "hoarder": [
+        "{what}. and more of everything"
+      ],
+      "helper": [
+        "aw, kinda. {what}"
+      ]
+    },
+    "convo.chatting": {
+      "any": [
+        "fair enough",
+        "ah ok lol",
+        "fair",
+        "lol ok",
+        "ah gotcha",
+        "ok fair, whats up",
+        "oh ok haha",
+        "all good",
+        "fair, whats up",
+        "ok lol, hi",
+        "haha alright, talk away"
+      ],
+      "hermit": [
+        "hm.",
+        "i see"
+      ],
+      "newbie": [
+        "oh ok! hi :)"
+      ],
+      "helper": [
+        "oh nice, always happy to chat"
+      ]
+    },
+    "convo.chatting.cold": {
+      "any": [
+        "well im busy",
+        "find someone else",
+        "right",
+        "ok. and?",
+        "hm"
+      ]
+    },
+    "convo.my_day": {
+      "any": [
+        "same honestly",
+        "fr, me too",
+        "tell me about it",
+        "rest up then",
+        "oof, what happened",
+        "long days are the worst",
+        "same lol",
+        "felt that",
+        "take a break lol",
+        "yeah? doing what"
+      ],
+      "newbie": [
+        "me too, everything is so much"
+      ],
+      "hermit": [
+        "hm. rest then"
+      ],
+      "helper": [
+        "aw, take it easy ok?"
+      ]
+    },
+    "convo.my_day.cold": {
+      "any": [
+        "ok",
+        "and?",
+        "hm",
+        "cool story"
+      ]
+    },
+    "convo.my_day_good": {
+      "any": [
+        "nice!",
+        "glad to hear",
+        "love that",
+        "nice, what'd you get done",
+        "w",
+        "good stuff",
+        "nice one",
+        "lucky, mine was meh",
+        "same here"
+      ],
+      "hermit": [
+        "good."
+      ],
+      "helper": [
+        "yay, glad its going well!"
+      ]
+    },
+    "convo.my_day_good.cold": {
+      "any": [
+        "ok",
+        "good for you",
+        "hm"
+      ]
+    }
+  }
+}

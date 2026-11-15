@@ -7134,3 +7134,77 @@ lines? so if someone says something it actually makes sense"):
 Not tested in game: the wrong-town answers and the word hand-in by chat (needs a town and a word quest); headless tested:
 claims in sun and rain, gear praise to a Drifter in no armor, a name called from beside, a far Drifter's name alone,
 "where is" someone unknown.
+
+## 0.23.69-side.1: asked twice, and asking after it (new)
+
+From the user's screenshots (2026-11-14):
+
+- A question it asks (a quest, a favor) was opened twice: with its last line and again when it had said its piece. A
+  yes to the first ("i got you") and then another ("yes") were two yeses: the quest's thanks came twice. Asked once now.
+- "you doing okay?" (and "you doing alright", "how you holding up", "you feeling ok") asks how it is; it got "nice", as
+  if they'd said they were fine.
+- "u got food?" ("got food", "any food", "u got any") asks what it has. "Food" and "wood" were never found in a message:
+  chat is read with doubled letters run together, "fod". "some food", not "a few food".
+
+## 0.23.69-side.2: asked however (new)
+
+The user, 2026-11-14: "can you find a way for me to ask/tell something how ever i want ... what if i say 'u got any food'
+instead of 'u got food' ... more variations on replies, just like they got more variations of lines".
+
+- **Understood loosely** (`Lines.loosely`, from `PlayerTalk.heard`): a message nothing understands as typed (it would get
+  "no idea what that means") is tried again, put the way an answer phrase has it: typos put right ("wher", "hungy",
+  "folow": one letter off in a short word, two in a long one, against every word it knows: the phrases', the slang's, its
+  chat lines', every item's and mob's name, so "bread" isn't "break"), words that only fill left out ("u got ANY food
+  PLS"), a word put as one that means the same ("do u carry food" as "have", "snacks" as "food", "tail me" as "follow
+  me"), and in another order ("food got you any"). The first that means something is what it's taken as. Names close by
+  are never "put right". A "hi", "bye", thanks, its name called, a bare "?", "this or that?" are answered as they are,
+  never loosely. Only when nothing else understood it: a guess never takes the place of a message understood as typed.
+  The fillers and same-meaning words are data: `drifter_chat/loose.json` ("fillers", "same").
+- A dropped g is read: "huntin", "minin", "makin" (when the word with a g is one of the phrases').
+- **Phrase patterns** in the chat files' answers: `(a|b)` one of these, `[a|b]` one of these or nothing ("(u|you) (got|have)
+  [any|some] food" is twelve phrases). `drifter_chat/asked_more.json`: patterns for having things, its name, what it's
+  doing, how it is, where it lives, follow, stop, come, help, team up, give, trade, 1v1, jokes, bot, mining and hunting
+  together, sleeping over, where food is, villages, lost, hurt, scared (4,560 answer phrases were 6,266).
+- Fixed: "trade with me" was follow; "lets go mine together" follow; "what do they call you" "what do you mean"; "stay with
+  me" stop; "where can i sleep" "where?"; "im hungry" was asking whether IT was hungry ("hungry" alone was that question).
+- `/drifter hear` says "loosely: ..." when only the loose try understood it. Smoke: `tools/smoke-loose.txt` (90 ways of
+  asking).
+
+Not tested in game; headless: all 90 phrasings in the smoke script taken as meant, and the replies of a dozen.
+
+## 0.23.69-side.3: the crier's news whole (new)
+
+From the user's screenshot (2026-11-15: Lyra_Basalt crying Ashbrook's news):
+
+- A headline was cut at 80 letters in the middle of a word ("a tax of 10 silv..."). Now up to 140, and a longer one is
+  cut after a whole item of a list ("..., and more") or a whole word ("...").
+- A line typed in two parts ("...laws for Ashbrook: no stealing" ... "no killing, a tax of ...") had its second part
+  come after the crier's next two headlines. What it was still typing now goes before its next line, and a list after a
+  colon is never split.
+- "Ashbrook stands where a village might have" said nothing: "...where a village would have stood" (old entries are
+  worded the new way in headlines and the paper too).
+- EsmeThePulsar's "f" in the screenshot was its answer to Cashew_TTV's "anyway couldn't find my way home" (their own
+  talk, in the log as "f [to cashew]"); the crier's news just came in between. Left as is.
+
+Not tested in game; the headline cut checked on the screenshot's laws line and longer ones.
+
+## 0.23.69-side.4: said in play, answered right (new)
+
+From the user's play screenshots (2026-11-15: HeyNimbus, piggy270, Dino_yt):
+
+- "i like your pickaxe" (and "nice bow", "your helmet looks cool", "love the boots"...) is a compliment on a thing of its
+  own: thanked, naming it ("ty, good old stone pickaxe"), only when it holds or wears it; else "what pickaxe? i dont have
+  one" ("what armor lol"). It was "what are you on about".
+- "just making conversation" ("just asking", "no reason really", "small talk"): "fair enough", "lol ok, whats up". It was
+  "what do you want".
+- "ik man" is "i know": agreeing. It was "didnt catch that".
+- "its been a busy day" ("had a long day", "today was rough"; and "had a great day") is about their day: "same honestly",
+  "rest up then" ("glad to hear"). It was taken as "busy?" and answered with what it was doing. A bit of talk that says
+  more than an older meaning found in the message now wins (`PlayerConvo.intent`).
+- Typos are put right first when that makes more sense of a message ("its been a busy dayt"): before, only a message
+  nothing understood was tried loosely. A short word's fix starts with the same letter ("qwer" isn't "where").
+- "u need help?" ("you need anything?") is a yes or no first: "yeah, a stone sword", not just "a stone sword".
+- "got you", "on it", "consider it done", "okay got it", "roger" are an okay (after a word to carry: it was "lost me
+  there").
+
+Not tested in game; headless: each of these, and the 90 ways of asking in `tools/smoke-loose.txt` as before.
