@@ -45,6 +45,8 @@ final class Rewards {
 	private static final double PRIZE_LEAST = 6.0;
 	/** Something in kind worth up to this many times what's still owed (one piece). */
 	private static final double IN_KIND_OVER = 1.5;
+	/** An artifact is a prize only for a job worth this much (points: 30 silver, a bandit dealt with, a friend's newcomer). */
+	private static final double ARTIFACT_JOB = 30 * Prices.SILVER;
 	/** Food to a prize: a stack of a few. */
 	private static final int FOOD_PRIZE = 6;
 	/** Experience for thanks alone: this, plus this for each emerald the job was worth, at most this. */
@@ -90,6 +92,66 @@ final class Rewards {
 		}
 
 		return out;
+	}
+
+	/** A purse it keeps on it (points): an ordinary townsperson's, its shopkeeper's, its leader's. */
+	private static final double PURSE = 12 * Prices.SILVER;
+	private static final double KEEPER_PURSE = 20 * Prices.SILVER;
+	private static final double LEADER_PURSE = 40 * Prices.SILVER;
+
+	/**
+	 * Its purse filled from its savings: at home, with its own chest in reach, money into its pockets up to a purse's worth
+	 * (the user, 2026-11-14: "almost every drifter that quests me says they have no money on them (even the leader of the
+	 * town, who holds a diamond sword)": a household's money was all in its chest, so nobody carried any). Each townsperson
+	 * every half minute.
+	 */
+	static void purses(MinecraftServer server) {
+		for (Town town : Towns.all()) {
+			com.dinglebob.drifter.world.DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
+			if (group == null) {
+				continue;
+			}
+
+			for (java.util.UUID id : group.members) {
+				DrifterEntity one = TownFounding.loaded(server, id);
+				if (one == null) {
+					continue;
+				}
+
+				double purse = id.equals(town.leader) ? LEADER_PURSE : id.equals(town.keeper) ? KEEPER_PURSE : PURSE;
+				double short_ = purse - DrifterApi.moneyHeldPoints(one.getInventory());
+				Container till = TownNotices.till(server, town);
+				for (Container chest : chests(server, one)) {
+					// (In sight, not through a wall, as anyone takes from a chest. Found in review.)
+					if (short_ < Prices.SILVER || chest == till || !(chest instanceof net.minecraft.world.level.block.entity.BlockEntity box) || !inSight(one, box.getBlockPos())) {
+						continue;
+					}
+
+					double took = DrifterApi.moneyTakePoints(chest, Math.min(short_, DrifterApi.moneyHeldPoints(chest)));
+					for (ItemStack money : DrifterApi.moneyStacksPoints(took)) {
+						// (No room in its pockets: back in the chest.)
+						if (!one.getInventory().add(money) && !money.isEmpty()) {
+							double back = DrifterApi.moneyPutPoints(chest, DrifterApi.moneyWorth(money));
+							// (Nor room in the chest: at its feet, never lost.)
+							if (back + 0.001 < DrifterApi.moneyWorth(money)) {
+								for (ItemStack rest : DrifterApi.moneyStacksPoints(DrifterApi.moneyWorth(money) - back)) {
+									one.spawnAtLocation(rest);
+								}
+							}
+						}
+					}
+
+					short_ -= took;
+				}
+			}
+		}
+	}
+
+	/** It can see this chest from where it stands (nothing solid between). */
+	private static boolean inSight(DrifterEntity drifter, net.minecraft.core.BlockPos chest) {
+		var hit = drifter.level().clip(new net.minecraft.world.level.ClipContext(drifter.getEyePosition(), net.minecraft.world.phys.Vec3.atCenterOf(chest),
+			net.minecraft.world.level.ClipContext.Block.OUTLINE, net.minecraft.world.level.ClipContext.Fluid.NONE, drifter));
+		return hit.getType() == net.minecraft.world.phys.HitResult.Type.MISS || hit.getBlockPos().equals(chest);
 	}
 
 	/** What it could promise in money (points): its pockets, and (for its town) the till. */
@@ -198,7 +260,8 @@ final class Rewards {
 
 	/** It can spare this: not money (counted already), not what it wears or holds, not its food (it eats), not a tool it works with. */
 	private static boolean spare(DrifterEntity giver, Container from, int slot, ItemStack stack) {
-		if (DrifterApi.moneyWorth(stack) > 0) {
+		// (Never money; never a town's treasure (an Artifacts item) handed over as small change: a prize only, and rarely.)
+		if (DrifterApi.moneyWorth(stack) > 0 || NoticeKinds.artifact(stack)) {
 			return false;
 		}
 
@@ -231,7 +294,7 @@ final class Rewards {
 				// (Out of its pockets only what it can spare, an enchanted book at most: not its enchanted tools. Never money. Both found
 				// in review.)
 				if (stack.isEmpty() || DrifterApi.moneyWorth(stack) > 0 || chest == giver.getInventory() && !spare(giver, chest, slot, stack)
-					&& !stack.is(Items.ENCHANTED_BOOK)) {
+					&& !stack.is(Items.ENCHANTED_BOOK) && !(NoticeKinds.artifact(stack) && points >= ARTIFACT_JOB)) {
 					continue;
 				}
 
@@ -243,7 +306,9 @@ final class Rewards {
 
 				double score = prizeScore(stack);
 				double worth = DrifterApi.worth(stack.copyWithCount(1)) * (stack.has(DataComponents.FOOD) ? Math.min(FOOD_PRIZE, stack.getCount()) : 1);
-				if (worn || score <= 0.0 || worth > Math.max(PRIZE_LEAST, points * PRIZE_OVER)) {
+				// (A town's treasure, an Artifacts item: only for a job this big, whatever it's worth. The user, 2026-11-14: "emphasis on rare".)
+				boolean artifact = NoticeKinds.artifact(stack);
+				if (worn || score <= 0.0 || artifact && points < ARTIFACT_JOB || !artifact && worth > Math.max(PRIZE_LEAST, points * PRIZE_OVER)) {
 					continue;
 				}
 
@@ -265,8 +330,12 @@ final class Rewards {
 		return prize;
 	}
 
-	/** How much it's a prize (0: not one): enchanted things, rare drops, a mod's rare or epic things, good food. */
+	/** How much it's a prize (0: not one): an artifact most, then enchanted things, rare drops, a mod's rare or epic things, good food. */
 	private static double prizeScore(ItemStack stack) {
+		if (NoticeKinds.artifact(stack)) {
+			return 100.0;
+		}
+
 		String space = BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace();
 		Rarity rarity = stack.getRarity();
 		double worth = DrifterApi.worth(stack.copyWithCount(1));

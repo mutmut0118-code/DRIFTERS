@@ -54,6 +54,9 @@ final class TownNotices {
 		@Nullable
 		UUID from;
 		String fromName = "";
+		/** What kind (NoticeKinds: goods, worker, made, festival, cull, bandit) and what about (a cull's monster, a festival). */
+		String kind = NoticeKinds.GOODS;
+		String about = "";
 
 		Notice(UUID poster, String posterName, String item, int count, double points, String text, long day) {
 			this.poster = poster;
@@ -75,6 +78,8 @@ final class TownNotices {
 			tag.putString("Text", this.text);
 			tag.putLong("Day", this.day);
 			tag.putUUID("Id", this.id);
+			tag.putString("Kind", this.kind);
+			tag.putString("About", this.about);
 			if (this.from != null) {
 				tag.putUUID("From", this.from);
 				tag.putString("FromName", this.fromName);
@@ -98,6 +103,9 @@ final class TownNotices {
 				notice.fromName = tag.getString("FromName");
 			}
 
+			notice.kind = tag.contains("Kind") ? tag.getString("Kind") : NoticeKinds.GOODS;
+			notice.about = tag.getString("About");
+
 			CompoundTag given = tag.getCompound("Delivered");
 			for (String key : given.getAllKeys()) {
 				try {
@@ -111,7 +119,6 @@ final class TownNotices {
 	}
 
 	/** Notices up at once at most, and how long one stays up (days). */
-	private static final int MOST = 3;
 	static final int STAYS = 3;
 	/**
 	 * What it'll pay over an item's worth (a request pays a good deal better than the stall), and the least a notice pays
@@ -142,17 +149,62 @@ final class TownNotices {
 		}
 
 		town.noticeDay = day;
-		town.notices.removeIf(notice -> day - notice.day >= (notice.from != null ? FAR_STAYS : STAYS) || notice.count <= 0);
+		for (Notice notice : List.copyOf(town.notices)) {
+			if (day - notice.day >= (notice.from != null ? FAR_STAYS : STAYS) || notice.count <= 0) {
+				// (Done and not yet paid when it comes down: owed to whoever did it. Found in review.)
+				NoticeKinds.owe(town, notice);
+				town.notices.remove(notice);
+			}
+		}
+
 		town.warning = bandits(server, town);
+		// (More kinds, more room, more a morning in a bigger town: NoticeKinds. The user, 2026-11-14: "lets make some more board
+		// notices!")
+		java.util.Random random = new java.util.Random(day * 31 + town.id.hashCode());
+		for (int i = 0; i < NoticeKinds.posts(town) && town.notices.size() < NoticeKinds.room(town); i++) {
+			NoticeKinds.post(server, town, day, random);
+		}
+
+		NoticeKinds.nightOver(town);
+		NoticeKinds.treasure(server, town);
+		neighbour(server, town, day);
+		Towns.save(server);
+	}
+
+	/** Can it pay this (its own money and the till's)? */
+	static boolean affords(MinecraftServer server, Town town, DrifterEntity poster, double points) {
+		return money(poster, town, server) >= points;
+	}
+
+	/** A notice's title: "16 iron ingots", "8 zombies culled", "the bandits about dealt with". */
+	static String title(Notice n) {
+		if (NoticeKinds.BANDIT.equals(n.kind)) {
+			return "the bandits about dealt with";
+		}
+
+		if (NoticeKinds.CULL.equals(n.kind)) {
+			return n.count + " " + NoticeKinds.plural(n.about) + " culled";
+		}
+
+		ResourceLocation key = ResourceLocation.tryParse(n.item);
+		Item item = key == null ? Items.AIR : BuiltInRegistries.ITEM.get(key);
+		// (A thing from a mod no longer here: the notice's own words.)
+		return item == Items.AIR ? n.text : Quests.things(n.count, item);
+	}
+
+	/** Its shopkeeper's notice for goods the town is short of (true: one went up). */
+	static boolean postGoods(MinecraftServer server, Town town, long day) {
 		DrifterEntity poster = poster(server, town);
-		if (poster != null && town.notices.size() < MOST) {
+		boolean posted = false;
+		if (poster != null && town.notices.size() < NoticeKinds.room(town)) {
 			Home home = DrifterApi.home(poster);
 			List<Item> wants = new ArrayList<>(Market.wanted());
 			wants.addAll(List.of(Items.GLASS, Items.STONE_BRICKS, Items.WHITE_WOOL, Items.STRING, Items.IRON_INGOT, Items.LEATHER, Items.PAPER));
 			java.util.Collections.shuffle(wants, new java.util.Random(day * 31 + town.id.hashCode()));
 			for (Item item : wants) {
 				String id = BuiltInRegistries.ITEM.getKey(item).toString();
-				if (town.notices.size() >= MOST || town.notices.stream().anyMatch(n -> n.item.equals(id)) || home != null && home.stored(item) >= 32) {
+				if (town.notices.size() >= NoticeKinds.room(town) || town.notices.stream().anyMatch(n -> n.item.equals(id) && !NoticeKinds.kill(n))
+					|| home != null && home.stored(item) >= 32) {
 					continue;
 				}
 
@@ -169,12 +221,12 @@ final class TownNotices {
 				String text = says[poster.getRandom().nextInt(says.length)] + " - " + poster.getName().getString();
 				town.notices.add(new Notice(poster.getUUID(), poster.getName().getString(), id, count, points, text, day));
 				DrifterApi.think(poster, "put up a notice: " + text);
+				posted = true;
 				break;
 			}
 		}
 
-		neighbour(server, town, day);
-		Towns.save(server);
+		return posted;
 	}
 
 	/**
@@ -193,7 +245,7 @@ final class TownNotices {
 	 * leader); it must have the money (by its till as last seen, if nobody's there).
 	 */
 	private static void neighbour(MinecraftServer server, Town town, long day) {
-		if (Math.floorMod(day * 7 + town.id.hashCode(), FAR_ONE_IN) != 0 || town.notices.size() >= MOST || town.notices.stream().anyMatch(n -> n.from != null)) {
+		if (Math.floorMod(day * 7 + town.id.hashCode(), FAR_ONE_IN) != 0 || town.notices.size() >= NoticeKinds.room(town) || town.notices.stream().anyMatch(n -> n.from != null)) {
 			return;
 		}
 
@@ -309,7 +361,8 @@ final class TownNotices {
 		String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 		for (Town town : Towns.all()) {
 			for (Notice notice : List.copyOf(town.notices)) {
-				if (!notice.poster.equals(drifter.getUUID()) || !notice.item.equals(id)) {
+				// (A kill notice is done by killing, not by handing over what stands for it on the board.)
+				if (!notice.poster.equals(drifter.getUUID()) || !notice.item.equals(id) || NoticeKinds.kill(notice)) {
 					continue;
 				}
 
@@ -339,7 +392,7 @@ final class TownNotices {
 	}
 
 	/** It pays the player this much: its own money first, then the till's, handed over (tossed to them). */
-	private static void pay(MinecraftServer server, Town town, DrifterEntity poster, Player player, double points) {
+	static void pay(MinecraftServer server, Town town, DrifterEntity poster, Player player, double points) {
 		// (To the bronze, change made, not a whole piece at a time: found in review, a silver's notice paid from a till whose
 		// first money was an emerald paid ten silver.)
 		double got = DrifterApi.moneyTakePoints(poster.getInventory(), points);
@@ -364,11 +417,19 @@ final class TownNotices {
 		}
 
 		for (ItemStack stack : handed) {
-			poster.tossForward(stack);
+			// (Theirs to pick up, nobody else's: found by the user, 2026-11-14, "i completed a notice for 2 silver ... but i didnt
+			// get my 2 silver": tossed to nobody in particular, a townsperson passing could take it.)
+			poster.tossForward(stack).setTarget(player.getUUID());
 		}
 
-		com.dinglebob.drifter.social.ChatLines.speak(poster, left > 0 ? CivLines.pick(poster, "town.notice.short", "thats all i have, sorry")
-			: CivLines.pick(poster, "town.notice.paid", "thanks! here, as promised"));
+		// (What it couldn't pay now is owed: its town pays it when they're next by its shopkeeper or this one, with the money.)
+		if (left >= 0.005) {
+			town.owedPlayers.merge(player.getUUID(), left, Double::sum);
+			Towns.save(server);
+		}
+
+		com.dinglebob.drifter.social.ChatLines.speak(poster, left >= 0.005 ? CivLines.pick(poster, "town.notice.owed", "thats all i have on me. ill owe you the rest, "
+			+ Prices.say(left), "owed", Prices.say(left)) : CivLines.pick(poster, "town.notice.paid", "thanks! here, as promised"));
 	}
 
 	/** Money out of this container, a piece at a time, till it's worth {@code points}; what's still owed. */

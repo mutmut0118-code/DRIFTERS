@@ -292,6 +292,8 @@ final class Quests {
 	private static final int WORD_PAY = 2;
 	private static final double WORD_PAY_EVERY = 300.0;
 	private static final int WORD_PAY_MOST = 12;
+	/** How often carrying word is only asked when there's nothing else to ask. */
+	private static final double WORD_LAST = 0.7;
 	/** A reply brought back adds this to the pay (emeralds' worth). */
 	private static final int REPLY_PAY = 1;
 	/** Money sent back and not handed over, this long (days) past when it was due: kept, they're taken to have. */
@@ -1073,8 +1075,16 @@ final class Quests {
 			int level = bond != null && bond.friend() || theirs != null && its != null && theirs.id.equals(its.id) ? 2
 				: DrifterApi.trustInPlayer(giver, id) >= LIKES || standing == TownReputation.Standing.WELCOME ? 1 : 0;
 			boolean speaksForTown = giver.getUUID().equals(town.leader) || giver.getUUID().equals(town.keeper);
-			List<String> kinds = new ArrayList<>(List.of("word", "dead", "short", "find", "deal"));
-			Collections.shuffle(kinds, new java.util.Random(now + giver.getId()));
+			List<String> kinds = new ArrayList<>(List.of("word", "dead", "short", "find", "deal", "need"));
+			java.util.Random order = new java.util.Random(now + giver.getId());
+			Collections.shuffle(kinds, order);
+			// (Carrying word mostly last: anyone can always ask it, so it was nearly every ask. The user, 2026-11-14: "too many
+			// quests with words".)
+			if (order.nextDouble() < WORD_LAST) {
+				kinds.remove("word");
+				kinds.add("word");
+			}
+
 			// (A town at war asks for what the war needs before anything else.)
 			kinds.add(0, "war");
 			for (String kind : kinds) {
@@ -1086,6 +1096,8 @@ final class Quests {
 					case "war" -> speaksForTown ? bring(server, town, giver, player, level, true) : null;
 					case "short" -> speaksForTown ? bring(server, town, giver, player, level, false) : null;
 					case "word" -> word(server, town, giver, player, level);
+					// (One of its people short of what their work takes: asked of anyone, paid from their own purse.)
+					case "need" -> need(server, town, giver, player, level);
 					// (Big things: asked of someone liked, a friend, one of its own. Testing: of anyone.)
 					case "find" -> speaksForTown && (level >= 1 || only != null) ? find(server, town, giver, player, level) : null;
 					case "deal" -> giver.getUUID().equals(town.leader) && (level >= 1 || only != null) ? deal(server, town, giver, player, level) : null;
@@ -1179,7 +1191,7 @@ final class Quests {
 			String id = BuiltInRegistries.ITEM.getKey(item).toString();
 			// (Not what a notice of its already asks for. What it holds itself counts as the town's: goods just brought it.)
 			int has = home.stored(item) + giver.getInventory().count(stack -> stack.is(item));
-			if (has >= (war ? WAR_ENOUGH : 1) || town.notices.stream().anyMatch(n -> n.from == null && n.item.equals(id))) {
+			if (has >= (war ? WAR_ENOUGH : 1) || town.notices.stream().anyMatch(n -> n.from == null && n.item.equals(id) && !NoticeKinds.kill(n))) {
 				continue;
 			}
 
@@ -1204,6 +1216,43 @@ final class Quests {
 					+ (q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it"),
 				"player", TalkApi.callName(giver, player), "what", what, "thing", plural(name(item)), "enemy", enemy == null ? "" : enemy, "town", town.name,
 				"pay", q.payPts > 0 ? "the town will pay " + Prices.say(q.payPts) : "the till's empty but we won't forget it");
+			return q;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Bring something for its work: one of its people short of what their line takes (the smith's iron, the fletcher's
+	 * feathers: NoticeKinds' needs), paid from their own purse, a little over a stall's price.
+	 */
+	@Nullable
+	private static Quest need(MinecraftServer server, Town town, DrifterEntity giver, ServerPlayer player, int level) {
+		String line = town.lines.get(giver.getUUID());
+		List<Item> wants = NoticeKinds.needs(line);
+		Home home = DrifterApi.home(giver);
+		Collections.shuffle(wants, new java.util.Random(Friends.now() + giver.getId()));
+		for (Item item : wants) {
+			String id = BuiltInRegistries.ITEM.getKey(item).toString();
+			int has = (home == null ? 0 : home.stored(item)) + giver.getInventory().count(stack -> stack.is(item));
+			if (has >= 8 || town.notices.stream().anyMatch(n -> n.item.equals(id) && !NoticeKinds.kill(n))) {
+				continue;
+			}
+
+			Quest q = new Quest();
+			q.kind = "bring";
+			q.forTown = false;
+			q.item = id;
+			q.count = item.getDefaultMaxStackSize() < 16 ? 2 + level : COUNTS[level] / 2;
+			double wanted = Prices.goods(item, q.count, Prices.SHORT, 1.0, Prices.SILVER);
+			q.payPts = Math.min(wanted, Rewards.money(server, town, giver, false));
+			q.worthPts = wanted;
+			q.due = Friends.now() + SHORT_DAYS * DAY;
+			String what = things(q.count, item);
+			String pay = q.payPts > 0 ? "i'll pay " + Prices.say(q.payPts) : "i cant pay much but ill make it worth your while";
+			q.why = giver.getName().getString() + " has run short of " + plural(name(item)) + " for their work.";
+			q.said = CivLines.pick(giver, "quest.ask.need", "i've run out of " + plural(name(item)) + " for my work. could you bring me " + what + "? " + pay, "player",
+				TalkApi.callName(giver, player), "what", what, "thing", plural(name(item)), "pay", pay);
 			return q;
 		}
 
@@ -1777,7 +1826,7 @@ final class Quests {
 		for (Town town : Towns.all()) {
 			for (TownNotices.Notice notice : town.notices) {
 				if (seen.contains(notice.id)) {
-					boards.add(new Journal.Line(capital(things(notice.count, item(notice.item))), notice.from != null ? "for " + notice.fromName : town.name, Journal.PLAIN,
+					boards.add(new Journal.Line(capital(TownNotices.title(notice)), notice.from != null ? "for " + notice.fromName : town.name, Journal.PLAIN,
 						List.of("@page:qn:" + notice.id)));
 				}
 			}
@@ -2096,7 +2145,8 @@ final class Quests {
 	private static void notice(List<Journal.El> els, ServerPlayer player, Town town, TownNotices.Notice n) {
 		long today = Chronicle.day(player.server);
 		Item item = item(n.item);
-		els.add(el(Journal.HEADLINE, "Wanted: " + things(n.count, item), "", Journal.PLAIN, List.of()));
+		boolean kill = NoticeKinds.kill(n);
+		els.add(el(Journal.HEADLINE, "Wanted: " + TownNotices.title(n), "", Journal.PLAIN, List.of()));
 		els.add(el(Journal.DATELINE, "On " + town.name + "'s board", capital(ago(today - n.day)), Journal.FAINT, List.of()));
 		els.add(el(Journal.RULE, "", "", Journal.PLAIN, List.of()));
 		els.add(person(n.poster, n.posterName, town));
@@ -2106,19 +2156,32 @@ final class Quests {
 		// (Another town's, put up here: it's there they're wanted, and paid for. Found in review.)
 		String where = n.from != null ? n.fromName : town.name;
 		els.add(sub("Why it's up"));
-		els.add(text(where + "'s stores are short of " + plural(name(item)) + (n.from != null ? ", and word of it was put up here. The further it is, the better it pays."
-			: ".") + " Anyone can fill it; nobody's counting on you.", Journal.PLAIN));
+		String why = switch (n.kind) {
+			case NoticeKinds.WORKER -> n.posterName + " has run short of " + plural(name(item)) + " for their work.";
+			case NoticeKinds.MADE -> n.posterName + " needs " + things(1, item) + ", and hasn't the time to make one.";
+			case NoticeKinds.FESTIVAL -> where + " wants " + plural(name(item)) + " for " + n.about + ".";
+			case NoticeKinds.CULL -> NoticeKinds.plural(n.about) + " came up to " + where + " in the night. Its people want them thinned out.";
+			case NoticeKinds.BANDIT -> "There are bandits about " + where + ". Its people want them dealt with.";
+			default -> where + "'s stores are short of " + plural(name(item)) + (n.from != null ? ", and word of it was put up here. The further it is, the better it pays."
+				: ".");
+		};
+		els.add(text(why + " Anyone can fill it; nobody's counting on you.", Journal.PLAIN));
 		els.add(el(Journal.BREAK, "", "", Journal.PLAIN, List.of()));
 		els.add(sub("What's wanted"));
 		int given = n.delivered.getOrDefault(player.getUUID(), 0);
 		List<String> more = new ArrayList<>();
 		if (given > 0) {
-			more.add(Math.min(given, n.count) + " handed over so far");
+			more.add(Math.min(given, n.count) + (kill ? " done so far" : " handed over so far"));
 		}
 
-		more.add("You're carrying " + player.getInventory().countItem(item));
-		els.add(el(Journal.ITEM, n.item, capital(things(n.count, item)), Journal.PLAIN, more));
-		els.add(text("Throw them to " + n.posterName + " in " + where + ".", Journal.FAINT));
+		if (!kill) {
+			more.add("You're carrying " + player.getInventory().countItem(item));
+		}
+
+		els.add(el(Journal.ITEM, n.item, capital(TownNotices.title(n)), Journal.PLAIN, more));
+		els.add(text(NoticeKinds.CULL.equals(n.kind) ? "Kill them in and about " + where + ", then find " + n.posterName + " there to be paid."
+			: NoticeKinds.BANDIT.equals(n.kind) ? "Deal with a bandit about " + where + ", then find " + n.posterName + " there to be paid."
+			: "Throw them to " + n.posterName + " in " + where + ".", Journal.FAINT));
 		els.add(sub("What you'd get"));
 		// (The same sum the notice says, not rounded to emeralds: the user, 2026-11-14, a notice of 52 silver showing 50 here.)
 		els.add(text(capital(TownNotices.describe(DrifterApi.money(n.points))) + ", from " + n.posterName + "'s pockets, then " + where + "'s till.",

@@ -148,7 +148,7 @@ final class TownBounties {
 
 		for (TownNotices.Notice notice : town.notices) {
 			// (Another town's notice is brought there, not turned in here.)
-			if (ours.containsKey(notice.id) || notice.count <= 0 || notice.from != null) {
+			if (ours.containsKey(notice.id) || notice.count <= 0 || notice.from != null || NoticeKinds.kill(notice)) {
 				continue;
 			}
 

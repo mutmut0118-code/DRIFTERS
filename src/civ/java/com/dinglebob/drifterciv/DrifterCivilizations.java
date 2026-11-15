@@ -109,6 +109,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Whereabouts.register();
 		Mail.register();
 		Prices.register();
+		NoticeKinds.register();
 		Citizens.register();
 		TownAway.register();
 		Annals.register();

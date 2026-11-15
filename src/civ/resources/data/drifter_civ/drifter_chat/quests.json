@@ -158,6 +158,13 @@
         "good, {who}'s heard. i owe you"
       ]
     },
+    "quest.ask.need": {
+      "any": [
+        "ive run out of {thing} for my work. could you bring me {what}? {pay}",
+        "{player}, could you find me {what}? my work stops without them. {pay}",
+        "im short of {thing}. bring me {what} and {pay}"
+      ]
+    },
     "quest.thanks.gift": {
       "any": [
         "thank you {player}. here, {what}. you earned it",

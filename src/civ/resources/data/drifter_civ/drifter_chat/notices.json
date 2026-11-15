@@ -1,0 +1,21 @@
+{
+  "_comment": "Board notices of more kinds (NoticeKinds.java) and a worker's own ask (Quests.need). {what}: how many of what; {pay}: the pay; {festival}: the festival; {kind}: the monsters (many); {count}: how many.",
+  "lines": {
+    "notice.worker.smith": {"any": ["forge is cold without {what}. paying {pay}", "need {what} at the smithy, {pay}", "smith here. {what} wanted, {pay}"]},
+    "notice.worker.builder": {"any": ["building needs {what}. paying {pay}", "{what} for the new walls, {pay}", "short of {what} for building. {pay}"]},
+    "notice.worker.fletcher": {"any": ["fletcher needs {what}, {pay}", "{what} wanted for arrows. paying {pay}"]},
+    "notice.worker.farmer": {"any": ["{what} for the fields, paying {pay}", "farm needs {what}. {pay}"]},
+    "notice.worker.enchanter": {"any": ["{what} wanted for enchanting. paying {pay}", "enchanter needs {what}, {pay}"]},
+    "notice.worker.cook": {"any": ["kitchen's out of {what}. paying {pay}", "{what} for the cooking pot, {pay}", "cook needs {what}. {pay}"]},
+    "notice.worker.fisher": {"any": ["{what} for my rods, {pay}", "fisher needs {what}. paying {pay}"]},
+    "notice.worker.hunter": {"any": ["hunter needs {what}, {pay}", "{what} wanted for the hunt. {pay}"]},
+    "notice.worker.miner": {"any": ["{what} for the mine, paying {pay}", "miner needs {what}. {pay}"]},
+    "notice.worker.woodcutter": {"any": ["{what} wanted, paying {pay}", "woodcutter needs {what}. {pay}"]},
+    "notice.worker.guard": {"any": ["the watch needs {what}. paying {pay}", "{what} for the guards, {pay}"]},
+    "notice.made": {"any": ["anyone able to make {what}? paying {pay}", "wanted: {what}, well made. {pay}", "{what} needed, {pay} to whoever makes one"]},
+    "notice.festival": {"any": ["{what} wanted for {festival}, paying {pay}", "{festival} is coming! {what} needed, {pay}", "help us get ready for {festival}: {what}, {pay}"]},
+    "notice.cull": {"any": ["{kind} came up to the town last night. kill {count} about the place, {pay}", "too many {kind} at night. {pay} to whoever thins out {count}", "bounty on {kind}: {count} of them, {pay}"]},
+    "town.notice.owed": {"any": ["thats all i have on me. ill owe you the rest, {owed}", "short right now, sorry. the town owes you {owed}, come see me", "here's what i have. {owed} more when the till's got it"]},
+    "notice.bandit": {"any": ["a bounty on the bandits about: {pay} to whoever deals with them", "bandits on our roads. {pay} for dealing with them", "wanted: someone to see to the bandits. {pay}"]}
+  }
+}
