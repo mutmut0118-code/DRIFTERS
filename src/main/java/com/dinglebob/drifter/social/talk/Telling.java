@@ -353,7 +353,7 @@ public final class Telling {
 				String key = goal != null && Lines.has("going." + goal.id()) ? "going." + goal.id() : doing == null ? "ask.going_idle" : "ask.going";
 				PlayerTalk.reply(drifter, key, null, "player", name, "doing", doing == null ? "" : doing);
 			}
-			case "need" -> need(drifter, name);
+			case "need" -> need(drifter, name, text);
 			case "friends" -> friends(drifter, player, name);
 			case "told" -> {
 				String memory = n == null ? null : memory(drifter, player, n, r, true);
@@ -416,7 +416,10 @@ public final class Telling {
 	}
 
 	/** "What do you need?": what it's short of, from its own state (hurt, hungry, no home, the next thing it's after). */
-	private static void need(DrifterEntity drifter, String name) {
+	private static void need(DrifterEntity drifter, String name, String text) {
+		// ("You need help?" is a yes or a no, then what: "yeah, a stone sword", not "a stone sword". Found in play.)
+		String said = Lines.understood(text);
+		boolean yesNo = !said.contains(" what ") && !said.contains(" whatcha ");
 		if (drifter.getHealth() <= drifter.getMaxHealth() * 0.5F) {
 			PlayerTalk.reply(drifter, "ask.need_heal", null, "player", name);
 			return;
@@ -436,7 +439,7 @@ public final class Telling {
 
 		Strategist.Target target = Strategist.nextTarget(drifter);
 		if (target != null) {
-			PlayerTalk.reply(drifter, "ask.need_target", null, "player", name, "what", target.label());
+			PlayerTalk.reply(drifter, yesNo ? "ask.need_target_yes" : "ask.need_target", null, "player", name, "what", target.label());
 			return;
 		}
 

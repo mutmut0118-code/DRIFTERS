@@ -201,6 +201,262 @@
       "(im|i am) (scared|afraid|terrified|spooked|frightened|nervous|freaked out)",
       "(this|it) is (scary|creepy|terrifying)",
       "i (dont|do not) (like|want to go) (this|down there|in there)"
+    ],
+    "compliment": [
+      "(i|i really) (like|love|dig) your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build)",
+      "(nice|cool|sick|sweet|fancy|great|awesome|neat) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat)",
+      "(love|loving|like|digging) the (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor)",
+      "your (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|armor|elytra|skin|outfit|fit|hat|house|base|build) (is|looks|are) (nice|cool|sick|great|awesome|good|sweet|fancy|neat)",
+      "(that|those) (pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|helmet|chestplate|leggings|boots|elytra|outfit|fit|hat|armor) (is|looks|are) (nice|cool|sick|great|awesome|sweet|fancy|neat)"
+    ],
+    "agree": [
+      "i know",
+      "i know (man|dude|bro|right|lol)",
+      "i know (what|how) you mean",
+      "(you are|youre) (right|not wrong)",
+      "same (here|honestly|tbh)",
+      "me too (honestly|tbh|man)",
+      "i feel (you|that)"
+    ],
+    "chatting": [
+      "just (making|trying to make) (conversation|small talk)",
+      "(making|make) (conversation|small talk)",
+      "small talk",
+      "just (talking|chatting|asking|curious|wondering|saying hi|being friendly|being nice|checking in)",
+      "no reason (really|just asking)",
+      "just because",
+      "(i was|im) just (curious|wondering|asking)",
+      "(wanted|want) to (chat|talk|say hi)",
+      "thought (id|i would) (say hi|chat)"
+    ],
+    "my_day": [
+      "(its been|been|had|having|what) a (busy|long|rough|hard|tiring|crazy|weird|slow|boring|stressful) day [for me|today|honestly|lol]",
+      "today (was|has been|is) (busy|long|rough|hard|tiring|crazy|exhausting|stressful|a lot)",
+      "(busy|long|rough|crazy|hard) day (for me|today|honestly|huh)",
+      "been busy all day",
+      "ive been busy"
+    ],
+    "my_day_good": [
+      "(its been|been|had|having|what) a (good|great|nice|chill|fun|productive|lovely|awesome) day [for me|today|honestly|lol]",
+      "today (was|has been|is) (good|great|nice|fun|chill|productive|awesome)",
+      "(good|great|productive) day (for me|today|honestly)"
+    ],
+    "ack": [
+      "got you",
+      "i got you",
+      "gotchu",
+      "on it",
+      "im on it",
+      "consider it done",
+      "you got it",
+      "leave it to me",
+      "ill do it",
+      "i can do that",
+      "can do",
+      "sure (thing|can do)",
+      "(okay|ok|alright) (will do|got it|got you|on it)",
+      "understood",
+      "roger",
+      "roger that",
+      "copy",
+      "copy that",
+      "say no more"
     ]
+  },
+  "lines": {
+    "ask.compliment.thing": {
+      "any": [
+        "ty, {what} does the job",
+        "thanks! its just {what} lol",
+        "ty, had it a while",
+        "aw thanks",
+        "ty ty",
+        "thanks, good old {what}",
+        "haha ty, made it myself",
+        "thx, nothing special but it works",
+        "ty! {what} gang",
+        "appreciate it, {what} ftw"
+      ],
+      "newbie": [
+        "thank you!! its my first {thing}",
+        "omg ty, i just got it"
+      ],
+      "hermit": [
+        "hm. it works"
+      ],
+      "pvp_sweat": [
+        "obviously",
+        "ik. its my best"
+      ],
+      "hoarder": [
+        "not for sale",
+        "ty. dont get ideas"
+      ],
+      "bandit": [
+        "dont even think about it"
+      ]
+    },
+    "ask.compliment.thing.cold": {
+      "any": [
+        "its just {what}",
+        "and?",
+        "hm. thanks",
+        "dont get ideas",
+        "what do you want with it"
+      ]
+    },
+    "ask.compliment.not_mine": {
+      "any": [
+        "what {thing}? i dont have one",
+        "i dont have {a_thing} lol",
+        "what {thing}",
+        "uh, im not holding {a_thing}",
+        "{thing}? wrong person maybe",
+        "lol i wish i had {a_thing}",
+        "you sure youre looking at me?"
+      ],
+      "hermit": [
+        "what {thing}."
+      ],
+      "newbie": [
+        "i dont have {a_thing} yet :("
+      ]
+    },
+    "ask.compliment.not_mine.cold": {
+      "any": [
+        "what {thing}",
+        "i dont have {a_thing}. what do you want",
+        "are you blind"
+      ]
+    },
+    "ask.compliment.no_armor": {
+      "any": [
+        "what armor lol",
+        "im not wearing any",
+        "uh, i have no armor on",
+        "lol i wish",
+        "armor? where"
+      ],
+      "newbie": [
+        "i dont have any armor yet :("
+      ]
+    },
+    "ask.compliment.no_armor.cold": {
+      "any": [
+        "what armor",
+        "i have none. what do you want"
+      ]
+    },
+    "ask.need_target_yes": {
+      "any": [
+        "yeah, {what}",
+        "actually yeah. {what}",
+        "if youve got {what}",
+        "kinda. im after {what}",
+        "yeah, im looking for {what}",
+        "{what} would help",
+        "now that you ask, {what}"
+      ],
+      "hermit": [
+        "{what}. if youre offering"
+      ],
+      "hoarder": [
+        "{what}. and more of everything"
+      ],
+      "helper": [
+        "aw, kinda. {what}"
+      ]
+    },
+    "convo.chatting": {
+      "any": [
+        "fair enough",
+        "ah ok lol",
+        "fair",
+        "lol ok",
+        "ah gotcha",
+        "ok fair, whats up",
+        "oh ok haha",
+        "all good",
+        "fair, whats up",
+        "ok lol, hi",
+        "haha alright, talk away"
+      ],
+      "hermit": [
+        "hm.",
+        "i see"
+      ],
+      "newbie": [
+        "oh ok! hi :)"
+      ],
+      "helper": [
+        "oh nice, always happy to chat"
+      ]
+    },
+    "convo.chatting.cold": {
+      "any": [
+        "well im busy",
+        "find someone else",
+        "right",
+        "ok. and?",
+        "hm"
+      ]
+    },
+    "convo.my_day": {
+      "any": [
+        "same honestly",
+        "fr, me too",
+        "tell me about it",
+        "rest up then",
+        "oof, what happened",
+        "long days are the worst",
+        "same lol",
+        "felt that",
+        "take a break lol",
+        "yeah? doing what"
+      ],
+      "newbie": [
+        "me too, everything is so much"
+      ],
+      "hermit": [
+        "hm. rest then"
+      ],
+      "helper": [
+        "aw, take it easy ok?"
+      ]
+    },
+    "convo.my_day.cold": {
+      "any": [
+        "ok",
+        "and?",
+        "hm",
+        "cool story"
+      ]
+    },
+    "convo.my_day_good": {
+      "any": [
+        "nice!",
+        "glad to hear",
+        "love that",
+        "nice, what'd you get done",
+        "w",
+        "good stuff",
+        "nice one",
+        "lucky, mine was meh",
+        "same here"
+      ],
+      "hermit": [
+        "good."
+      ],
+      "helper": [
+        "yay, glad its going well!"
+      ]
+    },
+    "convo.my_day_good.cold": {
+      "any": [
+        "ok",
+        "good for you",
+        "hm"
+      ]
+    }
   }
 }

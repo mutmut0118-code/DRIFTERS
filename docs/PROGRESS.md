@@ -7173,3 +7173,24 @@ From the user's screenshot (2026-11-15: Lyra_Basalt crying Ashbrook's news):
   talk, in the log as "f [to cashew]"); the crier's news just came in between. Left as is.
 
 Not tested in game; the headline cut checked on the screenshot's laws line and longer ones.
+
+## 0.23.69-side.4: said in play, answered right (new)
+
+From the user's play screenshots (2026-11-15: HeyNimbus, piggy270, Dino_yt):
+
+- "i like your pickaxe" (and "nice bow", "your helmet looks cool", "love the boots"...) is a compliment on a thing of its
+  own: thanked, naming it ("ty, good old stone pickaxe"), only when it holds or wears it; else "what pickaxe? i dont have
+  one" ("what armor lol"). It was "what are you on about".
+- "just making conversation" ("just asking", "no reason really", "small talk"): "fair enough", "lol ok, whats up". It was
+  "what do you want".
+- "ik man" is "i know": agreeing. It was "didnt catch that".
+- "its been a busy day" ("had a long day", "today was rough"; and "had a great day") is about their day: "same honestly",
+  "rest up then" ("glad to hear"). It was taken as "busy?" and answered with what it was doing. A bit of talk that says
+  more than an older meaning found in the message now wins (`PlayerConvo.intent`).
+- Typos are put right first when that makes more sense of a message ("its been a busy dayt"): before, only a message
+  nothing understood was tried loosely. A short word's fix starts with the same letter ("qwer" isn't "where").
+- "u need help?" ("you need anything?") is a yes or no first: "yeah, a stone sword", not just "a stone sword".
+- "got you", "on it", "consider it done", "okay got it", "roger" are an okay (after a word to carry: it was "lost me
+  there").
+
+Not tested in game; headless: each of these, and the 90 ways of asking in `tools/smoke-loose.txt` as before.

@@ -67,6 +67,11 @@ public final class PlayerTalk {
 	/** What this message would be, said to a Drifter (what it asks, or a word about someone), or null (the debug command). */
 	@Nullable
 	public static String meaning(String text) {
+		String fixed = Lines.typosFixed(text, keep(null, null));
+		if (!fixed.equals(text) && Lines.longest(fixed) > Lines.longest(text)) {
+			text = fixed;
+		}
+
 		String old = Lines.answer(text, ALL);
 		String mine = PlayerConvo.intent(text, old);
 		if (mine == null && old == null && Lines.meansSomething(text, NOT_ENOUGH)) {
@@ -86,6 +91,66 @@ public final class PlayerTalk {
 		return mine != null ? mine : old;
 	}
 
+	/** A thing of its own praised ("i like your pickaxe", "nice iron boots"): its word. */
+	private static final Pattern PRAISED = Pattern.compile("\\b(?:your|ur|that|those|this|nice|cool|sick|sweet|fancy|great|awesome|neat|love the|loving the"
+		+ "|like the|dig the|digging the)\\s+(?:[a-z]+\\s+)?(pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|hoe|shovel|helmet|helm|chestplate"
+		+ "|leggings|pants|boots|armor|armour|elytra|rod)s?\\b");
+
+	/** The word for a thing of its own the message praises, or null. */
+	@Nullable
+	static String praisedThing(String text) {
+		Matcher m = PRAISED.matcher(text.toLowerCase(Locale.ROOT));
+		return m.find() ? m.group(1) : null;
+	}
+
+	/** What it has on it that the word means (held, or worn), or null if nothing. */
+	@Nullable
+	private static ItemStack praisedStack(DrifterEntity drifter, String thing) {
+		net.minecraft.world.entity.EquipmentSlot worn = switch (thing) {
+			case "helmet", "helm" -> net.minecraft.world.entity.EquipmentSlot.HEAD;
+			case "chestplate", "elytra" -> net.minecraft.world.entity.EquipmentSlot.CHEST;
+			case "leggings", "pants" -> net.minecraft.world.entity.EquipmentSlot.LEGS;
+			case "boots" -> net.minecraft.world.entity.EquipmentSlot.FEET;
+			default -> null;
+		};
+		if (thing.startsWith("armo")) {
+			for (net.minecraft.world.entity.EquipmentSlot slot : new net.minecraft.world.entity.EquipmentSlot[] {net.minecraft.world.entity.EquipmentSlot.CHEST,
+				net.minecraft.world.entity.EquipmentSlot.HEAD, net.minecraft.world.entity.EquipmentSlot.LEGS, net.minecraft.world.entity.EquipmentSlot.FEET}) {
+				if (!drifter.getItemBySlot(slot).isEmpty()) {
+					return drifter.getItemBySlot(slot);
+				}
+			}
+
+			return null;
+		}
+
+		if (worn != null) {
+			ItemStack stack = drifter.getItemBySlot(worn);
+			String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+			return stack.isEmpty() || thing.equals("elytra") != path.equals("elytra") ? null : stack;
+		}
+
+		for (ItemStack stack : new ItemStack[] {drifter.getMainHandItem(), drifter.getOffhandItem()}) {
+			String path = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+			boolean is = switch (thing) {
+				case "pick", "pickaxe" -> path.contains("pickaxe");
+				case "axe" -> path.equals("axe") || path.endsWith("_axe");
+				case "rod" -> path.contains("rod");
+				default -> path.equals(thing) || path.endsWith("_" + thing);
+			};
+			if (!stack.isEmpty() && is) {
+				return stack;
+			}
+		}
+
+		return null;
+	}
+
+	/** "a pickaxe", "an axe", "any boots". */
+	private static String aThing(String thing) {
+		return thing.endsWith("s") ? "any " + thing : ("aeiou".indexOf(thing.charAt(0)) >= 0 ? "an " : "a ") + thing;
+	}
+
 	/** Not what "means something" is, understood loosely: a bare yes, no or thing isn't enough to go on. */
 	private static final java.util.Set<String> NOT_ENOUGH = java.util.Set.of("yes", "no", "ready", "unsure", "middle", "things", "everyone", "iam", "me");
 
@@ -95,6 +160,11 @@ public final class PlayerTalk {
 	 */
 	@Nullable
 	private static String loosely(@Nullable ServerPlayer player, @Nullable DrifterEntity drifter, String text) {
+		return Lines.loosely(text, keep(player, drifter), said -> Lines.meansSomething(said, NOT_ENOUGH) || PlayerConvo.intent(said, null) != null);
+	}
+
+	/** Words never "put right" as typos: the names of the player and the Drifters close by. */
+	private static java.util.Set<String> keep(@Nullable ServerPlayer player, @Nullable DrifterEntity drifter) {
 		java.util.Set<String> keep = new java.util.HashSet<>();
 		if (player != null) {
 			keep.addAll(List.of(Lines.normalize(player.getGameProfile().getName()).trim().split(" ")));
@@ -107,7 +177,7 @@ public final class PlayerTalk {
 			keep.addAll(List.of(Lines.normalize(drifter.getName().getString()).trim().split(" ")));
 		}
 
-		return Lines.loosely(text, keep, said -> Lines.meansSomething(said, NOT_ENOUGH) || PlayerConvo.intent(said, null) != null);
+		return keep;
 	}
 
 	/** How far it hears someone talking to it without its name: looking at it, or the only one this close. */
@@ -166,6 +236,12 @@ public final class PlayerTalk {
 	 */
 	public static boolean heard(ServerPlayer player, String text) {
 		long now = player.level().getGameTime();
+		// (Its typos put right, when that says more: "its been a busy dayt" is about their day, not "busy?".)
+		String fixed = Lines.typosFixed(text, keep(player, null));
+		if (!fixed.equals(text) && Lines.longest(fixed) > Lines.longest(text)) {
+			text = fixed;
+		}
+
 		Focus focused = focus.get(player.getUUID());
 		String intent = Lines.answer(text, ALL);
 		// The answer to what a Drifter just asked them (a yes or a no, and nothing else asked).
@@ -652,6 +728,21 @@ public final class PlayerTalk {
 
 		// Nice things and insults: what they said goes into how it feels about them.
 		if (intent.equals("compliment")) {
+			// A thing of its own praised: only so when it has it on it (found in play: "i like your pickaxe" to one with none).
+			String thing = praisedThing(text);
+			if (thing != null && !hostile) {
+				ItemStack stack = praisedStack(drifter, thing);
+				if (stack == null) {
+					reply(drifter, thing.startsWith("armo") ? "ask.compliment.no_armor" : "ask.compliment.not_mine", null, "player", name, "thing", thing,
+						"a_thing", aThing(thing));
+					return;
+				}
+
+				drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
+				reply(drifter, "ask.compliment.thing", null, "player", name, "thing", thing, "what", stack.getHoverName().getString().toLowerCase(Locale.ROOT));
+				return;
+			}
+
 			drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
 			reply(drifter, hostile ? "ask.hostile" : "ask.compliment", null, who);
 			return;

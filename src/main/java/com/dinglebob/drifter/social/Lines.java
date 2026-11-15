@@ -714,6 +714,44 @@ public final class Lines {
 		return out;
 	}
 
+	private static final java.util.regex.Pattern A_WORD = java.util.regex.Pattern.compile("[A-Za-z']+");
+
+	/**
+	 * The message with its typos put right, word for word, all else as typed (names in {@code keep} left alone); the same
+	 * message if none. For when that says more than the message as typed ({@link #longest}): found in play, "its been a
+	 * busy dayt" was "busy?", what it's doing.
+	 */
+	public static String typosFixed(String text, Set<String> keep) {
+		java.util.regex.Matcher m = A_WORD.matcher(text);
+		StringBuilder out = new StringBuilder();
+		int last = 0;
+		boolean changed = false;
+		while (m.find()) {
+			String word = m.group();
+			String plain = normalize(word).trim();
+			String right = plain.isEmpty() || plain.contains(" ") || keep.contains(plain) ? null : typoOf(plain);
+			out.append(text, last, m.start()).append(right != null ? right : word);
+			changed |= right != null;
+			last = m.end();
+		}
+
+		out.append(text.substring(last));
+		return changed ? out.toString() : text;
+	}
+
+	/** How long the longest phrase of any meaning found in the message is (0: none). */
+	public static int longest(String text) {
+		String said = understood(text);
+		int best = 0;
+		for (List<String> phrases : answers.values()) {
+			for (String phrase : phrases) {
+				best = Math.max(best, matched(said, phrase));
+			}
+		}
+
+		return best;
+	}
+
 	/** The word it knows that this one is a typo of ("wher": "where"), or null (it knows it, or nothing's close). */
 	@Nullable
 	private static String typoOf(String word) {
@@ -729,7 +767,8 @@ public final class Lines {
 		long bestScore = -1;
 		for (Map.Entry<String, Integer> entry : words.entrySet()) {
 			String other = entry.getKey();
-			if (other.length() < 3 || Math.abs(other.length() - word.length()) > most) {
+			// (A short word starts with the same letter: "qwer" isn't "wer", where. A typo there is rare.)
+			if (other.length() < 3 || Math.abs(other.length() - word.length()) > most || word.length() <= 5 && other.charAt(0) != word.charAt(0)) {
 				continue;
 			}
 
@@ -797,6 +836,7 @@ public final class Lines {
 		}
 
 		List<String> more = new ArrayList<>(slang.values());
+		more.addAll(slang.keySet());
 		more.addAll(fillers);
 		same.forEach((word, others) -> {
 			more.add(word);

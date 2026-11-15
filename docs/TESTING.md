@@ -4141,3 +4141,14 @@ In a town of a morning, listen to the crier on the plaza:
    in the middle of a word.
 2. A headline split in two parts has its second part right after the first, not after the next headlines.
 3. A town made with the world says "<town> stands where a village would have stood, with N people in N houses".
+
+## 0.23.69-side.4: said in play, answered right (new)
+
+1. Say "i like your pickaxe" (or sword, bow, helmet, boots) to a Drifter. Holding or wearing it: thanks, naming it. Not:
+   "what pickaxe? i dont have one".
+2. "just making conversation" or "just asking" after it asks "why": "fair enough" or similar.
+3. "ik man" after it says something: it agrees.
+4. "its been a busy day" (even with a typo): "same honestly" or "rest up then", not what it's doing. "had a great day":
+   "glad to hear".
+5. "u need help?": "yeah, <what it needs>" or "im good".
+6. "got you" after a Drifter gives you a word to carry: an okay, not "lost me there".
