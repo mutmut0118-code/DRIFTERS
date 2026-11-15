@@ -321,6 +321,34 @@ public final class DrifterCivilizations implements ModInitializer {
 						ctx.getSource().sendSuccess(() -> Component.literal("Debug: a road " + length + " blocks long from here with a square corner halfway, in " + stretches + " stretches"), true);
 						return 1;
 					}))))
+				// (Debug: a banner design for each nation colour, of each temper, stood in rows here to look at.)
+				.then(Commands.literal("bannersamples").requires(source -> source.hasPermission(2)).executes(ctx -> {
+					var level = ctx.getSource().getLevel();
+					BlockPos at = BlockPos.containing(ctx.getSource().getPosition());
+					net.minecraft.world.item.DyeColor[] bases = {net.minecraft.world.item.DyeColor.RED, net.minecraft.world.item.DyeColor.BLUE,
+						net.minecraft.world.item.DyeColor.YELLOW, net.minecraft.world.item.DyeColor.ORANGE, net.minecraft.world.item.DyeColor.MAGENTA,
+						net.minecraft.world.item.DyeColor.LIGHT_BLUE, net.minecraft.world.item.DyeColor.PINK, net.minecraft.world.item.DyeColor.LIGHT_GRAY,
+						net.minecraft.world.item.DyeColor.WHITE, net.minecraft.world.item.DyeColor.BLACK, net.minecraft.world.item.DyeColor.GREEN};
+					String[] tempers = {"the Crown of X", "the X League", "X"};
+					java.util.List<java.util.List<com.dinglebob.drifter.api.TownWork.Layer>> taken = new java.util.ArrayList<>();
+					for (int row = 0; row < tempers.length; row++) {
+						for (int i = 0; i < bases.length; i++) {
+							var design = BannerDesigns.design(java.util.UUID.randomUUID(), bases[i], tempers[row], taken);
+							taken.add(design);
+							BlockPos spot = at.offset(i * 2, 0, 6 + row * 3);
+							level.setBlock(spot, net.minecraft.world.level.block.BannerBlock.byColor(bases[i]).defaultBlockState()
+								.setValue(net.minecraft.world.level.block.BannerBlock.ROTATION, 8), 3);
+							if (level.getBlockEntity(spot) instanceof net.minecraft.world.level.block.entity.BannerBlockEntity entity) {
+								entity.applyComponentsFromItemStack(BannerDesigns.stack(level.registryAccess(), bases[i], design));
+							}
+
+							LOGGER.info("[banners] {} {}: {}", tempers[row], bases[i].getName(), BannerDesigns.words(design));
+						}
+					}
+
+					ctx.getSource().sendSuccess(() -> Component.literal("Debug: banner samples stood in rows (hard, peaceable, plain)"), false);
+					return 1;
+				}))
 				// (Debug: built roads walked along their lines, the places a road and a bridge don't meet logged.)
 				.then(Commands.literal("checkroads").requires(source -> source.hasPermission(2)).executes(ctx -> {
 					int found = Highways.check(ctx.getSource().getLevel());

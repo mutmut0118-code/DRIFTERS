@@ -37,31 +37,116 @@ final class BannerDesigns {
 		"stripe_downleft", "triangles_bottom", "triangles_top", "curly_border"};
 	/** Last, now and then: a border, or a band across. */
 	private static final String[] FINISHES = {"border", "curly_border", "stripe_bottom", "stripe_top", "triangles_bottom"};
-	/** Dyes from common flowers and bone meal (and one crafted: purple). */
+	/**
+	 * The dyes a design may use: from common flowers and bone meal, purple (red and blue), and (the user, 2026-11-15: "add
+	 * black and green") black, from ink sacs or wither roses, and green, cactus smelted.
+	 */
 	private static final DyeColor[] DYES = {DyeColor.WHITE, DyeColor.RED, DyeColor.YELLOW, DyeColor.BLUE, DyeColor.ORANGE, DyeColor.LIGHT_GRAY,
-		DyeColor.PINK, DyeColor.MAGENTA, DyeColor.PURPLE, DyeColor.LIGHT_BLUE};
+		DyeColor.PINK, DyeColor.MAGENTA, DyeColor.PURPLE, DyeColor.LIGHT_BLUE, DyeColor.BLACK, DyeColor.GREEN};
+	/**
+	 * The light tinctures, heraldry's metals: gold and silver (yellow, white, light grey) and the pale dyes as light as them
+	 * (pink, light blue). The rest, its colours, are dark. Never light on light nor dark on dark.
+	 */
+	private static final java.util.Set<DyeColor> METALS = java.util.EnumSet.of(DyeColor.WHITE, DyeColor.YELLOW, DyeColor.LIGHT_GRAY, DyeColor.PINK,
+		DyeColor.LIGHT_BLUE);
+	/** A big shape this much lighter or darker than what it lies on (0 to 1, by the dyes' own colours), at least. */
+	private static final double CONTRAST = 0.25;
+	/** A charge against the division it partly lies on, at least. */
+	private static final double CONTRAST_TO_DIVISION = 0.12;
 
-	/** A design for a nation of this colour, its own (not one of {@code taken}), from its id. */
-	static List<TownWork.Layer> design(UUID id, DyeColor base, List<List<TownWork.Layer>> taken) {
+	/** How a nation came about, for its colours: a hard one's reds and blacks, a peaceable one's blues, whites and greens. */
+	enum Temper {
+		HARD, PEACEABLE, PLAIN;
+
+		static Temper of(String name) {
+			String n = name.toLowerCase(java.util.Locale.ROOT);
+			if (n.contains("dominion") || n.contains("realm") || n.contains("crown")) {
+				return HARD;
+			}
+
+			if (n.contains("league") || n.contains("accord") || n.contains("union") || n.contains("commonwealth") || n.contains("free cities")
+				|| n.contains("republic") || n.contains("confederacy")) {
+				return PEACEABLE;
+			}
+
+			return PLAIN;
+		}
+
+		double likes(DyeColor dye) {
+			return switch (this) {
+				case HARD -> dye == DyeColor.RED || dye == DyeColor.BLACK || dye == DyeColor.ORANGE || dye == DyeColor.PURPLE ? 1.0 : 0.0;
+				case PEACEABLE -> dye == DyeColor.BLUE || dye == DyeColor.WHITE || dye == DyeColor.GREEN || dye == DyeColor.LIGHT_BLUE ? 1.0 : 0.0;
+				case PLAIN -> 0.4;
+			};
+		}
+	}
+
+	/**
+	 * A design for a nation of this colour, its own (not one of {@code taken}), from its id, coherent by colour theory (the
+	 * user, 2026-11-15: "how can we make it coherent with color theory", then "go with your recommendation"):
+	 * <ul>
+	 *   <li>heraldry's rule of tincture: never metal on metal nor colour on colour (a blue field takes a yellow or white
+	 *       cross, a white field red or blue stripes), and every big shape well lighter or darker than what it's on;</li>
+	 *   <li>the colours in harmony: complementary, analogous or triadic on the colour wheel (white, grey and black go with
+	 *       anything);</li>
+	 *   <li>by its temper (its name: a Dominion's reds and blacks, a League's blues and whites);</li>
+	 *   <li>three colours at most, those the other nations use least where it's a close call.</li>
+	 * </ul>
+	 */
+	static List<TownWork.Layer> design(UUID id, DyeColor base, String name, List<List<TownWork.Layer>> taken) {
 		// (Mixed: ids side by side gave alike first rolls.)
 		long seed = id.getMostSignificantBits() * 0x9E3779B97F4A7C15L ^ id.getLeastSignificantBits();
 		seed = (seed ^ (seed >>> 31)) * 0xBF58476D1CE4E5B9L;
 		Random random = new Random(seed ^ (seed >>> 29));
 		random.nextLong();
-		for (int attempt = 0; attempt < 50; attempt++) {
+		Temper temper = Temper.of(name);
+		java.util.Map<DyeColor, Integer> used = new java.util.EnumMap<>(DyeColor.class);
+		taken.forEach(design -> design.forEach(layer -> used.merge(layer.colour(), 1, Integer::sum)));
+
+		// Every pair of colours (the division's, the charge's) that keeps the rules, scored for harmony and temper.
+		List<DyeColor[]> pairs = new ArrayList<>();
+		List<Double> scores = new ArrayList<>();
+		for (DyeColor first : DYES) {
+			if (!onIt(first, base, CONTRAST)) {
+				continue;
+			}
+
+			for (DyeColor second : DYES) {
+				if (second == first || !onIt(second, base, CONTRAST) || contrast(second, first) < CONTRAST_TO_DIVISION) {
+					continue;
+				}
+
+				double harmony = harmony(base, first, second);
+				if (harmony <= 0) {
+					continue;
+				}
+
+				double score = harmony + 0.6 * (temper.likes(first) + temper.likes(second)) / 2.0
+					- 0.15 * (used.getOrDefault(first, 0) + used.getOrDefault(second, 0)) + 0.25 * random.nextDouble();
+				pairs.add(new DyeColor[] {first, second});
+				scores.add(score);
+			}
+		}
+
+		List<Integer> order = new ArrayList<>();
+		for (int k = 0; k < pairs.size(); k++) {
+			order.add(k);
+		}
+
+		order.sort((a, b) -> Double.compare(scores.get(b), scores.get(a)));
+		for (int attempt = 0; attempt < 50 && !pairs.isEmpty(); attempt++) {
+			// One of the best few, by chance.
+			DyeColor[] pair = pairs.get(order.get(random.nextInt(Math.min(4, order.size()))));
 			List<TownWork.Layer> layers = new ArrayList<>();
-			// Two colours besides its own, the charge never in the division's (it reads as a second thing on it).
-			DyeColor first = fresh(random, taken, base);
-			DyeColor second = fresh(random, taken, base, first);
 			String division = DIVISIONS[random.nextInt(DIVISIONS.length)];
-			layers.add(layer(division, first));
+			layers.add(layer(division, pair[0]));
 			String charge = CHARGES[random.nextInt(CHARGES.length)];
-			// (Never in its own colour: on the half of the field still that colour, it vanished.)
-			layers.add(layer(charge, second));
+			layers.add(layer(charge, pair[1]));
+			// A border or band now and then, in the division's colour (it lies on the field: the rule holds).
 			if (random.nextDouble() < 0.45) {
 				String finish = FINISHES[random.nextInt(FINISHES.length)];
 				if (!finish.equals(charge) && !finish.equals(division)) {
-					layers.add(layer(finish, random.nextBoolean() ? first : second));
+					layers.add(layer(finish, pair[0]));
 				}
 			}
 
@@ -70,44 +155,81 @@ final class BannerDesigns {
 			}
 		}
 
-		return List.of(layer("cross", other(random, base)), layer("border", other(random, base)));
+		DyeColor metal = metal(base) ? DyeColor.RED : DyeColor.WHITE;
+		return List.of(layer("cross", metal), layer("border", metal));
 	}
 
 	private static TownWork.Layer layer(String pattern, DyeColor colour) {
 		return new TownWork.Layer("minecraft:" + pattern, colour);
 	}
 
-	/** A dye that isn't any of these, and (if it can) one the other nations' banners use least: each its own look. */
-	private static DyeColor fresh(Random random, List<List<TownWork.Layer>> taken, DyeColor... not) {
-		java.util.Map<DyeColor, Integer> used = new java.util.EnumMap<>(DyeColor.class);
-		taken.forEach(design -> design.forEach(layer -> used.merge(layer.colour(), 1, Integer::sum)));
-		DyeColor best = other(random, not);
-		for (int i = 0; i < 8; i++) {
-			DyeColor dye = other(random, not);
-			if (used.getOrDefault(dye, 0) < used.getOrDefault(best, 0)) {
-				best = dye;
+	private static boolean metal(DyeColor dye) {
+		return METALS.contains(dye);
+	}
+
+	/** Fit to lie on {@code under}: metal on colour or colour on metal, and that much lighter or darker. */
+	private static boolean onIt(DyeColor over, DyeColor under, double least) {
+		return metal(over) != metal(under) && contrast(over, under) >= least;
+	}
+
+	/** How much lighter or darker one dye is than another (0 to 1), by the dyes' own colours. */
+	static double contrast(DyeColor a, DyeColor b) {
+		return Math.abs(lightness(a) - lightness(b));
+	}
+
+	private static double lightness(DyeColor dye) {
+		int rgb = dye.getTextureDiffuseColor();
+		double r = (rgb >> 16 & 255) / 255.0;
+		double g = (rgb >> 8 & 255) / 255.0;
+		double b = (rgb & 255) / 255.0;
+		return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+	}
+
+	/** Its hue on the colour wheel (0 to 360), or -1 for white, greys and black (no hue: they go with anything). */
+	private static double hue(DyeColor dye) {
+		int rgb = dye.getTextureDiffuseColor();
+		double r = (rgb >> 16 & 255) / 255.0;
+		double g = (rgb >> 8 & 255) / 255.0;
+		double b = (rgb & 255) / 255.0;
+		double max = Math.max(r, Math.max(g, b));
+		double min = Math.min(r, Math.min(g, b));
+		if (max - min < 0.18) {
+			return -1;
+		}
+
+		double h = max == r ? (g - b) / (max - min) : max == g ? 2 + (b - r) / (max - min) : 4 + (r - g) / (max - min);
+		return (h * 60 + 360) % 360;
+	}
+
+	/**
+	 * How well three colours go together (0: they don't): each pair of hues analogous (within 40 degrees), complementary
+	 * (about 180 apart) or a third of the way round (about 120); white, grey and black go with anything. One or two hues reads
+	 * cleanest, three is bolder.
+	 */
+	static double harmony(DyeColor... dyes) {
+		List<Double> hues = new ArrayList<>();
+		for (DyeColor dye : dyes) {
+			double h = hue(dye);
+			if (h >= 0) {
+				hues.add(h);
 			}
 		}
 
-		return best;
-	}
+		double score = 1.0;
+		for (int i = 0; i < hues.size(); i++) {
+			for (int k = i + 1; k < hues.size(); k++) {
+				double d = Math.abs(hues.get(i) - hues.get(k));
+				d = Math.min(d, 360 - d);
+				double fit = d <= 40 ? 1.0 : Math.abs(d - 180) <= 35 ? 1.2 : Math.abs(d - 120) <= 25 ? 0.9 : 0.0;
+				if (fit == 0) {
+					return 0;
+				}
 
-	/** A dye that isn't any of these. */
-	private static DyeColor other(Random random, DyeColor... not) {
-		for (int i = 0; i < 40; i++) {
-			DyeColor dye = DYES[random.nextInt(DYES.length)];
-			if (!java.util.Arrays.asList(not).contains(dye) && !(contrastless(dye, not[0]))) {
-				return dye;
+				score = Math.min(score, fit);
 			}
 		}
 
-		return not[0] == DyeColor.WHITE ? DyeColor.RED : DyeColor.WHITE;
-	}
-
-	/** Two colours too alike to tell apart on a banner. */
-	private static boolean contrastless(DyeColor a, DyeColor b) {
-		return a == DyeColor.PINK && b == DyeColor.MAGENTA || a == DyeColor.MAGENTA && b == DyeColor.PINK || a == DyeColor.LIGHT_GRAY && b == DyeColor.WHITE
-			|| a == DyeColor.WHITE && b == DyeColor.LIGHT_GRAY || a == DyeColor.PURPLE && b == DyeColor.MAGENTA || a == DyeColor.MAGENTA && b == DyeColor.PURPLE;
+		return score + (hues.size() <= 2 ? 0.2 : 0.0);
 	}
 
 	/** The banner as an item: its colour, its patterns on (unknown patterns left off). */

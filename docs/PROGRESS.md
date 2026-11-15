@@ -3517,6 +3517,24 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.72: nations' banners coherent by colour theory; black and green dyes** (the user, 2026-11-15: "how can we make it
+  coherent with color theory", then "go with your recommendation, add black and green"). Addon only.
+  - `BannerDesigns.design` now picks its two colours by rules, not by chance:
+    - heraldry's rule of tincture, by the dyes' own brightness: light tinctures (white, yellow, light grey, and the pale
+      pink and light blue) never on light, dark (red, blue, purple, magenta, orange, black, green) never on dark; every big
+      shape at least 0.25 lighter or darker than the field (0 to 1), the charge 0.12 off the division it partly lies on;
+    - harmony on the colour wheel (each pair of hues analogous, within 40 degrees; complementary, about 180; or a third of
+      the way round, about 120; white, grey and black go with anything; one or two hues preferred);
+    - its temper, from its name: a Dominion, Realm or Crown's reds, blacks, oranges and purples; a League, Accord, Union,
+      Commonwealth, Republic, Confederacy or Free Cities' blues, whites, greens and light blues;
+    - three colours at most; the border or band in the division's colour; colours the other nations use less where close.
+  - Black (ink sacs, wither roses) and green (cactus smelted) dyes may be used now; Drifters get them by player rules.
+  - Debug: `/drifterciv plan bannersamples` stands a design for each nation colour, in each temper, in rows where you are.
+  - Nations that already have a design keep it (new worlds and new nations get the new rules).
+  - Seen in the dev client: 33 samples (picture `docs/shots/nation-banners-colour-theory.png`): every one light on dark or
+    dark on light (black with a white bend and a pink saltire; orange with a white chevron; blue with a light grey bend and
+    a yellow lozenge).
+
 - **0.23.71: nations' banners with a design, woven at a loom** (the user, 2026-11-14: "i would love to have the town banner
   to have an actual design instead of their color", then picked "Teach Drifters the loom"; design approved 2026-11-15).
   - Each nation's design (`BannerDesigns`): its colour behind, a division of the field (half, quarter, diagonal, stripes,

@@ -96,7 +96,7 @@ final class Nations {
 		/** Its design given it now if it has none (a new nation, or one from before designs), its own among the others. */
 		void designed() {
 			if (this.design.isEmpty()) {
-				this.design = BannerDesigns.design(this.id, this.colour, nations.values().stream().filter(n -> n != this).map(n -> n.design).toList());
+				this.design = BannerDesigns.design(this.id, this.colour, this.name, nations.values().stream().filter(n -> n != this).map(n -> n.design).toList());
 			}
 		}
 

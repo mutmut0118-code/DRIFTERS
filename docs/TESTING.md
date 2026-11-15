@@ -4175,3 +4175,13 @@ In a **new world** (old worlds: nations get a design now; banners already up sta
       they're doing first, a mining trip can be 15 minutes.)
 - [ ] **The journal** shows nations' banners with their designs.
 
+## 0.23.72: banner colours by colour theory (new)
+
+In a **new world** (nations that already have a design keep it).
+
+- [ ] **Every nation's banner reads clearly**: a light pattern on a dark banner or a dark one on a light banner, never
+      grey on grey or blue on purple; its colours go together. Fierce-sounding nations (Dominion, Crown, Realm) lean to
+      reds and blacks, peaceful ones (League, Union, Republic) to blues, whites and greens.
+- [ ] Some banners use **black or green**; their Drifters get those dyes from squid ink or cactus.
+- Debug: `/drifterciv plan bannersamples` stands rows of sample banners where you are, to look at.
+
