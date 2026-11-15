@@ -1,0 +1,51 @@
+# Said in play (2026-11-15): "i dont even know you" only to a stranger (8 come-heres as one, 10 after "im minecraft"); "thank yo" is a thanks.
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+kill @e[type=drifter:drifter]
+wait 1
+drifter spawn Rosie
+wait 2
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear im minecraft
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear rosie come here
+wait 4
+drifter hear thank yo
+wait 4
+drifter hear tysm
+wait 4

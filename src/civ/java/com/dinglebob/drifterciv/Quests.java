@@ -593,7 +593,9 @@ final class Quests {
 
 	/** Words that say a job's done ("gave the word", "the quest is done", "delivered it"). */
 	private static final List<String> SAYS_DONE = List.of(" done ", " delivered ", " gave ", " did it ", " finished ", " told them ", " handed ",
-		" quest ", " complete ", " completed ", " delivered it ", " got it done ", " its sorted ", " sorted ");
+		" quest ", " complete ", " completed ", " delivered it ", " got it done ", " its sorted ", " sorted ", " told him ", " told her ", " i told ",
+		" told em ", " passed it on ", " passed on ", " let them know ", " let him know ", " let her know ", " brought it ", " took care of it ",
+		" handled it ", " got the message ", " got your message ", " they know ", " he knows ", " she knows ", " message sent ", " word sent ");
 
 	/**
 	 * Said to whoever gave them a job that's ready to hand in ("gave the word", "the quest is done"): it's handed in now, not
@@ -1612,6 +1614,18 @@ final class Quests {
 			q.owed = DROP_TRUST;
 			state(server).setDirty();
 		}
+	}
+
+	/** What a job to bring it things, this player's for this Drifter, still wants: "item id|count", or null. */
+	@Nullable
+	static String bringWanted(DrifterEntity drifter, Player player) {
+		for (Quest q : quests.values()) {
+			if (q.kind.equals("bring") && (q.state == OFFERED || q.state == TAKEN) && q.player.equals(player.getUUID()) && q.giver.equals(drifter.getUUID())) {
+				return q.item + "|" + Math.max(1, q.count - q.given);
+			}
+		}
+
+		return null;
 	}
 
 	/** Would a quest count this thing thrown to this Drifter (so a notice or a favor for the same leaves it be)? */

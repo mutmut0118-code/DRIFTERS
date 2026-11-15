@@ -7243,3 +7243,41 @@ From the user's play screenshots (2026-11-15: HeyNimbus, piggy270, Dino_yt):
   there").
 
 Not tested in game; headless: each of these, and the 90 ways of asking in `tools/smoke-loose.txt` as before.
+
+## Next build (not built yet; the user, 2026-11-15: "dont build a new side yet, just work on the bugs")
+
+From play screenshots:
+
+- "i dont even know you" (and "who are you", "never met you", "have we met"...) isn't said to a player it knows (met a few
+  times, or trusted): found in play from Dino_yt, who'd given them a job. Any line of an answer, by pattern (PlayerTalk.met).
+- "i told him", "told her", "passed it on", "let them know", "took care of it" hand in a word (Quests.SAYS_DONE). "i told
+  him" was "lost me there".
+- "thank yo" (and "thnks", "thanx", "thankyou") is a thanks: it got "hi there" (the "yo").
+- A far-off Drifter's name shouted ("2 JELLY!", it not loaded): nobody close by answers it (it was "didnt catch that").
+  Every Drifter of the world counts, loaded or not; "2 jelly" as one word too.
+
+Headless tested: tools/smoke-playertalk-knows.txt, tools/smoke-playertalk-farname.txt.
+- **A town's story** (`TownStory`; the user, 2026-11-15: "i want to have actual history behind these towns. but since every
+  town is loaded everyone thinks its new. i want this to be a 3+ part conversation where a drifter can yap"): "tell me about
+  this town" ("whats the history of this place", "how old is this town", "who founded this town", "lore") is told in 3 to
+  6 lines, one after another as typed: when it was founded (a town made with the world goes back to its past, W6: "about
+  6 years") and by whom when the chronicle says; one or two things from its past (a town taken, burned, rising up, a
+  ruler fallen in war; else its nation's wars; this year's said as recent, not "old folks still talk about it"; everyday
+  doings left out); how it is now (its leader, or itself if it leads, its people, its character, its nation); one of its
+  customs; how the teller feels about it. Itself in the story is "i". It stops if they say something else or walk off.
+  Lines in `drifter_civ/drifter_chat/town_story.json`, every personality its own.
+- Fixed a crash: a line said that starts another line (the story's) changed the list of replies being gone through.
+- "nice to meet you, im muto" gets "you too" / "likewise" (and they've met); it was "thank you" (the "nice").
+- "got any food?" ... "can i have some?" is food (it was "need what?"); "food" asked for finds its food (it said "none,
+  sorry" right after "plenty of food": "food" is read "fod").
+- "i like your pickaxe", "love the armor": the gear talk's (thanks for what it has, "what pickaxe?" for what it hasn't);
+  its "a {what}" lines say "a pickaxe", "an axe", "any boots". (0.23.69-side.4's own compliment check for these taken back
+  out: the gear talk already did it.)
+- Its name shouted ("2JELLY!", with a "!" or in capitals) is heard 64 blocks off, and it calls back ("who said my
+  name?"); said plainly it's 32.
+- "i got your white bed!" ("for the notice", "i have the paper") to whoever put up that notice, or asked them to bring it:
+  "toss it over" if they carry it, "toss what you got, need 3 in all", or "you dont have it on you" (it was "none spare.
+  and my bed is mine", as asking it for one). Things are handed over by tossing them.
+
+Headless tested: tools/smoke-town-story.txt (a town made ready), the shout and the notice talk (a town with notices), and
+tools/smoke-playertalk-day.txt.

@@ -35,3 +35,15 @@ drifter hear u right.
 wait 5
 drifter hear got you
 wait 5
+drifter giveall bread 6
+wait 1
+drifter hear nice to meet you rosie im minecraft
+wait 5
+drifter hear you have any food?
+wait 5
+drifter hear can i have some?
+wait 5
+drifter hear food
+wait 5
+drifter hear i love the armor
+wait 5

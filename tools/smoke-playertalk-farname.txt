@@ -1,0 +1,24 @@
+# Said in play (2026-11-15): a far-off Drifter's name shouted ("2 JELLY!", it not loaded) isn't answered by one close by;
+# asking where it is still is.
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+kill @e[type=drifter:drifter]
+wait 1
+drifter spawn 2Jelly
+wait 1
+tp @e[type=drifter:drifter,name=2Jelly] ~600 ~ ~600
+wait 10
+drifter spawn Cara
+wait 2
+drifter hear cara
+wait 4
+drifter hear 2 JELLY
+wait 4
+drifter hear 2JELLY!
+wait 4
+drifter hear do you know where 2jelly is?
+wait 4
+drifter hear hows it going
+wait 4
