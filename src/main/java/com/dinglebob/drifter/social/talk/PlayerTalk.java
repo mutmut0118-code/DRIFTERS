@@ -972,8 +972,11 @@ public final class PlayerTalk {
 			}
 		}
 
-		if (said.contains("food") || said.contains("wood")) {
-			return said.contains("food") ? "food" : "wood";
+		// (As chat is read, letters run together once: "food" is "fod". Found in play: "u got food?" got "have what".)
+		String food = singular(Lines.normalize("food").trim());
+		String wood = singular(Lines.normalize("wood").trim());
+		if (said.contains(food) || said.contains(wood) || said.contains("food") || said.contains("wood")) {
+			return said.contains(food) || said.contains("food") ? "food" : "wood";
 		}
 
 		Item best = null;

@@ -1,0 +1,21 @@
+# Asking after it and asking for things (0.23.68-side.2): "you doing okay?" asks how it is (not "nice"), "u got food?"
+# asks if it has food, "you got it" is not a "do you have".
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+drifter spawn Rosie
+drifter giveall bread 4
+wait 2
+drifter hear hello rosie
+wait 5
+drifter hear you doing okay?
+wait 5
+drifter hear u got food?
+wait 5
+drifter hear you got it
+wait 5
+drifter hear everything okay?
+wait 5
+drifter hear no problem
+wait 5

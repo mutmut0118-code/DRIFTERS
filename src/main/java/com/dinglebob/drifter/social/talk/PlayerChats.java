@@ -65,6 +65,8 @@ public final class PlayerChats {
 		final long since;
 		/** It said something (a topic whose lines didn't fit says nothing, and asks nothing). */
 		boolean said;
+		/** Its question is asked already (with its last line). */
+		boolean asked;
 
 		Opening(DrifterEntity drifter, ServerPlayer player, Topics.Topic topic, long now) {
 			this.drifter = drifter;
@@ -249,6 +251,7 @@ public final class PlayerChats {
 				// (Its last line asks something: the answer's awaited from now, not from after its pause. Found in testing, 0.23.64: a
 				// "yes" a few seconds after a quest was asked came before the question was open, and got "wdym".)
 				if (opening.turn >= opening.topic.turns().size() && opening.topic.question() != null) {
+					opening.asked = true;
 					PlayerTalk.ask(opening.drifter, opening.player, opening.topic.question(), vars(opening), now, opening.topic.id());
 				}
 
@@ -262,7 +265,9 @@ public final class PlayerChats {
 
 	/** Said its piece: it waits for an answer to its question, or a bystander may add something. */
 	private static void end(Opening opening, long now) {
-		if (opening.topic.question() != null && opening.said) {
+		// (Not asked again once it's asked with the last line: a "yes" to that, then another "yes", was two yeses. Found in play:
+		// "i got you", "yes", and the quest's thanks said twice.)
+		if (opening.topic.question() != null && opening.said && !opening.asked) {
 			PlayerTalk.ask(opening.drifter, opening.player, opening.topic.question(), vars(opening), now, opening.topic.id());
 		}
 

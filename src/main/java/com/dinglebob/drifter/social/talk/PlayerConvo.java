@@ -1152,7 +1152,7 @@ public final class PlayerConvo {
 		boolean guarded = drifter.getPersonality().archetype() == Archetype.HOARDER
 			&& drifter.getSocial().getOrMeet(player.getUUID(), player.getGameProfile().getName()).trust < Mode.FRIENDLY_TRUST;
 		say(drifter, player, guarded ? "convo.have.guarded" : count > 0 ? "convo.have.yes" : "convo.have.no", null, "item", what, "count",
-			count >= 64 ? "a stack of" : count > 8 ? "plenty of" : count > 1 ? "a few" : "one");
+			count >= 64 ? "a stack of" : count > 8 ? "plenty of" : what.equals("food") || what.equals("wood") ? "some" : count > 1 ? "a few" : "one");
 	}
 
 	private static final Map<String, EquipmentSlot> WORN = Map.ofEntries(Map.entry("helmet", EquipmentSlot.HEAD), Map.entry("hat", EquipmentSlot.HEAD),

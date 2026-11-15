@@ -4096,3 +4096,10 @@ somewhere and going where asked (0.85), standing to talk (0.81); still after dan
    - "no problem" or "i will tell them" after it thanks you should get a normal answer.
 7. **Thank-you letters.** After finishing a job, no thank-you letter or message from that person for at least a day (it
    used to come within a minute).
+
+## 0.23.68-side.2: asked twice, and asking after it (new)
+
+1. Take a job from a townsperson and answer its question with two yeses ("i got you", then "yes"). The thank-you line
+   should come once.
+2. Say "you doing okay?" to a Drifter: an answer about how it is, not "nice".
+3. Say "u got food?" to one with food: "some food in my inv" or similar, not "no idea what that means".

@@ -7086,3 +7086,14 @@ lines? so if someone says something it actually makes sense"):
 Not tested in game: the wrong-town answers and the word hand-in by chat (needs a town and a word quest); headless tested:
 claims in sun and rain, gear praise to a Drifter in no armor, a name called from beside, a far Drifter's name alone,
 "where is" someone unknown.
+
+## 0.23.68-side.2: asked twice, and asking after it (new)
+
+From the user's screenshots (2026-11-14):
+
+- A question it asks (a quest, a favor) was opened twice: with its last line and again when it had said its piece. A
+  yes to the first ("i got you") and then another ("yes") were two yeses: the quest's thanks came twice. Asked once now.
+- "you doing okay?" (and "you doing alright", "how you holding up", "you feeling ok") asks how it is; it got "nice", as
+  if they'd said they were fine.
+- "u got food?" ("got food", "any food", "u got any") asks what it has. "Food" and "wood" were never found in a message:
+  chat is read with doubled letters run together, "fod". "some food", not "a few food".
