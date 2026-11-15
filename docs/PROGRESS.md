@@ -3559,6 +3559,9 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
     one of 15 forms: the
     Kingdom of / Realm of / Crown of / Duchy of / Lands of / Principality of / Commonwealth of / Free Cities of / Republic
     of X, the X Union / League / Accord / Dominion / Confederacy, or just X. Never a place's name or another nation's.
+  - Nations formed in play (towns uniting, a conquest) named the same way, as countries (they were "the <capital> League"),
+    keeping the flavour of how they came about (an aggressive ruler: a Dominion, a Realm, a Crown; a warm one: a League, an
+    Accord, a Union).
   - Debug commands that take a town's name take a two-word one with an underscore (`Highmoor_Cross`).
   - Seen in a new world (seed 4242): the Principality of Sarithia, the Crown of Torica, the Caelmarch Dominion, Eldoth...;
     Stillmoor, Barleykeep, Ivythorpe, Elderminster, Wolfworth, Longreach, High Sparrowbridge, Lower Snowmarsh, Candlewick.

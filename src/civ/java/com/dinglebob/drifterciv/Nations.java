@@ -427,8 +427,17 @@ final class Nations {
 		String[] forms = conquest || aggression >= 0.65 ? new String[] {"the %s Dominion", "the Realm of %s", "the %s Dominion", "the Crown of %s"}
 			: warmth >= 0.6 ? new String[] {"the %s League", "the %s Accord", "the %s League", "the Union of %s"}
 			: new String[] {"the Kingdom of %s", "the %s Union", "the Lands of %s", "the %s Union"};
-		String name = String.format(java.util.Locale.ROOT, forms[random.nextInt(forms.length)], capital.name);
-		return nations.values().stream().anyMatch(n -> n.name.equals(name)) ? "the Greater " + capital.name + " Union" : name;
+		// (A country's own name, not its capital's: the user, 2026-11-15, "make the nation name different from the capital name,
+		// kinda like a country, and its states". None another nation's or a town's.)
+		for (int i = 0; i < 100; i++) {
+			String bare = PlaceNames.bare(PlaceNames.realm(random));
+			String name = String.format(java.util.Locale.ROOT, forms[random.nextInt(forms.length)], bare);
+			if (nations.values().stream().noneMatch(n -> PlaceNames.bare(n.name).equals(bare)) && Towns.all().stream().noneMatch(t -> t.name.equals(bare))) {
+				return name;
+			}
+		}
+
+		return "the Greater " + capital.name + " Union";
 	}
 
 	/**

@@ -63,7 +63,7 @@ final class PlaceNames {
 	/** Its kind of country. */
 	private static final String[] REALM_FORMS = {"the Kingdom of %s", "the Realm of %s", "the Crown of %s", "the Duchy of %s", "the Lands of %s",
 		"the Principality of %s", "the Commonwealth of %s", "the Free Cities of %s", "the %s Union", "the %s League", "the %s Accord", "the %s Dominion",
-		"the %s Confederacy", "the Republic of %s", "%s"};
+		"the %s Confederacy", "the Republic of %s", "the Union of %s", "%s"};
 
 	/** A place's name (not checked against others: the caller tries again if it's taken). */
 	static String place(RandomSource random) {
