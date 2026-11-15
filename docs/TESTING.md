@@ -4111,3 +4111,13 @@ somewhere and going where asked (0.85), standing to talk (0.81); still after dan
    - "no problem" or "i will tell them" after it thanks you should get a normal answer.
 7. **Thank-you letters.** After finishing a job, no thank-you letter or message from that person for at least a day (it
    used to come within a minute).
+
+## 0.23.70: place and nation names (new)
+
+In a **new world**.
+
+- [ ] **More varied town names**: far fewer repeats; some one word of their own (Saltmarsh, Candlewick), some two words
+      (Lower Snowmarsh, Highmoor Cross); never a doubled piece like "Hollowhollow".
+- [ ] **Nations have a country's name of their own** (the Kingdom of Valdoria, the Caelmarch Dominion, Eldoth), not their
+      capital's. Their capital is a town with its own name.
+

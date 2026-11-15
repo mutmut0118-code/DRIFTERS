@@ -26,10 +26,6 @@ public final class Towns {
 	/** Towns are at least this far apart (the user, 2026-10-21: "go with your recommendations"). */
 	public static final int MIN_SPACING = 300;
 	private static final int SAVE_VERSION = 1;
-	private static final String[] FIRST = {"Oak", "Iron", "Stone", "Ash", "Elder", "Raven", "Wolf", "Mill", "Brook", "Fair", "High", "Red", "Cold",
-		"West", "Thorn", "Willow", "Copper", "Amber", "Hollow", "Pine"};
-	private static final String[] LAST = {"ford", "vale", "hollow", "stead", "wick", "bury", "field", "ridge", "haven", "moor", "brook", "crest", "dale",
-		"gate", "mere"};
 
 	private static final Map<UUID, Town> towns = new LinkedHashMap<>();
 
@@ -106,10 +102,10 @@ public final class Towns {
 		return best;
 	}
 
-	/** A town's name nobody has yet. */
+	/** A town's name nobody has yet ({@link PlaceNames}). */
 	public static String newName(RandomSource random) {
 		for (int i = 0; i < 50; i++) {
-			String name = FIRST[random.nextInt(FIRST.length)] + LAST[random.nextInt(LAST.length)];
+			String name = PlaceNames.place(random);
 			if (towns.values().stream().noneMatch(town -> town.name.equals(name))) {
 				return name;
 			}

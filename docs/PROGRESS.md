@@ -3517,6 +3517,20 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.70: place names from bigger lists, of one word and of two; nations named as countries** (the user, 2026-11-15:
+  "bigger lists / single word and two word / no doubles / and make the nation name different from the capital name, kinda
+  like a country, and its states"). Addon only, new worlds (names already given keep).
+  - `PlaceNames`: most names still two pieces run together, from 136 first pieces and 77 endings (were 20 and 15:
+    300 names); one in ten a whole word of its own (Saltmarsh, Candlewick, Hawksnest; 60 of them); about one in seven two
+    words, a word before or after (Lower Snowmarsh, High Sparrowbridge, Highmoor Cross). Never a piece twice (Hollowhollow,
+    Brookbrook), nor three letters the same in a row, nor a vowel run against a vowel.
+  - Nations named on their own, as countries, from pieces of their own (Val + doria, Cael + march) in one of 15 forms: the
+    Kingdom of / Realm of / Crown of / Duchy of / Lands of / Principality of / Commonwealth of / Free Cities of / Republic
+    of X, the X Union / League / Accord / Dominion / Confederacy, or just X. Never a place's name or another nation's.
+  - Debug commands that take a town's name take a two-word one with an underscore (`Highmoor_Cross`).
+  - Seen in a new world (seed 4242): the Principality of Sarithia, the Crown of Torica, the Caelmarch Dominion, Eldoth...;
+    Stillmoor, Barleykeep, Ivythorpe, Elderminster, Wolfworth, Longreach, High Sparrowbridge, Lower Snowmarsh, Candlewick.
+
 - **0.23.69: more kinds of board notices; townsfolk carry purses; artifacts as a rare treasure** (the user, 2026-11-14:
   "lets make some more board notices!" then "Yes, build those five"; "lets make rewards compatible with artifacts (the
   mod) ... emphasis on rare"; "too many quests with words, no actual rewards ... almost every drifter that quests me says

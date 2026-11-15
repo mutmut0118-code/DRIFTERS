@@ -1661,10 +1661,22 @@ final class WorldPlan {
 			return "Town " + (this.names.size() + 1);
 		}
 
+		/**
+		 * A nation's name of its own, a country's, not its capital's (the user, 2026-11-15: "make the nation name different
+		 * from the capital name, kinda like a country, and its states"): none sharing its bare name with another nation or a
+		 * place.
+		 */
 		private String nationName(String capital) {
-			String[] forms = {"the Kingdom of %s", "the %s Union", "the Lands of %s", "the %s League", "the %s Accord", "the Realm of %s", "the %s Dominion",
-				"the Crown of %s"};
-			return String.format(java.util.Locale.ROOT, forms[this.random.nextInt(forms.length)], capital);
+			net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(this.random.nextLong());
+			for (int i = 0; i < 100; i++) {
+				String name = PlaceNames.realm(random);
+				String bare = PlaceNames.bare(name);
+				if (!bare.equals(capital) && !this.names.contains(bare) && this.nations.stream().noneMatch(n -> PlaceNames.bare(n.name()).equals(bare))) {
+					return name;
+				}
+			}
+
+			return "the Lands of " + capital;
 		}
 
 		// ----- The land (from the generator) -----

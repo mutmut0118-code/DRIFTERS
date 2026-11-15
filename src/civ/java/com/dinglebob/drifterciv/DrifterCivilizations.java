@@ -352,7 +352,7 @@ public final class DrifterCivilizations implements ModInitializer {
 				// Debug: the named town joins the nearest one's nation at once (a new one, the nearest its capital), no envoy.
 				.then(Commands.literal("join").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name.replace(' ', '_')), builder))
 						.executes(ctx -> {
 							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
 							Town other = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "other"));
@@ -368,7 +368,7 @@ public final class DrifterCivilizations implements ModInitializer {
 				// Debug: the named town goes free of its nation at once (as a ruler letting it go), no envoy.
 				.then(Commands.literal("free").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("town", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name.replace(' ', '_')), builder))
 						.executes(ctx -> {
 							Town town = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "town"));
 							var nation = town == null ? null : Nations.of(town);
@@ -386,7 +386,7 @@ public final class DrifterCivilizations implements ModInitializer {
 				.executes(DrifterCivilizations::relations)
 				.then(Commands.literal("set").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name.replace(' ', '_')), builder))
 						.then(Commands.argument("standing", IntegerArgumentType.integer(-100, 100)).executes(ctx -> {
 							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
 							Town other = named(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "other"));
@@ -405,15 +405,15 @@ public final class DrifterCivilizations implements ModInitializer {
 				// Debug: war declared at once (no envoy), or a white peace made at once.
 				.then(Commands.literal("war").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name.replace(' ', '_')), builder))
 						.executes(ctx -> warOrPeace(ctx, true))))
 				.then(Commands.literal("peace").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name.replace(' ', '_')), builder))
 						.executes(ctx -> warOrPeace(ctx, false))))
 				.then(Commands.literal("envoy").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("other", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(Towns.all().stream().map(t -> t.name.replace(' ', '_')), builder))
 						.then(Commands.argument("what", com.mojang.brigadier.arguments.StringArgumentType.word())
 							.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("trade", "peace", "alliance", "insult", "war", "terms",
 								"demand", "union", "submit", "independence"), builder))
@@ -1418,7 +1418,9 @@ public final class DrifterCivilizations implements ModInitializer {
 
 	@org.jetbrains.annotations.Nullable
 	private static Town named(String name) {
-		return Towns.all().stream().filter(t -> t.name.equalsIgnoreCase(name)).findFirst().orElse(null);
+		// (A name of two words typed with an underscore: one word for the command.)
+		String spaced = name.replace('_', ' ');
+		return Towns.all().stream().filter(t -> t.name.equalsIgnoreCase(spaced)).findFirst().orElse(null);
 	}
 
 	/** (Debug.) What's in the player's hand to this Drifter, as if thrown to it. */
