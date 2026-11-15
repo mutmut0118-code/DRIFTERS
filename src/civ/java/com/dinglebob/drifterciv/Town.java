@@ -226,6 +226,10 @@ public final class Town {
 	 */
 	@Nullable
 	public UUID leader;
+	/** Whether its treasure (an Artifacts item its leader keeps, now and then) has been decided (NoticeKinds). */
+	public boolean treasureDecided;
+	/** What it owes players for notices filled and not yet paid in full (points), by player. */
+	public final java.util.Map<UUID, Double> owedPlayers = new java.util.HashMap<>();
 	public long leaderSince;
 	public long nextElection = -1;
 	public final List<UUID> candidates = new ArrayList<>();
@@ -350,6 +354,10 @@ public final class Town {
 		tag.putString("Dimension", this.dimension);
 		tag.putLong("Center", this.center.asLong());
 		tag.putLong("FoundedDay", this.foundedDay);
+		tag.putBoolean("Treasure", this.treasureDecided);
+		CompoundTag owedPlayers = new CompoundTag();
+		this.owedPlayers.forEach((id, points) -> owedPlayers.putDouble(id.toString(), points));
+		tag.put("OwedPlayers", owedPlayers);
 		tag.putBoolean("Spawned", this.spawned);
 		ListTag lanes = new ListTag();
 		for (TownRoads.Road lane : this.lanes) {
@@ -660,6 +668,14 @@ public final class Town {
 		town.wagesPaid = tag.getDouble("WagesPaid");
 		town.drifterTrades = tag.getInt("DrifterTrades");
 		town.leader = tag.hasUUID("Leader") ? tag.getUUID("Leader") : null;
+		town.treasureDecided = tag.getBoolean("Treasure");
+		CompoundTag owesPlayers = tag.getCompound("OwedPlayers");
+		for (String key : owesPlayers.getAllKeys()) {
+			try {
+				town.owedPlayers.put(UUID.fromString(key), owesPlayers.getDouble(key));
+			} catch (IllegalArgumentException ignored) {
+			}
+		}
 		town.leaderSince = tag.getLong("LeaderSince");
 		town.nextElection = tag.contains("NextElection") ? tag.getLong("NextElection") : -1;
 		for (Tag one : tag.getList("Candidates", Tag.TAG_COMPOUND)) {

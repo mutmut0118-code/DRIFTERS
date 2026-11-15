@@ -4073,6 +4073,21 @@ here" got "ok" from the town's keeper, which went on keeping its stall (0.79) ov
 player asked and it agreed to now comes before everyday work: going over, helping, giving (0.86-0.88), leading them
 somewhere and going where asked (0.85), standing to talk (0.81); still after danger and getting in for the night.
 
+## 0.23.69: more board notices; purses; artifacts (new)
+
+- [ ] **Read a town's board** (or your journal, Quests page): besides the shopkeeper's, notices from its workers ("the
+      smith needs iron"), for made things ("anyone able to make a bucket?"), for a festival coming up, a monster cull
+      after monsters came by at night ("too many zombies at night: kill 6"), and a bandit bounty when bandits are about.
+- [ ] **Fill one.** Goods: throw them to whoever put it up. A cull or bounty: kill them in and about the town, then walk
+      up to whoever put it up: they pay you.
+- [ ] **Notice pay is yours only:** nobody else can pick up the coins. If they're short, they say so and the town owes
+      you the rest (its shopkeeper or leader pays when you're next by).
+- [ ] **Quests pay more often now:** townsfolk fill their purses from their savings at home, so after a night in town
+      they have money to promise. Fewer "carry a word" quests; workers ask for what their work needs.
+- [ ] **Rare:** in about one town in eight the leader keeps an Artifacts item. Do it a big job (a bandit, say) and it
+      may be your prize.
+- Debug: `/drifterciv notices` lists the nearest town's notices; `/drifterciv notices post` puts one up now.
+
 ## 0.23.68-side.1: it only says what's so (new)
 
 1. **Gear and weather lines.** Take your armor off and chat with Drifters a while (or let one bring something up with
@@ -4097,7 +4112,7 @@ somewhere and going where asked (0.85), standing to talk (0.81); still after dan
 7. **Thank-you letters.** After finishing a job, no thank-you letter or message from that person for at least a day (it
    used to come within a minute).
 
-## 0.23.68-side.2: asked twice, and asking after it (new)
+## 0.23.69-side.1: asked twice, and asking after it (new)
 
 1. Take a job from a townsperson and answer its question with two yeses ("i got you", then "yes"). The thank-you line
    should come once.

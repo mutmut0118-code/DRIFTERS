@@ -3517,6 +3517,40 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.69: more kinds of board notices; townsfolk carry purses; artifacts as a rare treasure** (the user, 2026-11-14:
+  "lets make some more board notices!" then "Yes, build those five"; "lets make rewards compatible with artifacts (the
+  mod) ... emphasis on rare"; "too many quests with words, no actual rewards ... almost every drifter that quests me says
+  they have no money on them (even the leader of the town, who holds a diamond sword)"; "i completed a notice for 2
+  silver ... but i didnt get my 2 silver").
+  - **Notices** (`NoticeKinds.java`; saved `Kind`, `About` on a notice): a worker's needs (the smith's iron, the
+    builder's stone bricks, the fletcher's feathers, the cook's ingredients...: handed to that worker); something made
+    (a bucket, shears, a bed, a shield, a lantern...); a festival's wants in the days before it (cakes, pies, cookies,
+    flowers, lanterns, candles); a cull of the monsters its people saw about the town that night (a bounty a head; kills
+    in and about the town count); and with bandits about (the board's warning), a bounty on them. Kill notices are paid by
+    whoever put them up when they see the player close by. Up to 5 on a board (6 in a city), 2 a morning in a town of 15
+    or more. Debug: `/drifterciv notices` (list), `notices post`, `notices goto`.
+  - **Purses** (`Rewards.purses`): a townsperson with its own chest in reach and in sight tops its pockets up from its
+    savings (12 silver; its shopkeeper 20, its leader 40): it was all in their chests, so nobody had money to promise.
+  - **Quests**: a worker asks for what its work lacks (the "need" kind, paid from its purse); carrying word is asked last
+    seven times in ten.
+  - **Notice pay**: the coins are the player's only to pick up (a passer-by took the user's 2 silver); what a poster
+    can't pay is owed (`Town.owedPlayers`, saved) and paid by the town's keeper or leader when they next see them.
+  - **A town's treasure**: once a town, with its leader about, one town in eight (a city one in three) has its leader keep
+    an Artifacts item from the start (none without that mod); given only as the prize for a job of 30 silver or more,
+    never in kind (`Rewards`).
+  - **Tested** in the dev client: zombies seen at night, a cull notice put up by a guard, six kills counted, paid when
+    walked up to; a made notice and goods notices; work-needs quests asked. **Not tested:** filling a worker's, made or
+    festival notice by hand, the bandit bounty, purses filling (nobody went home in the test), artifacts (the mod isn't
+    in the dev game).
+  - **Review** (one fresh reviewer; fixed, built, the cull test run again): a kill notice done but not yet paid was lost
+    when it came down, and never paid if its poster died (now owed by the town); a bandit bounty paid for a town's own
+    crook; debts paid only by a keeper (now keeper or leader); purses took money through walls (now in sight); also coins
+    lost putting back to a full chest, a treasure lost to full pockets, a cull's icon blocking a goods notice, one kill
+    paying every nearby town, "drowneds", a removed mod's item read "air".
+  - **Rulings (my calls):** the treasure is the leader's own from the start (a starting kit, so fair); an artifact only
+    for a job of 30 silver or more; a cull of one sighting at least; the first to finish a kill notice is paid.
+  - **Deferred minors:** a town decided small keeps its odds of a treasure; others' progress on a kill notice is lost
+    when one finishes; without coins small debts round up to an emerald.
 - **0.23.68: the economy balanced** (the user, 2026-11-14: "just correct the whole economy to where its balanced. i feel
   like doing one board quest makes me mega rich with trading, since most things cost one silver coin"; also a notice of
   "52 silver" showing "50 silver" in the journal, and a stall's coal block and raw meat).
@@ -7087,7 +7121,7 @@ Not tested in game: the wrong-town answers and the word hand-in by chat (needs a
 claims in sun and rain, gear praise to a Drifter in no armor, a name called from beside, a far Drifter's name alone,
 "where is" someone unknown.
 
-## 0.23.68-side.2: asked twice, and asking after it (new)
+## 0.23.69-side.1: asked twice, and asking after it (new)
 
 From the user's screenshots (2026-11-14):
 

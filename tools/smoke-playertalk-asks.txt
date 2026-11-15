@@ -1,4 +1,4 @@
-# Asking after it and asking for things (0.23.68-side.2): "you doing okay?" asks how it is (not "nice"), "u got food?"
+# Asking after it and asking for things (0.23.69-side.1): "you doing okay?" asks how it is (not "nice"), "u got food?"
 # asks if it has food, "you got it" is not a "do you have".
 until Done_( 900
 wait 3
