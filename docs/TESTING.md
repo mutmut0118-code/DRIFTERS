@@ -32,7 +32,7 @@ cleared along it, no road blocks or lamps on treetops; far houses stand on level
 town still looks like a ruin and the real one isn't, tell me its name (it's in the journal or on the signs) or the
 coordinates.
 
-**0.23.70-side.1 (re-test after fix), in a new world with Voxy and Voxy SeedGen:**
+**0.23.70-side.2 (re-test after fix), in a new world with Voxy and Voxy SeedGen:**
 
 1. **The town is there when you arrive.** Head for a far town on foot, by horse or flying in creative: the real town
    should be standing when you get there, not a field. (Very fast travel, an elytra with rockets, can still outrun it.)

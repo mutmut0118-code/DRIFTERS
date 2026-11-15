@@ -61,7 +61,7 @@ the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings
   jungle to a city (`docs/superpowers/shots/grade-road-day.png`). The user's own game ran 0.23.63-side.2 fine (31
   places sketched in 4.8 s, Voxy painting, the far land starting over after a move): the installed jar's hookup works.
 
-- **After the user's second look (0.23.70-side.1, branch `claude/elastic-leakey-afebd2`; the user, 2026-11-15: "the
+- **After the user's second look (0.23.70-side.2, branch `claude/elastic-leakey-afebd2`, with the player talk branch's 0.23.70-side.1 merged in; the user, 2026-11-15: "the
   town itself doesnt load before the lod, so when i get to the town its just a field", "cities with stone paths are
   shown, its always a brown path", "the house placing should be more accurate", "roads between towns stick out from
   the ground alot, giving it a bump", "villages are shown in voxy ... something to do with the seedgen").**
