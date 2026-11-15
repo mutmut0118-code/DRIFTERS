@@ -7194,3 +7194,17 @@ From the user's play screenshots (2026-11-15: HeyNimbus, piggy270, Dino_yt):
   there").
 
 Not tested in game; headless: each of these, and the 90 ways of asking in `tools/smoke-loose.txt` as before.
+
+## Next build (not built yet; the user, 2026-11-15: "dont build a new side yet, just work on the bugs")
+
+From play screenshots:
+
+- "i dont even know you" (and "who are you", "never met you", "have we met"...) isn't said to a player it knows (met a few
+  times, or trusted): found in play from Dino_yt, who'd given them a job. Any line of an answer, by pattern (PlayerTalk.met).
+- "i told him", "told her", "passed it on", "let them know", "took care of it" hand in a word (Quests.SAYS_DONE). "i told
+  him" was "lost me there".
+- "thank yo" (and "thnks", "thanx", "thankyou") is a thanks: it got "hi there" (the "yo").
+- A far-off Drifter's name shouted ("2 JELLY!", it not loaded): nobody close by answers it (it was "didnt catch that").
+  Every Drifter of the world counts, loaded or not; "2 jelly" as one word too.
+
+Headless tested: tools/smoke-playertalk-knows.txt, tools/smoke-playertalk-farname.txt.

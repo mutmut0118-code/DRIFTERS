@@ -91,6 +91,31 @@ public final class PlayerTalk {
 		return mine != null ? mine : old;
 	}
 
+	/** A line saying it doesn't know who they are. */
+	private static final Pattern STRANGER = Pattern.compile("\\b(?:i )?(?:dont|don't|do not) (?:even )?know (?:you|u|ya)\\b|\\bwho (?:even )?(?:are|r) "
+		+ "(?:you|u)\\b|\\bnever (?:met|seen) (?:you|u)\\b|\\bhave we met\\b|\\bwhos this\\b|\\bwho is this\\b|\\bdo i know (?:you|u)\\b");
+
+	/**
+	 * These lines, less the ones saying it doesn't know them when it does (the player it's talking with: met a few times, or
+	 * trusted; found in play, "i dont even know you" from one who'd given them a job). All of them if that leaves none.
+	 */
+	private static Map<String, List<String>> met(DrifterEntity drifter, Map<String, List<String>> voices) {
+		UUID partner = PlayerConvo.partner(drifter);
+		com.dinglebob.drifter.social.Relationship r = partner == null ? null : drifter.getSocial().get(partner);
+		if (voices.isEmpty() || r == null || r.familiarity < FAMILIAR && r.trust < KNOWS_THEM) {
+			return voices;
+		}
+
+		Map<String, List<String>> kept = new HashMap<>();
+		voices.forEach((voice, lines) -> {
+			List<String> fit = lines.stream().filter(line -> !STRANGER.matcher(line.toLowerCase(Locale.ROOT)).find()).toList();
+			if (!fit.isEmpty()) {
+				kept.put(voice, fit);
+			}
+		});
+		return kept.isEmpty() ? voices : kept;
+	}
+
 	/** A thing of its own praised ("i like your pickaxe", "nice iron boots"): its word. */
 	private static final Pattern PRAISED = Pattern.compile("\\b(?:your|ur|that|those|this|nice|cool|sick|sweet|fancy|great|awesome|neat|love the|loving the"
 		+ "|like the|dig the|digging the)\\s+(?:[a-z]+\\s+)?(pickaxe|pick|axe|sword|bow|crossbow|shield|trident|mace|hoe|shovel|helmet|helm|chestplate"
@@ -587,6 +612,16 @@ public final class PlayerTalk {
 				if (entity instanceof DrifterEntity drifter && !near.contains(drifter) && SocialWatcher.called(words, drifter.getName().getString())) {
 					return true;
 				}
+			}
+		}
+
+		// (Far off, not loaded: found in play, "2 JELLY!" got "didnt catch that" from one beside them. "2 jelly" as one word too.)
+		java.util.Set<UUID> here = new java.util.HashSet<>();
+		near.forEach(drifter -> here.add(drifter.getUUID()));
+		String joined = " " + String.join("", rest) + " ";
+		for (com.dinglebob.drifter.api.DrifterRecord record : com.dinglebob.drifter.world.DrifterRegistry.records()) {
+			if (!here.contains(record.id()) && (SocialWatcher.called(words, record.name()) || SocialWatcher.called(joined, record.name()))) {
+				return true;
 			}
 		}
 
@@ -1223,9 +1258,9 @@ public final class PlayerTalk {
 	static boolean reply(DrifterEntity drifter, String said, @Nullable Runnable then, Object... vars) {
 		// (In the mood of the talk: its cold lines for someone it's wary of, when it has them for this.)
 		String toned = PlayerConvo.toned(drifter, said);
-		String first = toned.equals(said) ? null : Lines.pick(drifter, toned, vars);
+		String first = toned.equals(said) ? null : Lines.pickFrom(drifter, met(drifter, Lines.voices(toned)), vars);
 		String key = first != null ? toned : said;
-		String line = first != null ? first : Lines.pick(drifter, said, vars);
+		String line = first != null ? first : Lines.pickFrom(drifter, met(drifter, Lines.voices(said)), vars);
 		long now = drifter.level().getGameTime();
 		if (line == null) {
 			if (then != null) {

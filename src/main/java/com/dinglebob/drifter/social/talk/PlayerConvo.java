@@ -173,6 +173,19 @@ public final class PlayerConvo {
 	}
 
 	/** The line kind to say for this one, in the mood of the talk it's in: its cold or down lines when it has them. */
+	/** The player it's talking with now (its talk this last half minute), or null. */
+	@Nullable
+	static UUID partner(DrifterEntity drifter) {
+		long now = drifter.level().getGameTime();
+		for (Map.Entry<UUID, Convo> entry : convos.entrySet()) {
+			if (entry.getValue().drifter.equals(drifter.getUUID()) && now < entry.getValue().until + 20L * 30) {
+				return entry.getKey();
+			}
+		}
+
+		return null;
+	}
+
 	static String toned(DrifterEntity drifter, String key) {
 		if (convos.isEmpty()) {
 			return key;

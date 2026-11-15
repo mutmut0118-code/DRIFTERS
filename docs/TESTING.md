@@ -4152,3 +4152,10 @@ In a town of a morning, listen to the crier on the plaza:
    "glad to hear".
 5. "u need help?": "yeah, <what it needs>" or "im good".
 6. "got you" after a Drifter gives you a word to carry: an okay, not "lost me there".
+
+## Next build (not built yet)
+
+1. A Drifter that knows you (one you've talked with, or done a job for) never says "i dont even know you" or "who are you".
+2. Back with whoever gave you a word to carry: "i told him" or "passed it on" hands it in.
+3. "thank yo" is a thanks.
+4. Shout the name of a Drifter who's far away ("2 JELLY!"): nobody close by answers.
