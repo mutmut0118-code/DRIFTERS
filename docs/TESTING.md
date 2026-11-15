@@ -4173,7 +4173,7 @@ In a **new world** (old worlds: nations get a design now; banners already up sta
       Its leader makes a plain banner of the colour, gets the dyes, finds or sets up a loom near home, weaves the patterns
       on and stands it back on the plaza. (It can take a while: wool, flowers, string for a loom, and they finish what
       they're doing first, a mining trip can be 15 minutes.)
-- [ ] **The journal** shows nations' banners with their designs.
+- [ ] **The journal** shows nations' banners with their designs, also on history pages (wars, peace, alliances).
 
 ## 0.23.72: banner colours by colour theory (new)
 

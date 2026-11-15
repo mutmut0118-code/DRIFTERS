@@ -3517,6 +3517,10 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.73: the journal's history pages show nations' banners with their designs** (the user's picture, 2026-11-15: a war
+  page with plain pink and red banners). A story's banners come from the colour its nation had then (`Annals.picture`):
+  now with the nation's design on when it's still that colour.
+
 - **0.23.72: nations' banners coherent by colour theory; black and green dyes** (the user, 2026-11-15: "how can we make it
   coherent with color theory", then "go with your recommendation, add black and green"). Addon only.
   - `BannerDesigns.design` now picks its two colours by rules, not by chance:
