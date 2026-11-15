@@ -4167,3 +4167,12 @@ In a town of a morning, listen to the crier on the plaza:
 8. Shout a Drifter's name from far off ("JELLY!"): it calls back.
 9. Take a notice off the board, then tell its poster "i got your <thing>": "toss it over" (Q to throw it), or "you dont
    have it on you" if you don't.
+## 0.23.70: place and nation names (new)
+
+In a **new world**.
+
+- [ ] **More varied town names**: far fewer repeats; some one word of their own (Saltmarsh, Candlewick), some two words
+      (Lower Snowmarsh, Highmoor Cross); never a doubled piece like "Hollowhollow".
+- [ ] **Nations have a country's name of their own** (the Kingdom of Valdoria, the Caelmarch Dominion, Eldoth), not their
+      capital's. Their capital is a town with its own name.
+
