@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.Blocks;
  * @param lamps each {x, z}
  */
 record Sketch(UUID place, int x, int z, int y0, String style, String shape, double[] headings, double[] survey, long seed, int reach, boolean ruin, int[] plaza,
-	List<int[]> streets, List<Box> boxes, List<int[]> fields, List<int[]> lamps) {
+	List<int[]> streets, List<Box> boxes, List<int[]> fields, List<int[]> lamps, List<House> houses) {
 	/** The blocks a sketch's houses are of: a box names its walls' and its roof's by their place here. Add to the end only. */
 	static final List<Block> PALETTE = List.of(Blocks.OAK_PLANKS, Blocks.BIRCH_PLANKS, Blocks.SPRUCE_PLANKS, Blocks.DARK_OAK_PLANKS, Blocks.ACACIA_PLANKS,
 		Blocks.JUNGLE_PLANKS, Blocks.COBBLESTONE, Blocks.MOSSY_COBBLESTONE, Blocks.STONE_BRICKS, Blocks.SANDSTONE, Blocks.SMOOTH_SANDSTONE, Blocks.CUT_SANDSTONE);
@@ -39,6 +39,14 @@ record Sketch(UUID place, int x, int z, int y0, String style, String shape, doub
 		boolean contains(int x, int z) {
 			return x >= this.x0 && x <= this.x1 && z >= this.z0 && z <= this.z1;
 		}
+	}
+
+	/**
+	 * A house as the town planner placed it over the generator's land: its footprint, its ground's height, the house plan
+	 * that goes there, how it's turned and which way its front faces, and the plan's height. The real town puts the same
+	 * plan on the same spot where the real land lets it, so the far view's houses and the real ones are the same houses.
+	 */
+	record House(int x0, int z0, int x1, int z1, int base, String plan, int rotation, int front, int height) {
 	}
 
 	private static final int BOX_INTS = 11;
@@ -78,6 +86,15 @@ record Sketch(UUID place, int x, int z, int y0, String style, String shape, doub
 		tag.putIntArray("Boxes", boxes);
 		tag.putIntArray("Fields", pack(this.fields));
 		tag.putIntArray("Lamps", pack(this.lamps));
+		net.minecraft.nbt.ListTag houses = new net.minecraft.nbt.ListTag();
+		for (House house : this.houses) {
+			CompoundTag one = new CompoundTag();
+			one.putIntArray("At", new int[] {house.x0, house.z0, house.x1, house.z1, house.base, house.rotation, house.front, house.height});
+			one.putString("Plan", house.plan);
+			houses.add(one);
+		}
+
+		tag.put("Houses", houses);
 		return tag;
 	}
 
@@ -101,9 +118,17 @@ record Sketch(UUID place, int x, int z, int y0, String style, String shape, doub
 				(byte)packed[i + 8], packed[i + 9] == 1, packed[i + 10] == 1));
 		}
 
+		List<House> houses = new ArrayList<>();
+		for (net.minecraft.nbt.Tag one : tag.getList("Houses", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+			int[] at = ((CompoundTag)one).getIntArray("At");
+			if (at.length == 8) {
+				houses.add(new House(at[0], at[1], at[2], at[3], at[4], ((CompoundTag)one).getString("Plan"), at[5], at[6], at[7]));
+			}
+		}
+
 		return new Sketch(tag.getUUID("Place"), tag.getInt("X"), tag.getInt("Z"), tag.getInt("Y"), tag.getString("Style"), tag.getString("Shape"), headings,
 			survey, tag.getLong("Seed"), tag.getInt("Reach"), tag.getBoolean("Ruin"), tag.getIntArray("Plaza"), unpack(tag.getIntArray("Streets")), boxes,
-			unpack(tag.getIntArray("Fields")), unpack(tag.getIntArray("Lamps")));
+			unpack(tag.getIntArray("Fields")), unpack(tag.getIntArray("Lamps")), houses);
 	}
 
 	/** Lists of int arrays as one: each one's length, then its numbers. */

@@ -480,18 +480,53 @@ public final class TownBuilder {
 	 * The real town's job lays its own with the same code, shape, headings and seed ({@link Job#wantShape}).
 	 */
 	record Streets(Shape shape, double[] headings, List<Road> roads, int mains, Rect plaza, boolean river, boolean coast, boolean hill, double toWater,
-		double waterAway, double waterLine, int riverWidth, double uphill) {
+		double waterAway, double waterLine, int riverWidth, double uphill, List<Sketch.House> houses, @Nullable Rect store, List<Rect> fields, @Nullable Rect pen) {
 	}
 
-	/** Safe off the server thread: reads the land only through {@code land}, and nothing of the town builder's shared state. */
-	static Streets streets(TownLand land, long seed, String name, int cx, int cz, int households, boolean ruin, List<Double> gates) {
-		Job job = new Job(land, seed, name, cx, cz, households, ruin);
+	/** The house plans a town builds with. */
+	private static List<DrifterApi.HousePlanInfo> usablePlans(MinecraftServer server) {
+		return new ArrayList<>(DrifterApi.housePlans(server).stream()
+			.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) >= SMALLEST_HOUSE && Math.max(plan.sizeX(), plan.sizeZ()) <= BIGGEST_HOUSE
+				&& plan.sizeY() <= 24).toList());
+	}
+
+	/**
+	 * A place planned over this land as the real job plans it: its main roads, then (with a server to ask for the house
+	 * plans) its store, fields and pen, its side roads, and a spot for each house with the plan that goes there, the same
+	 * code and the same draws from its seed. Nothing's built. Safe off the server thread: it reads the land only through
+	 * {@code land}, and nothing of the town builder's shared state.
+	 */
+	static Streets streets(TownLand land, @Nullable MinecraftServer server, Style look, long seed, String name, int cx, int cz, int households, boolean ruin,
+		List<Double> gates) {
+		Job job = new Job(land, server, seed, name, cx, cz, households, ruin);
 		job.gates = gates;
+		job.look = look;
 		job.plaza = new Rect(cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA);
 		job.taken.add(job.plaza);
 		job.mainRoads();
-		return new Streets(job.shape, job.headings, List.copyOf(job.roads), job.mains, job.plaza, job.river, job.coast, job.hill, job.toWater, job.waterAway,
-			job.waterLine, job.riverWidth, job.uphill);
+		Shape shape = job.shape;
+		double[] headings = job.headings;
+		int mains = job.mains;
+		List<Sketch.House> houses = new ArrayList<>();
+		if (server != null) {
+			job.plans = usablePlans(server);
+			if (!job.plans.isEmpty()) {
+				job.lots();
+				// (Its steps one after another, as the real job runs them a few a tick: streets, then houses until they're all found.)
+				int ran = 0;
+				for (Job.Step step; (step = job.steps.poll()) != null && ran < 200_000; ran++) {
+					step.work().run();
+				}
+
+				for (Job.Pending spot : job.pending) {
+					houses.add(new Sketch.House(spot.site().x0(), spot.site().z0(), spot.site().x1(), spot.site().z1(), spot.base(), spot.plan().id(),
+						spot.rotation().ordinal(), spot.front().get2DDataValue(), spot.plan().sizeY()));
+				}
+			}
+		}
+
+		return new Streets(shape, headings, List.copyOf(job.roads), mains, job.plaza, job.river, job.coast, job.hill, job.toWater, job.waterAway, job.waterLine,
+			job.riverWidth, job.uphill, houses, job.storeRect, job.fieldRects == null ? List.of() : List.copyOf(job.fieldRects), job.penRect);
 	}
 
 	static final class Job {
@@ -549,6 +584,50 @@ public final class TownBuilder {
 		double[] headings = new double[0];
 		@Nullable
 		private Sketch sketch;
+		/** From its sketch: the spots and plans of its houses, taken as they are where the real land lets them stand. */
+		private List<Sketch.House> wantHouses = List.of();
+
+		/**
+		 * Its sketch's houses, each where the sketch has it with the plan the sketch gave it (what the far view has shown),
+		 * if it can stand there on the real land: in reach, clear of the store, the fields and the roads, the ground fit
+		 * for it. The rest of its houses are then found as ever.
+		 */
+		private void replay() {
+			int taken = 0;
+			for (Sketch.House house : this.wantHouses) {
+				if (this.pending.size() >= this.households) {
+					break;
+				}
+
+				DrifterApi.HousePlanInfo plan = this.plans.stream().filter(one -> one.id().equals(house.plan())).findFirst().orElse(null);
+				if (plan == null) {
+					continue;
+				}
+
+				Rect at = new Rect(house.x0(), house.z0(), house.x1(), house.z1());
+				if (!this.inReach(at) || this.taken.stream().anyMatch(other -> other.near(at, HOUSE_GAP))
+					|| this.houseRects.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) || this.standingNear(at, HOUSE_GAP + 2)
+					|| this.nearRoad(at, LEAST_SETBACK - 1)) {
+					continue;
+				}
+
+				Integer base = siteBase(this.land, at.x0(), at.z0(), at.x1(), at.z1());
+				if (base == null || GroundPlan.misfit(this.land, this.level, at, base, PAD_REACH) > 0) {
+					continue;
+				}
+
+				Rotation rotation = Rotation.values()[Math.floorMod(house.rotation(), Rotation.values().length)];
+				boolean turned = rotation == Rotation.CLOCKWISE_90 || rotation == Rotation.COUNTERCLOCKWISE_90;
+				this.pending.add(new Pending(at, base, plan, rotation, Direction.from2DDataValue(house.front()), turned ? plan.sizeZ() : plan.sizeX(),
+					turned ? plan.sizeX() : plan.sizeZ()));
+				this.houseRects.add(at);
+				taken++;
+			}
+
+			DrifterCivilizations.LOGGER.info("[sketch] {}: {} of its sketch's {} houses stand where the sketch has them", this.name, taken, this.wantHouses.size());
+			this.wantHouses = List.of();
+		}
+
 		/** From its sketch: what the land was found to be ({@link Sketch#survey}), taken as it is. */
 		@Nullable
 		private double[] wantSurvey;
@@ -560,6 +639,7 @@ public final class TownBuilder {
 				this.wantShape = Shape.byId(sketch.shape());
 				this.wantHeadings = sketch.headings();
 				this.wantSurvey = sketch.survey().length == 8 ? sketch.survey() : null;
+				this.wantHouses = sketch.houses();
 			}
 		}
 
@@ -721,10 +801,10 @@ public final class TownBuilder {
 		 * Only its main roads, over land that isn't there yet (a sketch: {@link TownBuilder#streets}): no level, nothing built.
 		 * The same draws from its seed, in the same order, as the real job's.
 		 */
-		private Job(TownLand land, long seed, String name, int cx, int cz, int households, boolean ruin) {
+		private Job(TownLand land, @Nullable MinecraftServer server, long seed, String name, int cx, int cz, int households, boolean ruin) {
 			this.level = null;
 			this.land = land;
-			this.server = null;
+			this.server = server;
 			this.random = RandomSource.create(seed);
 			this.dimension = "";
 			this.name = name;
@@ -799,9 +879,7 @@ public final class TownBuilder {
 			GROUND.clear();
 			arm = this.city ? CITY_ARM : ARM;
 			reach = this.city ? CITY_REACH : REACH;
-			this.plans = new ArrayList<>(DrifterApi.housePlans(this.server).stream()
-				.filter(plan -> Math.max(plan.sizeX(), plan.sizeZ()) >= SMALLEST_HOUSE && Math.max(plan.sizeX(), plan.sizeZ()) <= BIGGEST_HOUSE
-					&& plan.sizeY() <= 24).toList());
+			this.plans = usablePlans(this.server);
 			if (this.plans.isEmpty()) {
 				this.result = new Result(null, "No house plans to build with (see /drifter houses)");
 				return;
@@ -1676,7 +1754,7 @@ public final class TownBuilder {
 		private boolean anyWet(Rect rect) {
 			for (int x = rect.x0(); x <= rect.x1(); x++) {
 				for (int z = rect.z0(); z <= rect.z1(); z++) {
-					if (wet(this.level, x, z)) {
+					if (this.land.wet(x, z)) {
 						return true;
 					}
 				}
@@ -1717,7 +1795,7 @@ public final class TownBuilder {
 					continue;
 				}
 
-				Integer base = siteBase(this.level, site.x0(), site.z0(), site.x1(), site.z1());
+				Integer base = siteBase(this.land, site.x0(), site.z0(), site.x1(), site.z1());
 				if (base == null && (flat || this.anyWet(site))) {
 					continue;
 				}
@@ -1742,13 +1820,13 @@ public final class TownBuilder {
 				if (front != null && base != null) {
 					int ax = (front == Direction.EAST ? site.x1() : front == Direction.WEST ? site.x0() : (site.x0() + site.x1()) / 2) + front.getStepX() * away;
 					int az = (front == Direction.SOUTH ? site.z1() : front == Direction.NORTH ? site.z0() : (site.z0() + site.z1()) / 2) + front.getStepZ() * away;
-					rise = Math.abs(ground(this.level, ax, az) - base);
+					rise = Math.abs(this.land.ground(ax, az) - base);
 					if (facing && rise > away) {
 						continue;
 					}
 				}
 
-				int misfit = GroundPlan.misfit(this.level, site, base != null ? base : median(this.level, site.x0(), site.z0(), site.x1(), site.z1()), PAD_REACH);
+				int misfit = GroundPlan.misfit(this.land, this.level, site, base != null ? base : median(this.land, site.x0(), site.z0(), site.x1(), site.z1()), PAD_REACH);
 				double score = Math.sqrt(o[0] * o[0] + o[1] * o[1]) + (front != null ? away : 12) + 2 * rise + (base == null ? 20 : 0) + 4 * misfit;
 				if (score < bestScore) {
 					bestScore = score;
@@ -1775,7 +1853,7 @@ public final class TownBuilder {
 
 			Rect storeSite = store != null ? store.site() : new Rect(cx + 4, cz - 28, cx + 12, cz - 20);
 			this.storeFront = store != null ? store.front() : Direction.WEST;
-			this.storeBase = store != null && store.base() != null ? store.base() : median(this.level, storeSite.x0(), storeSite.z0(), storeSite.x1(),
+			this.storeBase = store != null && store.base() != null ? store.base() : median(this.land, storeSite.x0(), storeSite.z0(), storeSite.x1(),
 				storeSite.z1());
 			this.storeAt = new BlockPos(storeSite.x0(), this.storeBase + 1, storeSite.z0());
 			// (A block round it at its height, a doorstep; the land beyond eased to it.)
@@ -1837,7 +1915,7 @@ public final class TownBuilder {
 						continue;
 					}
 
-					Integer base = siteBase(this.level, spot.x0(), spot.z0(), spot.x1(), spot.z1());
+					Integer base = siteBase(this.land, spot.x0(), spot.z0(), spot.x1(), spot.z1());
 					if (base != null && base > bestHeight) {
 						bestHeight = base;
 						best = spot;
@@ -1873,9 +1951,12 @@ public final class TownBuilder {
 
 			int cx = this.cx;
 			int cz = this.cz;
-			this.y0 = median(this.level, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
-			this.look = Style.at(this.level, new BlockPos(cx, this.y0, cz));
-			style = this.look;
+			this.y0 = median(this.land, cx - PLAZA, cz - PLAZA, cx + PLAZA, cz + PLAZA) + 1;
+			// (A sketch has no level: its look is the generator's biome's, given it, and nothing shared is set off the server thread.)
+			if (this.level != null) {
+				this.look = Style.at(this.level, new BlockPos(cx, this.y0, cz));
+				style = this.look;
+			}
 			DrifterCivilizations.LOGGER.info("[town] {}: a {} town, {} roads", this.name, this.look.name(), this.roads.size());
 			this.then("houses", this::houses);
 		}
@@ -1998,6 +2079,10 @@ public final class TownBuilder {
 		private static final long TRYING_NANOS = 8_000_000L;
 
 		private void houses() {
+			if (this.round < 0 && !this.wantHouses.isEmpty()) {
+				this.replay();
+			}
+
 			long start = System.nanoTime();
 			while (System.nanoTime() - start < TRYING_NANOS) {
 				if (!this.roundOpen) {
@@ -2114,10 +2199,10 @@ public final class TownBuilder {
 				Rect at = site;
 				int why = !this.inReach(at) ? 0 : this.taken.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) ? 2
 					: this.houseRects.stream().anyMatch(other -> other.near(at, HOUSE_GAP)) || this.standingNear(at, HOUSE_GAP + 2) ? 3 : -1;
-				Integer base = why >= 0 ? null : siteBase(this.level, at.x0(), at.z0(), at.x1(), at.z1());
+				Integer base = why >= 0 ? null : siteBase(this.land, at.x0(), at.z0(), at.x1(), at.z1());
 				// (Not where its ground would be moved on out past its reach, or built up over water: too steep a hill, or a cliff
 				// of fill into a river; the user's pictures.)
-				int misfit = base == null ? 0 : GroundPlan.misfit(this.level, at, base, PAD_REACH);
+				int misfit = base == null ? 0 : GroundPlan.misfit(this.land, this.level, at, base, PAD_REACH);
 				if (misfit > 0) {
 					if (this.turnedDown[5] % 200 == 0) {
 						DrifterCivilizations.LOGGER.info("[town] {}: {} at {} too steep or by water by {}: {}", this.name, at, base, misfit, GroundPlan.why);
@@ -2210,6 +2295,11 @@ public final class TownBuilder {
 				this.pending.size(), this.households, this.roads.size(), this.turnedDown[0], this.turnedDown[1], this.turnedDown[2], this.turnedDown[3],
 				this.turnedDown[4], this.turnedDown[5]);
 			this.trimRoads();
+			// (A sketch: planned this far, nothing built.)
+			if (this.level == null) {
+				return;
+			}
+
 			this.built.addAll(this.taken);
 			this.built.addAll(this.houseRects);
 			// The ground shaped once for all of it (W2), a piece a step; then everything put up on it.
@@ -4820,10 +4910,14 @@ public final class TownBuilder {
 
 	/** The ground's middle height over this area. */
 	private static int median(ServerLevel level, int x0, int z0, int x1, int z1) {
+		return median(TownLand.of(level), x0, z0, x1, z1);
+	}
+
+	private static int median(TownLand land, int x0, int z0, int x1, int z1) {
 		List<Integer> heights = new ArrayList<>();
 		for (int x = x0; x <= x1; x++) {
 			for (int z = z0; z <= z1; z++) {
-				heights.add(ground(level, x, z));
+				heights.add(land.ground(x, z));
 			}
 		}
 
@@ -4834,14 +4928,19 @@ public final class TownBuilder {
 	/** The ground height a house over this area sits at, or null if it doesn't suit one (water, or too steep). */
 	@Nullable
 	private static Integer siteBase(ServerLevel level, int x0, int z0, int x1, int z1) {
+		return siteBase(TownLand.of(level), x0, z0, x1, z1);
+	}
+
+	@Nullable
+	private static Integer siteBase(TownLand land, int x0, int z0, int x1, int z1) {
 		List<Integer> heights = new ArrayList<>();
 		for (int x = x0; x <= x1; x++) {
 			for (int z = z0; z <= z1; z++) {
-				if (wet(level, x, z)) {
+				if (land.wet(x, z)) {
 					return null;
 				}
 
-				heights.add(ground(level, x, z));
+				heights.add(land.ground(x, z));
 			}
 		}
 

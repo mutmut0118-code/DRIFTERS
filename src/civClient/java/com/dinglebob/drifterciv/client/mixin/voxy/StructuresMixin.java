@@ -19,9 +19,16 @@ import mobius.voxyseedgen.terrain.Structures;
 @Pseudo
 @Mixin(targets = "mobius.voxyseedgen.terrain.Structures", remap = false)
 public class StructuresMixin {
+	private static volatile boolean said;
+
 	@Inject(method = "carriesStructure", at = @At("HEAD"), cancellable = true, remap = false)
 	private static void drifterciv$noVillages(long seed, Structures.Set set, int chunkX, int chunkZ, CallbackInfoReturnable<Boolean> info) {
 		if (set != null && set.name().equals("VILLAGE") && DrifterApi.villagesReplaced()) {
+			if (!said) {
+				said = true;
+				com.dinglebob.drifterciv.DrifterCivilizations.LOGGER.info("[far] Voxy: villages are left out of the far view (Drifter towns stand in for them)");
+			}
+
 			info.setReturnValue(false);
 		}
 	}

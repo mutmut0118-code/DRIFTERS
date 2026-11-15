@@ -48,7 +48,7 @@ final class Sketches {
 	}
 
 	/** The saved sketches' form: another number and they're made again. */
-	static final int SKETCH_VERSION = 1;
+	static final int SKETCH_VERSION = 2;
 	/** The land's height is asked for once a square this wide (the generator's answer takes half a millisecond). */
 	static final int GRID = 4;
 	/** A house box: how long along its road, how deep, how far back from the road's edge, how far from the next. */
@@ -177,7 +177,7 @@ final class Sketches {
 				if (mine == run) {
 					long one = System.nanoTime();
 					try {
-						Sketch sketch = make(predicted, worldSeed, spot);
+						Sketch sketch = make(predicted, server, worldSeed, spot);
 						if (mine == run) {
 							MADE.put(spot.id, sketch);
 							changes++;
@@ -215,14 +215,16 @@ final class Sketches {
 	// Making one
 	// ---------------------------------------------------------------------------------------------
 
-	private static Sketch make(Predicted land, long worldSeed, Spot spot) {
+	private static Sketch make(Predicted land, MinecraftServer server, long worldSeed, Spot spot) {
 		long seed = seedOf(worldSeed, spot.id);
-		TownBuilder.Streets laid = TownBuilder.streets(land, seed, spot.name, spot.x, spot.z, spot.households, spot.ruin, spot.gates);
+		int y0 = land.ground(spot.x, spot.z);
+		TownBuilder.Style style = TownBuilder.Style.of(land.biome(spot.x, y0, spot.z));
+		// (The town planned as the real job plans it: its roads and side roads, its store and fields, a spot and a house plan
+		// for each house. The real town takes these, so the far view shows the houses that will stand there.)
+		TownBuilder.Streets laid = TownBuilder.streets(land, server, style, seed, spot.name, spot.x, spot.z, spot.households, spot.ruin, spot.gates);
 		boolean city = spot.households >= TownBuilder.CITY && !spot.ruin;
 		int reach = city ? TownBuilder.CITY_REACH : TownBuilder.REACH;
 		RandomSource random = RandomSource.create(seed ^ 0x5EEDC0DEL);
-		int y0 = land.ground(spot.x, spot.z);
-		TownBuilder.Style style = TownBuilder.Style.of(land.biome(spot.x, y0, spot.z));
 		int[] plaza = {laid.plaza().x0(), laid.plaza().z0(), laid.plaza().x1(), laid.plaza().z1()};
 		Set<Long> roadCells = new HashSet<>();
 		List<int[]> streets = new ArrayList<>();
@@ -250,10 +252,32 @@ final class Sketches {
 			streets.add(line.stream().mapToInt(Integer::intValue).toArray());
 		}
 
-		// Houses along both sides of its roads, from the plaza outwards, as the real lots go.
+		// Its houses, as boxes for the far view: each planned house's footprint, as high as its plan (a ruin's: broken walls);
+		// its store. Blocks by the place's look.
 		List<Sketch.Box> boxes = new ArrayList<>();
+		for (Sketch.House house : laid.houses()) {
+			Block walls = planks(style.pick(random));
+			Block roof = planks(style.pick(random));
+			if (style == TownBuilder.Style.DESERT) {
+				walls = random.nextBoolean() ? Blocks.SANDSTONE : walls;
+				roof = random.nextBoolean() ? Blocks.SMOOTH_SANDSTONE : Blocks.CUT_SANDSTONE;
+			}
+
+			int wall = spot.ruin ? 1 + random.nextInt(RUIN_WALL) : Mth.clamp(house.height() - ROOF, 3, 9);
+			boxes.add(new Sketch.Box(house.x0(), house.z0(), house.x1(), house.z1(), house.base(), wall, spot.ruin ? 0 : ROOF, Sketch.paletteOf(walls),
+				Sketch.paletteOf(roof), house.x1() - house.x0() >= house.z1() - house.z0(), !spot.ruin && random.nextDouble() < LIT_SHARE));
+		}
+
+		if (laid.store() != null && !laid.houses().isEmpty()) {
+			TownBuilder.Rect store = laid.store();
+			boxes.add(new Sketch.Box(store.x0(), store.z0(), store.x1(), store.z1(), land.ground((store.x0() + store.x1()) / 2, (store.z0() + store.z1()) / 2),
+				spot.ruin ? 2 : WALL, spot.ruin ? 0 : ROOF, Sketch.paletteOf(Blocks.COBBLESTONE), Sketch.paletteOf(planks(style.main())),
+				store.x1() - store.x0() >= store.z1() - store.z0(), !spot.ruin));
+		}
+
+		// (With no house plans to plan with: boxes along both sides of its roads, from the plaza outwards.)
 		int want = spot.households;
-		for (int t = 6; t < longest && boxes.size() < want; t += 2) {
+		for (int t = 6; t < longest && boxes.size() < want && laid.houses().isEmpty(); t += 2) {
 			for (TownBuilder.Road road : laid.roads()) {
 				if (t >= road.xs.length - 4) {
 					continue;
@@ -293,7 +317,13 @@ final class Sketches {
 
 		// Its fields: a few plots off its roads, a little way out from the plaza.
 		List<int[]> fields = new ArrayList<>();
-		for (int k = 0; k < 12 && fields.size() < 3 && !spot.ruin; k++) {
+		for (TownBuilder.Rect field : laid.fields()) {
+			if (!spot.ruin) {
+				fields.add(new int[] {field.x0(), field.z0(), field.x1(), field.z1()});
+			}
+		}
+
+		for (int k = 0; k < 12 && fields.size() < 3 && !spot.ruin && laid.fields().isEmpty(); k++) {
 			double way = random.nextDouble() * Math.PI * 2;
 			double far = 26 + random.nextInt(19);
 			boolean wide = random.nextBoolean();
@@ -339,7 +369,7 @@ final class Sketches {
 
 		return new Sketch(spot.id, spot.x, spot.z, y0, style.name(), laid.shape().id, laid.headings(), new double[] {laid.river() ? 1 : 0,
 			laid.coast() ? 1 : 0, laid.hill() ? 1 : 0, laid.toWater(), laid.waterAway(), laid.waterLine(), laid.riverWidth(), laid.uphill()}, seed, reach, spot.ruin, plaza, streets, boxes, fields,
-			lamps);
+			lamps, laid.houses());
 	}
 
 	/**

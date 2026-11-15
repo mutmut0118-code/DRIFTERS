@@ -32,6 +32,17 @@ cleared along it, no road blocks or lamps on treetops; far houses stand on level
 town still looks like a ruin and the real one isn't, tell me its name (it's in the journal or on the signs) or the
 coordinates.
 
+**0.23.70-side.1 (re-test after fix), in a new world with Voxy and Voxy SeedGen:**
+
+1. **The town is there when you arrive.** Head for a far town on foot, by horse or flying in creative: the real town
+   should be standing when you get there, not a field. (Very fast travel, an elytra with rockets, can still outrun it.)
+2. **City streets are stone** in the far view (grey), towns' and hamlets' the brown worn mix.
+3. **Houses match.** The far houses should be about where the real ones turn out, and about their size.
+4. **Roads between towns lie in the ground**, not on a raised bank.
+5. **No villages** in the far view (only Drifter towns, ruins, and the usual outposts and temples).
+6. In the log: `[far] Voxy: villages are left out of the far view`, and for each town built
+   `[sketch] <name>: N of its sketch's M houses stand where the sketch has them`.
+
 **With Distant Horizons instead (0.23.63-side.2, new):** switch Voxy and Voxy SeedGen off and Distant Horizons on (with
 or without its SeedGen), make a new world, and check the same four things (towns far away, roads, night, walking up).
 Distant Horizons makes far land slowly without SeedGen: give it a few minutes. Log line:
