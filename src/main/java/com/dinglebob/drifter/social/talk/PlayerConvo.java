@@ -470,6 +470,15 @@ public final class PlayerConvo {
 		return glue;
 	}
 
+	/**
+	 * Something it answers as it is, with nothing asked (so never understood loosely as something else): a "hi", a "bye" or
+	 * a thanks; them giving their name; its name called; a bare "?"; "this or that?"; someone dead, named.
+	 */
+	static boolean plainly(DrifterEntity drifter, ServerPlayer player, String text) {
+		return Lines.answer(text, "greeting", "night", "bye", "thanks") != null || introduced(player, text) || justCalled(drifter, text)
+			|| text.trim().matches("[?!.]+") || TalkMore.either(text) != null || Deaths.named(drifter, text) != null;
+	}
+
 	/** Said to no one by name, but to all of them ("you guys", "anyone"). */
 	static boolean toEveryone(String text) {
 		return Lines.answer(text, "everyone") != null;

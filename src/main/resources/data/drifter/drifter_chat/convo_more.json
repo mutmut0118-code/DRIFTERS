@@ -504,14 +504,7 @@
    "what are you up to later",
    "whats the plan"
   ],
-  "hungry_q": [
-   "are you hungry",
-   "did you eat",
-   "you hungry",
-   "have you eaten",
-   "you need food",
-   "hungry"
-  ],
+  "hungry_q": ["are you hungry", "did you eat", "you hungry", "have you eaten", "you need food", "(are|r) you (hungry|starving)", "you starving", "do you need to eat", "when did you (last eat|eat last)"],
   "inventory": [
    "whats in your inventory",
    "what you got",

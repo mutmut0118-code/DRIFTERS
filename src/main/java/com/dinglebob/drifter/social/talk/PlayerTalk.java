@@ -69,7 +69,45 @@ public final class PlayerTalk {
 	public static String meaning(String text) {
 		String old = Lines.answer(text, ALL);
 		String mine = PlayerConvo.intent(text, old);
+		if (mine == null && old == null && Lines.meansSomething(text, NOT_ENOUGH)) {
+			return "something told, or an addon's";
+		}
+
+		if (mine == null && old == null) {
+			String loose = loosely(null, null, text);
+			if (loose != null) {
+				String looseOld = Lines.answer(loose, ALL);
+				String looseMine = PlayerConvo.intent(loose, looseOld);
+				String meant = looseMine != null ? looseMine : looseOld;
+				return (meant != null ? meant : "something told, or an addon's") + ", loosely: \"" + loose + "\"";
+			}
+		}
+
 		return mine != null ? mine : old;
+	}
+
+	/** Not what "means something" is, understood loosely: a bare yes, no or thing isn't enough to go on. */
+	private static final java.util.Set<String> NOT_ENOUGH = java.util.Set.of("yes", "no", "ready", "unsure", "middle", "things", "everyone", "iam", "me");
+
+	/**
+	 * The message understood loosely ({@link Lines#loosely}), as something said to a Drifter, or null: names close by kept as
+	 * they are (not "put right" into words).
+	 */
+	@Nullable
+	private static String loosely(@Nullable ServerPlayer player, @Nullable DrifterEntity drifter, String text) {
+		java.util.Set<String> keep = new java.util.HashSet<>();
+		if (player != null) {
+			keep.addAll(List.of(Lines.normalize(player.getGameProfile().getName()).trim().split(" ")));
+			for (DrifterEntity near : player.level().getEntitiesOfClass(DrifterEntity.class, player.getBoundingBox().inflate(48.0))) {
+				keep.addAll(List.of(Lines.normalize(near.getName().getString()).trim().split(" ")));
+			}
+		}
+
+		if (drifter != null) {
+			keep.addAll(List.of(Lines.normalize(drifter.getName().getString()).trim().split(" ")));
+		}
+
+		return Lines.loosely(text, keep, said -> Lines.meansSomething(said, NOT_ENOUGH) || PlayerConvo.intent(said, null) != null);
 	}
 
 	/** How far it hears someone talking to it without its name: looking at it, or the only one this close. */
@@ -225,6 +263,37 @@ public final class PlayerTalk {
 		// (A word about someone it doesn't know of: whatever else the message asks.)
 		if (intent != null && (intent.equals("word_good") || intent.equals("word_bad"))) {
 			intent = Lines.answer(text, ASKED);
+		}
+
+		// Nothing understood as said: understood loosely (typos, fillers, words that mean the same, another order), it's what
+		// that means. (Only now: a guess never takes a message's place when it's understood as typed.)
+		if (intent == null && mine == null && !itemAnswer && !PlayerConvo.plainly(drifter, player, text)) {
+			String loose = loosely(player, drifter, text);
+			if (loose != null) {
+				String looseIntent = Lines.answer(loose, ALL);
+				String looseMine = PlayerConvo.intent(loose, looseIntent);
+				if (com.dinglebob.drifter.api.TalkApi.chatHandled(player, drifter, loose, looseMine != null ? looseMine : looseIntent)) {
+					talkedTo(drifter, player, now);
+					return true;
+				}
+
+				if (looseMine != null) {
+					talkedTo(drifter, player, now);
+					PlayerConvo.handle(drifter, player, loose, looseMine, now);
+					return true;
+				}
+
+				// (Something they tell it, loosely: "im starvin" is "im hungry".)
+				if (Telling.told(drifter, player, loose, looseIntent, now)) {
+					talkedTo(drifter, player, now);
+					return true;
+				}
+
+				if (looseIntent != null) {
+					text = loose;
+					intent = looseIntent;
+				}
+			}
 		}
 
 		if (intent == null) {

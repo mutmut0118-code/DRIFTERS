@@ -7131,3 +7131,29 @@ From the user's screenshots (2026-11-14):
   if they'd said they were fine.
 - "u got food?" ("got food", "any food", "u got any") asks what it has. "Food" and "wood" were never found in a message:
   chat is read with doubled letters run together, "fod". "some food", not "a few food".
+
+## 0.23.69-side.2: asked however (new)
+
+The user, 2026-11-14: "can you find a way for me to ask/tell something how ever i want ... what if i say 'u got any food'
+instead of 'u got food' ... more variations on replies, just like they got more variations of lines".
+
+- **Understood loosely** (`Lines.loosely`, from `PlayerTalk.heard`): a message nothing understands as typed (it would get
+  "no idea what that means") is tried again, put the way an answer phrase has it: typos put right ("wher", "hungy",
+  "folow": one letter off in a short word, two in a long one, against every word it knows: the phrases', the slang's, its
+  chat lines', every item's and mob's name, so "bread" isn't "break"), words that only fill left out ("u got ANY food
+  PLS"), a word put as one that means the same ("do u carry food" as "have", "snacks" as "food", "tail me" as "follow
+  me"), and in another order ("food got you any"). The first that means something is what it's taken as. Names close by
+  are never "put right". A "hi", "bye", thanks, its name called, a bare "?", "this or that?" are answered as they are,
+  never loosely. Only when nothing else understood it: a guess never takes the place of a message understood as typed.
+  The fillers and same-meaning words are data: `drifter_chat/loose.json` ("fillers", "same").
+- A dropped g is read: "huntin", "minin", "makin" (when the word with a g is one of the phrases').
+- **Phrase patterns** in the chat files' answers: `(a|b)` one of these, `[a|b]` one of these or nothing ("(u|you) (got|have)
+  [any|some] food" is twelve phrases). `drifter_chat/asked_more.json`: patterns for having things, its name, what it's
+  doing, how it is, where it lives, follow, stop, come, help, team up, give, trade, 1v1, jokes, bot, mining and hunting
+  together, sleeping over, where food is, villages, lost, hurt, scared (4,560 answer phrases were 6,266).
+- Fixed: "trade with me" was follow; "lets go mine together" follow; "what do they call you" "what do you mean"; "stay with
+  me" stop; "where can i sleep" "where?"; "im hungry" was asking whether IT was hungry ("hungry" alone was that question).
+- `/drifter hear` says "loosely: ..." when only the loose try understood it. Smoke: `tools/smoke-loose.txt` (90 ways of
+  asking).
+
+Not tested in game; headless: all 90 phrasings in the smoke script taken as meant, and the replies of a dozen.

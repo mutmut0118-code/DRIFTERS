@@ -3,10 +3,14 @@ package com.dinglebob.drifter.social;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +36,12 @@ import net.minecraft.server.packs.resources.ResourceManager;
  * <p>A file has {@code "lines"}: a key (an event: "hi", "rip", "encounter.escort.ask"...) to either a list (said by
  * anyone) or an object of voices to lists: {@code "any"} and personality archetypes ({@code "pvp_sweat"}, {@code
  * "newbie"}...), whose own lines it mostly picks from. Words in braces are filled in ({@code {player}}, {@code {name}}...).
- * And {@code "answers"}: an intent ("yes", "no", "ready", "unsure", "greeting"...) to the phrases that mean it.
+ * And {@code "answers"}: an intent ("yes", "no", "ready", "unsure", "greeting"...) to the phrases that mean it. A phrase
+ * can be a pattern: {@code (a|b)} one of these, {@code [a|b]} one of these or nothing ("(u|you) (got|have) [any|some]
+ * food" is twelve phrases).
+ *
+ * <p>And for what's understood loosely (only when nothing else is: {@link #loosely}): {@code "fillers"}, words that only
+ * fill ("any", "pls"), and {@code "same"}, groups of words that mean the same here ("got", "have").
  */
 public final class Lines {
 	private Lines() {
@@ -50,6 +59,15 @@ public final class Lines {
 	private static Map<String, List<String>> answers = Map.of();
 	/** Slang → what it means, word for word ("u" → "you", "whatchu" → "what you"), both normalized. */
 	private static Map<String, String> slang = Map.of();
+	/** Words that only fill (left out when nothing else is understood: "u got ANY food PLS"), understood. */
+	private static Set<String> fillers = Set.of();
+	/** A word → the words that mean the same here (each tried in the others' place when nothing else is understood). */
+	private static Map<String, List<String>> same = Map.of();
+	/** Every word of the answer phrases (for a dropped g: "huntin" is "hunting" when that's a word of them). */
+	private static Set<String> phraseWords = Set.of();
+	/** Every word it knows, and how many answer phrases have it (made when first needed). */
+	@Nullable
+	private static Map<String, Integer> known;
 
 	public static void register() {
 		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
@@ -69,6 +87,8 @@ public final class Lines {
 		Map<String, Map<String, List<String>>> newLines = new HashMap<>();
 		Map<String, List<String>> rawAnswers = new LinkedHashMap<>();
 		Map<String, String> newSlang = new HashMap<>();
+		List<String> rawFillers = new ArrayList<>();
+		List<List<String>> rawSame = new ArrayList<>();
 		for (Map.Entry<ResourceLocation, Resource> file : manager.listResources(DIRECTORY, id -> id.getPath().endsWith(".json")).entrySet()) {
 			try (Reader reader = file.getValue().openAsReader()) {
 				JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
@@ -92,6 +112,18 @@ public final class Lines {
 					}
 				}
 
+				if (json.has("fillers")) {
+					json.getAsJsonArray("fillers").forEach(word -> rawFillers.add(word.getAsString()));
+				}
+
+				if (json.has("same")) {
+					json.getAsJsonArray("same").forEach(group -> {
+						List<String> words = new ArrayList<>();
+						group.getAsJsonArray().forEach(word -> words.add(word.getAsString()));
+						rawSame.add(words);
+					});
+				}
+
 				if (json.has("slang")) {
 					for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("slang").entrySet()) {
 						String word = normalize(entry.getKey()).trim();
@@ -111,17 +143,51 @@ public final class Lines {
 		Map<String, List<String>> newAnswers = new LinkedHashMap<>();
 		rawAnswers.forEach((intent, raw) -> {
 			List<String> phrases = new ArrayList<>();
-			for (String phrase : raw) {
-				String plain = plainPhrase(phrase);
-				if (plain != null && !phrases.contains(plain)) {
-					phrases.add(plain);
+			for (String pattern : raw) {
+				for (String phrase : expand(pattern)) {
+					String plain = plainPhrase(phrase);
+					if (plain != null && !phrases.contains(plain)) {
+						phrases.add(plain);
+					}
 				}
 			}
 
 			newAnswers.put(intent, phrases);
 		});
+		Set<String> newFillers = new HashSet<>();
+		for (String word : rawFillers) {
+			String plain = understood(word).trim();
+			if (!plain.isEmpty() && !plain.contains(" ")) {
+				newFillers.add(plain);
+			}
+		}
+
+		Map<String, List<String>> newSame = new HashMap<>();
+		for (List<String> group : rawSame) {
+			List<String> plain = new ArrayList<>();
+			for (String word : group) {
+				String one = understood(word).trim();
+				if (!one.isEmpty() && !plain.contains(one)) {
+					plain.add(one);
+				}
+			}
+
+			for (String word : plain) {
+				if (!word.contains(" ")) {
+					List<String> others = newSame.computeIfAbsent(word, w -> new ArrayList<>());
+					plain.stream().filter(other -> !other.equals(word) && !others.contains(other)).forEach(others::add);
+				}
+			}
+		}
+
+		Set<String> newPhraseWords = new HashSet<>();
+		newAnswers.values().forEach(phrases -> phrases.forEach(phrase -> newPhraseWords.addAll(List.of(phrase.replace('*', ' ').trim().split(" +")))));
 		lines = newLines;
 		answers = newAnswers;
+		phraseWords = newPhraseWords;
+		fillers = newFillers;
+		same = newSame;
+		known = null;
 		int count = newLines.values().stream().mapToInt(voices -> voices.values().stream().mapToInt(List::size).sum()).sum();
 		int phrases = newAnswers.values().stream().mapToInt(List::size).sum();
 		Drifter.LOGGER.info("Loaded {} Drifter chat lines ({} kinds), {} answer phrases and {} slang words", count, newLines.size(), phrases, newSlang.size());
@@ -331,7 +397,13 @@ public final class Lines {
 		StringBuilder out = new StringBuilder(" ");
 		for (String word : normal.trim().split(" ")) {
 			if (!word.isEmpty()) {
-				out.append(slang.getOrDefault(word, word)).append(' ');
+				String plain = slang.getOrDefault(word, word);
+				// (A dropped g: "huntin", "minin", "makin".)
+				if (plain.equals(word) && word.length() >= 5 && word.endsWith("in") && phraseWords.contains(word + "g") && !phraseWords.contains(word)) {
+					plain = word + "g";
+				}
+
+				out.append(plain).append(' ');
 			}
 		}
 
@@ -448,5 +520,301 @@ public final class Lines {
 		}
 
 		return best;
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Phrase patterns
+	// ---------------------------------------------------------------------------------------------
+
+	/** The most phrases one pattern makes. */
+	private static final int MOST_FROM_PATTERN = 512;
+
+	/**
+	 * A phrase as the phrases it stands for: {@code (a|b)} is one of these, {@code [a|b]} one of these or nothing
+	 * ("(u|you) (got|have) [any|some] food" is twelve; "(any|some)thing" two). A phrase with neither is itself.
+	 */
+	public static List<String> expand(String phrase) {
+		List<String> out = new ArrayList<>();
+		expand(phrase, out);
+		return out;
+	}
+
+	private static void expand(String phrase, List<String> out) {
+		if (out.size() >= MOST_FROM_PATTERN) {
+			return;
+		}
+
+		int open = -1;
+		for (int i = 0; i < phrase.length() && open < 0; i++) {
+			if (phrase.charAt(i) == '(' || phrase.charAt(i) == '[') {
+				open = i;
+			}
+		}
+
+		if (open < 0) {
+			String one = phrase.replaceAll(" +", " ").trim();
+			if (!one.isEmpty() && !out.contains(one)) {
+				out.add(one);
+			}
+
+			return;
+		}
+
+		int depth = 0;
+		int end = -1;
+		for (int i = open; i < phrase.length() && end < 0; i++) {
+			char c = phrase.charAt(i);
+			if (c == '(' || c == '[') {
+				depth++;
+			} else if ((c == ')' || c == ']') && --depth == 0) {
+				end = i;
+			}
+		}
+
+		if (end < 0) {
+			// (Never closed: the brackets left out, the words as written.)
+			expand(phrase.replace('(', ' ').replace('[', ' '), out);
+			return;
+		}
+
+		List<String> choices = new ArrayList<>();
+		int from = open + 1;
+		depth = 0;
+		for (int i = open + 1; i < end; i++) {
+			char c = phrase.charAt(i);
+			if (c == '(' || c == '[') {
+				depth++;
+			} else if (c == ')' || c == ']') {
+				depth--;
+			} else if (c == '|' && depth == 0) {
+				choices.add(phrase.substring(from, i));
+				from = i + 1;
+			}
+		}
+
+		choices.add(phrase.substring(from, end));
+		if (phrase.charAt(open) == '[') {
+			choices.add("");
+		}
+
+		String before = phrase.substring(0, open);
+		String after = phrase.substring(end + 1);
+		for (String choice : choices) {
+			expand(before + choice + after, out);
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// Understood loosely
+	// ---------------------------------------------------------------------------------------------
+
+	/** Every intent but these: what "means something" is, for {@link #meansSomething}. */
+	public static boolean meansSomething(String text, Set<String> leaveOut) {
+		String said = understood(text);
+		for (Map.Entry<String, List<String>> entry : answers.entrySet()) {
+			if (!leaveOut.contains(entry.getKey())) {
+				for (String phrase : entry.getValue()) {
+					if (matched(said, phrase) > 0) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The message put the way one of the answer phrases has it, when it isn't already (the user, 2026-11-14: "can you find
+	 * a way for me to ask/tell something how ever i want"): its typos put right ("wher", "hungy"), the words that only fill
+	 * left out ("u got ANY food PLS"), a word put as another that means the same ("got", "have"), and in any order ("food,
+	 * got any?"). The first of these that {@code means} takes, or null. Only for when nothing else is understood: these
+	 * are guesses. {@code keep} are words never put right (names).
+	 */
+	@Nullable
+	public static String loosely(String text, Set<String> keep, Predicate<String> means) {
+		String plain = understood(text).trim();
+		if (plain.isEmpty()) {
+			return null;
+		}
+
+		List<String> words = new ArrayList<>(List.of(plain.split(" ")));
+		List<String> fixed = new ArrayList<>();
+		for (String word : words) {
+			String right = keep.contains(word) ? null : typoOf(word);
+			fixed.add(right == null ? word : right);
+		}
+
+		List<String> bare = new ArrayList<>(fixed);
+		bare.removeIf(fillers::contains);
+		Set<String> tries = new LinkedHashSet<>();
+		tries.add(String.join(" ", fixed));
+		if (!bare.isEmpty()) {
+			tries.add(String.join(" ", bare));
+		}
+
+		for (List<String> base : List.of(fixed, bare)) {
+			for (int i = 0; i < base.size(); i++) {
+				for (String other : same.getOrDefault(base.get(i), List.of())) {
+					List<String> swapped = new ArrayList<>(base);
+					swapped.set(i, other);
+					tries.add(String.join(" ", swapped));
+				}
+			}
+		}
+
+		tries.addAll(anyOrder(fixed, bare.isEmpty() ? fixed.size() : bare.size()));
+		String asked = text.trim().endsWith("?") ? "?" : "";
+		for (String one : tries) {
+			if (!one.isBlank() && !one.equals(plain) && means.test(one + asked)) {
+				return one + asked;
+			}
+		}
+
+		return null;
+	}
+
+	/** The most words more than a phrase's a message has, to be that phrase in another order. */
+	private static final int MOST_MORE_WORDS = 3;
+
+	/**
+	 * The message as the phrases whose every word is in it, in another order ("food got you any" has "you got any"), the
+	 * longest first, each with the message's other words after it (so "food" is still there to be what's asked for).
+	 * {@code size}: how many words it has that aren't only filling.
+	 */
+	private static List<String> anyOrder(List<String> words, int size) {
+		Set<String> have = new HashSet<>(words);
+		List<String> found = new ArrayList<>();
+		for (List<String> phrases : answers.values()) {
+			for (String phrase : phrases) {
+				// (Every word of it, fillers too: "whats up there" isn't in "whats up". Its words that aren't fillers, two at least.)
+				List<String> parts = List.of(phrase.replace('*', ' ').trim().split(" +"));
+				long meant = parts.stream().filter(part -> !fillers.contains(part)).count();
+				if (meant >= 2 && size <= meant + MOST_MORE_WORDS && have.containsAll(parts) && !found.contains(phrase)) {
+					found.add(phrase);
+				}
+			}
+		}
+
+		found.sort((a, b) -> b.length() - a.length());
+		List<String> out = new ArrayList<>();
+		for (String phrase : found.subList(0, Math.min(6, found.size()))) {
+			String said = phrase.replace('*', ' ').trim().replaceAll(" +", " ");
+			Set<String> used = new HashSet<>(List.of(said.split(" ")));
+			StringBuilder rest = new StringBuilder(said);
+			for (String word : words) {
+				if (!used.contains(word)) {
+					rest.append(' ').append(word);
+				}
+			}
+
+			out.add(rest.toString());
+		}
+
+		return out;
+	}
+
+	/** The word it knows that this one is a typo of ("wher": "where"), or null (it knows it, or nothing's close). */
+	@Nullable
+	private static String typoOf(String word) {
+		Map<String, Integer> words = known();
+		if (word.length() < 4 || words.containsKey(word) || word.chars().anyMatch(Character::isDigit)) {
+			return null;
+		}
+
+		// (One letter off in a short word, two in a long one; a word starting the same, and in more phrases, first.)
+		int most = word.length() >= 7 ? 2 : 1;
+		String best = null;
+		int bestDistance = most + 1;
+		long bestScore = -1;
+		for (Map.Entry<String, Integer> entry : words.entrySet()) {
+			String other = entry.getKey();
+			if (other.length() < 3 || Math.abs(other.length() - word.length()) > most) {
+				continue;
+			}
+
+			int distance = distance(word, other, most);
+			long score = (other.charAt(0) == word.charAt(0) ? 1_000_000_000L : 0L) + entry.getValue();
+			if (distance < bestDistance || distance == bestDistance && score > bestScore) {
+				best = other;
+				bestDistance = distance;
+				bestScore = score;
+			}
+		}
+
+		return bestDistance <= most ? best : null;
+	}
+
+	/** Letters to change, add, drop or swap to make one word the other (more than {@code most}: most + 1). */
+	private static int distance(String a, String b, int most) {
+		int[][] d = new int[a.length() + 1][b.length() + 1];
+		for (int i = 0; i <= a.length(); i++) {
+			d[i][0] = i;
+		}
+
+		for (int j = 0; j <= b.length(); j++) {
+			d[0][j] = j;
+		}
+
+		for (int i = 1; i <= a.length(); i++) {
+			int rowBest = Integer.MAX_VALUE;
+			for (int j = 1; j <= b.length(); j++) {
+				int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+				int v = Math.min(Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1), d[i - 1][j - 1] + cost);
+				if (i > 1 && j > 1 && a.charAt(i - 1) == b.charAt(j - 2) && a.charAt(i - 2) == b.charAt(j - 1)) {
+					v = Math.min(v, d[i - 2][j - 2] + 1);
+				}
+
+				d[i][j] = v;
+				rowBest = Math.min(rowBest, v);
+			}
+
+			if (rowBest > most) {
+				return most + 1;
+			}
+		}
+
+		return d[a.length()][b.length()];
+	}
+
+	/**
+	 * Every word it knows, to tell a typo from a word: the answer phrases' (counted: the more phrases, the likelier
+	 * meant), the slang's, its own chat lines', and every item's and mob's name ("bread" is a word, not a typo of "break").
+	 */
+	private static Map<String, Integer> known() {
+		Map<String, Integer> words = known;
+		if (words != null) {
+			return words;
+		}
+
+		Map<String, Integer> made = new HashMap<>();
+		for (List<String> phrases : answers.values()) {
+			for (String phrase : phrases) {
+				for (String word : phrase.replace('*', ' ').trim().split(" +")) {
+					made.merge(word, 1, Integer::sum);
+				}
+			}
+		}
+
+		List<String> more = new ArrayList<>(slang.values());
+		more.addAll(fillers);
+		same.forEach((word, others) -> {
+			more.add(word);
+			more.addAll(others);
+		});
+		lines.values().forEach(voices -> voices.values().forEach(more::addAll));
+		net.minecraft.core.registries.BuiltInRegistries.ITEM.keySet().forEach(id -> more.add(id.getPath().replace('_', ' ')));
+		net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.keySet().forEach(id -> more.add(id.getPath().replace('_', ' ')));
+		for (String text : more) {
+			for (String word : normalize(text).trim().split(" ")) {
+				if (!word.isEmpty()) {
+					made.putIfAbsent(word, 0);
+				}
+			}
+		}
+
+		made.remove("");
+		known = made;
+		return made;
 	}
 }

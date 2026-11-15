@@ -1,0 +1,100 @@
+# Asked however (0.23.69-side.2): many ways of asking the same things; each "drifter hear" line prints what it was taken
+# as ("meaning: ... loosely: ..." when only the loose try understood it).
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+drifter spawn Rosie
+drifter giveall bread 4
+wait 2
+drifter hear u got food
+drifter hear u got any food
+drifter hear u got any food on you
+drifter hear do you have anything to eat
+drifter hear got any grub
+drifter hear food? u got some
+drifter hear do u carry food
+drifter hear any snacks on you
+drifter hear can i get some food
+drifter hear could you spare some food
+drifter hear im starving got anything
+drifter hear wher is ur base
+drifter hear where do you live
+drifter hear wheres ur house at
+drifter hear how r u doin
+drifter hear how are u doing today
+drifter hear hows it going
+drifter hear u good?
+drifter hear whats up
+drifter hear watcha doin
+drifter hear what are you up to
+drifter hear whats ur name
+drifter hear what do they call you
+drifter hear who are you
+drifter hear folow me
+drifter hear come with me
+drifter hear can you follow me pls
+drifter hear tail me
+drifter hear stop folowing me
+drifter hear quit following me
+drifter hear help me pls
+drifter hear can u help
+drifter hear i need help
+drifter hear wanna trade
+drifter hear can we trade
+drifter hear trade with me
+drifter hear wanna team up
+drifter hear be my teammate
+drifter hear want to fight
+drifter hear 1v1 me
+drifter hear tell me a joke
+drifter hear say something funny
+drifter hear are u a bot
+drifter hear are you real
+drifter hear seen any villages
+drifter hear do u know where a village is
+drifter hear found diamonds yet
+drifter hear any diamonds around
+drifter hear wats ur cords
+drifter hear where are u
+drifter hear do you know where food is
+drifter hear im hungy
+drifter hear im so lost
+drifter hear i dont know where i am
+drifter hear what should i do
+drifter hear any tips
+drifter hear is it safe here
+drifter hear anything dangerous around
+drifter hear wanna go mining
+drifter hear lets go mine together
+drifter hear whats ur fav food
+drifter hear what do you think of me
+drifter hear do u like me
+drifter hear wanna be friends
+drifter hear where can i sleep
+drifter hear can i crash at urs
+drifter hear im hungry
+drifter hear stay with me
+drifter hear food got you any
+drifter hear yo whats good
+drifter hear hiii
+drifter hear rosie
+drifter hear thx
+drifter hear i didnt catch your name
+drifter hear wat r u makin
+drifter hear can u giv me some bred
+drifter hear do u hav a spare bed
+drifter hear lets go mining together
+drifter hear r u human
+drifter hear i bet u cant beat me
+drifter hear im being chased by zombies
+drifter hear theres a creeper chasing me
+drifter hear how was ur day
+drifter hear whre do u live
+drifter hear hw r u
+drifter hear wanna go huntin
+drifter hear can u tel me a joke
+drifter hear how have u been lately
+drifter hear asdf qwer
+drifter hear the weather is weird
+drifter hear i like turtles

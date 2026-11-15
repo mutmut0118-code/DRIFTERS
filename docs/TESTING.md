@@ -4118,3 +4118,17 @@ somewhere and going where asked (0.85), standing to talk (0.81); still after dan
    should come once.
 2. Say "you doing okay?" to a Drifter: an answer about how it is, not "nice".
 3. Say "u got food?" to one with food: "some food in my inv" or similar, not "no idea what that means".
+
+## 0.23.69-side.2: asked however (new)
+
+Talk to a Drifter however you like, with typos, extra words or words mixed up. A few to try:
+
+1. "u got any food", "do u carry food", "any snacks on you", "food? got any": it says whether it has food.
+2. Typos: "wher is ur base", "folow me", "im hungy", "hw r u", "can u giv me some bred".
+3. Other words for the same thing: "tail me" (follow), "can i crash at urs" (sleep over), "what do they call you" (its name),
+   "trade with me", "lets go mine together", "wanna go huntin".
+4. "hi", "thx", "bye" and its name alone still get their usual answers.
+5. Gibberish ("asdf qwer") still gets "no idea what that means": it doesn't guess at nothing.
+6. "im hungry" is you telling it you're hungry (it says "eat then" or offers a tip), not it saying whether it's hungry.
+
+If something you type gets "no idea what that means" or the wrong answer, send a screenshot.
