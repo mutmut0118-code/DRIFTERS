@@ -4,6 +4,49 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## War marches that know the way: 0.23.74-side.2 (2026-11-16, branch `claude/trusting-lumiere-a5654c`)
+
+The user (in play): a war's leader "is a bit clueless ... they stop at random places at town, i never seen them go outside
+the town ... i dont like the little pauses", then "they dont use the road", "make sure its on a direct continuous path",
+and sneaking "only ... when they get to the enemy city". Reproduced in a dev client (roads2 world, Redhaven raiding
+Ironhollow, 909 blocks): 100 blocks in two minutes, still inside its city, a 10 s look-around every stretch or two.
+
+**Causes found:**
+- **No road route.** `Routes` joined a city to road points within its reach + 24 (174 blocks) only; the plan starts a
+  city's roads past its reach, sometimes 200 out. Roads sharing a way are cut off up to 10 blocks from each other (the
+  plan's `SHARE`, more where a short piece was dropped), but were joined within 5 only. Redhaven to Ironhollow came out
+  at 4,848 blocks along the roads, over `DETOUR`, so straight across country, through bushes, over a river by boat
+  (the band left behind), and off the roads it never found them again (`JOIN` 64).
+- **Stops between stretches.** Each 32-block stretch (`Legs.STRETCH`) was a `NavigateTask` that let go of the keys at
+  its end; the next one planned from a standstill.
+- **Pauses for stragglers.** The leader stood 10 s whenever any one raider was 24+ blocks behind (in its own town,
+  everyone still coming from the fields), again after every stretch.
+- **The band in the way.** Members aimed at the leader (or just ahead of it): 39 crowded its front for 40 s.
+- **Sneaking.** Every walk crouched beside any 4+ block drop: hillside roads, bridges, terraced streets.
+
+**Done:**
+- `Routes`: each road's town ends joined to that town by the plan's ids, however far out; roads joined within 12
+  (`LINK`); a loose road end joined to the nearest road within 40; off the roads, a road up to 192 off sought (the way
+  to it counted double); the way through the towns at both ends along their own streets (`Town.roadColumns`, a
+  breadth-first field per town and goal, cached), meeting the road within 128 (`Highways.MEET_WITHIN`). Redhaven to
+  Ironhollow: 1,348 blocks, 42 street points out. `/drifterciv route` says how many street points and why none.
+- `nav/March` (new): a whole trip as one activity, its `Legs` stretches one after another, each a
+  `NavigateTask.through()` (keys kept down at its end, planning on the move up to 30 ticks); `mayRide()` fetches the
+  horse first (war marches don't). `Legs.toward(..., mayFetchHorse)` overload.
+- `WarGoals`: the leader marches with `March` (`STROLL`); halts only when most of the band is 40+ behind
+  (`FALLEN_BEHIND`), at most every 90 s; creeps (`SNEAK`) for the last 80 blocks (`CREEP`), then the charge; the band
+  follows behind it, a few blocks apart (`NavigateTask.followBehind`), running when 18+ behind; the retreat is one
+  `March`; a new raid phase starts its step at once (`rethink`).
+- `NavigateTask`: no edge-sneaking on a made way (road between towns or a street's blocks) when walking or running.
+- Client test, after: off the moment the speech ended, Redhaven's streets at full walking speed, swam the river (its
+  bridge not built in that world), the road west the whole way, crept up, charged at 46 blocks: 915 blocks in 10 min.
+  On unbuilt road stretches it walked at about half speed (raw ground on the planned line).
+
+**Half-done / next:** the band still strings out on rough ground (15 to 25 of 35 within 24 blocks of the leader); the
+halt tuning (40 blocks, 90 s) checked in one more client run: 6 halts instead of 8 on the same march, 909 to 47 blocks in 10 min. Coordinate with the horse culture
+session (uncommitted in the main checkout): it changes `NavigateTask` ride code and `Legs.toward`'s returns; this branch
+adds `NavigateTask.through/followBehind/walkingAWay` and a `Legs.toward` overload. Merge it in when it lands.
+
 ## Towns and roads in the far view (paper towns): built for Voxy and Distant Horizons, 0.23.63-side.2 (2026-11-14)
 
 Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`,

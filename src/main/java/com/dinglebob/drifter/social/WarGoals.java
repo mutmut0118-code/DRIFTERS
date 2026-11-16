@@ -65,10 +65,11 @@ public final class WarGoals {
 
 		return false;
 	}
-	/** On the march, the leader waits a while once most of the band is this far behind, at most every so often. */
-	private static final double STRAGGLING = 24.0;
+	/** On the march, the leader waits a while once most of the band has fallen behind, at most every so often. */
 	private static final long WAITS_FOR_STRAGGLERS = 20L * 10;
-	private static final long HALTS_EVERY = 20L * 60;
+	private static final long HALTS_EVERY = 20L * 90;
+	/** Most of the band this far behind the leader: it halts for them (a column strung out behind it is no cause). */
+	private static final double FALLEN_BEHIND = 40.0;
 	/** This close to the target the band creeps up on it (sneaking), till the charge (the user, 2026-11-16: sneaking "only ... when they get to the enemy city"). */
 	private static final double CREEP = 80.0;
 	/** Fit to fight: a weapon, and this share of its health. */
@@ -506,7 +507,7 @@ public final class WarGoals {
 				DrifterEntity member = DrifterWars.loaded(this.drifter.getServer(), id);
 				if (member != null && member != this.drifter && WarGoals.raidFor(member) == this.raid && member.distanceTo(this.drifter) < 160.0) {
 					band++;
-					if (member.distanceTo(this.drifter) > STRAGGLING) {
+					if (member.distanceTo(this.drifter) > FALLEN_BEHIND) {
 						behind++;
 					}
 				}

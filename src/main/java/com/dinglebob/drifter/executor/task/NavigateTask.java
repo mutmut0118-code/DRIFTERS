@@ -1798,10 +1798,13 @@ public class NavigateTask extends Task {
 		return true;
 	}
 
-	/** Is there a deep drop right beside where it stands or where it's heading? Then it sneaks, like a player. */
-	/** Walking (not running) on a road between towns or a street (a made way: a path, packed mud, gravel, cobbles, bricks, a bridge). */
+	/**
+	 * Walking or running on a road between towns or a street (a made way: a path, packed mud, gravel, cobbles, bricks, a
+	 * bridge), not hopping along: a way made to go along, as a player does without creeping at its sides (a war band's
+	 * runners crept at every drop beside a hillside road and never caught up with their leader; a test of it).
+	 */
 	private boolean walkingAWay() {
-		if (this.pace != Pace.STROLL || this.drifter.isSprinting() || !this.drifter.onGround()) {
+		if (this.pace == Pace.SNEAK || this.hopping || !this.drifter.onGround()) {
 			return false;
 		}
 
@@ -1822,6 +1825,7 @@ public class NavigateTask extends Task {
 	private BlockPos wayCheckedAt;
 	private boolean onAWay;
 
+	/** Is there a deep drop right beside where it stands or where it's heading? Then it sneaks, like a player. */
 	private boolean nearDeepDrop() {
 		BlockPos here = this.feet();
 		if (this.isDeepDrop(here)) {
@@ -2051,9 +2055,9 @@ public class NavigateTask extends Task {
 			this.drifter.getCamera().track(Vec3.atBottomCenterOf(next.to()).add(0.0, 1.2, 0.0), CameraModel.TurnSpeed.NORMAL);
 		}
 
-		// (Not walking a road or a street, though, at a walk: a drop beside a road on a hillside or a bridge's side is no cause to
-		// creep the way along, and a walk doesn't carry it over; the user, 2026-11-16, of a war band sneaking on its way: "they
-		// should only do that when they get to the enemy city".)
+		// (Not on a road or a street, though: a drop beside a road on a hillside or a bridge's side is no cause to creep the way
+		// along; the user, 2026-11-16, of a war band sneaking on its way: "they should only do that when they get to the enemy
+		// city".)
 		boolean nearEdge = !intentionalDrop && !wet && !runUp && (this.isDeepDrop(this.feet()) || !this.walkingAWay() && this.nearDeepDrop());
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
