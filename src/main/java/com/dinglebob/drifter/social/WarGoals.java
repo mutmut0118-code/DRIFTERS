@@ -699,6 +699,12 @@ public final class WarGoals {
 		}
 
 		private Status attack() {
+			// (Everyone off their horses for the fight: found by the user, a few of the band stood through it, sat behind riders
+			// who'd got off.)
+			if (this.raid.mounted && WarHorses.riding(this.drifter) != null) {
+				WarHorses.dismount(this.drifter);
+			}
+
 			// Worn down: the leader calls it (the user, 2026-10-29: "if everybody gets low they retreat").
 			if (this.leader && this.now() - this.raid.phaseSince > 20 * 10 && this.wornDown()) {
 				ChatLines.speak(this.drifter, Lines.pick(this.drifter, "war.fall_back", "enemy", DrifterWars.name(this.raid.defenders)));

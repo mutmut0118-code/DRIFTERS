@@ -33,6 +33,8 @@ public final class Legs {
 
 	/** About how far a stretch goes. */
 	public static final double STRETCH = 32.0;
+	/** A stretch along a road on horseback (the road's bends kept to). */
+	public static final double RIDING_STRETCH = 12.0;
 	/** A route's point with this height: from it to the next is across water, by boat (a dock to a dock). */
 	public static final int FERRY = -1;
 	/** Within this, it goes straight there. */
@@ -167,7 +169,8 @@ public final class Legs {
 			x = route.get(nearest).getX();
 			z = route.get(nearest).getZ();
 		} else {
-			double left = STRETCH;
+			// (Riding: shorter stretches, so it keeps to the road's bends instead of cutting across them; found by the user.)
+			double left = drifter.getVehicle() instanceof net.minecraft.world.entity.animal.horse.AbstractHorse ? RIDING_STRETCH : STRETCH;
 			int i = nearest;
 			x = route.get(i).getX();
 			z = route.get(i).getZ();

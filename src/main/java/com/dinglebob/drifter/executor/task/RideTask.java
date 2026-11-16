@@ -120,7 +120,11 @@ public class RideTask extends Task {
 
 		this.wasOutside |= !inTown;
 		double distance = Math.sqrt((this.target.x - here.x) * (this.target.x - here.x) + (this.target.z - here.z) * (this.target.z - here.z));
-		if (distance <= this.offAt) {
+		// (A stretch of a longer way passed by (its end behind it): reached, no turning back round for it; found by the user,
+		// riders at a canter overshot it and went round in circles.)
+		Vec3 facing = Vec3.directionFromRotation(0.0F, this.horse.getYRot());
+		boolean passed = this.stayOn && distance < 10.0 && (this.target.x - here.x) * facing.x + (this.target.z - here.z) * facing.z < 0.0;
+		if (distance <= this.offAt || passed) {
 			if (this.stayOn) {
 				this.arrived = true;
 			} else {
@@ -231,6 +235,9 @@ public class RideTask extends Task {
 		return this;
 	}
 
+	/** Ticks till it may jump again (a tap, not a held key). */
+	private int jumpCooldown;
+
 	/** It always keeps to the horse's own way (riding with someone: to its place behind them, never straight across). */
 	private boolean byRoute;
 
@@ -316,7 +323,19 @@ public class RideTask extends Task {
 		Vec3 ahead = Vec3.directionFromRotation(0.0F, this.heading);
 		BlockPos front = BlockPos.containing(here.x + ahead.x * 1.6, here.y + 0.2, here.z + ahead.z * 1.6);
 		Level level = this.horse.level();
-		keys.set(VirtualKeys.Key.JUMP, this.horse.onGround() && !level.getBlockState(front).getCollisionShape(level, front).isEmpty());
+		// (A horse steps up a block by itself; it jumps only what's higher (a fence, a wall), and a tap of the key, not held:
+		// held, a horse's jump charges up, found by the user: horses and their band leaping high along the way.)
+		var shape = level.getBlockState(front).getCollisionShape(level, front);
+		boolean high = !shape.isEmpty() && shape.max(net.minecraft.core.Direction.Axis.Y) > 1.0
+			|| !level.getBlockState(front.above()).getCollisionShape(level, front.above()).isEmpty();
+		boolean jump = this.horse.onGround() && high && this.jumpCooldown <= 0;
+		if (jump) {
+			this.jumpCooldown = 12;
+		} else if (this.jumpCooldown > 0) {
+			this.jumpCooldown--;
+		}
+
+		keys.set(VirtualKeys.Key.JUMP, jump);
 	}
 
 	/** The horse can go that way: no wall over a block high, no water, no drop over 3 within the next few blocks. */
