@@ -158,6 +158,14 @@ public class SocialWatcher {
 		return w == null ? "the gift" : w.respondTo;
 	}
 
+	/** What they just gave it wasn't a gift (a fine paid): no thanks for it, no talk after. */
+	public void notAGift(Player player) {
+		Watch w = this.watches.get(player.getUUID());
+		if (w != null) {
+			w.thanked = true;
+		}
+	}
+
 	/** A player who just gave it something and hasn't been thanked yet (in the last few seconds), or null. */
 	@Nullable
 	public Player owedThanks() {

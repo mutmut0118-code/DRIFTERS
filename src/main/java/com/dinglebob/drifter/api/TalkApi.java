@@ -279,6 +279,11 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.Lines.pick(drifter, key, vars);
 	}
 
+	/** An item's name said as many: "bone meal", "torches", "potatoes", "iron ingots". */
+	public static String plural(String name) {
+		return com.dinglebob.drifter.social.Lines.plural(name);
+	}
+
 	/** What it calls a player (the nickname they asked for, or their name). */
 	public static String callName(DrifterEntity drifter, Player player) {
 		return com.dinglebob.drifter.social.talk.Heard.callName(drifter, player);

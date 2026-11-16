@@ -39,6 +39,32 @@ public final class WarGoals {
 	/** The leader's speech before the march: this many lines, this far apart (ticks). */
 	private static final int SPEECH_LINES = 12;
 	private static final long SPEECH_GAP = 20L * 5;
+	/** Leaders giving a speech now: where, and till when (a line's gap and a bit). */
+	private static final java.util.Map<java.util.UUID, Speaking> speaking = new java.util.HashMap<>();
+
+	private record Speaking(net.minecraft.world.level.Level level, Vec3 at, long until) {
+	}
+
+	/**
+	 * A leader near is giving its war speech: this one keeps its own chatter down till it's done (found in play: "everyone stop
+	 * talking for one sec", then two of them went on about cows).
+	 */
+	public static boolean hushedBySpeech(DrifterEntity drifter, long now) {
+		if (speaking.isEmpty()) {
+			return false;
+		}
+
+		speaking.values().removeIf(s -> now >= s.until());
+		double range = Math.max(24.0, com.dinglebob.drifter.DrifterConfig.chatRange());
+		for (java.util.Map.Entry<java.util.UUID, Speaking> entry : speaking.entrySet()) {
+			Speaking s = entry.getValue();
+			if (!entry.getKey().equals(drifter.getUUID()) && s.level() == drifter.level() && drifter.position().distanceTo(s.at()) <= range) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 	/** On the march, the leader waits a while once most of the band is this far behind, at most every so often. */
 	private static final double STRAGGLING = 24.0;
 	private static final long WAITS_FOR_STRAGGLERS = 20L * 10;
@@ -237,6 +263,25 @@ public final class WarGoals {
 			};
 		}
 
+		/** Its speech so far: questions and cries said, and what its last line was. */
+		private int asks;
+		private int cries;
+		private WarCrowd.Kind lastKind = WarCrowd.Kind.OPEN;
+
+		/** A line between the first and last: a question (at most 3, never two running), a cry (at most 3), else plain. */
+		private String middleKey() {
+			double roll = this.drifter.getRandom().nextDouble();
+			if (roll < 0.22 && this.asks < 3 && this.lastKind != WarCrowd.Kind.ASK && Lines.has("war.speech_ask")) {
+				return "war.speech_ask";
+			}
+
+			if (roll < 0.42 && this.cries < 3 && this.lastKind != WarCrowd.Kind.CRY && Lines.has("war.speech_cry")) {
+				return "war.speech_cry";
+			}
+
+			return "war.speech";
+		}
+
 		private Status gather() {
 			DrifterEntity leader = this.leaderEntity();
 			if (this.leader || leader == null) {
@@ -263,15 +308,36 @@ public final class WarGoals {
 						if (this.now() - this.raid.lastSpoke >= SPEECH_GAP) {
 							this.raid.lastSpoke = this.now();
 							this.raid.speech++;
+							// (Its kind: the opening, the close; between, plain words mostly, now and then a question for them to answer
+							// or a cry for them to take up: the crowd answers those, WarCrowd.)
+							String key = this.raid.speech == 1 ? "war.speech_open" : this.raid.speech == SPEECH_LINES ? "war.speech_close" : this.middleKey();
 							String line = null;
 							for (int tries = 0; tries < 6 && (line == null || this.raid.said.contains(line)); tries++) {
-								line = Lines.pick(this.drifter, this.raid.speech == 1 ? "war.speech_open" : this.raid.speech == SPEECH_LINES ? "war.speech_close"
-									: "war.speech", "enemy", DrifterWars.name(this.raid.defenders), "town", DrifterWars.name(this.raid.attackers));
+								line = Lines.pick(this.drifter, key, "enemy", DrifterWars.name(this.raid.defenders), "town", DrifterWars.name(this.raid.attackers));
 							}
 
 							if (line != null) {
 								this.raid.said.add(line);
+								ChatLines.toEveryone(this.drifter);
 								ChatLines.speak(this.drifter, line);
+								WarCrowd.Kind kind = this.raid.speech == 1 ? WarCrowd.Kind.OPEN : this.raid.speech == SPEECH_LINES ? WarCrowd.Kind.CLOSE
+									: key.equals("war.speech_ask") ? WarCrowd.Kind.ASK : key.equals("war.speech_cry") ? WarCrowd.Kind.CRY : WarCrowd.kindOf(line);
+								if (kind == WarCrowd.Kind.ASK) {
+									this.asks++;
+								} else if (kind == WarCrowd.Kind.CRY) {
+									this.cries++;
+								}
+
+								this.lastKind = kind;
+								// (The crowd's moment: a nervous one steadied, a joker shushed, before the next line.)
+								this.raid.lastSpoke += WarCrowd.heard(this.drifter, this.raid, line, kind, this.now());
+							}
+
+							// (Till its next line, and the last a little while after.)
+							if (this.raid.speech < SPEECH_LINES) {
+								speaking.put(this.drifter.getUUID(), new Speaking(this.drifter.level(), this.drifter.position(), this.now() + SPEECH_GAP + 40));
+							} else {
+								speaking.put(this.drifter.getUUID(), new Speaking(this.drifter.level(), this.drifter.position(), this.now() + 40));
 							}
 						}
 

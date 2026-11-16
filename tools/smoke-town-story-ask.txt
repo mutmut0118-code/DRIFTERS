@@ -1,0 +1,39 @@
+# Asking about a town's story (2026-11-16: "reply to what it mentions, like 'what happened in the war?' or 'who was
+# mason?', and it would go deeper"): a town made ready (with a past), a war with another so there's fighting in its
+# chronicle, then one of its people tells the story and is asked: who founded it / who's that, the war, why, when, more,
+# the other town.
+until Done_( 900
+wait 5
+drifter thoughts log false
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+forceload add ~-96 ~-96 ~96 ~96
+forceload add ~100 ~-96 ~290 ~96
+kill @e[type=drifter:drifter]
+wait 2
+execute positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Storyford
+wait 20
+execute positioned ~190 ~ ~ positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Rivalton
+wait 20
+execute positioned over motion_blocking_no_leaves run drifterciv relations war Rivalton
+wait 150
+execute positioned over motion_blocking_no_leaves run drifterciv relations peace Rivalton
+wait 30
+execute positioned over motion_blocking_no_leaves run tag @e[type=drifter:drifter,limit=1,sort=nearest] add teller
+execute as @e[tag=teller,limit=1] at @s run drifter hear tell me about this town
+wait 30
+execute as @e[tag=teller,limit=1] at @s run drifter hear who founded it?
+wait 15
+execute as @e[tag=teller,limit=1] at @s run drifter hear what happened in the war?
+wait 20
+execute as @e[tag=teller,limit=1] at @s run drifter hear why
+wait 6
+execute as @e[tag=teller,limit=1] at @s run drifter hear when was that
+wait 6
+execute as @e[tag=teller,limit=1] at @s run drifter hear tell me more
+wait 15
+execute as @e[tag=teller,limit=1] at @s run drifter hear what about rivalton
+wait 6
+execute as @e[tag=teller,limit=1] at @s run drifter hear who's that
+wait 15

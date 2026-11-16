@@ -64,7 +64,7 @@
     "thanks": [
       "ty", "tyy", "thx", "thanks", "thank you", "thank u", "tysm", "tyvm", "ty so much", "thanks so much", "thanks a lot", "much appreciated", "appreciate it", "appreciate you",
       "cheers", "ta", "merci", "gracias", "danke", "ty o7", "thank you so much", "tyty", "ty ty", "thanks man", "thanks bro", "ty bro", "you rock", "ur the best", "youre the best", "legend"
-    ],
+    , "thank", "thank yo", "thnks", "thnx", "thanx", "thankyou", "thanks yo", "tanks", "thank youu"],
     "bye": ["bye", "byee", "bye bye", "bb", "cya", "see ya", "see you", "see you later", "see ya later", "later", "laters", "l8r", "take care", "o7", "peace", "peace out", "im out", "gtg", "got to go", "gotta go", "have to go", "heading out", "logging off", "logging", "brb", "afk", "farewell", "goodbye", "good bye", "catch you later", "ttyl", "have a good day", "have a nice day", "good day", "enjoy your day", "have a good one", "have a good night", "see you around", "until next time", "have fun"]
   }
 }

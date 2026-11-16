@@ -120,6 +120,9 @@ public final class Conversations {
 		@Nullable
 		DrifterEntity leaving;
 		boolean closed;
+		/** Said something else in the middle of it (a shout about a crime): it picks the talk back up ("anyway"). */
+		@Nullable
+		DrifterEntity asideBy;
 
 		Talk(DrifterEntity a, DrifterEntity b, Topics.Topic topic, long now) {
 			this.a = a;
@@ -176,6 +179,21 @@ public final class Conversations {
 		ServerTickEvents.END_SERVER_TICK.register(Conversations::tick);
 	}
 
+	/**
+	 * It said something outside its talk (a shout at a crime, a word to a player): the talk waits a moment, and it picks it
+	 * back up with an "anyway". Found in play: "wait muto took a horse?? can you do that??", then its next line in the
+	 * debate, "hmm, no", read as the answer to its own question.
+	 */
+	public static void aside(DrifterEntity speaker, long now) {
+		Talk talk = of(speaker);
+		if (talk == null || talk.leaving != null) {
+			return;
+		}
+
+		talk.asideBy = speaker;
+		talk.nextAt = Math.max(talk.nextAt, now + 80 + speaker.getRandom().nextInt(40));
+	}
+
 	/** The conversation it's in, or null. */
 	@Nullable
 	public static Talk of(DrifterEntity drifter) {
@@ -199,7 +217,8 @@ public final class Conversations {
 			}
 
 			// (A player near is talking with someone else: these two keep it down, so their lines don't land as answers.)
-			if (now >= talk.nextAt && PlayerConvo.hush(talk.a, now)) {
+			if (now >= talk.nextAt && (PlayerConvo.hush(talk.a, now) || com.dinglebob.drifter.social.WarGoals.hushedBySpeech(talk.a, now)
+				|| com.dinglebob.drifter.social.WarGoals.hushedBySpeech(talk.b, now))) {
 				talk.nextAt = now + 60 + talk.a.getRandom().nextInt(60);
 				continue;
 			}
@@ -449,6 +468,16 @@ public final class Conversations {
 	 * (a long talk ending in a goodbye). False when it's over.
 	 */
 	private static boolean carryOn(Talk talk, long now) {
+		// (Back to it after something said aside.)
+		if (talk.asideBy != null) {
+			DrifterEntity back = talk.asideBy;
+			talk.asideBy = null;
+			if (back.isAlive() && (back == talk.a || back == talk.b)) {
+				out(talk, back, Lines.pick(back, "talk.aside_back"), now);
+				return true;
+			}
+		}
+
 		if (talk.leaving != null) {
 			// (The goodbye's answered, and that's it.)
 			DrifterEntity other = talk.partnerOf(talk.leaving);
@@ -600,6 +629,29 @@ public final class Conversations {
 		return choose(talk, any, "talk.segue.change", SEGUE_CHANGE);
 	}
 
+	/** Tags of a topic about a death or a loss. */
+	private static final Set<String> GRIM = Set.of("death", "grief", "loss");
+	/** Tags of a cheerful or silly one. */
+	private static final Set<String> GLAD = Set.of("happiness", "jokes", "silly", "brag", "celebration", "roasts", "trolls", "riddles", "would_you_rather");
+
+	private static boolean grim(Topics.Topic topic) {
+		return (topic.web().tags().stream().anyMatch(GRIM::contains) || topic.id().contains("grief")) && topic.web().tags().stream().noneMatch(GLAD::contains);
+	}
+
+	private static boolean glad(Topics.Topic topic) {
+		String about = topic.web().about();
+		return topic.web().tags().stream().noneMatch(GRIM::contains) && (topic.web().tags().stream().anyMatch(GLAD::contains) || about.contains("happy") || about.contains("good mood") || about.contains("good day")
+			|| about.contains("excited"));
+	}
+
+	/**
+	 * Its mood turned on its head: a sad one right after a glad one, or a glad one right after a sad one. Found in play: "you
+	 * look happy" "slept great" "heh", then the happy one: "i miss my dog. he'd sit by the door" (the two both "feelings").
+	 */
+	private static boolean clash(Topics.Topic now, Topics.Topic next) {
+		return glad(now) && grim(next) || grim(now) && glad(next);
+	}
+
 	/** One of these (weighted by the topic's weight and how strongly it's linked) that suits either of them to bring up. */
 	@Nullable
 	private static Choice choose(Talk talk, Map<Topics.Topic, Double> candidates, String segue, double segueChance) {
@@ -612,6 +664,11 @@ public final class Conversations {
 		for (Map.Entry<Topics.Topic, Double> candidate : candidates.entrySet()) {
 			Topics.Topic topic = candidate.getKey();
 			if (talk.done.contains(topic.id()) || topic.web().opener()) {
+				continue;
+			}
+
+			// (Not a grief right after a good mood, nor a joke right after a death; unless it's the one it says comes next.)
+			if (talk.topic != null && clash(talk.topic, topic) && !talk.topic.web().next().contains(topic.id())) {
 				continue;
 			}
 

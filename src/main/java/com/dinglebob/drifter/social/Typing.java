@@ -91,13 +91,28 @@ public final class Typing {
 		int colon = text.indexOf(": ");
 		for (String mark : new String[] {", ", "? ", "! "}) {
 			int at = text.indexOf(mark);
-			if (at >= 6 && text.length() - at - mark.length() >= 3 && (colon < 0 || at < colon)) {
+			if (at >= 6 && text.length() - at - mark.length() >= 3 && (colon < 0 || at < colon) && !(mark.equals(", ") && leadsOn(text))) {
 				String first = mark.equals(", ") ? text.substring(0, at) : text.substring(0, at + 1);
 				return List.of(first, text.substring(at + mark.length()));
 			}
 		}
 
 		return List.of(text);
+	}
+
+	/** Words that start half a sentence: "if i fall, keep going" isn't two things. */
+	private static final String[] LEADS_ON = {"if ", "when ", "once ", "unless ", "because ", "since ", "while ", "after ", "before ", "as soon as ",
+		"until ", "till ", "whenever ", "even if ", "even though ", "although ", "though ", "whether "};
+
+	private static boolean leadsOn(String text) {
+		String lower = text.toLowerCase(java.util.Locale.ROOT);
+		for (String word : LEADS_ON) {
+			if (lower.startsWith(word)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** This part, maybe with a typo; and the word to fix it with, if it fixes it (else null). */

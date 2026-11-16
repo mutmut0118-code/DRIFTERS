@@ -1,0 +1,21 @@
+# A war speech heard out (found in play: the leader said "everyone stop talking for one sec" and two went on about cows):
+# two towns, war declared; while the leader's twelve lines go, nobody near chats over it. Look in the log between the
+# first and last speech line for other Drifters' chat (talk topics, idle lines): there should be none near the leader.
+until Done_( 900
+wait 5
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+forceload add ~-96 ~-96 ~96 ~96
+forceload add ~100 ~-96 ~290 ~96
+kill @e[type=drifter:drifter]
+wait 2
+execute positioned over motion_blocking_no_leaves run drifterciv town spawn 10 Speechford
+wait 20
+execute positioned ~190 ~ ~ positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Cowbury
+wait 20
+execute positioned over motion_blocking_no_leaves run drifterciv relations war Cowbury
+wait 150
+drifter wars
+wait 60
+drifter wars

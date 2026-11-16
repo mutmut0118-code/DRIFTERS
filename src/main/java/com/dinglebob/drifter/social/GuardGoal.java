@@ -94,6 +94,7 @@ public final class GuardGoal extends Goals.Goal {
 			private boolean told;
 			private long toldAt;
 			private int before;
+			private int paidSoFar;
 
 			@Override
 			public String describe() {
@@ -120,6 +121,16 @@ public final class GuardGoal extends Goals.Goal {
 				int emeralds = com.dinglebob.drifter.trade.Money.carriedEmeralds(this.drifter);
 				if (this.told) {
 					int paid = emeralds - this.before;
+					// (What they toss it is the fine, not a gift: found in play, "ty ty" for the first part, and after "the town
+					// thanks you. now go", "at least its not raining".)
+					this.drifter.getSocial().watcher().notAGift(player);
+					if (paid > this.paidSoFar && paid < arrest.fine()) {
+						this.paidSoFar = paid;
+						this.toldAt = this.now();
+						ChatLines.speak(this.drifter, Lines.pick(this.drifter, "guard.part", "player", arrest.name(), "left",
+							com.dinglebob.drifter.trade.Money.words(arrest.fine() - paid)));
+					}
+
 					if (paid >= arrest.fine()) {
 						ChatLines.speak(this.drifter, Lines.pick(this.drifter, "guard.paid", "player", arrest.name()));
 						this.think(arrest.name() + " paid the fine: " + com.dinglebob.drifter.trade.Money.words(paid));

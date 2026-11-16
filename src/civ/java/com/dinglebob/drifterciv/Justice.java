@@ -392,8 +392,10 @@ final class Justice {
 					DrifterEntity member = TownFounding.loaded(server, id);
 					if (member != null && member.level() == player.level() && member.getSocial().watcher().sees(player)) {
 						calledOut.put(key, server.overworld().getGameTime());
+						com.dinglebob.drifter.social.ChatLines.toEveryone(member);
 						com.dinglebob.drifter.social.ChatLines.speak(member, com.dinglebob.drifter.social.Lines.pick(member, "crime.wanted", "player",
 							criminal.name));
+						CrimeScene.start(server, town, player, "wanted", member, null);
 						alarm(server, town, player);
 						if (!TownBells.alarmed(town)) {
 							bell(server, town, player, criminal.name + ", wanted here", CivLines.bell("bell.wanted", List.of("it's " + criminal.name
@@ -519,7 +521,9 @@ final class Justice {
 		FriendPerks.warn(server, town, player, null);
 		Kind of = KINDS.getOrDefault(kind, KINDS.get("farms"));
 		String what = of.what();
+		com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
 		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime." + kind, "player", criminal.name));
+		CrimeScene.start(server, town, player, kind, witness, null);
 		if (criminal.offences >= REPEAT) {
 			exile(server, town, criminal, EXILE, what + " again (" + criminal.offences + " times)");
 		} else {
@@ -604,7 +608,9 @@ final class Justice {
 		if (!more) {
 			FriendPerks.warn(server, town, player, null);
 			DrifterEntity witness = saw.get(0);
+			com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
 			com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.theft", "player", name));
+			CrimeScene.start(server, town, player, "theft", witness, null);
 		}
 
 		if (criminal.exiledUntil > 0) {
@@ -685,15 +691,19 @@ final class Justice {
 			if (criminal.recentKills == MASSACRE) {
 				massacre(server, town, player, criminal, victim, witness);
 			} else if (criminal.recentKills > MASSACRE) {
+				com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
 				com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.massacre", "player", name,
 					"who", victim));
+				CrimeScene.start(server, town, player, "massacre", witness, victim);
 				criminal.exiledUntil = Math.max(criminal.exiledUntil, day + MASSACRE_EXILE);
 				criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MASSACRE_EXILE);
 				Chronicle.add(server, "law", name + " killed " + victim + " of " + town.name + " too (" + criminal.recentKills + " in all)");
 				bell(server, town, player, "the massacre", massacreLines(name), MASSACRE_ALARM);
 			} else {
+				com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
 				com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.murder", "player", name,
 					"who", victim));
+				CrimeScene.start(server, town, player, "murder", witness, victim);
 				exile(server, town, criminal, Math.max(MURDER_EXILE, criminal.exiledUntil - day), "killing " + victim);
 				criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MURDER_EXILE);
 				bell(server, town, player, "the killing of " + victim, killingLines(name, victim), KILLING_ALARM);
@@ -821,7 +831,9 @@ final class Justice {
 		criminal.fine = 0;
 		criminal.exiledUntil = Math.max(criminal.exiledUntil, day + MASSACRE_EXILE);
 		criminal.wantedUntil = Math.max(criminal.wantedUntil, day + MASSACRE_EXILE);
+		com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
 		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime.massacre", "player", name, "who", victim));
+		CrimeScene.start(server, town, player, "massacre", witness, victim);
 		Chronicle.add(server, "law", "The massacre at " + town.name + ": " + name + " killed " + criminal.recentKills + " of its people. Wanted there for "
 			+ MASSACRE_EXILE + " days");
 		bell(server, town, player, "the massacre", massacreLines(name), MASSACRE_ALARM);
@@ -1067,8 +1079,10 @@ final class Justice {
 		criminal.lastAt = now;
 		criminal.crime = kind;
 		DrifterEntity witness = saw.stream().filter(one -> one != victim).findFirst().orElse(saw.get(0));
+		com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
 		com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness,
 			kind.equals("fight") ? "crime.fight" : "crime.theft", "player", name, "who", victim == null ? whose : victim.getName().getString()));
+		CrimeScene.start(server, town, crook, kind.equals("fight") ? "fight" : "crook", witness, victim == null ? whose : victim.getName().getString());
 		for (DrifterEntity one : saw) {
 			DrifterApi.addTrustInDrifter(one, crook, SAW_IT);
 			DrifterApi.think(one, "saw " + name + " " + what);
@@ -1232,7 +1246,14 @@ final class Justice {
 		}
 
 		switch (kind) {
-			case "theft", "farms" -> crime(server, town, player, kind, witness);
+			case "theft", "farms", "horse", "livestock", "peace", "blood" -> crime(server, town, player, kind, witness);
+			case "scene_murder", "scene_massacre", "scene_wanted" -> {
+				String what = kind.substring("scene_".length());
+				com.dinglebob.drifter.social.ChatLines.toEveryone(witness);
+				com.dinglebob.drifter.social.ChatLines.speak(witness, com.dinglebob.drifter.social.Lines.pick(witness, "crime." + what, "player",
+					player.getGameProfile().getName(), "who", "Bob"));
+				CrimeScene.start(server, town, player, what, witness, "Bob");
+			}
 			case "murder" -> {
 				Town.Criminal criminal = town.crimes.computeIfAbsent(player.getUUID(), id -> new Town.Criminal(player.getGameProfile().getName()));
 				criminal.crime = "murder";
@@ -1301,7 +1322,7 @@ final class Justice {
 			}
 
 			chasing.put(entry.getKey(), Map.entry(guard.getUUID(), now));
-			return new TownWork.Arrest(entry.getKey(), criminal.name, criminal.fine, criminal.crime.equals("theft") ? "stealing" : "harming the farms");
+			return new TownWork.Arrest(entry.getKey(), criminal.name, criminal.fine, KINDS.getOrDefault(criminal.crime, KINDS.get("farms")).what());
 		}
 
 		return null;

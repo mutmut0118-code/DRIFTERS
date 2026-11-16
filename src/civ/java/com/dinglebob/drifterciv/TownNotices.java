@@ -346,6 +346,55 @@ final class TownNotices {
 		return at != null && server.overworld().isLoaded(at) && server.overworld().getBlockEntity(at) instanceof Container chest ? chest : null;
 	}
 
+	/** Words that say they've brought it ("i got your white bed!", "for the notice"). */
+	private static final List<String> BROUGHT = List.of(" i got ", " i have ", " ive got ", " got your ", " got the ", " got it ",
+		" brought ", " found ", " here ", " for you ", " notice ", " board ", " asked for ", " you wanted ", " posted ", " request ", " i made ", " is this ");
+
+	/**
+	 * Said to a Drifter they've brought what it asked for (a notice of its, or a job to bring it): it says to toss it over, or
+	 * that they haven't got it on them. Found in play: "i got your white bed!" got "none spare. and my bed is mine" (as asking
+	 * it for a bed), three times. True: answered.
+	 */
+	static boolean talkedOf(net.minecraft.server.level.ServerPlayer player, DrifterEntity drifter, String text) {
+		String said = " " + text.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", " ") + " ";
+		if (BROUGHT.stream().noneMatch(said::contains)) {
+			return false;
+		}
+
+		boolean aboutNotice = said.contains(" notice ") || said.contains(" board ") || said.contains(" posted ") || said.contains(" asked for ");
+		List<String[]> wants = new ArrayList<>();
+		for (Town town : Towns.all()) {
+			for (Notice notice : town.notices) {
+				if (notice.poster.equals(drifter.getUUID()) && !NoticeKinds.kill(notice)) {
+					wants.add(new String[] {notice.item, String.valueOf(notice.count - notice.delivered.getOrDefault(player.getUUID(), 0))});
+				}
+			}
+		}
+
+		String quest = Quests.bringWanted(drifter, player);
+		if (quest != null) {
+			wants.add(quest.split("\\|"));
+		}
+
+		for (String[] want : wants) {
+			net.minecraft.world.item.Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(want[0]));
+			String name = new ItemStack(item).getHoverName().getString().toLowerCase(java.util.Locale.ROOT);
+			String[] words = name.split(" ");
+			String head = words[words.length - 1];
+			boolean named = said.contains(" " + head + " ") || said.contains(" " + head + "s ") || said.contains(" " + name + " ");
+			if (!named && !(aboutNotice && wants.size() == 1)) {
+				continue;
+			}
+
+			int need = Math.max(1, Integer.parseInt(want[1]));
+			int has = player.getInventory().countItem(item);
+			String key = has <= 0 ? "town.notice.not_on_you" : has < need ? "town.notice.toss_some" : "town.notice.toss";
+			return com.dinglebob.drifter.api.TalkApi.answer(drifter, player, key, null, "item", name, "count", need, "has", has);
+		}
+
+		return false;
+	}
+
 	/** A player threw a Drifter something: toward a notice of its? All of it in: it pays them. */
 	private static void received(DrifterEntity drifter, Player player, ItemStack stack) {
 		MinecraftServer server = drifter.getServer();

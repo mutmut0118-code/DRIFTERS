@@ -630,7 +630,7 @@ public final class DrifterDeals {
 	/** "iron ingots"-ish, for a question. */
 	private static String plural(ItemStack stack) {
 		String name = stack.getHoverName().getString().toLowerCase(Locale.ROOT);
-		return stack.getCount() > 1 && !name.endsWith("s") && !stack.has(DataComponents.FOOD) ? name + "s" : name;
+		return stack.getCount() > 1 && !stack.has(DataComponents.FOOD) ? com.dinglebob.drifter.social.Lines.plural(name) : name;
 	}
 
 	private static boolean playerNear(DrifterEntity drifter) {

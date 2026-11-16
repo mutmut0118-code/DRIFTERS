@@ -57,7 +57,7 @@ public final class PlayerConvo {
 		"hunt_with", "warning", "truce", "offer", "come_in", "sleep_here", "danger_tell", "threat_all", "threat", "wake_up", "jk"};
 	/** The glue: reactions, asking it to explain, steering the talk. */
 	static final String[] GLUE = {"laugh", "nice", "wow", "agree", "doubt", "sympathy", "ack", "pushback", "why", "wdym", "nvm", "talk_to_me",
-		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good"};
+		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good", "met_you", "brushed"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
 	private static final Set<String> WEAK = Set.of("who_is", "look");
 	/** These and batch 2's (TalkMore). */
@@ -160,19 +160,42 @@ public final class PlayerConvo {
 	 * grieving. Else as it is with anyone.
 	 */
 	private static String tone(DrifterEntity drifter, ServerPlayer player, long now) {
-		Mode mode = Mode.toward(drifter, player);
-		Relationship r = drifter.getSocial().get(player.getUUID());
 		Mood mood = drifter.getPersonality().mood().current();
-		boolean insulted = r != null && r.lastInsultAt >= 0 && now - r.lastInsultAt < 24000L && !r.lastInsult.isEmpty();
-		if (mode == Mode.WARNING || mode == Mode.AVOIDING || r != null && r.trust < 0.0 || insulted || lately(drifter, player, "threat", now, 24000L)
-			|| mood == Mood.ANGRY || mood == Mood.FRUSTRATED) {
+		String why = coldWhy(drifter, player, now);
+		if (why != null) {
+			drifter.getMemory().thoughts().add(now, "talking coldly with " + player.getGameProfile().getName() + ": " + why);
 			return "cold";
 		}
 
 		return mood == Mood.GRIEVING ? "down" : "";
 	}
 
+	/** Why a talk with them would be cold now ("doesn't trust them", "in a temper"), or null if it wouldn't. */
+	@Nullable
+	static String coldWhy(DrifterEntity drifter, ServerPlayer player, long now) {
+		Mode mode = Mode.toward(drifter, player);
+		Relationship r = drifter.getSocial().get(player.getUUID());
+		Mood mood = drifter.getPersonality().mood().current();
+		boolean insulted = r != null && r.lastInsultAt >= 0 && now - r.lastInsultAt < 24000L && !r.lastInsult.isEmpty();
+		return mode == Mode.WARNING ? "warning them off" : mode == Mode.AVOIDING ? "keeping clear of them" : r != null && r.trust < 0.0 ? "doesn't trust them"
+			: insulted ? "insulted by them lately" : lately(drifter, player, "threat", now, 24000L) ? "threatened by them lately"
+			: mood == Mood.ANGRY || mood == Mood.FRUSTRATED ? "in a temper" : null;
+	}
+
 	/** The line kind to say for this one, in the mood of the talk it's in: its cold or down lines when it has them. */
+	/** The player it's talking with now (its talk this last half minute), or null. */
+	@Nullable
+	static UUID partner(DrifterEntity drifter) {
+		long now = drifter.level().getGameTime();
+		for (Map.Entry<UUID, Convo> entry : convos.entrySet()) {
+			if (entry.getValue().drifter.equals(drifter.getUUID()) && now < entry.getValue().until + 20L * 30) {
+				return entry.getKey();
+			}
+		}
+
+		return null;
+	}
+
 	static String toned(DrifterEntity drifter, String key) {
 		if (convos.isEmpty()) {
 			return key;
@@ -224,8 +247,15 @@ public final class PlayerConvo {
 
 	/** It started a talk with them: this line of its opener, which may have asked something. */
 	static void opened(ServerPlayer player, DrifterEntity drifter, String topicId, String line, long now) {
+		Convo before = convos.get(player.getUUID());
+		boolean fresh = before == null || !before.drifter.equals(drifter.getUUID()) || now > before.until + 20L * 30;
 		touch(player, drifter, now, false);
 		Convo c = convos.get(player.getUUID());
+		// (It came over and said hi, "nice to meet you": the talk keeps that mood. Found in play: "sabrina, nice to meet you",
+		// then "noted", "fine. why", "find someone else" to "just asking :)".)
+		if (fresh && c.tone.equals("cold")) {
+			c.tone = "";
+		}
 		String lower = line.toLowerCase(Locale.ROOT);
 		String expecting = !topicId.equals("hi_stranger") ? null : lower.contains("pvp") ? "pvp" : lower.contains("lost") ? "lost"
 			: lower.contains("new") || lower.contains("seen you") || lower.contains("who are you") || lower.contains("stranger") ? "new" : "hi";
@@ -803,7 +833,7 @@ public final class PlayerConvo {
 
 		switch (mine) {
 			// ----- The glue -----
-			case "laugh", "nice", "wow", "agree", "doubt", "sympathy", "pushback", "gl", "brb", "nvm", "you_there", "chatting", "my_day", "my_day_good" -> {
+			case "laugh", "nice", "wow", "agree", "doubt", "sympathy", "pushback", "gl", "brb", "nvm", "you_there", "chatting", "my_day", "my_day_good", "brushed" -> {
 				say(drifter, player, "convo." + mine, null);
 				if (mine.equals("brb") && c != null) {
 					c.until = Math.max(c.until, now + STAY);
@@ -812,6 +842,14 @@ public final class PlayerConvo {
 			case "ack", "middle", "iam" -> {
 				say(drifter, player, mine.equals("ack") ? "convo.ack" : "convo.asked.middle", null);
 				followUp(drifter, c, now, 0.45);
+			}
+			case "met_you" -> {
+				// ("nice to meet you, im muto": they've met. Found in play: "thank you", the "nice" taken as a compliment.)
+				if (introduced(player, text)) {
+					r.addFamiliarity(3.0);
+				}
+
+				say(drifter, player, "convo.met_you", null);
 			}
 			case "im_good", "im_bad" -> {
 				say(drifter, player, "convo." + mine, null);
@@ -1167,6 +1205,8 @@ public final class PlayerConvo {
 			return;
 		}
 
+		PlayerTalk.askedAbout(player, drifter, what);
+
 		int count = drifter.getInventory().count(stack -> what.equals("food") ? stack.has(DataComponents.FOOD)
 			: what.equals("wood") ? stack.is(net.minecraft.tags.ItemTags.LOGS) || stack.is(net.minecraft.tags.ItemTags.PLANKS)
 			: stack.getHoverName().getString().toLowerCase(Locale.ROOT).equals(what));
@@ -1227,7 +1267,7 @@ public final class PlayerConvo {
 			drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
 			say(drifter, player, "convo.gear.look", null);
 		} else if (found.isEmpty()) {
-			say(drifter, player, "convo.gear.none", null, "what", what);
+			say(drifter, player, "convo.gear.none", null, "what", what, "a_what", what.endsWith("s") ? "any " + what : ("aeiou".indexOf(what.charAt(0)) >= 0 ? "an " : "a ") + what);
 		} else {
 			drifter.getSocial().record(player.getUUID(), name, SocialEvent.COMPLIMENT, 0.0);
 			say(drifter, player, found.isEnchanted() ? "convo.gear.enchanted" : "convo.gear.thanks", null, "what", what, "item",
