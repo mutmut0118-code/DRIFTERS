@@ -4154,7 +4154,7 @@ In a town of a morning, listen to the crier on the plaza:
 5. "u need help?": "yeah, <what it needs>" or "im good".
 6. "got you" after a Drifter gives you a word to carry: an okay, not "lost me there".
 
-## Next build (not built yet)
+## 0.23.74-side.1 (installed 2026-11-16; the main line 0.23.74 merged in)
 
 1. Take a "bring me" job from a townsperson who needs bone meal: it says "16 bone meal", not "bone meals".
 2. Start a war (`/drifterciv relations war <other town>` standing in a town) and stand in its plaza while the leader

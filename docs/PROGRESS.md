@@ -7308,7 +7308,7 @@ Headless tested: tools/smoke-playertalk-knows.txt, tools/smoke-playertalk-farnam
 Headless tested: tools/smoke-town-story.txt (a town made ready), the shout and the notice talk (a town with notices), and
 tools/smoke-playertalk-day.txt.
 
-## Next build (not built yet)
+## 0.23.74-side.1 (installed 2026-11-16; the main line 0.23.74 merged in)
 
 From a play screenshot (a war speech, a quest):
 
