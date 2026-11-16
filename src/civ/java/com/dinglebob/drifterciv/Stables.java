@@ -20,12 +20,15 @@ final class Stables {
 	private Stables() {
 	}
 
-	/** A stall for every this many households (the rest of its people walk, or share). */
-	static final int STALL_PER_HOUSEHOLDS = 3;
+	/**
+	 * A stall for every this many households (the rest of its people walk, or ride behind a friend: the user, 2026-11-16,
+	 * "half of the war band should have their own horse, with the other half riding on that horse").
+	 */
+	static final int STALL_PER_HOUSEHOLDS = 2;
 	/** Stalls at least, in a town with a stable. */
 	static final int FEWEST_STALLS = 3;
 	/** Stalls at most (a city's long stable, two rows). */
-	static final int MOST_STALLS = 12;
+	static final int MOST_STALLS = 16;
 	/** Stalls kept free for riders from elsewhere (a horse for sale never stands in one). */
 	static final int VISITOR_STALLS = 2;
 	/** Horses for sale: a town's, a city's. */

@@ -17,6 +17,7 @@ import com.dinglebob.drifter.world.DrifterGroups;
 import com.dinglebob.drifter.world.DrifterWars;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -128,11 +129,49 @@ public final class WarGoals {
 
 		// (Not all of a town: half to seven in ten of it, the same ones all the raid long, at most MOST_MARCHING; the user,
 		// 2026-11-06: "wars should only use 50% - 70% of the civs". A city of a hundred all came, every one of them.)
-		if (!group.leader.equals(drifter.getUUID()) && !chosen(raid, group, drifter.getUUID())) {
+		if (!group.leader.equals(drifter.getUUID()) && !chosen(raid, group, drifter)) {
 			return null;
 		}
 
 		return raid;
+	}
+
+	/**
+	 * Who goes, with horses (the user, 2026-11-16: "half of the war band should have their own horse, with the other half
+	 * riding on that horse"): a leader with a horse takes everyone fit who has one and as many again without, to ride
+	 * behind them; a leader without, half to seven in ten as before.
+	 */
+	static boolean chosen(DrifterWars.Raid raid, DrifterGroups.Group group, DrifterEntity member) {
+		if (Double.isNaN(raid.horseShare) && member.getServer() != null) {
+			DrifterEntity leader = DrifterWars.loaded(member.getServer(), group.leader);
+			int owners = 0;
+			int without = 0;
+			for (java.util.UUID id : group.members) {
+				DrifterEntity one = DrifterWars.loaded(member.getServer(), id);
+				if (one != null && !id.equals(group.leader) && one.blockPosition().closerThan(raid.home, MUSTER_RANGE)) {
+					if (one.getDrifterBrain().horse() != null) {
+						owners++;
+					} else {
+						without++;
+					}
+				}
+			}
+
+			raid.horseShare = leader == null || leader.getDrifterBrain().horse() == null || owners == 0 ? -1.0
+				: Math.min(1.0, (owners + 1.0) / Math.max(1, without));
+		}
+
+		if (raid.horseShare < 0.0 || group.members.size() <= 4) {
+			return chosen(raid, group, member.getUUID());
+		}
+
+		return member.getDrifterBrain().horse() != null || roll(raid, member.getUUID()) < raid.horseShare;
+	}
+
+	private static double roll(DrifterWars.Raid raid, java.util.UUID member) {
+		long seed = raid.startedAt * 31 + member.getLeastSignificantBits();
+		seed = (seed ^ seed >>> 29) * 0xBF58476D1CE4E5B9L;
+		return ((seed ^ seed >>> 32) >>> 11) / (double)(1L << 53);
 	}
 
 	public static final class JoinRaid extends Goals.Goal {
@@ -285,6 +324,11 @@ public final class WarGoals {
 
 		private Status gather() {
 			DrifterEntity leader = this.leaderEntity();
+			// Its horse from the stable first, if it has one (the band rides: WarHorses).
+			Task bring = WarHorses.bring(this.drifter, this.raid.home);
+			if (bring != null && this.raid.speech == 0) {
+				return this.begin(bring);
+			}
 			if (this.leader || leader == null) {
 				// To the muster point first (its town's plaza), and the call to arms.
 				if (this.leader && !this.drifter.blockPosition().closerThan(this.raid.home, 6.0)) {
@@ -413,6 +457,41 @@ public final class WarGoals {
 			// Together: the leader leads (waiting a little for stragglers), the rest keep with it; near enough, the charge:
 			// everyone runs in at once, shouting (the user, 2026-10-29: "they can run in and it can be on sight").
 			DrifterEntity leader = this.leaderEntity();
+			// On horseback (WarHorses): paired, mounted; near the town it raids, off to go in on foot.
+			if (this.leader) {
+				WarHorses.pair(this.raid, this.drifter);
+			}
+
+			if (this.leader && this.raid.mounted) {
+				// (How long it's been off its horse: its band gets off only once it's been a while, not for a moment.)
+				if (WarHorses.riding(this.drifter) != null) {
+					this.raid.leaderOffSince = -1;
+				} else if (this.raid.leaderOffSince < 0 && this.now() - this.raid.phaseSince > 20 * 20) {
+					this.raid.leaderOffSince = this.now();
+				}
+			}
+
+			if (this.raid.mounted) {
+				boolean near = this.creeping(this.drifter) || leader != null && this.creeping(leader)
+					|| this.raid.leaderOffSince >= 0 && this.now() - this.raid.leaderOffSince > 20 * 15;
+				if (near) {
+					WarHorses.dismount(this.drifter);
+				} else {
+					Task up = WarHorses.mount(this.raid, this.drifter, this.raid.target);
+					if (up != null) {
+						return this.begin(up);
+					}
+
+					AbstractHorse sat = WarHorses.riding(this.drifter);
+					if (sat != null && sat.getFirstPassenger() != this.drifter) {
+						return this.begin(WarHorses.sit(this.drifter, 20));
+					}
+
+					if (sat != null && !this.leader && leader != null) {
+						return this.begin(WarHorses.follow(this.drifter, leader, this.raid.target));
+					}
+				}
+			}
 			if (this.leader || leader == null) {
 				if (this.drifter.blockPosition().closerThan(this.raid.target, this.leader ? CHARGE : AT_BASE)) {
 					if (!this.raid.warCry) {
@@ -435,7 +514,8 @@ public final class WarGoals {
 
 				if (this.waitingSince >= 0) {
 					if (this.now() - this.waitingSince < WAITS_FOR_STRAGGLERS && this.bandBehind()) {
-						return this.begin(new LookAroundTask(this.drifter));
+						// (On its horse: it stays in the saddle while it waits; found in testing, it slid off and the band with it.)
+						return this.begin(WarHorses.riding(this.drifter) != null ? WarHorses.sit(this.drifter, 20) : new LookAroundTask(this.drifter));
 					}
 
 					this.waitingSince = -1;
@@ -450,6 +530,13 @@ public final class WarGoals {
 				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping ? CHARGE - 2.0 : CREEP - 2.0,
 					this.marchCreeping ? "creep up on " + DrifterWars.name(this.raid.defenders) : what, this.marchCreeping ? NavigateTask.Pace.SNEAK
 						: NavigateTask.Pace.STROLL));
+			}
+
+			// (A band on horseback, and no seat for it: on foot to the town it raids along the roads itself, at a run: its leader
+			// on a horse was too fast to follow step by step, and they lost it and gave up; found in testing.)
+			if (this.raid.mounted && WarHorses.riding(leader) != null && WarHorses.riding(this.drifter) == null) {
+				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, CREEP - 2.0,
+					"on the way to raid " + DrifterWars.name(this.raid.defenders), NavigateTask.Pace.TRAVEL));
 			}
 
 			// The band walks with its leader, at its back (each a few blocks further back than the next: a column, not a crowd in
@@ -716,6 +803,28 @@ public final class WarGoals {
 				}
 
 				return Status.SUCCESS;
+			}
+
+			// (On horseback: back to its horse, or up behind its rider if that one's up and near; riding behind, it sits.)
+			if (this.raid.mounted) {
+				AbstractHorse sat = WarHorses.riding(this.drifter);
+				if (sat != null && sat.getFirstPassenger() != this.drifter) {
+					return this.begin(WarHorses.sit(this.drifter, 20));
+				}
+
+				AbstractHorse mine = WarHorses.own(this.drifter);
+				if (sat == null && mine != null && !mine.isVehicle() && mine.distanceTo(this.drifter) <= 96.0) {
+					return this.begin(mine.distanceTo(this.drifter) > 32.0 ? NavigateTask.follow(this.drifter, mine, 2.0)
+						: new com.dinglebob.drifter.executor.task.RideTask(this.drifter, mine, mine.position(), 1.0).onTheWayTo(Vec3.atBottomCenterOf(this.raid.home)));
+				}
+
+				DrifterEntity rider = WarHorses.rider(this.raid, this.drifter);
+				if (sat == null && rider != null && WarHorses.riding(rider) != null && rider.distanceTo(this.drifter) <= 12.0) {
+					Task up = WarHorses.mount(this.raid, this.drifter, this.raid.home);
+					if (up != null) {
+						return this.begin(up);
+					}
+				}
 			}
 
 			// (Home the whole way at once, along the roads.)

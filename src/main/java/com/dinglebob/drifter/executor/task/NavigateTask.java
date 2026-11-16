@@ -902,7 +902,9 @@ public class NavigateTask extends Task {
 		BlockPos here = this.drifter.blockPosition();
 		boolean inTown = com.dinglebob.drifter.api.DrifterApi.settled(this.level(), here);
 		if (riding) {
-			if (inTown && this.arriving(here, end)) {
+			// (Not in a raid: a raider doesn't stable its horse in the town it's raiding; found in testing, one did. The raid gets
+			// it off near the town.)
+			if (inTown && this.arriving(here, end) && com.dinglebob.drifter.social.WarGoals.raidFor(this.drifter) == null) {
 				// Into a town off the road: off at its edge, and the horse led in on foot to a stall (its own at home, a free one
 				// elsewhere), tied there.
 				this.arrive(own, here);

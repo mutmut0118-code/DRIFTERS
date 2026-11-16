@@ -42,7 +42,7 @@ public final class StableGoal extends Goals.Goal {
 
 	/** Its horse, alive and loaded, or null. */
 	@Nullable
-	static AbstractHorse horse(DrifterEntity drifter) {
+	public static AbstractHorse horse(DrifterEntity drifter) {
 		java.util.UUID id = drifter.getDrifterBrain().horse();
 		if (id == null || !(drifter.level() instanceof ServerLevel level) || !(level.getEntity(id) instanceof AbstractHorse horse) || !horse.isAlive()) {
 			return null;
@@ -143,7 +143,8 @@ public final class StableGoal extends Goals.Goal {
 		AbstractHorse found = null;
 		DrifterEntity enemy = null;
 		for (var awareness : drifter.getSenses().tracked()) {
-			if (!(awareness.entity instanceof AbstractHorse horse) || !horse.isAlive() || !tiedUp(horse) || !awareness.seenWithin(now, 20 * 5)
+			if (!(awareness.entity instanceof AbstractHorse horse) || !horse.isAlive() || horse.isVehicle() || !tiedUp(horse) && horse.isLeashed()
+				|| !awareness.seenWithin(now, 20 * 5)
 				|| horse.distanceTo(drifter) > CAPTURE_NEAR) {
 				continue;
 			}
@@ -178,14 +179,16 @@ public final class StableGoal extends Goals.Goal {
 
 			@Override
 			protected Status onTick() {
-				if (!horse.isAlive() || !tiedUp(horse)) {
+				if (!horse.isAlive() || horse.isVehicle() || !tiedUp(horse) && horse.isLeashed()) {
 					return this.fail("the horse is gone");
 				}
 
 				this.drifter.getCamera().track(horse.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
-				// (The lead off the post, into its pack, as a player clicks the knot.)
-				horse.dropLeash(true, false);
-				this.drifter.getInventory().add(new net.minecraft.world.item.ItemStack(Items.LEAD));
+				// (Tied: the lead off the post, into its pack, as a player clicks the knot.)
+				if (tiedUp(horse)) {
+					horse.dropLeash(true, false);
+					this.drifter.getInventory().add(new net.minecraft.world.item.ItemStack(Items.LEAD));
+				}
 				com.dinglebob.drifter.api.DrifterApi.takeHorse(this.drifter, horse, loser);
 				this.drifter.getSenses().touched(horse);
 				return Status.SUCCESS;

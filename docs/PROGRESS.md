@@ -4,6 +4,20 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## War bands on horseback: 0.23.76 (2026-11-16, main line)
+
+The user: "half of the war band should have their own horse, with the other half riding on that horse ... 2 people on 1
+horse type vibe". Built (social/WarHorses): owners bring their horses to the muster; after the speech they mount and one
+without a horse climbs up behind each (Icy's multi-riding; without Icy's those without walk); the band is every fit
+owner and as many without (a leader with a horse); followers ride to their place behind the leader by the horse's own
+route, at its gait (faster to catch up); near the target (the creep line) they get off, horses left there (captures now
+take an untied enemy horse left at the front too); home, each back to its horse. Stables: a stall every two households
+(16 at most, smaller if no lot fits). Riding fixes: a stuck horse takes its own route round (on the land too), progress on
+a route is the horse moving, the band gets off only after its leader has been off 15 s, no stabling in a raided town.
+Debug `/drifter raid`. Tested (seed 779, Mudfall raiding Heronthorpe): "5 with horses, 2 behind them", rode out, charged,
+back. Rough: a horse still sticks now and then in Mudfall's streets (its rider leads it or walks); a leader without a horse
+means a band on foot.
+
 ## Horse culture: 0.23.75 (2026-11-16, main line; design docs/superpowers/specs/2026-11-16-horse-culture-design.md)
 
 The user: horses at the heart of travel, "red dead redemption style but not making it wild western ... or like skyrim

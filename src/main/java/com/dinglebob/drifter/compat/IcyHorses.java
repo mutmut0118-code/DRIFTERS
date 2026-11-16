@@ -286,6 +286,19 @@ public final class IcyHorses {
 		return horse;
 	}
 
+	/** Icy's lets a horse carry two (its multi-riding setting): a friend up behind its rider. False without Icy's. */
+	public static boolean doubleRiding() {
+		if (!present()) {
+			return false;
+		}
+
+		try {
+			return Boolean.TRUE.equals(Class.forName("icy.betterhorses.net.BhConfig").getMethod("multiRidingEnabled").invoke(null));
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+			return false;
+		}
+	}
+
 	/** One of Icy's items ({@code upgraded_saddle}, {@code horse_cart_gear}...), or null without Icy's. */
 	@Nullable
 	public static Item item(String id) {

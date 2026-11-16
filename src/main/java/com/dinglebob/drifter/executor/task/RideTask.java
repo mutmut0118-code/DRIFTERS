@@ -100,7 +100,7 @@ public class RideTask extends Task {
 		this.drifter.keepRiding();
 		this.drifter.getSenses().touched(this.horse);
 		// Its gait for now (horse culture): a walk in town and at the end, a trot on the road, a gallop in a hurry.
-		var now = com.dinglebob.drifter.skills.Gait.choose(this.drifter, this.end, this.hurry);
+		var now = this.keepUp != null ? this.keepUpGait() : com.dinglebob.drifter.skills.Gait.choose(this.drifter, this.end, this.hurry);
 		if (now != this.gait) {
 			if (this.gait != null) {
 				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), now.words() + " now");
@@ -130,15 +130,26 @@ public class RideTask extends Task {
 			return Status.SUCCESS;
 		}
 
+		// (On the horse's own way round: getting on means moving, not nearer as the crow flies: a way round houses goes away
+		// from the place for a while; found in testing, a rider on its way out of town "stuck" while it rode round a corner.)
+		boolean onRoute = this.route != null;
+		if (onRoute && (this.lastMoved == null || here.distanceTo(this.lastMoved) >= PROGRESS)) {
+			this.lastMoved = here;
+			this.sinceProgress = 0;
+		}
+
 		if (distance < this.bestDistance - PROGRESS) {
 			this.bestDistance = distance;
 			this.sinceProgress = 0;
 		} else if (++this.sinceProgress > STUCK_TICKS) {
 			// (In a town: a new way round for the horse, a few times, before it gives up: the user's pick, "stay on" rather
 			// than off and on again.)
-			if (this.inTownNow() && ++this.reroutes <= REROUTES) {
+			// (Out on the land too: the horse's own way round for a while, found in testing: a raid's leader stuck on a bank by
+			// the road got off, and its whole band with it.)
+			if (++this.reroutes <= REROUTES) {
 				this.sinceProgress = 0;
 				this.route = null;
+				this.routeUntil = this.ticksRunning() + 20 * 10;
 			} else {
 				this.getOff();
 				return this.fail("the horse can't get through this way");
@@ -209,6 +220,21 @@ public class RideTask extends Task {
 	private int reroutes;
 	private static final int REROUTES = 3;
 
+	/** It always keeps to the horse's own way (riding with someone: to its place behind them, never straight across). */
+	private boolean byRoute;
+
+	public RideTask byRoute() {
+		this.byRoute = true;
+		return this;
+	}
+
+	/** Where the horse was when it last got on a couple of blocks (on a route). */
+	@Nullable
+	private Vec3 lastMoved;
+
+	/** Till this tick it keeps to the horse's own way out on the land too (after getting stuck). */
+	private int routeUntil;
+
 	private boolean inTownNow() {
 		return com.dinglebob.drifter.api.DrifterApi.settled(this.horse.level(), this.horse.blockPosition());
 	}
@@ -219,7 +245,7 @@ public class RideTask extends Task {
 	 * it, round what's in the way.
 	 */
 	private Vec3 aim(Vec3 here) {
-		if (!this.inTownNow()) {
+		if (!this.byRoute && !this.inTownNow() && this.ticksRunning() > this.routeUntil) {
 			this.route = null;
 			return this.target;
 		}
@@ -335,6 +361,32 @@ public class RideTask extends Task {
 		} else {
 			this.getOff();
 		}
+	}
+
+	/** Riding with someone (its band's leader): at its gait once up with it, faster to catch up. */
+	@Nullable
+	private net.minecraft.world.entity.Entity keepUp;
+
+	public RideTask keepingUpWith(net.minecraft.world.entity.Entity leader) {
+		this.keepUp = leader;
+		return this;
+	}
+
+	private com.dinglebob.drifter.skills.Gait keepUpGait() {
+		// (A little give each way, so it doesn't change at every step about the line: found in testing, gallop, canter,
+		// gallop, a dozen times a minute.)
+		double far = this.drifter.distanceTo(this.keepUp);
+		boolean galloping = this.gait == com.dinglebob.drifter.skills.Gait.GALLOP;
+		boolean cantering = this.gait == com.dinglebob.drifter.skills.Gait.CANTER;
+		if (far > (galloping ? 16.0 : 26.0)) {
+			return com.dinglebob.drifter.skills.Gait.GALLOP;
+		}
+
+		if (far > (cantering || galloping ? 8.0 : 14.0)) {
+			return com.dinglebob.drifter.skills.Gait.CANTER;
+		}
+
+		return this.keepUp.getVehicle() instanceof AbstractHorse theirs ? com.dinglebob.drifter.skills.Gait.of(theirs) : com.dinglebob.drifter.skills.Gait.WALK;
 	}
 
 	/** The last stretch: off at the end after all (its gait still going by the trip's end). */

@@ -230,6 +230,14 @@ public final class SocialCommands {
 				ctx.getSource().sendSuccess(() -> Component.literal("Debug: " + raids + " raid" + (raids == 1 ? "" : "s") + " now at grief " + grief), true);
 				return raids;
 			}))));
+		// Debug: the nearest Drifter's group raids a rival it's at war with, now.
+		root.then(Commands.literal("raid").requires(source -> source.hasPermission(2)).executes(ctx -> {
+			var drifter = DrifterCommands.nearest(ctx.getSource());
+			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			String on = group == null ? null : com.dinglebob.drifter.world.DrifterWars.debugRaid(ctx.getSource().getServer(), group.id);
+			ctx.getSource().sendSuccess(() -> Component.literal(on == null ? "Debug: no raid (no war, or its leader isn't fit and about by day)" : "Debug: off to raid " + on), true);
+			return on == null ? 0 : 1;
+		}));
 		root.then(Commands.literal("war").then(Commands.argument("one", StringArgumentType.word()).then(Commands.argument("other", StringArgumentType.word())
 			.then(Commands.argument("tension", DoubleArgumentType.doubleArg(0, 100)).executes(ctx -> {
 				DrifterEntity one = named(ctx, StringArgumentType.getString(ctx, "one"));

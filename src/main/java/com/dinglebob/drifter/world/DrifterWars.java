@@ -139,6 +139,14 @@ public final class DrifterWars {
 		public int speech;
 		public long lastSpoke;
 		public final java.util.Set<String> said = new java.util.HashSet<>();
+		/** On horseback (its leader has a horse): paired once the speech is done; who rides behind whom (Icy's two to a horse). */
+		public boolean paired;
+		public boolean mounted;
+		/** The share of its people without a horse who come (as many as come with one), worked out once; below 0: no horses. */
+		public double horseShare = Double.NaN;
+		/** Since when its leader's been off its horse on the way (below 0: on it). */
+		public long leaderOffSince = -1;
+		public final java.util.Map<UUID, UUID> behind = new java.util.HashMap<>();
 
 		Raid(UUID attackers, UUID defenders, BlockPos target, BlockPos home, long now) {
 			this.attackers = attackers;
@@ -523,6 +531,23 @@ public final class DrifterWars {
 		for (UUID side : new UUID[] {feud.a, feud.b}) {
 			forMembers(server, side, member -> member.getMemory().thoughts().add(now, "made peace with " + name(feud.other(side)) + " (" + why + ")"));
 		}
+	}
+
+	/** Debug: this group sets off on a raid now on a rival it's at war with (its wait between raids skipped): which, or null. */
+	@org.jetbrains.annotations.Nullable
+	public static String debugRaid(MinecraftServer server, UUID attackers) {
+		long now = server.overworld().getGameTime();
+		for (Feud feud : feuds.values()) {
+			if (feud.tension >= WAR && (feud.a.equals(attackers) || feud.b.equals(attackers))) {
+				lastRaid.remove(attackers);
+				maybeRaid(server, attackers, feud.other(attackers), now);
+				if (raids.containsKey(attackers)) {
+					return name(feud.other(attackers));
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private static void maybeRaid(MinecraftServer server, UUID attackers, UUID defenders, long now) {

@@ -6,6 +6,18 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.76: war bands on horseback, two to a horse (new, 2026-11-16)
+
+Use a **new world** (stables now have a stall for every two households). When a town goes to war:
+1. At the muster, those with horses bring them to the plaza from the stable.
+2. After the leader's speech, each mounts, and one without a horse climbs up behind each ("climbed up behind ...").
+3. The band rides behind its leader along the road, at the leader's gait (faster to catch up).
+4. Near the town they raid they get off and go in on foot; the horses are left there (an enemy may take one).
+5. Home again, each goes back to its horse and rides home.
+To start one on purpose: stand in a town at war and run `/drifter raid` (the nearest Drifter's town raids a town it's at
+war with). Known rough edges: a horse can still get stuck in a tight town, and its rider may then lead it a bit or go on
+foot; if the leader has no horse, the band walks.
+
 ## 0.23.75: horse culture (new, 2026-11-16)
 
 Use a **new world** (towns made before this have their old small stables and no visitor stalls). Icy's Better Horses is

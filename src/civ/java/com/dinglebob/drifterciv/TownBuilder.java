@@ -3187,20 +3187,31 @@ public final class TownBuilder {
 				return;
 			}
 
+			// (Smaller if it doesn't fit: found in testing, a city's sixteen stalls found no lot, and the city had no stable.)
 			int work = Stables.workStalls(this.households);
-			int all = work + Stables.VISITOR_STALLS;
-			// (One long row up to eight; more, a second row behind it facing the same way, a lane between open at both ends:
-			// found in testing, a second row back to back opened away from the street and its horses couldn't get out.)
-			int rows = all <= 8 ? 1 : 2;
-			int perRow = (all + rows - 1) / rows;
-			int width = 3 * perRow + 1;
-			int depth = rows == 1 ? 6 : 16;
-			Lot lot = this.lot(Math.max(width, depth), Math.max(width, depth), this.penRect, 40 + width, false, false);
+			Lot lot = null;
+			int all = 0;
+			int rows = 0;
+			int perRow = 0;
+			int width = 0;
+			int depth = 0;
+			for (; work >= Stables.FEWEST_STALLS && lot == null; work -= 2) {
+				all = work + Stables.VISITOR_STALLS;
+				// (One long row up to eight; more, a second row behind it facing the same way, a lane between open at both ends:
+				// found in testing, a second row back to back opened away from the street and its horses couldn't get out.)
+				rows = all <= 8 ? 1 : 2;
+				perRow = (all + rows - 1) / rows;
+				width = 3 * perRow + 1;
+				depth = rows == 1 ? 6 : 16;
+				lot = this.lot(Math.max(width, depth), Math.max(width, depth), this.penRect, 40 + width, false, false);
+			}
+
 			if (lot == null) {
 				DrifterCivilizations.LOGGER.info("[town] {}: no lot for a stable", this.name);
 				return;
 			}
 
+			work += 2;
 			Rect site = lot.site();
 			this.taken.add(site);
 			Direction front = lot.front() != null ? lot.front() : Direction.SOUTH;
