@@ -1057,6 +1057,37 @@ public final class DrifterApi {
 		return owner == null || owner.equals(drifter.getUUID()) || drifter.getUUID().equals(CAPTURES.get(horse.getUUID()));
 	}
 
+	/** A horse for sale at a stable: the horse, its stall, its price (points). */
+	public record HorseForSale(net.minecraft.world.entity.animal.horse.AbstractHorse horse, net.minecraft.core.BlockPos stall, double price) {
+	}
+
+	private static volatile java.util.function.Function<DrifterEntity, HorseForSale> horseForSale = drifter -> null;
+	private static volatile java.util.function.BiPredicate<DrifterEntity, net.minecraft.world.entity.animal.horse.AbstractHorse> buyHorse = (drifter, horse) -> false;
+
+	/**
+	 * The addon's horses for sale (horse culture): one it could buy here now (at the stable of the town it's in, and it has
+	 * the money), and the sale itself (its money to the town, the horse its own: {@link #keepHorse}).
+	 */
+	public static void setHorseSales(java.util.function.Function<DrifterEntity, HorseForSale> find,
+		java.util.function.BiPredicate<DrifterEntity, net.minecraft.world.entity.animal.horse.AbstractHorse> buy) {
+		horseForSale = find;
+		buyHorse = buy;
+	}
+
+	@Nullable
+	public static HorseForSale horseForSale(DrifterEntity drifter) {
+		try {
+			return horseForSale.apply(drifter);
+		} catch (RuntimeException e) {
+			return null;
+		}
+	}
+
+	/** It buys this horse: true if it's its own now. */
+	public static boolean buyHorse(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		return buyHorse.test(drifter, horse);
+	}
+
 	private static volatile java.util.function.BiFunction<net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos> stallNear =
 		(level, pos) -> null;
 

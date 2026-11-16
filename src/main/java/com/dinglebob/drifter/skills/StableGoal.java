@@ -85,6 +85,47 @@ public final class StableGoal extends Goals.Goal {
 		};
 	}
 
+	/**
+	 * Before a long trip with no horse of its own: one for sale at the stable of the town it's in, if it has the money (horse
+	 * culture, "a traveller without a horse buying one"): over to it, then the sale (then its walk fetches it as its own).
+	 * Null if there's none to buy.
+	 */
+	@Nullable
+	public static Task buy(DrifterEntity drifter, double trip) {
+		if (trip < RIDE_TRIP || drifter.isPassenger() || drifter.getDrifterBrain().horse() != null) {
+			return null;
+		}
+
+		var sale = com.dinglebob.drifter.api.DrifterApi.horseForSale(drifter);
+		if (sale == null) {
+			return null;
+		}
+
+		AbstractHorse horse = sale.horse();
+		if (horse.distanceTo(drifter) > 3.0) {
+			return new NavigateTask(drifter, horse.position(), 2.0, "go and look at a horse for sale", NavigateTask.Pace.STROLL).onFoot();
+		}
+
+		return new Task(drifter) {
+			@Override
+			public String describe() {
+				return "buy a horse";
+			}
+
+			@Override
+			protected Status onTick() {
+				this.drifter.getCamera().track(horse.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+				if (!com.dinglebob.drifter.api.DrifterApi.buyHorse(this.drifter, horse)) {
+					return this.fail("couldn't buy the horse");
+				}
+
+				this.drifter.getSenses().touched(horse);
+				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "bought " + horse.getName().getString() + " at the stable here");
+				return Status.SUCCESS;
+			}
+		};
+	}
+
 	@Override
 	public double urgency(Goals.Context context) {
 		DrifterEntity drifter = context.drifter();

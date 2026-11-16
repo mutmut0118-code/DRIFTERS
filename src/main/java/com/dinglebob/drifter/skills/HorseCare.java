@@ -105,6 +105,8 @@ public final class HorseCare extends Goals.Goal {
 				}
 
 				if (owner != null && level.getEntity(owner) instanceof DrifterEntity drifter) {
+					com.dinglebob.drifter.Drifter.LOGGER.info("[horse] {}'s horse {} died: {} (by {})", drifter.getName().getString(), horse.getName().getString(),
+						source.getMsgId(), source.getEntity() == null ? "nothing" : source.getEntity().getName().getString());
 					lost(drifter, horse, "killed");
 				}
 			}

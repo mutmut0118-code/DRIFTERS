@@ -96,7 +96,12 @@ public final class Legs {
 		Vec3 from = drifter.position();
 		double distance = Math.hypot(to.getX() + 0.5 - from.x, to.getZ() + 0.5 - from.z);
 		// (Far: its horse from the stable first, if it keeps one; its walk then rides it.)
-		Task horse = distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP ? com.dinglebob.drifter.skills.StableGoal.fetch(drifter, distance) : null;
+		// (No horse of its own: one bought at the stable here first, if there's one for sale and it has the money.)
+		Task horse = distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP ? com.dinglebob.drifter.skills.StableGoal.buy(drifter, distance) : null;
+		if (horse == null && distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP) {
+			horse = com.dinglebob.drifter.skills.StableGoal.fetch(drifter, distance);
+		}
+
 		if (horse != null) {
 			return horse;
 		}

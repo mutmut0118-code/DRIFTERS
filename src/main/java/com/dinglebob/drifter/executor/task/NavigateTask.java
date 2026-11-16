@@ -587,6 +587,10 @@ public class NavigateTask extends Task {
 			}
 
 			boolean stillOn = riding == Status.SUCCESS && this.ride.stillOn();
+			if (riding == Status.FAILURE) {
+				this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "got off its horse: " + this.ride.failureReason());
+			}
+
 			this.ride.stop();
 			this.ride = null;
 			this.leaveHorse();
@@ -985,7 +989,7 @@ public class NavigateTask extends Task {
 		if (stall != null && com.dinglebob.drifter.skills.StableGoal.lead(this.drifter, horse)) {
 			this.led = horse;
 			this.stallFor = stall;
-			this.toStall = new NavigateTask(this.drifter, Vec3.atBottomCenterOf(stall), 1.5, "lead its horse to the stable", Pace.STROLL).onFoot();
+			this.toStall = this.stallLeg(stall);
 			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "got off at the edge of town, to lead its horse to the stable");
 			return;
 		}
@@ -993,6 +997,23 @@ public class NavigateTask extends Task {
 		this.leaving = horse;
 		this.leaveAt = null;
 		this.leaveHorse();
+	}
+
+	/** Walks to the stall so far. */
+	private int stallLegs;
+
+	/** The next walk toward the stall it's leading its horse to (on foot: a stretch of the way if it's far). */
+	private NavigateTask stallLeg(BlockPos stall) {
+		Vec3 to = Vec3.atBottomCenterOf(stall);
+		double far = Math.hypot(to.x - this.drifter.getX(), to.z - this.drifter.getZ());
+		Vec3 step = far <= com.dinglebob.drifter.nav.Legs.STRETCH * 1.5 ? to
+			: this.drifter.position().add(to.subtract(this.drifter.position()).multiply(1, 0, 1).normalize().scale(com.dinglebob.drifter.nav.Legs.STRETCH));
+		if (step != to) {
+			BlockPos ground = this.level().getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, BlockPos.containing(step));
+			step = Vec3.atBottomCenterOf(ground);
+		}
+
+		return new NavigateTask(this.drifter, step, step == to ? 1.5 : 3.0, "lead its horse to the stable", Pace.STROLL).onFoot();
 	}
 
 	/** Leading its horse to a stall: there, it's tied up (or at a fence near, if the stall's taken now). */
@@ -1037,6 +1058,14 @@ public class NavigateTask extends Task {
 
 		this.toStall.stop();
 		this.toStall = null;
+		// (Still far from it, a walk at a time: found in testing, a stable a hundred blocks into town was too far for one.)
+		if (walking != Status.SUCCESS || stall != null && !com.dinglebob.drifter.skills.StableGoal.canTieAt(this.drifter, stall)) {
+			if (stall != null && ++this.stallLegs <= 12 && !this.drifter.position().closerThan(Vec3.atBottomCenterOf(stall), 3.0)) {
+				this.toStall = this.stallLeg(stall);
+				return Status.RUNNING;
+			}
+		}
+
 		this.leaving = horse;
 		this.leaveAt = this.stallFor;
 		this.stallFor = null;
@@ -1098,8 +1127,9 @@ public class NavigateTask extends Task {
 		boolean atStall = stall != null && com.dinglebob.drifter.skills.StableGoal.tie(this.drifter, horse, stall);
 		boolean tied = atStall || com.dinglebob.drifter.skills.StableGoal.tie(this.drifter, horse, horse.blockPosition());
 		if (!tied) {
-			com.dinglebob.drifter.Drifter.LOGGER.debug("[horse] {} couldn't tie its horse: stall {}, horse {} blocks off, leads {}", this.drifter.getName().getString(),
-				stall, String.format(java.util.Locale.ROOT, "%.1f", horse.distanceTo(this.drifter)),
+			com.dinglebob.drifter.Drifter.LOGGER.info("[horse] {} couldn't tie its horse: stall {} ({} off, post in reach {}), horse {} blocks off, leads {}",
+				this.drifter.getName().getString(), stall, stall == null ? "-" : String.format(java.util.Locale.ROOT, "%.1f", Math.sqrt(stall.distToCenterSqr(this.drifter.position()))),
+				stall != null && com.dinglebob.drifter.skills.StableGoal.canTieAt(this.drifter, stall), String.format(java.util.Locale.ROOT, "%.1f", horse.distanceTo(this.drifter)),
 				this.drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.LEAD)));
 		}
 

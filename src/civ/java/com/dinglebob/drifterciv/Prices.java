@@ -38,6 +38,8 @@ final class Prices {
 	static final double DEAD = 1 * SILVER;
 	/** A reply brought back adds this. */
 	static final double REPLY = 1 * SILVER;
+	/** A horse from a town's stable (horse culture), saddled. */
+	static final double HORSE = 20 * SILVER;
 	/** A guard hired for a day. */
 	static final double GUARD_DAY = 7 * SILVER;
 	/** A job worth this much or more is a big one (a prize besides: Rewards). */
