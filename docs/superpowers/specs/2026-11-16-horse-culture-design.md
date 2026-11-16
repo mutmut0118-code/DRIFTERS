@@ -210,6 +210,29 @@ On a flat dev world with Icy's (and GeckoLib, Modonomicon) in `run/mods`: a Drif
 with a cart hitched) with a player sat in the cart; how Icy's sets a cart up and hitches it. Its answers settle the
 details of sections 2 and 6.
 
+### 9b. Spike findings (2026-11-16, dev client, Icy's 2.1.8)
+
+- **Owning:** `bh_setOwner(drifter UUID)` takes; Icy's shows the Drifter as owner. Icy horses are `AbstractHorse`s
+  (`icy.betterhorses.net.entity.ThoroughbredHorse` and so on), so Drifter's riding works on them: a Drifter rode one 340
+  blocks with `RideTask`.
+- **Seeing its horse:** `NavigateTask.rideFor` uses a horse only if the Drifter has seen it in the last 10 s; a horse
+  behind it isn't, and it walked. The stable job (walk to the stall first) gets round this; leaving a horse elsewhere
+  (Task 5) must do the same: go to where it left it.
+- **Bond (a):** Icy's own bonding counts a Drifter owner's riding (`Bonding.ridden` rose 0 to 340 over the ride); the bond
+  itself rises a point per 1,000 blocks ridden (`RIDE_BLOCKS` 1000.0), so no credit of our own is needed for riding.
+  Treats: only the favourite treat, a brush, a golden apple or a name tag give bond (builder's check); the favourite is
+  `Bonding.treat` (null until learned, `treatKnown`).
+- **Gaits (e):** `bh_setGaitGear(n)` sets the gear (1 walk, 2 trot, 3 canter, 4 gallop; 0 none), but Icy's applies its
+  speeds only for a player rider (`AbstractHorseMixin.bh_applyGearSpeed` on `getRiddenSpeed(Player)`): a Drifter's horse
+  ran at full speed whatever the gear. Icy's speeds (`BhGears.riddenSpeed`): gears 1 to 3 = min(0.225 x {0.2, 0.45, 0.7},
+  the horse's speed); gear 4 = the horse's speed. Its gait animations are picked from how fast the horse moves
+  (`client/render/BhEquineGait` reads the horse's forward speed), so `DrifterRiding` sets the horse's speed by the same
+  formula (and the gear, for anything that reads it) and the animation follows.
+- **Carts (c, d):** `HorseCartEntity.spawnFor(horse)` and `bindTo(horse)` make and bind a cart, but Icy's drops it at once
+  when the horse has no cart gear: a cart needs Icy's upgraded saddle on the horse and the Horse Cart item in its gear
+  slot (`BhHorseInteraction.equipGearFromHand(horse, data, player, hand)`), the way a player sets one up; the Drifter does
+  that through the FakePlayer (Task 8, tested there). Not yet seen: the player sitting in a moving cart.
+
 ### 10. Testing
 
 - Dev client with Icy's: a new seed 779 world: stables sized and stocked by town; townsfolk riding between towns on the
