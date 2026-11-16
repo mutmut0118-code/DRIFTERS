@@ -1,0 +1,24 @@
+# A crime played out in chat (2026-11-16: "a 2 to 4 part chat ... somebody stop them! / are you seeing this?? / get him!! /
+# he got away :( / anyway", "the rest of the crimes ... personalities, gta style"): a town, two of its people in a talk, then
+# each kind of crime by a stand-in player at the plaza: the one who saw it shouts, one to three others join in a few seconds
+# apart; half a minute on, "they got away"; the two talking pick it back up ("anyway").
+until Done_( 900
+wait 5
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+forceload add ~-96 ~-96 ~96 ~96
+kill @e[type=drifter:drifter]
+wait 2
+execute positioned over motion_blocking_no_leaves run drifterciv town spawn 10 Crimeford
+wait 25
+execute positioned over motion_blocking_no_leaves run drifter talk
+wait 4
+execute positioned over motion_blocking_no_leaves run drifterciv town crime horse
+wait 40
+execute positioned over motion_blocking_no_leaves run drifterciv town crime peace
+wait 15
+execute positioned over motion_blocking_no_leaves run drifterciv town crime scene_murder
+wait 40
+execute positioned over motion_blocking_no_leaves run drifterciv town crime livestock
+wait 35

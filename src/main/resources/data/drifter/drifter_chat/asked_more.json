@@ -270,6 +270,25 @@
       "pleasure is mine",
       "the pleasure is mine",
       "nice meeting you"
+    ],
+    "brushed": [
+      "(damn|dang|wow|geez|jeez|sheesh|well|oh|man) (ok|okay|alright|fine)",
+      "(damn|dang|wow|geez|jeez|well|oh) (ok|okay|alright|fine) then",
+      "(ok|okay|alright|fine) then",
+      "(ok|okay|wow|damn) rude",
+      "(ok|okay) (sorry|my bad)",
+      "sorry for asking",
+      "sorry i asked",
+      "(ok|okay|alright) (chill|calm down|relax)",
+      "(damn|dang|wow|geez) (harsh|cold)",
+      "no need to be rude",
+      "didnt have to be rude",
+      "someone's grumpy",
+      "someones grumpy",
+      "somebody's grumpy",
+      "somebodys grumpy",
+      "touchy",
+      "who hurt you"
     ]
   },
   "lines": {
@@ -413,6 +432,48 @@
         "sure",
         "mhm",
         "if you say so"
+      ]
+    },
+    "convo.brushed": {
+      "any": [
+        "haha sorry, long day",
+        "lol sorry, didnt mean it like that",
+        "my bad, just busy",
+        "sorry sorry. whats up?",
+        "ah, sorry. im alright",
+        "oops, that came out wrong",
+        "no no, im just tired. hi",
+        "sorry! wasnt at you"
+      ],
+      "hermit": [
+        "...sorry. not used to talking"
+      ],
+      "newbie": [
+        "oh no sorry!! i didnt mean it"
+      ],
+      "pvp_sweat": [
+        "lol my bad"
+      ],
+      "helper": [
+        "oh im so sorry! whats up?"
+      ],
+      "bandit": [
+        "heh. sorry. bad day"
+      ]
+    },
+    "convo.brushed.cold": {
+      "any": [
+        "mhm",
+        "yep",
+        "good",
+        "glad we agree",
+        "yeah",
+        "k",
+        "if you say so",
+        "bye then"
+      ],
+      "hermit": [
+        "..."
       ]
     }
   }

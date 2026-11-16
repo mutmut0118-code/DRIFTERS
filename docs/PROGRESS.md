@@ -7270,6 +7270,32 @@ From a play screenshot (a war speech, a quest):
   great" "heh", then "i miss my dog. he'd sit by the door". Of the 1,090 topics the happy one leads to, 65 were grim;
   now none. (Talks don't run headless; checked against the topic files.)
 
+- A talk a Drifter opened itself ("hi stranger", now "im sabrina, nice to meet you", not "sabrina, nice to meet you") keeps
+  that friendly mood; and one that would be cold with them (wary: a shy one's start with strangers is below trust 0, "Wary
+  of you" in the journal; in a temper; insulted) doesn't come over and say hi at all (`PlayerChats`, `PlayerConvo.opened`,
+  `coldWhy`; a thought says why a talk is cold). Found in play: Sabrina came over all "nice to meet you", then "noted",
+  "fine. why", "find someone else".
+- "damn okay", "wow ok", "ok then", "sorry for asking", "no need to be rude": being brushed off (`brushed`): "haha sorry,
+  long day" (cold: "mhm", "bye then"). It was "yes", or "believe it or dont" (a "wow").
+- A fine paid by tossing coins: no "ty ty" for the first part (it says what's left: "keep going. 20 silver left"), and no
+  chat after "the town thanks you. now go" (`SocialWatcher.notAGift`). The guard names the crime as it was ("stealing a
+  horse", not "harming the farms").
+- Something said outside a Drifter talk (a shout at a crime, an answer to a player) pauses that talk, then it picks it
+  back up: "sorry, anyway" (`Conversations.aside`). Crime shouts are to everyone, not "[to pancakes]".
+- **Crime scenes** (`CrimeScene`; the user: "a 2 to 4 part chat ... somebody stop them! / are you seeing this?? / get him!!
+  / he got away :( / anyway", then "expand this to the rest of the crimes ... variations for lines for different
+  personalities / gta style"): the one who saw it shouts, one to three others near (24 blocks, 40 for a killing) join in
+  a few seconds apart, each as its kind would (newbie panics, bandit's impressed, sweat wants a go, helper calms everyone,
+  hoarder: "MY CHESTS"); half a minute on, if they've gone off and not paid, "they got away :(". Every crime: theft, horse,
+  farms, animals, false alarm, a dead one's armor, killing, massacre, someone wanted back, and Drifters' own (a crook's
+  theft, a fight). 351 lines in `drifter_civ/drifter_chat/crime_scene.json`. `/drifterciv town crime <kind>` works from
+  the console now (a stand-in player), with horse, livestock, peace, blood and scene_murder / scene_massacre / scene_wanted.
+
+Headless: tools/smoke-crime-scene.txt (a horse, a false alarm, a killing, the animals: shouted, joined in, "they got away",
+"sorry, anyway" from one who was talking), tools/smoke-playertalk-wary.txt, tools/smoke-talk-aside.txt. Not headless (needs
+you): the fine by tossed coins, a wary Drifter not saying hi. Seen in passing, not this branch's: the crier's headlines
+come out in the middle of other lines.
+
 Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with nothing between; idle chatter doesn't
 run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
 "hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).

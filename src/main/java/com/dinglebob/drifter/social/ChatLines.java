@@ -59,6 +59,8 @@ public final class ChatLines {
 
 		lastLine.put(drifter.getUUID(), drifter.level().getGameTime());
 		send(drifter, text);
+		// (Said in the middle of a talk with another Drifter: that talk waits, and it picks it back up.)
+		com.dinglebob.drifter.social.talk.Conversations.aside(drifter, drifter.level().getGameTime());
 	}
 
 	/**

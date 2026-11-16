@@ -4053,6 +4053,19 @@
         "{crime}. {fine}. pay."
       ]
     },
+    "guard.part": {
+      "any": [
+        "{left} more",
+        "keep going. {left} left",
+        "thats a start. {left} to go",
+        "{left} more and we're square",
+        "not yet. {left} more",
+        "go on, {left} left"
+      ],
+      "hermit": [
+        "{left}. more."
+      ]
+    },
     "guard.paid": {
       "any": [
         "good. behave from now on",

@@ -57,7 +57,7 @@ public final class PlayerConvo {
 		"hunt_with", "warning", "truce", "offer", "come_in", "sleep_here", "danger_tell", "threat_all", "threat", "wake_up", "jk"};
 	/** The glue: reactions, asking it to explain, steering the talk. */
 	static final String[] GLUE = {"laugh", "nice", "wow", "agree", "doubt", "sympathy", "ack", "pushback", "why", "wdym", "nvm", "talk_to_me",
-		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good", "met_you"};
+		"you_there", "not_you", "wait_up", "sorry", "middle", "brb", "gl", "iam", "im_good", "im_bad", "everyone", "chatting", "my_day", "my_day_good", "met_you", "brushed"};
 	/** Things that only count when nothing older is meant by the message (their phrases are in too many others). */
 	private static final Set<String> WEAK = Set.of("who_is", "look");
 	/** These and batch 2's (TalkMore). */
@@ -160,16 +160,26 @@ public final class PlayerConvo {
 	 * grieving. Else as it is with anyone.
 	 */
 	private static String tone(DrifterEntity drifter, ServerPlayer player, long now) {
-		Mode mode = Mode.toward(drifter, player);
-		Relationship r = drifter.getSocial().get(player.getUUID());
 		Mood mood = drifter.getPersonality().mood().current();
-		boolean insulted = r != null && r.lastInsultAt >= 0 && now - r.lastInsultAt < 24000L && !r.lastInsult.isEmpty();
-		if (mode == Mode.WARNING || mode == Mode.AVOIDING || r != null && r.trust < 0.0 || insulted || lately(drifter, player, "threat", now, 24000L)
-			|| mood == Mood.ANGRY || mood == Mood.FRUSTRATED) {
+		String why = coldWhy(drifter, player, now);
+		if (why != null) {
+			drifter.getMemory().thoughts().add(now, "talking coldly with " + player.getGameProfile().getName() + ": " + why);
 			return "cold";
 		}
 
 		return mood == Mood.GRIEVING ? "down" : "";
+	}
+
+	/** Why a talk with them would be cold now ("doesn't trust them", "in a temper"), or null if it wouldn't. */
+	@Nullable
+	static String coldWhy(DrifterEntity drifter, ServerPlayer player, long now) {
+		Mode mode = Mode.toward(drifter, player);
+		Relationship r = drifter.getSocial().get(player.getUUID());
+		Mood mood = drifter.getPersonality().mood().current();
+		boolean insulted = r != null && r.lastInsultAt >= 0 && now - r.lastInsultAt < 24000L && !r.lastInsult.isEmpty();
+		return mode == Mode.WARNING ? "warning them off" : mode == Mode.AVOIDING ? "keeping clear of them" : r != null && r.trust < 0.0 ? "doesn't trust them"
+			: insulted ? "insulted by them lately" : lately(drifter, player, "threat", now, 24000L) ? "threatened by them lately"
+			: mood == Mood.ANGRY || mood == Mood.FRUSTRATED ? "in a temper" : null;
 	}
 
 	/** The line kind to say for this one, in the mood of the talk it's in: its cold or down lines when it has them. */
@@ -237,8 +247,15 @@ public final class PlayerConvo {
 
 	/** It started a talk with them: this line of its opener, which may have asked something. */
 	static void opened(ServerPlayer player, DrifterEntity drifter, String topicId, String line, long now) {
+		Convo before = convos.get(player.getUUID());
+		boolean fresh = before == null || !before.drifter.equals(drifter.getUUID()) || now > before.until + 20L * 30;
 		touch(player, drifter, now, false);
 		Convo c = convos.get(player.getUUID());
+		// (It came over and said hi, "nice to meet you": the talk keeps that mood. Found in play: "sabrina, nice to meet you",
+		// then "noted", "fine. why", "find someone else" to "just asking :)".)
+		if (fresh && c.tone.equals("cold")) {
+			c.tone = "";
+		}
 		String lower = line.toLowerCase(Locale.ROOT);
 		String expecting = !topicId.equals("hi_stranger") ? null : lower.contains("pvp") ? "pvp" : lower.contains("lost") ? "lost"
 			: lower.contains("new") || lower.contains("seen you") || lower.contains("who are you") || lower.contains("stranger") ? "new" : "hi";
@@ -816,7 +833,7 @@ public final class PlayerConvo {
 
 		switch (mine) {
 			// ----- The glue -----
-			case "laugh", "nice", "wow", "agree", "doubt", "sympathy", "pushback", "gl", "brb", "nvm", "you_there", "chatting", "my_day", "my_day_good" -> {
+			case "laugh", "nice", "wow", "agree", "doubt", "sympathy", "pushback", "gl", "brb", "nvm", "you_there", "chatting", "my_day", "my_day_good", "brushed" -> {
 				say(drifter, player, "convo." + mine, null);
 				if (mine.equals("brb") && c != null) {
 					c.until = Math.max(c.until, now + STAY);

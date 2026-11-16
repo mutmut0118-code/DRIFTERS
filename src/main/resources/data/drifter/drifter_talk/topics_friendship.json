@@ -154,7 +154,7 @@
       "leads": ["doing", "places", "plans"],
       "about": "that",
       "turns": [
-        {"by": "a", "lines": ["i'm {a} by the way", "names {a}", "{a}, nice to meet you", "hey, i'm {a}"]},
+        {"by": "a", "lines": ["i'm {a} by the way", "names {a}", "im {a}, nice to meet you", "hey, i'm {a}"]},
         {"by": "b", "lines": ["{b}", "i'm {b}", "{b}, hi", "nice to meet you, i'm {b}"]},
         {"by": "a", "chance": 0.5, "lines": ["cool name", "nice", "hi {b}"]}
       ]

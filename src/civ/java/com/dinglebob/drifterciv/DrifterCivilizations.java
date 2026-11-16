@@ -80,6 +80,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		Towns.register();
 		TownFounding.register();
 		Justice.register();
+		CrimeScene.register();
 		// An autosave on walking into a town, with Quicksave (0.23.37).
 		Arrivals.register();
 		Diplomacy.register();
@@ -577,9 +578,10 @@ public final class DrifterCivilizations implements ModInitializer {
 				// Debug: the player running it did this in the nearest town, seen by the nearest of its people (theft, farms, murder).
 				.then(Commands.literal("crime").requires(source -> source.hasPermission(2))
 					.then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
-						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "murder", "massacre", "pardon"), builder))
+						.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(List.of("theft", "farms", "horse", "livestock", "peace", "blood",
+							"murder", "massacre", "pardon", "scene_murder", "scene_massacre", "scene_wanted"), builder))
 						.executes(ctx -> {
-							var player = ctx.getSource().getPlayerOrException();
+							net.minecraft.server.level.ServerPlayer player = ctx.getSource().getPlayer() != null ? ctx.getSource().getPlayer() : standIn(ctx.getSource());
 							Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), player.blockPosition());
 							String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
 							if (town == null || !Justice.debugCrime(ctx.getSource().getServer(), town, player, kind)) {
@@ -1360,6 +1362,13 @@ public final class DrifterCivilizations implements ModInitializer {
 
 	/** The nearest town: its name, when it was founded, its people, its store. */
 	/** The nearest town's dealings: each town it knows of, how they stand, their pacts. */
+	/** A stand-in player where a command is run from the console (headless tests). */
+	private static net.minecraft.server.level.ServerPlayer standIn(net.minecraft.commands.CommandSourceStack source) {
+		net.minecraft.server.level.ServerPlayer player = net.fabricmc.fabric.api.entity.FakePlayer.get(source.getLevel());
+		player.moveTo(source.getPosition());
+		return player;
+	}
+
 	private static int relations(com.mojang.brigadier.context.CommandContext<net.minecraft.commands.CommandSourceStack> ctx) {
 		Town town = Towns.nearest(ctx.getSource().getLevel().dimension().location().toString(), BlockPos.containing(ctx.getSource().getPosition()));
 		if (town == null) {

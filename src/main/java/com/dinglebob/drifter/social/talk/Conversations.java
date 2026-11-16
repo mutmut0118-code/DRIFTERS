@@ -120,6 +120,9 @@ public final class Conversations {
 		@Nullable
 		DrifterEntity leaving;
 		boolean closed;
+		/** Said something else in the middle of it (a shout about a crime): it picks the talk back up ("anyway"). */
+		@Nullable
+		DrifterEntity asideBy;
 
 		Talk(DrifterEntity a, DrifterEntity b, Topics.Topic topic, long now) {
 			this.a = a;
@@ -174,6 +177,21 @@ public final class Conversations {
 
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(Conversations::tick);
+	}
+
+	/**
+	 * It said something outside its talk (a shout at a crime, a word to a player): the talk waits a moment, and it picks it
+	 * back up with an "anyway". Found in play: "wait muto took a horse?? can you do that??", then its next line in the
+	 * debate, "hmm, no", read as the answer to its own question.
+	 */
+	public static void aside(DrifterEntity speaker, long now) {
+		Talk talk = of(speaker);
+		if (talk == null || talk.leaving != null) {
+			return;
+		}
+
+		talk.asideBy = speaker;
+		talk.nextAt = Math.max(talk.nextAt, now + 80 + speaker.getRandom().nextInt(40));
 	}
 
 	/** The conversation it's in, or null. */
@@ -450,6 +468,16 @@ public final class Conversations {
 	 * (a long talk ending in a goodbye). False when it's over.
 	 */
 	private static boolean carryOn(Talk talk, long now) {
+		// (Back to it after something said aside.)
+		if (talk.asideBy != null) {
+			DrifterEntity back = talk.asideBy;
+			talk.asideBy = null;
+			if (back.isAlive() && (back == talk.a || back == talk.b)) {
+				out(talk, back, Lines.pick(back, "talk.aside_back"), now);
+				return true;
+			}
+		}
+
 		if (talk.leaving != null) {
 			// (The goodbye's answered, and that's it.)
 			DrifterEntity other = talk.partnerOf(talk.leaving);
