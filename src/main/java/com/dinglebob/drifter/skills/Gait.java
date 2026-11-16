@@ -41,7 +41,8 @@ public enum Gait {
 	public static Gait choose(DrifterEntity rider, Vec3 target, boolean hurry) {
 		var goal = rider.getDrifterBrain().currentGoal();
 		String id = goal == null ? "" : goal.id();
-		if (hurry || rider.inCombat() || id.equals("flee") || id.equals("fight") || id.equals("pursuit") || id.equals("bounty")) {
+		// (Called to defend its town: a gallop. A raid marches with its band on foot: its leader keeps to a trot.)
+		if (hurry || rider.inCombat() || id.equals("flee") || id.equals("fight") || id.equals("pursuit") || id.equals("bounty") || id.equals("defend")) {
 			return GALLOP;
 		}
 

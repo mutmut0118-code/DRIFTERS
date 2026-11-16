@@ -593,6 +593,21 @@ public class NavigateTask extends Task {
 
 			this.ride.stop();
 			this.ride = null;
+			// (Riding it to a stall and stuck: off, and leading it on foot again from here, a few times over before it gives up:
+			// found in testing, a town's lane neither way got through, the other did from where it was by then.)
+			var toStallHorse = this.leaving;
+			BlockPos stallAgain = this.leaveAt;
+			if (riding == Status.FAILURE && toStallHorse != null && stallAgain != null && ++this.stallSwitches <= 3
+				&& !com.dinglebob.drifter.skills.StableGoal.canTieAt(this.drifter, stallAgain) && com.dinglebob.drifter.skills.StableGoal.lead(this.drifter, toStallHorse)) {
+				this.leaving = null;
+				this.leaveAt = null;
+				this.led = toStallHorse;
+				this.stallFor = stallAgain;
+				this.ledWait = 0;
+				this.toStall = this.stallLeg(stallAgain);
+				return Status.RUNNING;
+			}
+
 			this.leaveHorse();
 			if (stillOn) {
 				// (A stretch of a road trip, ridden: still in the saddle for the next one.)
@@ -867,6 +882,11 @@ public class NavigateTask extends Task {
 			return null;
 		}
 
+		// (Across its own town: on foot, the horse let be.)
+		if (!leading && inTown && this.arriving(here, end)) {
+			return null;
+		}
+
 		// Through a town on foot, leading its horse (pathfinding finds the way through the streets: the horse, steered
 		// straight, got stuck on houses); on the road, up into the saddle.
 		if (inTown && this.tripEnd != null && com.dinglebob.drifter.skills.StableGoal.lead(this.drifter, own)) {
@@ -999,8 +1019,9 @@ public class NavigateTask extends Task {
 		this.leaveHorse();
 	}
 
-	/** Walks to the stall so far. */
+	/** Walks to the stall so far, and switches from riding it there back to leading it. */
 	private int stallLegs;
+	private int stallSwitches;
 
 	/** The next walk toward the stall it's leading its horse to (on foot: a stretch of the way if it's far). */
 	private NavigateTask stallLeg(BlockPos stall) {

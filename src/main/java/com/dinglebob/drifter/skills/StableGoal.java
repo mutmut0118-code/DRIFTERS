@@ -126,6 +126,73 @@ public final class StableGoal extends Goals.Goal {
 		};
 	}
 
+	/** An enemy's horse tied up this near is taken (seen, in reach to untie as a player would). */
+	private static final double CAPTURE_NEAR = 12.0;
+
+	/**
+	 * At an enemy town in a war, with no horse of its own: an enemy's horse tied up near (one it sees), taken (horse culture,
+	 * the user: "Only war captures"): over to it, untied, its own (its old owner's loss: "taken in war"). Null if there's none.
+	 */
+	@Nullable
+	public static Task capture(DrifterEntity drifter) {
+		if (drifter.getDrifterBrain().horse() != null || drifter.isPassenger() || !(drifter.level() instanceof ServerLevel level)) {
+			return null;
+		}
+
+		long now = level.getGameTime();
+		AbstractHorse found = null;
+		DrifterEntity enemy = null;
+		for (var awareness : drifter.getSenses().tracked()) {
+			if (!(awareness.entity instanceof AbstractHorse horse) || !horse.isAlive() || !tiedUp(horse) || !awareness.seenWithin(now, 20 * 5)
+				|| horse.distanceTo(drifter) > CAPTURE_NEAR) {
+				continue;
+			}
+
+			java.util.UUID owner = com.dinglebob.drifter.compat.IcyHorses.owner(horse);
+			if (owner == null) {
+				owner = horse.getOwnerUUID();
+			}
+
+			if (owner != null && level.getEntity(owner) instanceof DrifterEntity theirs && com.dinglebob.drifter.world.DrifterWars.hostile(drifter, theirs)) {
+				found = horse;
+				enemy = theirs;
+				break;
+			}
+		}
+
+		if (found == null) {
+			return null;
+		}
+
+		AbstractHorse horse = found;
+		DrifterEntity loser = enemy;
+		if (horse.distanceTo(drifter) > 2.5) {
+			return new NavigateTask(drifter, horse.position(), 2.0, "go for " + loser.getName().getString() + "'s horse", NavigateTask.Pace.TRAVEL).onFoot();
+		}
+
+		return new Task(drifter) {
+			@Override
+			public String describe() {
+				return "take " + loser.getName().getString() + "'s horse";
+			}
+
+			@Override
+			protected Status onTick() {
+				if (!horse.isAlive() || !tiedUp(horse)) {
+					return this.fail("the horse is gone");
+				}
+
+				this.drifter.getCamera().track(horse.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+				// (The lead off the post, into its pack, as a player clicks the knot.)
+				horse.dropLeash(true, false);
+				this.drifter.getInventory().add(new net.minecraft.world.item.ItemStack(Items.LEAD));
+				com.dinglebob.drifter.api.DrifterApi.takeHorse(this.drifter, horse, loser);
+				this.drifter.getSenses().touched(horse);
+				return Status.SUCCESS;
+			}
+		};
+	}
+
 	@Override
 	public double urgency(Goals.Context context) {
 		DrifterEntity drifter = context.drifter();

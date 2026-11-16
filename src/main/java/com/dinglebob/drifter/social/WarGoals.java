@@ -420,6 +420,12 @@ public final class WarGoals {
 				return Status.RUNNING;
 			}
 
+			// An enemy's horse tied up here, and none of its own: it takes it (horse culture: "only war captures").
+			Task capture = com.dinglebob.drifter.skills.StableGoal.capture(this.drifter);
+			if (capture != null) {
+				return this.begin(capture);
+			}
+
 			BlockPos chest = this.chestToLoot();
 			if (chest != null) {
 				return this.begin(new LootChestActivity(this.drifter, chest));

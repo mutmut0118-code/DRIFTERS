@@ -1112,6 +1112,26 @@ public final class DrifterApi {
 		CAPTURES.put(horse.getUUID(), captor.getUUID());
 	}
 
+	/**
+	 * A horse taken in a war (horse culture): the captor's now (owner rewritten, vanilla's and Icy's; it may ride it), no
+	 * stall yet (its town's stable gives it one when it leads it in); its old owner's loss ("taken in war": grief, its
+	 * town told), the captor's thought.
+	 */
+	public static void takeHorse(DrifterEntity captor, net.minecraft.world.entity.animal.horse.AbstractHorse horse, @Nullable DrifterEntity from) {
+		allowCapture(horse, captor);
+		horse.setOwnerUUID(captor.getUUID());
+		com.dinglebob.drifter.compat.IcyHorses.setOwner(horse, captor.getUUID());
+		if (from != null) {
+			com.dinglebob.drifter.skills.HorseCare.lost(from, horse, "taken in war");
+		}
+
+		captor.getDrifterBrain().setHorse(horse.getUUID(), horse.blockPosition());
+		captor.getMemory().thoughts().add(captor.level().getGameTime(), "took " + (from == null ? "a" : from.getName().getString() + "'s") + " horse, "
+			+ horse.getName().getString() + ", in the war");
+		com.dinglebob.drifter.Drifter.LOGGER.info("[horse] {} took {} ({}) in the war", captor.getName().getString(), horse.getName().getString(),
+			from == null ? "nobody's" : from.getName().getString() + "'s");
+	}
+
 	/** Icy's Better Horses is installed (and as Drifter expects): its breeds, bond, gaits and carts there to use. */
 	public static boolean icyHorses() {
 		return com.dinglebob.drifter.compat.IcyHorses.present();

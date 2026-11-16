@@ -91,7 +91,31 @@ final class IcyCommands {
 				drifter.getDrifterBrain().horse(), drifter.getDrifterBrain().horseAt(), drifter.getDrifterBrain().stall());
 			drifter.getTasks().start(new Trip(drifter, to), source::sendSystemMessage);
 			return 1;
-		}))).then(Commands.literal("lead").executes(ctx -> {
+		}))).then(Commands.literal("capture").executes(ctx -> {
+			// (Debug: the nearest Drifter takes an enemy's horse tied up near it, if there is one, as a raider at the front does.)
+			var source = ctx.getSource();
+			var drifter = DrifterCommands.nearest(source);
+			if (drifter == null) {
+				return 0;
+			}
+
+			drifter.getDrifterBrain().setEnabled(false);
+			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {} had horse {} (forgotten for the test)", drifter.getName().getString(), drifter.getDrifterBrain().horse());
+			drifter.getDrifterBrain().setHorse(null, null);
+			long now = drifter.level().getGameTime();
+			for (var awareness : drifter.getSenses().tracked()) {
+				if (awareness.entity instanceof AbstractHorse h) {
+					java.util.UUID owner = com.dinglebob.drifter.compat.IcyHorses.owner(h);
+					var theirs = owner == null ? null : source.getLevel().getEntity(owner);
+					com.dinglebob.drifter.Drifter.LOGGER.info("[icy]  sees {}: tied {}, seen {}, {} off, owner {}, hostile {}", h.getName().getString(),
+						com.dinglebob.drifter.skills.StableGoal.tiedUp(h), awareness.seenWithin(now, 100), String.format(java.util.Locale.ROOT, "%.1f", h.distanceTo(drifter)),
+						theirs == null ? owner : theirs.getName().getString(),
+						theirs instanceof com.dinglebob.drifter.entity.DrifterEntity d && com.dinglebob.drifter.world.DrifterWars.hostile(drifter, d));
+				}
+			}
+			drifter.getTasks().start(new Again(drifter, "capture", 3, () -> com.dinglebob.drifter.skills.StableGoal.capture(drifter)), source::sendSystemMessage);
+			return 1;
+		})).then(Commands.literal("lead").executes(ctx -> {
 			// (Debug: the nearest Drifter puts a lead on the nearest horse and walks 40 blocks east leading it.)
 			var source = ctx.getSource();
 			var pos = source.getPosition();
@@ -196,6 +220,55 @@ final class IcyCommands {
 		protected void onStop() {
 			if (this.stretch != null) {
 				this.stretch.stop();
+			}
+		}
+	}
+
+	/** (Debug: a step worked out afresh each time, up to so many times, till there's none.) */
+	private static final class Again extends com.dinglebob.drifter.executor.Task {
+		private final String what;
+		private final java.util.function.Supplier<com.dinglebob.drifter.executor.Task> next;
+		private int left;
+		@org.jetbrains.annotations.Nullable
+		private com.dinglebob.drifter.executor.Task step;
+
+		Again(com.dinglebob.drifter.entity.DrifterEntity drifter, String what, int times, java.util.function.Supplier<com.dinglebob.drifter.executor.Task> next) {
+			super(drifter);
+			this.what = what;
+			this.left = times;
+			this.next = next;
+		}
+
+		@Override
+		public String describe() {
+			return this.what;
+		}
+
+		@Override
+		protected Status onTick() {
+			if (this.step != null) {
+				Status status = this.step.tick();
+				if (status == Status.RUNNING) {
+					return status;
+				}
+
+				this.step.stop();
+				com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {}: {} ({})", this.drifter.getName().getString(), this.step.describe(),
+					status == Status.SUCCESS ? "done" : this.step.failureReason());
+				this.step = null;
+			}
+
+			if (this.left-- <= 0 || (this.step = this.next.get()) == null) {
+				return Status.SUCCESS;
+			}
+
+			return Status.RUNNING;
+		}
+
+		@Override
+		protected void onStop() {
+			if (this.step != null) {
+				this.step.stop();
 			}
 		}
 	}

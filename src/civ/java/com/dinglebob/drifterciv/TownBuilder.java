@@ -3189,10 +3189,12 @@ public final class TownBuilder {
 
 			int work = Stables.workStalls(this.households);
 			int all = work + Stables.VISITOR_STALLS;
-			int rows = all <= 6 ? 1 : 2;
+			// (One long row up to eight; more, a second row behind it facing the same way, a lane between open at both ends:
+			// found in testing, a second row back to back opened away from the street and its horses couldn't get out.)
+			int rows = all <= 8 ? 1 : 2;
 			int perRow = (all + rows - 1) / rows;
 			int width = 3 * perRow + 1;
-			int depth = rows == 1 ? 6 : 11;
+			int depth = rows == 1 ? 6 : 16;
 			Lot lot = this.lot(Math.max(width, depth), Math.max(width, depth), this.penRect, 40 + width, false, false);
 			if (lot == null) {
 				DrifterCivilizations.LOGGER.info("[town] {}: no lot for a stable", this.name);
@@ -3208,7 +3210,7 @@ public final class TownBuilder {
 			BlockPos middle = new BlockPos((site.x0() + site.x1()) / 2, base, (site.z0() + site.z1()) / 2);
 			BlockPos frontMid = middle.relative(front, depth / 2);
 			int left = -(width / 2);
-			// (x across from its left wall, b in from its front; the second row is the first turned round, sharing its back wall.)
+			// (x across from its left wall, b in from its front; a row is six deep, the second ten behind the first.)
 			java.util.function.BiFunction<Integer, Integer, BlockPos> at = (x, b) -> frontMid.relative(across, left + x).relative(in, b);
 			for (int x = 0; x < width; x++) {
 				for (int b = 0; b < depth; b++) {
@@ -3223,9 +3225,19 @@ public final class TownBuilder {
 						set(this.level, floor.above(h), Blocks.AIR.defaultBlockState());
 					}
 
+					int inRow = b % 10;
+					if (inRow > 5) {
+						// (The lane between the rows: open ground, its people know it as the stable's.)
+						for (int h = 0; h <= 4; h++) {
+							this.stableCells.add(floor.above(h));
+						}
+
+						continue;
+					}
+
 					boolean end = x == 0 || x == width - 1;
-					if (end || b == 5) {
-						boolean corner = end && (b == 0 || b == 5 || b == depth - 1);
+					if (end || inRow == 5) {
+						boolean corner = end && (inRow == 0 || inRow == 5);
 						for (int h = 1; h <= 3; h++) {
 							set(this.level, floor.above(h), (corner ? wood("log") : wood("planks")).defaultBlockState());
 						}
@@ -3243,7 +3255,7 @@ public final class TownBuilder {
 			List<BlockPos> posts = new ArrayList<>();
 			for (int row = 0; row < rows; row++) {
 				final int r = row;
-				java.util.function.BiFunction<Integer, Integer, BlockPos> rowAt = (x, b) -> at.apply(x, r == 0 ? b : 10 - b);
+				java.util.function.BiFunction<Integer, Integer, BlockPos> rowAt = (x, b) -> at.apply(x, 10 * r + b);
 				for (int k = 0; k < perRow && this.stalls.size() < all; k++) {
 					int x = 1 + 3 * k;
 					if (k < perRow - 1) {
