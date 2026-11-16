@@ -26,8 +26,8 @@ whims offscreen (the user picked A + small B + C + E; built). docs/WHIMS_HOWTO.m
 action, steps verb and offscreen value): keep it up to date when whims change. docs/CIVILIZATION.md is the plan for
 milestone 22, civilization as an addon mod (after 21; not started). docs/LIVED_WORLD.md is the plan and progress for the addon's next direction
 (Drifter towns replacing villages and villagers; built after nations): read it before working on it, and keep its status
-and progress up to date. docs/NEMESIS.md is the plan for milestone 24, the Nemesis milestone (grudges that come back,
-manhunts, illagers and witches as half-mob "outlaw" Drifters, rivalries you walk into; versions 0.24.x): it starts only
+and progress up to date. docs/NEMESIS.md is the plan for milestone 24, the Nemesis milestone, update name "Bad Blood" (grudges that come back,
+manhunts, crime and the law, illagers and witches as half-mob "outlaw" Drifters, the outlaw's life, rivalries you walk into; versions 0.24.x): it starts only
 after the user finishes their current work; read it before working on it and keep its status and progress up to date.
 
 ## Version targets
