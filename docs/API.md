@@ -253,6 +253,12 @@ setting, four by default, up to 32).
   `horseBond(horse)` (Icy's bond; 0 without it), `makeHorse(level, breed, pos)` (an Icy breed such as `arabian`,
   `icelandic`, `shire`, or a vanilla horse without it; the caller adds it to the world). Icy's is reached by reflection
   only (`compat.IcyHorses`); debug `/drifter icy` prints what Drifter reads of the nearest horse.
+  `keepHorse(drifter, horse, stall)` (its own, in Icy's terms too), `mayRide(drifter, horse)` (its own or nobody's or a
+  war capture), `takeHorse(captor, horse, from)` (a war capture: owner rewritten, the loser's `HORSE_LOST`),
+  `setStallNear(fn)` / `stallNear(level, pos)` (the addon: a free stall at the stable of the town round a spot),
+  `setHorseSales(find, buy)` / `horseForSale(drifter)` / `buyHorse(drifter, horse)` (the addon's horses for sale:
+  `HorseForSale(horse, stall, price)`). Event `DrifterEvents.HORSE_LOST` (owner, horse's name, how: "killed", "taken in
+  war").
 - `TownWork.mayMine(drifter)`: whether a townsperson may set off on a mining trip now (asked before one starts; true by
   default); the addon lets a fifth of a town down its mine at once (0.23.66). `DrifterApi.mining(drifter)`: on a mining
   trip now.

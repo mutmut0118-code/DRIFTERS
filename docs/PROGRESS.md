@@ -4,6 +4,43 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## Horse culture: 0.23.75 (2026-11-16, main line; design docs/superpowers/specs/2026-11-16-horse-culture-design.md)
+
+The user: horses at the heart of travel, "red dead redemption style but not making it wild western ... or like skyrim
+style", "less people riding horses in town, but definitely between towns in roads, and to wars", centred on Icy's Better
+Horses ("personal ownership, with icy's bonding"), its gaits ("a drifter trotting into town ... a chase ... with the gallop
+mechanic"); theft: "Only war captures"; new worlds only. Plan: docs/superpowers/plans/2026-11-16-horse-culture.md.
+
+**Done (tested in a dev client with and without Icy's):**
+- Icy's Better Horses connector by reflection (`compat/IcyHorses`): owner, bond, home, breed, gaits, carts, treats. A
+  Drifter's horse is its own in Icy's terms (owner, home stall); it never rides or leads off another's (`mayRide`).
+- Bond: a treat a day, the favourite found by trying (Icy's own reward); a horse killed: grief, its stall let go, the
+  chronicle tells it (`DrifterEvents.HORSE_LOST`).
+- Gaits at Icy's own speeds (so its gait animations follow): a walk in town and the last stretch, a trot on the road,
+  a canter late in the day, a gallop in a hurry (chased, chasing, a fight, defending its town).
+- **Found and fixed: Drifters never rode on roads.** A long trip goes 32 blocks a stretch (Legs) and the ride check only
+  fired past 80 blocks. Stretches now carry the trip's end (`NavigateTask.onTheWayTo`); the rider stays on between them.
+- A trip from town: its horse untied at the stable, led out on a lead on foot (pathfinding through the streets; a led
+  horse waits, and if it can't fit through a gap it's ridden at a walk instead), mounted on the road; at the town it's
+  going to, off at the edge and led to a free stall there and tied (none free: tied at a fence there, or left).
+- Stables sized by town: a stall every three households (3 to 12), one row, or two facing front with a lane between
+  (bigger); two visitor stalls kept free; the land's breeds (Arabians in the desert, Icelandics in the snow, Appaloosas
+  and Mustangs on savanna, Haflingers and Friesians in taiga, Thoroughbreds, Andalusians, Morgans, Quarter horses on
+  plains); a draft horse each; one or two for sale. A Drifter setting off far without a horse buys one (20 silver, into
+  the town's till).
+- War: a raider with no horse takes an enemy's horse tied up at the front (the loser grieves; "taken in war").
+- Envoys ride (their errands go by Legs).
+- Fixes found testing: stable horses half in the wall suffocated (centred now); the chest and cauldron blocked stall
+  openings; back-to-back stable rows trapped horses; a far stall is walked to in stretches; a ride that fails says why.
+
+**Half-done:** carts (Task 8): a Drifter hitches one of Icy's carts to its own horse from its own items and stays on as
+driver (optional patch, `compatmixin/IcyCartMixin`), but the horse won't move under it yet (Icy's cart drives from a
+player's input). Merchants' carts and carriages for the player are not built.
+
+**Left (rulings in the ledger):** the stablehand job (feeding, breeding, restocking sale horses); stables restocked on
+paper while nobody's near; the raid band riding (the band marches on foot, the war-march fix's call); letter carriers to
+the player riding; Icy's two riders per horse. Then tusklins (fight smarter).
+
 ## War marches that know the way: 0.23.74-side.2 (2026-11-16, branch `claude/trusting-lumiere-a5654c`)
 
 The user (in play): a war's leader "is a bit clueless ... they stop at random places at town, i never seen them go outside

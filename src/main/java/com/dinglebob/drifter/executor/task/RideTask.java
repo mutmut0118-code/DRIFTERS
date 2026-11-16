@@ -134,8 +134,15 @@ public class RideTask extends Task {
 			this.bestDistance = distance;
 			this.sinceProgress = 0;
 		} else if (++this.sinceProgress > STUCK_TICKS) {
-			this.getOff();
-			return this.fail("the horse can't get through this way");
+			// (In a town: a new way round for the horse, a few times, before it gives up: the user's pick, "stay on" rather
+			// than off and on again.)
+			if (this.inTownNow() && ++this.reroutes <= REROUTES) {
+				this.sinceProgress = 0;
+				this.route = null;
+			} else {
+				this.getOff();
+				return this.fail("the horse can't get through this way");
+			}
 		}
 
 		this.steer(here);
@@ -195,9 +202,54 @@ public class RideTask extends Task {
 	}
 
 	/** Toward the place, round anything the horse can't go over (a wall, water, a drop it would take damage from). */
+	/** In a town: the way the horse fits through (worked out for its own body: a horse finds its footing, its rider points it). */
+	@Nullable
+	private net.minecraft.world.level.pathfinder.Path route;
+	private int routeAge;
+	private int reroutes;
+	private static final int REROUTES = 3;
+
+	private boolean inTownNow() {
+		return com.dinglebob.drifter.api.DrifterApi.settled(this.horse.level(), this.horse.blockPosition());
+	}
+
+	/**
+	 * Where to steer now: in a town, the next point of the horse's way there (found in testing: steered straight at the
+	 * place, horses stuck on houses, fences and lamp posts, and riders got off and on again); out on the land, straight at
+	 * it, round what's in the way.
+	 */
+	private Vec3 aim(Vec3 here) {
+		if (!this.inTownNow()) {
+			this.route = null;
+			return this.target;
+		}
+
+		if (this.route == null || this.route.isDone() || ++this.routeAge > 20 * 5) {
+			this.routeAge = 0;
+			this.route = this.horse.getNavigation().createPath(BlockPos.containing(this.target), 1);
+		}
+
+		var route = this.route;
+		if (route == null || route.isDone()) {
+			return this.target;
+		}
+
+		while (!route.isDone()) {
+			BlockPos node = route.getNextNodePos();
+			if (Math.hypot(node.getX() + 0.5 - here.x, node.getZ() + 0.5 - here.z) > 1.3) {
+				return Vec3.atBottomCenterOf(node);
+			}
+
+			route.advance();
+		}
+
+		return this.target;
+	}
+
 	private void steer(Vec3 here) {
 		VirtualKeys keys = this.drifter.getKeys();
-		float straight = (float)Math.toDegrees(Math.atan2(this.target.z - here.z, this.target.x - here.x)) - 90.0F;
+		Vec3 aim = this.aim(here);
+		float straight = (float)Math.toDegrees(Math.atan2(aim.z - here.z, aim.x - here.x)) - 90.0F;
 		if (Float.isNaN(this.heading) || --this.detourTicks <= 0) {
 			this.heading = straight;
 		}
