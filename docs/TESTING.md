@@ -4159,6 +4159,8 @@ In a town of a morning, listen to the crier on the plaza:
 2. Start a war (`/drifterciv relations war <other town>` standing in a town) and stand in its plaza while the leader
    gives its speech: nobody nearby chats about other things over it.
 3. A line like "if i fall, keep going. finish it" comes as one message, never "if i fall" alone.
+4. Listen to two Drifters chatting for a while: a happy chat ("you look happy", "slept great") never turns straight to
+   someone's dead pet, and a sad one never turns straight to a joke.
 5. A Drifter whose name tag in your journal says "Wary of you" doesn't come over to say hi. One that does say hi stays
    friendly through the chat.
 6. Brushed off ("find someone else")? Say "damn okay": a friendly one says sorry ("haha sorry, long day"), a cold one
@@ -4170,8 +4172,6 @@ In a town of a morning, listen to the crier on the plaza:
    "lol respect", "MY CHESTS"). Ride off and stay away half a minute: someone says "they got away :(". Two who were chatting
    go back to it with "anyway". Killings get the biggest scenes. Test quickly with `/drifterciv town crime horse` (or theft,
    farms, livestock, peace, blood, scene_murder, scene_massacre, scene_wanted) standing in a town.
-4. Listen to two Drifters chatting for a while: a happy chat ("you look happy", "slept great") never turns straight to
-   someone's dead pet, and a sad one never turns straight to a joke.
 
 ## 0.23.70-side.1
 
