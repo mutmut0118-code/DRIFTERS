@@ -72,6 +72,8 @@ public final class WarGoals {
 	private static final double FALLEN_BEHIND = 40.0;
 	/** This close to the target the band creeps up on it (sneaking), till the charge (the user, 2026-11-16: sneaking "only ... when they get to the enemy city"). */
 	private static final double CREEP = 80.0;
+	/** A raider this far behind its leader, out of sight of it, goes on by itself along the roads. */
+	private static final double LOST_BAND = 32.0;
 	/** Fit to fight: a weapon, and this share of its health. */
 	private static final float FIT = 0.6F;
 
@@ -452,11 +454,30 @@ public final class WarGoals {
 						: NavigateTask.Pace.STROLL));
 			}
 
+			// Lost sight of its leader, well behind: on along the roads to where they're going, at a run, till it has it in sight
+			// again (it knows the way as well as its leader does). (Making for where it last saw it, it stood there for good once
+			// it got there, waiting for a leader it couldn't see to move on; half the band 100 blocks back, a test of it.)
+			if (this.lostTheBand(leader)) {
+				this.keepingUp = null;
+				if (this.drifter.blockPosition().closerThan(this.raid.target, CREEP)) {
+					return this.begin(new LookAroundTask(this.drifter));
+				}
+
+				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, CREEP - 2.0, "catch up with the band",
+					NavigateTask.Pace.TRAVEL));
+			}
+
 			// The band walks with its leader, at its back (each a few blocks further back than the next: a column, not a crowd in
 			// its way), no stop and stare each time it's caught up; at a run to catch up, creeping when it creeps.
 			this.keepingUp = this.keepUpPace(leader, null);
 			double behind = 3.0 + Math.floorMod(this.drifter.getUUID().getLeastSignificantBits(), 9L);
 			return this.begin(NavigateTask.followBehind(this.drifter, leader, 3.0, this.keepingUp, behind));
+		}
+
+		/** Well behind its leader and not seeing it: it goes on by itself (and back with the leader once it has it in sight). */
+		private boolean lostTheBand(DrifterEntity leader) {
+			var seen = this.drifter.getSenses().awarenessOf(leader);
+			return this.drifter.distanceTo(leader) > LOST_BAND && (seen == null || !seen.visibleNow);
 		}
 
 		/** Near enough the target (but not yet for the charge) to creep up on it, by where that one is. */
@@ -467,7 +488,7 @@ public final class WarGoals {
 		/** How a member keeps up with its leader: at a run when it's fallen behind (a bit nearer once running), else at its pace. */
 		private NavigateTask.Pace keepUpPace(DrifterEntity leader, @Nullable NavigateTask.Pace now) {
 			double far = this.drifter.distanceTo(leader);
-			if (far > (now == NavigateTask.Pace.TRAVEL ? 12.0 : 18.0)) {
+			if (far > (now == NavigateTask.Pace.TRAVEL ? 14.0 : 22.0)) {
 				return NavigateTask.Pace.TRAVEL;
 			}
 
@@ -491,7 +512,18 @@ public final class WarGoals {
 			}
 
 			DrifterEntity leader = this.leaderEntity();
-			return this.keepingUp != null && this.child() instanceof NavigateTask && (leader == null || this.keepUpPace(leader, this.keepingUp) != this.keepingUp);
+			if (leader == null) {
+				return true;
+			}
+
+			// (On by itself and the leader in sight and near again: back with it. Following and lost it: on by itself.)
+			if (this.keepingUp == null) {
+				var seen = this.drifter.getSenses().awarenessOf(leader);
+				return this.now() % 10 == 0 && seen != null && seen.visibleNow && this.drifter.distanceTo(leader) < LOST_BAND;
+			}
+
+			return this.child() instanceof NavigateTask && (this.keepUpPace(leader, this.keepingUp) != this.keepingUp
+				|| this.now() % 10 == 0 && this.lostTheBand(leader));
 		}
 
 		/** Most of the raiders with it fallen well behind the leader. */

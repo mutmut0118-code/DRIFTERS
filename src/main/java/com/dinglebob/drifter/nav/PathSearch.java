@@ -638,7 +638,15 @@ public class PathSearch {
 
 	/** Building blocks this pass may put down (none on the open-ground pass). */
 	private int blocks() {
-		return this.walkOnly ? 0 : this.blocksAvailable;
+		return this.walkOnly || this.noBlocks ? 0 : this.blocksAvailable;
+	}
+
+	/** No blocks put down on this route (no bridging, no pillars): a march swims a river or takes its bridge. */
+	private boolean noBlocks;
+
+	public PathSearch withoutBlocks() {
+		this.noBlocks = true;
+		return this;
 	}
 
 	private static boolean digs(Node end) {

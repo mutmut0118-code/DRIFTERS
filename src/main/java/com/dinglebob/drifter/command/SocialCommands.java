@@ -488,17 +488,51 @@ public final class SocialCommands {
 
 		int with = 0;
 		int raiders = 0;
+		int crouching = 0;
+		java.util.List<Double> behind = new java.util.ArrayList<>();
 		for (java.util.UUID id : group.members) {
 			DrifterEntity member = com.dinglebob.drifter.world.DrifterWars.loaded(ctx.getSource().getServer(), id);
 			if (member != null && member != leader && com.dinglebob.drifter.social.WarGoals.raidFor(member) == raid) {
 				raiders++;
+				behind.add((double)member.distanceTo(leader));
+				crouching += member.isShiftKeyDown() ? 1 : 0;
 				if (member.distanceTo(leader) < 24.0) {
 					with++;
 				}
 			}
 		}
 
-		return String.format(Locale.ROOT, ", leader at %d, %d, %d from the target, %d of %d raiders with it, %d lines said", leader.getBlockX(), leader.getBlockZ(),
-			Math.round(Math.sqrt(leader.blockPosition().distSqr(raid.target))), with, raiders, raid.speech);
+		// (Debug: the three furthest behind and up to three crouching: what each is doing, whether it sees its leader, its detail tier.)
+		java.util.List<DrifterEntity> members = new java.util.ArrayList<>();
+		for (java.util.UUID id : group.members) {
+			DrifterEntity member = com.dinglebob.drifter.world.DrifterWars.loaded(ctx.getSource().getServer(), id);
+			if (member != null && member != leader && com.dinglebob.drifter.social.WarGoals.raidFor(member) == raid) {
+				members.add(member);
+			}
+		}
+
+		members.sort(java.util.Comparator.comparingDouble(m -> -m.distanceTo(leader)));
+		java.util.List<DrifterEntity> shown = new java.util.ArrayList<>(members.subList(0, Math.min(3, members.size())));
+		members.stream().filter(m -> m.isShiftKeyDown() && !shown.contains(m)).limit(3).forEach(shown::add);
+		StringBuilder who = new StringBuilder();
+		for (DrifterEntity m : shown) {
+			var activity = m.getDrifterBrain().activity();
+			var seen = m.getSenses().awarenessOf(leader);
+			com.dinglebob.drifter.executor.Task leaf = activity == null ? null : activity.leaf();
+			who.append(String.format(Locale.ROOT, " | %s %d%s %s%s, %s, %s", m.getName().getString(), Math.round(m.distanceTo(leader)), m.isShiftKeyDown() ? " CROUCH" : "",
+				leaf == null ? "no activity" : leaf.describe(), leaf instanceof com.dinglebob.drifter.executor.task.NavigateTask walk ? " [" + walk.sneakWhy() + "]" : "",
+				seen != null && seen.visibleNow ? "sees it" : "can't see it", m.tier()));
+		}
+
+		if (ctx.getSource().getServer() != null) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[war band]{}", who);
+		}
+
+		// (How the band keeps together: half of it within the first distance, nine in ten within the second; and how many crouch.)
+		java.util.Collections.sort(behind);
+		String spread = behind.isEmpty() ? "" : String.format(Locale.ROOT, ", band within %d / %d blocks, %d crouching%s", Math.round(behind.get(behind.size() / 2)),
+			Math.round(behind.get(Math.min(behind.size() - 1, behind.size() * 9 / 10))), crouching, leader.isShiftKeyDown() ? ", the leader crouching" : "");
+		return String.format(Locale.ROOT, ", leader at %d, %d, %d from the target, %d of %d raiders with it, %d lines said%s", leader.getBlockX(), leader.getBlockZ(),
+			Math.round(Math.sqrt(leader.blockPosition().distSqr(raid.target))), with, raiders, raid.speech, spread);
 	}
 }

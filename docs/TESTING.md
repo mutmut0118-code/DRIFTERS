@@ -4154,7 +4154,22 @@ In a town of a morning, listen to the crier on the plaza:
 5. "u need help?": "yeah, <what it needs>" or "im good".
 6. "got you" after a Drifter gives you a word to carry: an okay, not "lost me there".
 
-## 0.23.74-side.2: war marches that know the way (new)
+## 0.23.74-side.3: the band keeps together, nobody crouches on the way (new)
+
+Your notes on 0.23.74-side.2: "okay the leader reaches there", "make sure the band is consistent too", "im actually still
+seeing alot of sneaking across the path". Same test as below (a war, then follow the leader).
+
+1. **Nobody crouches on the march**, not on the road, not off it, not by drops, river banks or hillsides, not while the
+   leader stops for them. (Only someone actually standing over a gap crouches.) Runners slow to a walk past a cliff
+   instead of crouching. They still creep up (sneak) for the last 80 blocks before the enemy town, then charge.
+2. **They don't stop to build across a river** (that's crouching too): they swim it, or take the road's bridge.
+3. **The band stays with the leader.** Most of it stays within about 20 blocks, in a loose column behind. Anyone who loses
+   sight of the leader (left behind at a river, round a hill) goes on along the road toward the target by itself, running,
+   and falls in again when it sees the leader. Nobody stands about lost.
+4. `/drifter wars` now also says how spread the band is ("band within 16 / 22 blocks": half of them within the first, nine
+   in ten within the second) and how many are crouching right now.
+
+## 0.23.74-side.2: war marches that know the way
 
 Your notes: the leader "stop[s] at random places at town", "they dont use the road", "make sure its on a direct continuous
 path", sneaking only "when they get to the enemy city". Works in your existing world too (no new world needed).
