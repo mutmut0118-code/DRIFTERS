@@ -39,9 +39,12 @@ public final class WarGoals {
 	/** The leader's speech before the march: this many lines, this far apart (ticks). */
 	private static final int SPEECH_LINES = 12;
 	private static final long SPEECH_GAP = 20L * 5;
-	/** On the march, the leader waits for raiders this far behind (a while). */
+	/** On the march, the leader waits a while once most of the band is this far behind, at most every so often. */
 	private static final double STRAGGLING = 24.0;
 	private static final long WAITS_FOR_STRAGGLERS = 20L * 10;
+	private static final long HALTS_EVERY = 20L * 60;
+	/** This close to the target the band creeps up on it (sneaking), till the charge (the user, 2026-11-16: sneaking "only ... when they get to the enemy city"). */
+	private static final double CREEP = 80.0;
 	/** Fit to fight: a weapon, and this share of its health. */
 	private static final float FIT = 0.6F;
 
@@ -170,6 +173,15 @@ public final class WarGoals {
 		private final java.util.Set<BlockPos> tried = new java.util.HashSet<>();
 		private final java.util.Map<BlockPos, Integer> walks = new java.util.HashMap<>();
 		private long nextLook;
+		/** The raid's part when its step began (a new part: a new step at once, not at the end of a long march). */
+		@Nullable
+		private DrifterWars.Phase stepPhase;
+		/** The leader halts for the band at most this often; the next time it may. */
+		private long nextHalt;
+		/** The leader's march creeping (the last stretch to the target), or a member's pace keeping up; for {@link #rethink}. */
+		private boolean marchCreeping;
+		@Nullable
+		private NavigateTask.Pace keepingUp;
 
 		public RaidActivity(DrifterEntity drifter, DrifterWars.Raid raid) {
 			super(drifter);
@@ -216,6 +228,7 @@ public final class WarGoals {
 				return this.fail("can't get anywhere on the raid");
 			}
 
+			this.stepPhase = this.raid.phase;
 			return switch (this.raid.phase) {
 				case GATHER -> this.gather();
 				case TRAVEL -> this.travel();
@@ -345,48 +358,95 @@ public final class WarGoals {
 					return Status.RUNNING;
 				}
 
-				if (this.leader && this.straggler() != null) {
-					if (this.waitingSince < 0) {
-						this.waitingSince = this.now();
-					}
+				// Most of the band fallen behind: a halt for them, now and then (not for every one straggling: it stopped at every
+				// stretch of the way in its own town for whoever was still coming from the fields; the user, 2026-11-16: "i dont
+				// like the little pauses they do").
+				if (this.leader && this.waitingSince < 0 && this.now() >= this.nextHalt && this.bandBehind()) {
+					this.waitingSince = this.now();
+					this.think("waiting for the others to catch up");
+				}
 
-					if (this.now() - this.waitingSince < WAITS_FOR_STRAGGLERS) {
+				if (this.waitingSince >= 0) {
+					if (this.now() - this.waitingSince < WAITS_FOR_STRAGGLERS && this.bandBehind()) {
 						return this.begin(new LookAroundTask(this.drifter));
 					}
+
+					this.waitingSince = -1;
+					this.nextHalt = this.now() + HALTS_EVERY;
 				}
 
-				this.waitingSince = -1;
-				// (The leader marches, at a walk, along the road; the rest keep up at a run when they fall behind.)
-				return this.begin(this.leader ? com.dinglebob.drifter.nav.Legs.toward(this.drifter, this.raid.target, 3.0, "on the way to raid "
-					+ DrifterWars.name(this.raid.defenders), NavigateTask.Pace.STROLL) : this.leg(this.raid.target, "on the way to raid "
-					+ DrifterWars.name(this.raid.defenders)));
+				// (The leader marches, at a walk, the whole way at once along the roads it knows (its town's people have gone
+				// between the towns for years): no stop between the stretches of the way. The last stretch, near the town it's
+				// raiding, it creeps up on it, the band with it; then the charge.)
+				this.marchCreeping = this.creeping(this.drifter);
+				String what = "on the way to raid " + DrifterWars.name(this.raid.defenders);
+				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping ? CHARGE - 2.0 : CREEP - 2.0,
+					this.marchCreeping ? "creep up on " + DrifterWars.name(this.raid.defenders) : what, this.marchCreeping ? NavigateTask.Pace.SNEAK
+						: NavigateTask.Pace.STROLL));
 			}
 
-			if (this.drifter.distanceTo(leader) > 6.0) {
-				return this.begin(new NavigateTask(this.drifter, leader.position(), 3.0, "keep up with " + leader.getName().getString(),
-					this.drifter.distanceTo(leader) > 12.0 ? NavigateTask.Pace.TRAVEL : NavigateTask.Pace.STROLL));
-			}
-
-			return this.begin(new LookAroundTask(this.drifter));
+			// The band walks with its leader, at its back (each a few blocks further back than the next: a column, not a crowd in
+			// its way), no stop and stare each time it's caught up; at a run to catch up, creeping when it creeps.
+			this.keepingUp = this.keepUpPace(leader, null);
+			double behind = 3.0 + Math.floorMod(this.drifter.getUUID().getLeastSignificantBits(), 9L);
+			return this.begin(NavigateTask.followBehind(this.drifter, leader, 3.0, this.keepingUp, behind));
 		}
 
-		/** One of the raiders this far behind the leader, or null. */
-		@Nullable
-		private DrifterEntity straggler() {
-			DrifterGroups.Group group = DrifterGroups.byId(this.raid.attackers);
-			if (group == null || this.drifter.getServer() == null) {
-				return null;
+		/** Near enough the target (but not yet for the charge) to creep up on it, by where that one is. */
+		private boolean creeping(DrifterEntity who) {
+			return who.blockPosition().closerThan(this.raid.target, CREEP);
+		}
+
+		/** How a member keeps up with its leader: at a run when it's fallen behind (a bit nearer once running), else at its pace. */
+		private NavigateTask.Pace keepUpPace(DrifterEntity leader, @Nullable NavigateTask.Pace now) {
+			double far = this.drifter.distanceTo(leader);
+			if (far > (now == NavigateTask.Pace.TRAVEL ? 12.0 : 18.0)) {
+				return NavigateTask.Pace.TRAVEL;
 			}
 
+			return this.creeping(leader) ? NavigateTask.Pace.SNEAK : NavigateTask.Pace.STROLL;
+		}
+
+		@Override
+		protected boolean rethink() {
+			// A new part of the raid (or the raid's over): straight on to it, not at the end of the march.
+			if (DrifterWars.raidOf(this.raid.attackers) != this.raid || this.raid.phase != this.stepPhase) {
+				return true;
+			}
+
+			if (this.raid.phase != DrifterWars.Phase.TRAVEL) {
+				return false;
+			}
+
+			if (this.leader) {
+				return this.child() instanceof com.dinglebob.drifter.nav.March && (this.creeping(this.drifter) != this.marchCreeping
+					|| this.now() >= this.nextHalt && this.now() % 20 == 0 && this.bandBehind());
+			}
+
+			DrifterEntity leader = this.leaderEntity();
+			return this.keepingUp != null && this.child() instanceof NavigateTask && (leader == null || this.keepUpPace(leader, this.keepingUp) != this.keepingUp);
+		}
+
+		/** Most of the raiders with it fallen well behind the leader. */
+		private boolean bandBehind() {
+			DrifterGroups.Group group = DrifterGroups.byId(this.raid.attackers);
+			if (group == null || this.drifter.getServer() == null) {
+				return false;
+			}
+
+			int band = 0;
+			int behind = 0;
 			for (java.util.UUID id : group.members) {
 				DrifterEntity member = DrifterWars.loaded(this.drifter.getServer(), id);
-				if (member != null && member != this.drifter && WarGoals.raidFor(member) == this.raid && member.distanceTo(this.drifter) > STRAGGLING
-					&& member.distanceTo(this.drifter) < 96.0) {
-					return member;
+				if (member != null && member != this.drifter && WarGoals.raidFor(member) == this.raid && member.distanceTo(this.drifter) < 160.0) {
+					band++;
+					if (member.distanceTo(this.drifter) > STRAGGLING) {
+						behind++;
+					}
 				}
 			}
 
-			return null;
+			return behind * 2 > band;
 		}
 
 		/** Most of the raiders about the target are worn down (or there's hardly anyone left): time to go. */
@@ -585,12 +645,8 @@ public final class WarGoals {
 				return Status.SUCCESS;
 			}
 
-			return this.begin(this.leg(this.raid.home, "head home from the raid"));
-		}
-
-		/** A stretch toward somewhere far: along the road there, if there's one ({@link com.dinglebob.drifter.nav.Legs}). */
-		private Task leg(BlockPos to, String what) {
-			return com.dinglebob.drifter.nav.Legs.toward(this.drifter, to, 3.0, what);
+			// (Home the whole way at once, along the roads.)
+			return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.home, 11.0, "head home from the raid", NavigateTask.Pace.TRAVEL));
 		}
 
 		@Nullable

@@ -22,12 +22,16 @@ final class Routes {
 	private Routes() {
 	}
 
-	/** Road points of two roads this close are joined (a road's points are 4 apart). */
-	private static final int LINK = 5;
+	/** Road points of two roads this close are joined (a road's points are 4 apart; the plan shares a way within 10). */
+	private static final int LINK = 12;
+	/** A road's loose end (into another road) is joined to the nearest other road this close. */
+	private static final double LOOSE_END = 40.0;
 	/** Road points this far past a place's reach are joined to it. */
 	private static final int EDGE = 24;
 	/** A road this far off at most is joined (from where it is, or near where it's going). */
 	private static final int JOIN = 64;
+	/** Off the roads, the road it goes back to may be this far off. */
+	private static final int FAR_JOIN = 192;
 	/** The road's way is taken unless it's this many times as long as straight there (and a bit). */
 	private static final double DETOUR = 3.0;
 
@@ -80,6 +84,18 @@ final class Routes {
 			}
 		}
 
+		// Off the roads (across country, over a river): back to the road that's the best way on, further off, the way to it
+		// counted double (off the road a war's leader went straight on across country for good, never back on it; a test).
+		if (start < 0) {
+			for (int n = 0; n < g.roads; n++) {
+				double off = Math.hypot(g.xs[n] - from.getX(), g.zs[n] - from.getZ());
+				if (off <= FAR_JOIN && field.far[n] < Float.MAX_VALUE && off * 2.0 + field.far[n] < best) {
+					best = off * 2.0 + field.far[n];
+					start = n;
+				}
+			}
+		}
+
 		if (start < 0 || start == end) {
 			return List.of();
 		}
@@ -104,7 +120,157 @@ final class Routes {
 		}
 
 		way.add(to);
-		return way;
+		return streets(way);
+	}
+
+	/**
+	 * The way through the towns at its ends along their own streets: out of the one it's leaving to where the road between
+	 * towns meets them, and from where the road reaches the one it's going to, on to there (straight across a city to where
+	 * its road began, a war's leader went through berry bushes and over a river by boat, its band left on the far bank; a
+	 * test of it, and the user, 2026-11-16: "make sure its on a direct continuous path"). As it is where a town has no
+	 * streets laid, or they don't join up.
+	 */
+	private static List<BlockPos> streets(List<BlockPos> way) {
+		if (way.size() < 3) {
+			return way;
+		}
+
+		List<BlockPos> out = new ArrayList<>(way);
+		Town end = townAt(out.get(out.size() - 1));
+		if (end != null) {
+			List<BlockPos> in = streetWay(end, out.get(out.size() - 2), out.get(out.size() - 1));
+			if (!in.isEmpty()) {
+				out.addAll(out.size() - 1, in);
+			}
+		}
+
+		Town start = townAt(out.get(0));
+		if (start != null) {
+			List<BlockPos> leaving = streetWay(start, out.get(0), out.get(1));
+			startStreets = leaving.size();
+			startWhy = streetsWhy;
+			if (!leaving.isEmpty()) {
+				out.addAll(1, leaving);
+			}
+		} else {
+			startStreets = 0;
+			startWhy = "not in a town with streets";
+		}
+
+		return out;
+	}
+
+	/** For /drifterciv route: why the last way through a town's streets wasn't found, or empty. */
+	private static String streetsWhy = "";
+	private static int startStreets;
+	private static String startWhy = "";
+
+	/** A street this far from where it is at most is gone to; a road point this far from the streets at most meets them. */
+	private static final double ON_STREET = 24.0;
+	// (As far as a road's built end runs on straight to meet a town's streets: Highways.MEET_WITHIN.)
+	private static final double STREET_MEETS = 128.0;
+	/** A point every this many blocks of street. */
+	private static final int STREET_STEP = 3;
+
+	/** The made town {@code pos} is in (within its land), or null. */
+	@Nullable
+	private static Town townAt(BlockPos pos) {
+		Town town = Towns.nearest("minecraft:overworld", pos);
+		return town == null || town.roadColumns.length == 0 || !town.center.closerThan(new BlockPos(pos.getX(), town.center.getY(), pos.getZ()), town.land() + 16)
+			? null : town;
+	}
+
+	/** Each town's streets as a set of columns (x, z), and the way to a column from every other (kept per town and column). */
+	private static final Map<java.util.UUID, java.util.Set<Long>> streetSets = new HashMap<>();
+	private static final Map<Long, Map<Long, Long>> streetFields = new java.util.LinkedHashMap<>(16, 0.75F, true) {
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<Long, Map<Long, Long>> eldest) {
+			return this.size() > 64;
+		}
+	};
+
+	/** The street points from by {@code a} to by {@code b} (in order, every few blocks, neither end), or none. */
+	private static List<BlockPos> streetWay(Town town, BlockPos a, BlockPos b) {
+		java.util.Set<Long> set = streetSets.get(town.id);
+		if (set == null || set.size() != town.roadColumns.length) {
+			set = new java.util.HashSet<>(town.roadColumns.length * 2);
+			for (long column : town.roadColumns) {
+				set.add(cell(BlockPos.getX(column), BlockPos.getZ(column)));
+			}
+
+			streetSets.put(town.id, set);
+			streetFields.clear();
+		}
+
+		long from = nearestStreet(town, a, ON_STREET);
+		long goal = nearestStreet(town, b, STREET_MEETS);
+		if (from == Long.MIN_VALUE || goal == Long.MIN_VALUE || from == goal) {
+			streetsWhy = town.name + ": " + (from == Long.MIN_VALUE ? "no street near " + a.toShortString() : goal == Long.MIN_VALUE ? "no street near the road at "
+				+ b.toShortString() : "already there");
+			return List.of();
+		}
+
+		// (Out from where it's going, along the streets: each column's next step there.)
+		final java.util.Set<Long> streets = set;
+		long key = town.id.getMostSignificantBits() * 31 + town.id.getLeastSignificantBits() * 17 + goal;
+		Map<Long, Long> next = streetFields.computeIfAbsent(key, k -> {
+			Map<Long, Long> field = new HashMap<>();
+			java.util.ArrayDeque<Long> open = new java.util.ArrayDeque<>();
+			field.put(goal, goal);
+			open.add(goal);
+			while (!open.isEmpty()) {
+				long c = open.poll();
+				int x = (int)(c >> 32);
+				int z = (int)c;
+				for (int dx = -1; dx <= 1; dx++) {
+					for (int dz = -1; dz <= 1; dz++) {
+						long d = cell(x + dx, z + dz);
+						if ((dx != 0 || dz != 0) && streets.contains(d) && !field.containsKey(d)) {
+							field.put(d, c);
+							open.add(d);
+						}
+					}
+				}
+			}
+
+			return field;
+		});
+
+		if (!next.containsKey(from)) {
+			streetsWhy = town.name + ": its streets from " + a.toShortString() + " don't join up with those by the road at " + b.toShortString() + " (" + next.size()
+				+ " of " + streets.size() + " reached)";
+			return List.of();
+		}
+
+		streetsWhy = "";
+
+		List<BlockPos> points = new ArrayList<>();
+		long c = from;
+		for (int i = 0; c != goal && i < 100000; i++) {
+			if (i % STREET_STEP == 0) {
+				points.add(new BlockPos((int)(c >> 32), 0, (int)c));
+			}
+
+			c = next.get(c);
+		}
+
+		points.add(new BlockPos((int)(goal >> 32), 0, (int)goal));
+		return points;
+	}
+
+	/** The town's street column nearest {@code pos} within {@code within}, as a cell, or Long.MIN_VALUE. */
+	private static long nearestStreet(Town town, BlockPos pos, double within) {
+		long best = Long.MIN_VALUE;
+		double far = within;
+		for (long column : town.roadColumns) {
+			double d = Math.hypot(BlockPos.getX(column) - pos.getX(), BlockPos.getZ(column) - pos.getZ());
+			if (d <= far) {
+				far = d;
+				best = cell(BlockPos.getX(column), BlockPos.getZ(column));
+			}
+		}
+
+		return best;
 	}
 
 	/** The road points within {@code within} blocks of {@code at} (x, z), on the server's thread; none while there's no plan. */
@@ -259,15 +425,45 @@ final class Routes {
 			}
 		}
 
-		// Where roads meet (a road's piece joins another where it runs on with it, or crosses it).
+		// Each road's town ends joined to that town, however far out from its middle they are: the plan says where its road
+		// begins (a city's roads began past what its reach above covers, and weren't joined to it: a war's march from
+		// Redhaven to Ironhollow, 909 blocks apart, came out at 4,848 along the roads and went straight across country instead;
+		// the user, 2026-11-16: "i just noticed they dont use the road").
+		Map<java.util.UUID, Integer> placeNode = new HashMap<>();
+		for (int i = 0; i < places.length; i++) {
+			placeNode.put(places[i].id, roads + i);
+		}
+
+		int[] firstOf = new int[highways.size()];
+		int[] lastOf = new int[highways.size()];
+		n = 0;
+		for (int h = 0; h < highways.size(); h++) {
+			WorldPlan.Highway highway = highways.get(h);
+			firstOf[h] = n;
+			lastOf[h] = n + highway.points.size() - 1;
+			n += highway.points.size();
+			Integer from = highway.fromEnd ? placeNode.get(highway.from) : null;
+			Integer to = highway.toEnd ? placeNode.get(highway.to) : null;
+			if (from != null) {
+				link(edges, xs, zs, firstOf[h], from);
+			}
+
+			if (to != null) {
+				link(edges, xs, zs, lastOf[h], to);
+			}
+		}
+
+		// Where roads meet: a road's piece joins another where it runs on with it, or crosses it. (Within the plan's own
+		// distance for a shared way: a road that runs on with one already planned was cut off up to that far from it, more
+		// where a short piece between was left out; at a few blocks, the pieces of the way weren't joined up.)
 		Map<Long, List<Integer>> cells = new HashMap<>();
 		for (int i = 0; i < roads; i++) {
-			cells.computeIfAbsent(cell(xs[i] >> 3, zs[i] >> 3), c -> new ArrayList<>()).add(i);
+			cells.computeIfAbsent(cell(xs[i] >> 4, zs[i] >> 4), c -> new ArrayList<>()).add(i);
 		}
 
 		for (int i = 0; i < roads; i++) {
-			int cx = xs[i] >> 3;
-			int cz = zs[i] >> 3;
+			int cx = xs[i] >> 4;
+			int cz = zs[i] >> 4;
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dz = -1; dz <= 1; dz++) {
 					List<Integer> there = cells.get(cell(cx + dx, cz + dz));
@@ -280,6 +476,39 @@ final class Routes {
 							link(edges, xs, zs, i, j);
 						}
 					}
+				}
+			}
+		}
+
+		// A road's end that's neither at a town nor at a dock runs into another road: joined to the nearest point of another
+		// road near it, if nothing joined it yet.
+		for (int h = 0; h < highways.size(); h++) {
+			WorldPlan.Highway highway = highways.get(h);
+			for (int end : new int[] {firstOf[h], lastOf[h]}) {
+				boolean town = end == firstOf[h] ? highway.fromEnd || highway.fromDock : highway.toEnd || highway.toDock;
+				boolean joined = false;
+				for (int[] e : edges.get(end)) {
+					joined |= e[0] >= roads || road[e[0]] != h;
+				}
+
+				if (town || joined) {
+					continue;
+				}
+
+				int best = -1;
+				double far = LOOSE_END;
+				for (int r = 0; r < roads; r++) {
+					if (road[r] != h && Math.abs(xs[r] - xs[end]) <= far && Math.abs(zs[r] - zs[end]) <= far) {
+						double d = Math.hypot(xs[r] - xs[end], zs[r] - zs[end]);
+						if (d < far) {
+							far = d;
+							best = r;
+						}
+					}
+				}
+
+				if (best >= 0) {
+					link(edges, xs, zs, end, best);
 				}
 			}
 		}
@@ -404,7 +633,7 @@ final class Routes {
 			z1 = Math.max(z1, way.get(i).getZ());
 		}
 
-		return "along the roads, " + Math.round(length) + " blocks (" + Math.round(Math.hypot(to.getX() - from.getX(), to.getZ() - from.getZ()))
+		return "out along " + startStreets + " street points" + (startWhy.isEmpty() ? "" : " (" + startWhy + ")") + ", along the roads, " + Math.round(length) + " blocks (" + Math.round(Math.hypot(to.getX() - from.getX(), to.getZ() - from.getZ()))
 			+ " straight), " + way.size() + " points, within " + x0 + ", " + z0 + " to " + x1 + ", " + z1;
 	}
 }
