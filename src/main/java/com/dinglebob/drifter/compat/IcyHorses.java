@@ -285,4 +285,92 @@ public final class IcyHorses {
 		horse.finalizeSpawn(level, level.getCurrentDifficultyAt(at), MobSpawnType.STRUCTURE, null);
 		return horse;
 	}
+
+	/** One of Icy's items ({@code upgraded_saddle}, {@code horse_cart_gear}...), or null without Icy's. */
+	@Nullable
+	public static Item item(String id) {
+		if (!present()) {
+			return null;
+		}
+
+		Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(MOD_ID, id));
+		return item == net.minecraft.world.item.Items.AIR ? null : item;
+	}
+
+	/**
+	 * A cart hitched to the horse as a player sets one up (horse culture, spike finding: Icy's drops a cart from a horse
+	 * without its cart gear): Icy's upgraded saddle from the Drifter's pack onto the horse (its old saddle back in the pack),
+	 * then the Horse Cart gear from its hand onto the horse through its helper player (Icy's own click), then the cart.
+	 * Both items must be in its pack (no free items). The cart, or null.
+	 */
+	@Nullable
+	public static Entity hitchCart(com.dinglebob.drifter.entity.DrifterEntity drifter, AbstractHorse horse) {
+		Item saddle = item("upgraded_saddle");
+		Item gear = item("horse_cart_gear");
+		if (saddle == null || gear == null || !ours(horse)) {
+			return null;
+		}
+
+		Entity cart = cart(horse);
+		if (cart != null) {
+			return cart;
+		}
+
+		var inventory = drifter.getInventory();
+		// Its upgraded saddle on.
+		if (!horse.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.BODY).is(saddle) && !saddleOf(horse).is(saddle)) {
+			int slot = inventory.findSlot(stack -> stack.is(saddle), 0, inventory.getContainerSize());
+			if (slot < 0) {
+				return null;
+			}
+
+			net.minecraft.world.item.ItemStack old = saddleOf(horse).copy();
+			horse.equipSaddle(inventory.getItem(slot).split(1), net.minecraft.sounds.SoundSource.NEUTRAL);
+			if (!old.isEmpty()) {
+				inventory.add(old);
+			}
+		}
+
+		// The cart gear from its hand, as a player clicks the horse with it.
+		int slot = inventory.findSlot(stack -> stack.is(gear), 0, inventory.getContainerSize());
+		if (slot < 0) {
+			return null;
+		}
+
+		// (What Icy's own click does once it's satisfied the clicker owns the horse: its helper player isn't the owner, the
+		// Drifter is; the gear goes into the horse's gear slot, out of its pack.)
+		try {
+			if (!Boolean.TRUE.equals(data.getMethod("bh_hasUpgradedSaddle").invoke(horse))) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {} has no upgraded saddle on for a cart", horse.getName().getString());
+				return null;
+			}
+
+			var gears = (net.minecraft.world.SimpleContainer)data.getMethod("bh_getGearContainer").invoke(horse);
+			int cartSlot = Class.forName("icy.betterhorses.net.inventory.GearSlot").getField("STABILIZER").get(null) instanceof Enum<?> e ? e.ordinal() : 3;
+			if (gears.getItem(cartSlot).isEmpty()) {
+				gears.setItem(cartSlot, inventory.getItem(slot).split(1));
+			}
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] cart gear failed: {}", e.toString());
+			return null;
+		}
+
+		cart = cart(horse);
+		if (cart == null) {
+			try {
+				Class.forName("icy.betterhorses.net.entity.HorseCartEntity").getMethod("spawnFor", AbstractHorse.class).invoke(null, horse);
+			} catch (ReflectiveOperationException | RuntimeException e) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("[icy] cart spawn failed: {}", e.toString());
+			}
+
+			cart = cart(horse);
+		}
+
+		return cart;
+	}
+
+	/** The horse's saddle slot (vanilla's slot 400, as commands reach it). */
+	private static net.minecraft.world.item.ItemStack saddleOf(AbstractHorse horse) {
+		return horse.getSlot(400).get();
+	}
 }

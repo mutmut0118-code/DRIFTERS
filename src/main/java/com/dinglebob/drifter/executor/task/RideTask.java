@@ -182,7 +182,9 @@ public class RideTask extends Task {
 		// (Its lead off it first, back in its pack.)
 		com.dinglebob.drifter.skills.StableGoal.unlead(this.drifter, this.horse);
 
-		boolean on = this.drifter.startRiding(this.horse);
+		// (A horse with Icy's cart hitched takes only a player's click on it: its own horse, it gets on as a player does.)
+		boolean on = com.dinglebob.drifter.compat.IcyHorses.cart(this.horse) != null ? this.drifter.startRiding(this.horse, true)
+			: this.drifter.startRiding(this.horse);
 		this.drifter.meansToRide(false);
 		if (!on) {
 			return Status.RUNNING;

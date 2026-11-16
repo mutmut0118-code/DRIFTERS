@@ -115,6 +115,24 @@ final class IcyCommands {
 			}
 			drifter.getTasks().start(new Again(drifter, "capture", 3, () -> com.dinglebob.drifter.skills.StableGoal.capture(drifter)), source::sendSystemMessage);
 			return 1;
+		})).then(Commands.literal("cart").executes(ctx -> {
+			// (Debug: the nearest Drifter is given Icy's upgraded saddle and cart gear and hitches a cart to the nearest horse.)
+			var source = ctx.getSource();
+			var pos = source.getPosition();
+			AbstractHorse horse = source.getLevel().getEntitiesOfClass(AbstractHorse.class, new AABB(pos, pos).inflate(16)).stream()
+				.min(Comparator.comparingDouble(h -> h.distanceToSqr(pos))).orElse(null);
+			var drifter = DrifterCommands.nearest(source);
+			if (horse == null || drifter == null) {
+				return 0;
+			}
+
+			drifter.getInventory().add(new net.minecraft.world.item.ItemStack(IcyHorses.item("upgraded_saddle")));
+			drifter.getInventory().add(new net.minecraft.world.item.ItemStack(IcyHorses.item("horse_cart_gear")));
+			var cart = IcyHorses.hitchCart(drifter, horse);
+			String said = "cart " + cart + " on " + horse.getName().getString();
+			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {}", said);
+			source.sendSuccess(() -> Component.literal(said), false);
+			return cart == null ? 0 : 1;
 		})).then(Commands.literal("lead").executes(ctx -> {
 			// (Debug: the nearest Drifter puts a lead on the nearest horse and walks 40 blocks east leading it.)
 			var source = ctx.getSource();
