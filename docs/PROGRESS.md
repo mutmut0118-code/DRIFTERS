@@ -81,7 +81,7 @@ Ironhollow, 909 blocks): 100 blocks in two minutes, still inside its city, a 10 
 
 The halt tuning (40 blocks, 90 s) was checked in one more client run: 6 halts instead of 8 on the same march.
 
-**0.23.74-side.3 (the user on side.2: "okay the leader reaches there", "make sure the band is consistent too", "im actually
+**0.23.75-side.1 (the main line 0.23.75, horse culture, merged in; the user on side.2: "okay the leader reaches there", "make sure the band is consistent too", "im actually
 still seeing alot of sneaking across the path"):**
 - Found with a debug line on `/drifter wars` (the band's spread, how many crouch, and in the log `[war band]`: the
   furthest and crouching members' step, why its walk crouched (`NavigateTask.sneakWhy`), whether it sees its leader, its
@@ -99,9 +99,11 @@ still seeing alot of sneaking across the path"):**
   client tests (1 sight ray a tick, the smallest planning budget); war tests now use creative and `drifter tier full all`.
   At full detail with the lost-band march: 35 of 37 within 24 blocks of the leader after the river, half within 16.
 
-**Next:** coordinate with the horse culture session (uncommitted in the main checkout): it changes `NavigateTask` ride
-code and `Legs.toward`'s returns; this branch adds `NavigateTask.through/followBehind/walkingAWay/bold/sneakWhy`,
-`PathSearch.withoutBlocks` and a `Legs.toward` overload. Merge it in when it lands.
+**Merged with horse culture (0.23.75):** a war march's stretches are on foot (the horse session's `NavigateTask.onFoot()`,
+also on the stragglers' own march): the leader walks with its band; the retreat home may ride (a horse taken in the raid
+too). The war-capture step comes before looting in the attack.
+
+**Next:** the user's look at the band and the crouching in play.
 
 ## Towns and roads in the far view (paper towns): built for Voxy and Distant Horizons, 0.23.63-side.2 (2026-11-14)
 

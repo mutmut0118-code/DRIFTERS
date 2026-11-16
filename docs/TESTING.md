@@ -4177,7 +4177,7 @@ In a town of a morning, listen to the crier on the plaza:
 5. "u need help?": "yeah, <what it needs>" or "im good".
 6. "got you" after a Drifter gives you a word to carry: an okay, not "lost me there".
 
-## 0.23.74-side.3: the band keeps together, nobody crouches on the way (new)
+## 0.23.75-side.1: the band keeps together, nobody crouches on the way (new; the main line 0.23.75 merged in)
 
 Your notes on 0.23.74-side.2: "okay the leader reaches there", "make sure the band is consistent too", "im actually still
 seeing alot of sneaking across the path". Same test as below (a war, then follow the leader).

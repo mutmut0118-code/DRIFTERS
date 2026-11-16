@@ -907,7 +907,7 @@ public class NavigateTask extends Task {
 
 	@Nullable
 	private RideTask rideFor() {
-		if (this.follow || this.onFoot || this.level().dimension() != net.minecraft.world.level.Level.OVERWORLD) {
+		if (this.follow || this.level().dimension() != net.minecraft.world.level.Level.OVERWORLD) {
 			return null;
 		}
 
@@ -3059,14 +3059,6 @@ public class NavigateTask extends Task {
 	private boolean passedThrough;
 	/** Planning on the move this long at most, on such a stretch (it's walking a way it knows, straight on meanwhile). */
 	private static final int MAX_PLAN_THROUGH_TICKS = 30;
-
-	/** On foot whatever horse it has by it (a war band's march to the fight: its leader walks with its people). */
-	private boolean onFoot;
-
-	public NavigateTask onFoot() {
-		this.onFoot = true;
-		return this;
-	}
 
 	/** This walk is one stretch of a longer trip: no stop at its end, the next stretch picks up on the move. */
 	public NavigateTask through() {
