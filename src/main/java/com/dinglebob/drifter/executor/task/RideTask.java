@@ -116,6 +116,11 @@ public class RideTask extends Task {
 		}
 
 		this.drifter.meansToRide(true);
+		// (Only a horse it may ride: never another's.)
+		if (!com.dinglebob.drifter.api.DrifterApi.mayRide(this.drifter, this.horse)) {
+			return this.fail("not its horse");
+		}
+
 		boolean on = this.drifter.startRiding(this.horse);
 		this.drifter.meansToRide(false);
 		if (!on) {

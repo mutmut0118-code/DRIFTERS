@@ -1036,8 +1036,33 @@ public final class DrifterApi {
 	/** (A town made ready.) Its horse (tamed to it), kept in this stall of its town's stable. */
 	public static void keepHorse(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse, net.minecraft.core.BlockPos stall) {
 		horse.setOwnerUUID(drifter.getUUID());
+		// (Its owner and home in Icy's Better Horses' own terms too, so its bonding, roster and recall see them.)
+		com.dinglebob.drifter.compat.IcyHorses.setOwner(horse, drifter.getUUID());
+		com.dinglebob.drifter.compat.IcyHorses.setHome(horse, stall);
 		drifter.getDrifterBrain().setHorse(horse.getUUID(), stall);
 		drifter.getDrifterBrain().setStall(stall);
+	}
+
+	/**
+	 * Whether it may get on (or lead off) this horse: one nobody owns, or its own (vanilla's owner, or Icy's), or one it
+	 * captured in a war ({@link #allowCapture}). Never another's: Icy's own check keeps only players off others' horses, and
+	 * a bandit rode off on the player's (horse culture, the user: "Only war captures").
+	 */
+	public static boolean mayRide(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		java.util.UUID owner = com.dinglebob.drifter.compat.IcyHorses.owner(horse);
+		if (owner == null) {
+			owner = horse.getOwnerUUID();
+		}
+
+		return owner == null || owner.equals(drifter.getUUID()) || drifter.getUUID().equals(CAPTURES.get(horse.getUUID()));
+	}
+
+	/** Horses a Drifter may take in a war (the horse, its captor). */
+	private static final java.util.Map<java.util.UUID, java.util.UUID> CAPTURES = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** This Drifter may take this horse (an enemy's, tied at a war's front: the addon decides). */
+	public static void allowCapture(net.minecraft.world.entity.animal.horse.AbstractHorse horse, DrifterEntity captor) {
+		CAPTURES.put(horse.getUUID(), captor.getUUID());
 	}
 
 	/** Icy's Better Horses is installed (and as Drifter expects): its breeds, bond, gaits and carts there to use. */

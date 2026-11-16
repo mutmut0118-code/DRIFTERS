@@ -92,12 +92,14 @@ public final class IcyHorses {
 		return present() && data.isInstance(horse);
 	}
 
+	/** (The method asked for after {@link #present()} has looked them up: read first, the handles were still null.) */
 	@Nullable
-	private static Object call(Method method, AbstractHorse horse, Object... args) {
+	private static Object call(java.util.function.Supplier<Method> which, AbstractHorse horse, Object... args) {
 		if (!ours(horse)) {
 			return null;
 		}
 
+		Method method = which.get();
 		try {
 			return method.invoke(horse, args);
 		} catch (ReflectiveOperationException | RuntimeException e) {
@@ -109,44 +111,44 @@ public final class IcyHorses {
 	/** Its owner in Icy's terms, or null. */
 	@Nullable
 	public static UUID owner(AbstractHorse horse) {
-		return call(getOwner, horse) instanceof UUID id ? id : null;
+		return call(() -> getOwner, horse) instanceof UUID id ? id : null;
 	}
 
 	public static void setOwner(AbstractHorse horse, UUID owner) {
-		call(setOwner, horse, owner);
+		call(() -> setOwner, horse, owner);
 	}
 
 	/** Its bond with its owner (Icy's number; 0 without Icy's). */
 	public static int bond(AbstractHorse horse) {
-		return call(getBond, horse) instanceof Integer bond ? bond : 0;
+		return call(() -> getBond, horse) instanceof Integer bond ? bond : 0;
 	}
 
 	public static void addBond(AbstractHorse horse, int amount) {
 		if (ours(horse)) {
-			call(setBond, horse, Math.max(0, bond(horse) + amount));
+			call(() -> setBond, horse, Math.max(0, bond(horse) + amount));
 		}
 	}
 
 	/** Its home (where Icy's sends it back to): its stall. */
 	public static void setHome(AbstractHorse horse, BlockPos home) {
-		call(setHome, horse, home.immutable());
+		call(() -> setHome, horse, home.immutable());
 	}
 
 	/** Its breed's id ({@code arabian}, {@code thoroughbred}...), or null. */
 	@Nullable
 	public static String breed(AbstractHorse horse) {
-		Object breed = call(getBreed, horse);
+		Object breed = call(() -> getBreed, horse);
 		return breed == null ? null : breed.toString().toLowerCase(java.util.Locale.ROOT);
 	}
 
 	/** Its gait gear (0 none, 1 walk, 2 trot, 3 canter, 4 gallop). */
 	public static int gait(AbstractHorse horse) {
-		return call(getGear, horse) instanceof Integer gear ? gear : NO_GEAR;
+		return call(() -> getGear, horse) instanceof Integer gear ? gear : NO_GEAR;
 	}
 
 	public static void setGait(AbstractHorse horse, int gear) {
 		if (gait(horse) != gear) {
-			call(setGear, horse, gear);
+			call(() -> setGear, horse, gear);
 		}
 	}
 
@@ -169,13 +171,13 @@ public final class IcyHorses {
 	/** The cart it pulls, or null. */
 	@Nullable
 	public static Entity cart(AbstractHorse horse) {
-		return call(getCart, horse) instanceof Entity cart ? cart : null;
+		return call(() -> getCart, horse) instanceof Entity cart ? cart : null;
 	}
 
 	/** The treat it likes best, once its owner has found it (Icy's bonding), or null. */
 	@Nullable
 	public static Item favouriteTreat(AbstractHorse horse) {
-		Object feature = call(bonding, horse);
+		Object feature = call(() -> bonding, horse);
 		if (feature == null) {
 			return null;
 		}

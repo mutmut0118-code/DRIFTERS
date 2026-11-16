@@ -110,7 +110,7 @@ public final class HorseGoal extends Goals.Goal {
 	private static AbstractHorse wildHorse(DrifterEntity drifter, long now) {
 		for (Awareness awareness : drifter.getSenses().tracked()) {
 			if (awareness.entity instanceof AbstractHorse horse && (horse instanceof Horse || horse instanceof AbstractChestedHorse) && horse.isAlive()
-				&& !horse.isBaby() && !horse.isTamed() && !horse.isVehicle() && horse.distanceTo(drifter) < HORSE_RANGE && awareness.seenWithin(now, 20 * 10)) {
+				&& !horse.isBaby() && !horse.isTamed() && !horse.isVehicle() && com.dinglebob.drifter.compat.IcyHorses.owner(horse) == null && horse.getOwnerUUID() == null && horse.distanceTo(drifter) < HORSE_RANGE && awareness.seenWithin(now, 20 * 10)) {
 				return horse;
 			}
 		}
@@ -258,6 +258,10 @@ public final class HorseGoal extends Goals.Goal {
 			this.horse.setEating(false);
 			this.horse.setStanding(false);
 			// (Right after being thrown it can't get straight back on: the game's boarding cooldown. It waits it out.)
+			if (!com.dinglebob.drifter.api.DrifterApi.mayRide(this.drifter, this.horse)) {
+				return this.fail("someone's horse");
+			}
+
 			this.drifter.meansToRide(true);
 			boolean on = this.drifter.startRiding(this.horse);
 			this.drifter.meansToRide(false);
