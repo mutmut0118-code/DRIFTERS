@@ -1,0 +1,510 @@
+{
+  "_comment": "Crowd replies during a war speech (before a town marches to war, its leader gives a 12-line speech; the gathered raiders answer). Keys: war.crowd.answer (2-4 replies to a line that asks for an answer), war.crowd.cheer (cheers echoing a battle cry), war.crowd.agree (quiet murmurs to a serious or heartfelt line), war.crowd.roar (the big roar after the closing line, about half the raiders), war.crowd.nervous (one nervous raider breaks the mood), war.crowd.reassure (a neighbour answers the nervous one), war.crowd.leader_reassure (the leader answers the nervous one), war.crowd.joke (a joker heckles mid-speech), war.crowd.hush (someone shushes the joker). Each key has an 'any' list plus personality voices. Words in braces are filled in: {town} (the raiders' own town), {enemy} (the town or nation they attack), {leader} (the leader's name), and {who} (only in reassure and leader_reassure: the nervous one; in hush: the joker).",
+  "lines": {
+    "war.crowd.answer": {
+      "any": [
+        "got it!",
+        "yeah!!",
+        "ready!",
+        "with you!",
+        "always",
+        "say less",
+        "got it",
+        "yes!!",
+        "yep",
+        "ready",
+        "hell yeah",
+        "100%",
+        "count me in",
+        "were with you!",
+        "yes {leader}!",
+        "understood",
+        "loud and clear",
+        "yeah we got it",
+        "ofc",
+        "obviously!!",
+        "every one of us",
+        "ready when you are",
+        "lets do it",
+        "no one gets left",
+        "yessir",
+        "with you {leader}",
+        "all the way",
+        "were ready!!",
+        "copy that",
+        "you know it",
+        "ya",
+        "yes!",
+        "got it boss",
+        "for sure",
+        "till the end",
+        "yeah yeah yeah",
+        "born ready",
+        "in!!",
+        "deal",
+        "nobody left behind!",
+        "heard",
+        "on it",
+        "ready to go",
+        "always have been",
+        "always!!",
+        "yup!"
+      ],
+      "newbie": [
+        "yes!! got it!!",
+        "ready!! i think!!",
+        "with you!! totally!!",
+        "im ready!! lets go!!",
+        "got it {leader}!!"
+      ],
+      "hermit": [
+        "...aye.",
+        "aye.",
+        "mm. ready."
+      ],
+      "helper": [
+        "got it, ill keep an eye on everyone",
+        "ready. stay in pairs ok",
+        "with you, and with each other"
+      ],
+      "pvp_sweat": [
+        "been ready lol",
+        "ready since yesterday",
+        "just point me at them"
+      ],
+      "builder": [
+        "ready. walls can wait",
+        "got it, ill patch up after"
+      ],
+      "hoarder": [
+        "ready. bags are empty",
+        "got it, chests packed"
+      ],
+      "speedrunner": [
+        "ready, can we go now",
+        "yes. go go go"
+      ],
+      "casual": [
+        "yeah W",
+        "bet",
+        "ready fr"
+      ],
+      "homebody": [
+        "got it. and we all come home",
+        "ready. home by dark"
+      ],
+      "miner": [
+        "ready, pick is sharp",
+        "got it, torches packed"
+      ]
+    },
+    "war.crowd.cheer": {
+      "any": [
+        "they'll pay!!",
+        "for {town}!",
+        "lets gooo",
+        "YEAH",
+        "YEAHHH",
+        "lets go!!",
+        "theyll pay!",
+        "for {town}!!",
+        "WOOO",
+        "hell yeah!!",
+        "{town}!!",
+        "{town}! {town}!",
+        "get em!!",
+        "LETS GO",
+        "yeah!!!",
+        "they had it coming",
+        "make them pay",
+        "lets gooooo",
+        "WOO!!",
+        "for us!!",
+        "AYYY",
+        "lets ride!!",
+        "go go go!!",
+        "yeahhh boi",
+        "down with {enemy}!",
+        "{enemy} is done",
+        "no mercy!!",
+        "we got this!!",
+        "HUZZAH",
+        "OOOH",
+        "lets do this!!",
+        "get them!!",
+        "yes yes YES",
+        "W W W",
+        "here we go!!",
+        "LFG",
+        "uh huh!!",
+        "YEAAAA",
+        "lets get it",
+        "payback!!",
+        "bring it!!",
+        "they asked for it",
+        "{town} forever!!"
+      ],
+      "newbie": [
+        "YEAH!! for {town}!!",
+        "lets gooo!!",
+        "theyll pay!! yeah!!"
+      ],
+      "hermit": [
+        "aye.",
+        "...they will."
+      ],
+      "helper": [
+        "for everyone back home!",
+        "together!!",
+        "yeah! stick together!"
+      ],
+      "pvp_sweat": [
+        "ez dubs",
+        "free kills lets go",
+        "they're so cooked"
+      ],
+      "builder": [
+        "for every wall they broke!",
+        "and we rebuild after!"
+      ],
+      "hoarder": [
+        "and their loot is ours!",
+        "chests!! i mean, yeah!!"
+      ],
+      "bandit": [
+        "and we take everything!",
+        "loot em dry!!"
+      ],
+      "speedrunner": [
+        "yeah now lets GO",
+        "faster!!"
+      ],
+      "casual": [
+        "W chat",
+        "LETS GOOO LMAO",
+        "goated"
+      ],
+      "miner": [
+        "dig em out!!",
+        "pickaxes up!!"
+      ]
+    },
+    "war.crowd.agree": {
+      "any": [
+        "we remember",
+        "aye",
+        "for them",
+        "...yeah",
+        "we wont forget",
+        "yeah",
+        "mhm",
+        "true",
+        "for them.",
+        "never forget",
+        "same",
+        "yeah. we do",
+        "thats right",
+        "they matter",
+        "...for them",
+        "we know",
+        "thanks {leader}",
+        "yeah...",
+        "real",
+        "we wont",
+        "so true",
+        "same here",
+        "ok",
+        "heard you"
+      ],
+      "newbie": [
+        "yeah... yeah!",
+        "im proud too!!"
+      ],
+      "hermit": [
+        "...aye.",
+        "aye."
+      ],
+      "helper": [
+        "proud of you too",
+        "we got each other",
+        "thanks for saying that"
+      ],
+      "homebody": [
+        "for the ones at home",
+        "we'll get back to them"
+      ],
+      "nomad": [
+        "even i remember",
+        "the road remembers too"
+      ],
+      "builder": [
+        "we built {town} together"
+      ],
+      "casual": [
+        "real talk",
+        "ok that hit"
+      ]
+    },
+    "war.crowd.roar": {
+      "any": [
+        "LETS GO",
+        "for {town}!!",
+        "{enemy} wont know what hit them",
+        "AAAAA",
+        "LETS GOOOO",
+        "FOR {town}!!",
+        "WOOOOO",
+        "YEAHHHH",
+        "CHARGE!!",
+        "{town}!!!",
+        "GO GO GO",
+        "AAAAAAA",
+        "LFGGG",
+        "LETS RIDE",
+        "for {town}!!!",
+        "{enemy} is DONE",
+        "lets gooooo",
+        "HOOAH",
+        "TO WAR!!",
+        "YEAAAAH",
+        "LETS DO THIS",
+        "no mercy!!",
+        "get em!!!",
+        "for {leader}!!",
+        "OOOHHH",
+        "theyre done!!",
+        "{town} {town} {town}",
+        "NOW!!",
+        "march!!",
+        "LETS GET IT",
+        "WAR!!",
+        "they'll pay!!!",
+        "HYAAA",
+        "UNTIL THE END",
+        "here we come {enemy}"
+      ],
+      "newbie": [
+        "AAAA LETS GO!!",
+        "FOR {town}!! AAAA"
+      ],
+      "hermit": [
+        "...AYE.",
+        "aye!!"
+      ],
+      "helper": [
+        "TOGETHER!!",
+        "everyone home after!!"
+      ],
+      "pvp_sweat": [
+        "FREE KILLS",
+        "THEYRE COOKED",
+        "nobody survives"
+      ],
+      "builder": [
+        "FOR THE WALLS!!",
+        "tear em down!!"
+      ],
+      "hoarder": [
+        "LOOT TIME!!",
+        "ALL THEIR CHESTS"
+      ],
+      "bandit": [
+        "TAKE EVERYTHING",
+        "BURN IT DOWN lol"
+      ],
+      "speedrunner": [
+        "FINALLY GO",
+        "MOVE MOVE MOVE"
+      ],
+      "casual": [
+        "W SPEECH LETS GO",
+        "AAAA LMAO GO"
+      ]
+    },
+    "war.crowd.nervous": {
+      "any": [
+        "what if they have more people than us",
+        "um. do we have enough food",
+        "i forgot my shield...",
+        "wait how many of them are there",
+        "do they have a wall?",
+        "is anyone bringing beds",
+        "what if we lose tho",
+        "i only have stone tools",
+        "are we sure about this",
+        "what if they see us coming",
+        "uh, whats the plan if it goes bad",
+        "my armor is like half broken",
+        "can i stay in the back",
+        "do we even know the way",
+        "what if they have archers",
+        "im kinda scared ngl"
+      ],
+      "newbie": [
+        "is it normal to be this nervous??",
+        "i never fought anyone before..",
+        "wait what do i do??"
+      ],
+      "homebody": [
+        "who watches {town} while were gone",
+        "what if they hit us back home"
+      ],
+      "hoarder": [
+        "do i bring my good stuff or not"
+      ],
+      "miner": [
+        "what if they have lava traps"
+      ],
+      "builder": [
+        "what if their walls are good"
+      ]
+    },
+    "war.crowd.reassure": {
+      "any": [
+        "{who}, stick with me",
+        "we got this {who}",
+        "youll be fine, just stay close",
+        "{who} stay behind me",
+        "dont worry about it",
+        "ill cover you {who}",
+        "we got you",
+        "were all scared, its ok",
+        "breathe {who}, its fine",
+        "just stay close",
+        "you got this {who}",
+        "nobody leaves you behind",
+        "ill watch your back",
+        "{who} youre with us, ok",
+        "itll be quick, promise",
+        "{who}, just follow the group",
+        "deep breaths lol",
+        "same tbh, but well be ok",
+        "{who} youre tougher than you think",
+        "first one is always scary"
+      ],
+      "helper": [
+        "{who}, ill heal you if it goes bad",
+        "stay next to me, ok?",
+        "i brought extra food {who}"
+      ],
+      "pvp_sweat": [
+        "{who} relax, ill carry",
+        "just stay behind me lol"
+      ],
+      "hermit": [
+        "...stay close.",
+        "{who}. with me."
+      ],
+      "hoarder": [
+        "i got a spare shield {who}",
+        "theres extra food in my bag"
+      ],
+      "casual": [
+        "its chill {who}",
+        "nah ur good lol"
+      ],
+      "builder": [
+        "ill wall us in if it goes bad",
+        "{who}, ill pillar you out if needed"
+      ]
+    },
+    "war.crowd.leader_reassure": {
+      "any": [
+        "{who}, nobody gets left behind",
+        "fair question. we hit fast, leave fast",
+        "{who}, stay near me",
+        "we planned for that {who}",
+        "if it goes bad, we pull back. promise",
+        "good question {who}. we got enough",
+        "{who}, youre not alone out there",
+        "thats why we go together",
+        "nobody fights alone today",
+        "{who}, youre ready. trust me",
+        "we take it slow. no heroes",
+        "stay close and youll be fine"
+      ],
+      "helper": [
+        "{who}, ive got food for everyone",
+        "ill make sure you get home {who}"
+      ],
+      "homebody": [
+        "we leave people home. {town} is safe"
+      ],
+      "pvp_sweat": [
+        "{who}, just follow me in"
+      ]
+    },
+    "war.crowd.joke": {
+      "any": [
+        "can we loot first",
+        "W speech",
+        "is there snacks after",
+        "how long is this speech lol",
+        "can i go afk",
+        "do we get paid for this",
+        "wake me up when we leave",
+        "this better be worth it",
+        "wait whose town again",
+        "can i bring my dog",
+        "{leader} practiced this lol",
+        "speech%",
+        "did anyone bring cake",
+        "is this gonna be on the test",
+        "can we vote on this",
+        "ok but whos bringing food",
+        "im just here for the loot",
+        "bro is cooking",
+        "TL;DR pls"
+      ],
+      "casual": [
+        "W speech fr",
+        "LMAO ok {leader}",
+        "ok who wrote this"
+      ],
+      "bandit": [
+        "i call dibs on their chests",
+        "loot first, war later"
+      ],
+      "hoarder": [
+        "are we splitting the loot fair",
+        "i brought empty shulkers lol"
+      ],
+      "speedrunner": [
+        "skip cutscene",
+        "tldr? lets go"
+      ],
+      "pvp_sweat": [
+        "less talk more kills",
+        "can i start killing yet"
+      ],
+      "newbie": [
+        "wait is this the war or the speech??",
+        "do we clap??"
+      ]
+    },
+    "war.crowd.hush": {
+      "any": [
+        "shh",
+        "{who}, not now",
+        "let them talk",
+        "dude shh",
+        "{who} shut up lol",
+        "not the time",
+        "quiet {who}",
+        "bro chill",
+        "{who}. seriously"
+      ],
+      "helper": [
+        "{who}, after the speech ok?",
+        "lets listen please"
+      ],
+      "hermit": [
+        "...quiet.",
+        "{who}. hush."
+      ],
+      "pvp_sweat": [
+        "{who} focus"
+      ]
+    }
+  }
+}

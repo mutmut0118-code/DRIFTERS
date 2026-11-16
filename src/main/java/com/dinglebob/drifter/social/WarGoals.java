@@ -250,6 +250,25 @@ public final class WarGoals {
 			};
 		}
 
+		/** Its speech so far: questions and cries said, and what its last line was. */
+		private int asks;
+		private int cries;
+		private WarCrowd.Kind lastKind = WarCrowd.Kind.OPEN;
+
+		/** A line between the first and last: a question (at most 3, never two running), a cry (at most 3), else plain. */
+		private String middleKey() {
+			double roll = this.drifter.getRandom().nextDouble();
+			if (roll < 0.22 && this.asks < 3 && this.lastKind != WarCrowd.Kind.ASK && Lines.has("war.speech_ask")) {
+				return "war.speech_ask";
+			}
+
+			if (roll < 0.42 && this.cries < 3 && this.lastKind != WarCrowd.Kind.CRY && Lines.has("war.speech_cry")) {
+				return "war.speech_cry";
+			}
+
+			return "war.speech";
+		}
+
 		private Status gather() {
 			DrifterEntity leader = this.leaderEntity();
 			if (this.leader || leader == null) {
@@ -276,15 +295,29 @@ public final class WarGoals {
 						if (this.now() - this.raid.lastSpoke >= SPEECH_GAP) {
 							this.raid.lastSpoke = this.now();
 							this.raid.speech++;
+							// (Its kind: the opening, the close; between, plain words mostly, now and then a question for them to answer
+							// or a cry for them to take up: the crowd answers those, WarCrowd.)
+							String key = this.raid.speech == 1 ? "war.speech_open" : this.raid.speech == SPEECH_LINES ? "war.speech_close" : this.middleKey();
 							String line = null;
 							for (int tries = 0; tries < 6 && (line == null || this.raid.said.contains(line)); tries++) {
-								line = Lines.pick(this.drifter, this.raid.speech == 1 ? "war.speech_open" : this.raid.speech == SPEECH_LINES ? "war.speech_close"
-									: "war.speech", "enemy", DrifterWars.name(this.raid.defenders), "town", DrifterWars.name(this.raid.attackers));
+								line = Lines.pick(this.drifter, key, "enemy", DrifterWars.name(this.raid.defenders), "town", DrifterWars.name(this.raid.attackers));
 							}
 
 							if (line != null) {
 								this.raid.said.add(line);
+								ChatLines.toEveryone(this.drifter);
 								ChatLines.speak(this.drifter, line);
+								WarCrowd.Kind kind = this.raid.speech == 1 ? WarCrowd.Kind.OPEN : this.raid.speech == SPEECH_LINES ? WarCrowd.Kind.CLOSE
+									: key.equals("war.speech_ask") ? WarCrowd.Kind.ASK : key.equals("war.speech_cry") ? WarCrowd.Kind.CRY : WarCrowd.kindOf(line);
+								if (kind == WarCrowd.Kind.ASK) {
+									this.asks++;
+								} else if (kind == WarCrowd.Kind.CRY) {
+									this.cries++;
+								}
+
+								this.lastKind = kind;
+								// (The crowd's moment: a nervous one steadied, a joker shushed, before the next line.)
+								this.raid.lastSpoke += WarCrowd.heard(this.drifter, this.raid, line, kind, this.now());
 							}
 
 							// (Till its next line, and the last a little while after.)

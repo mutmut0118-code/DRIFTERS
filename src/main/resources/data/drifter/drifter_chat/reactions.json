@@ -7488,50 +7488,126 @@
         "everyone stop talking for one sec",
         "ok. deep breath everyone",
         "{town}, this is it",
-        "huddle up"
+        "huddle up",
+        "ok everyone, gather up real quick",
+        "listen in, all of you",
+        "everybody stop what you're doing",
+        "alright {town}, listen close",
+        "hey hey, over here everyone",
+        "ok so. everyone look at me",
+        "before the march, one thing",
+        "quiet down {town}, i'm talking",
+        "ok wait wait, nobody leave yet",
+        "come here everyone, circle up",
+        "everyone in a circle pls",
+        "right, listen up you lot",
+        "get over here, all of you",
+        "put the food away a sec and listen",
+        "armor on? good. now listen",
+        "gather up at the bell",
+        "everyone to the plaza, now",
+        "ok, last bit before we go",
+        "listen, i won't say this twice",
+        "i need everyone's ears for a minute",
+        "one minute, then we march",
+        "{town}, a word",
+        "this one's important, so listen",
+        "ok team, gather in",
+        "everyone shut up for a sec lol",
+        "alright alright, listen",
+        "stop fiddling with your hotbar and listen",
+        "stand still a sec everyone",
+        "ok so here's the deal",
+        "before we march on {enemy}, listen",
+        "about {enemy}. listen up",
+        "look at me everyone. good",
+        "ok. nobody move yet",
+        "everybody, eyes front",
+        "form up and listen in",
+        "you all know why we're here",
+        "listen, all of {town}",
+        "this is about {enemy}. gather round",
+        "come on, everyone in close",
+        "everyone stop crafting for a sec",
+        "close the chests and come here",
+        "ok that's everyone. listen",
+        "i've got a few words, then we go",
+        "gather, gather. quick",
+        "i called you all here for a reason"
       ],
       "hoarder": [
-        "everyone gather, and dont touch the chests"
+        "everyone gather, and dont touch the chests",
+        "gather round. eyes off my stash",
+        "come in, and keep your hands out of my barrels",
+        "listen up, this is about what we bring back"
       ],
       "bandit": [
-        "pay attention, this concerns your cut"
+        "pay attention, this concerns your cut",
+        "gather round, crew",
+        "come in close, partners",
+        "listen up, this is the fun part"
       ],
       "nomad": [
-        "travellers and townsfolk alike"
+        "travellers and townsfolk alike",
+        "gather round, road friends",
+        "pull up a log, everyone",
+        "sit a sec, the road can wait"
       ],
       "homebody": [
-        "come here everyone, just a minute"
+        "come here everyone, just a minute",
+        "everyone in close, by the fire",
+        "come sit a sec, before we go",
+        "come here, i want everyone home after this"
       ],
       "miner": [
-        "picks down for a minute"
+        "picks down for a minute",
+        "come up out of the tunnels, everyone",
+        "stop digging and listen",
+        "everyone topside, quick talk"
       ],
       "builder": [
-        "everyone off the scaffolding"
+        "everyone off the scaffolding",
+        "put the blocks down and come here",
+        "everyone come down off the walls",
+        "stop placing for a sec, listen"
       ],
       "hermit": [
         "...right. ears on me",
-        "i don't talk much. so pay attention"
+        "i don't talk much. so pay attention",
+        "...gather",
+        "few words. listen"
       ],
       "speedrunner": [
         "quick talk",
-        "30 seconds. that's all i need"
+        "30 seconds. that's all i need",
+        "listen fast",
+        "quick quick, gather up"
       ],
       "pvp_sweat": [
         "this'll be quick. like the fight",
-        "ok sweats, gather up"
+        "ok sweats, gather up",
+        "gather up, this is the pregame talk",
+        "listen up, scrubs and sweats alike"
       ],
       "helper": [
         "everyone come close, i want you all to hear this",
-        "gather round friends"
+        "gather round friends",
+        "everyone come in, i want to see all your faces",
+        "come here friends, all of you"
       ],
       "newbie": [
         "um hi everyone! can you listen pls",
-        "ok uh. everyone!!"
+        "ok uh. everyone!!",
+        "hi um, so, everyone listen ok",
+        "i've never done a speech before but here goes",
+        "ok i wrote this down somewhere, hold on"
       ],
       "casual": [
         "ok guys real quick",
         "lol ok everyone shush for a sec",
-        "alright gang"
+        "alright gang",
+        "yo everyone come here",
+        "ok gang huddle up lol"
       ]
     },
     "war.speech": {
@@ -7609,7 +7685,219 @@
         "arrows first, then swords",
         "they've got the walls, we've got the nerve",
         "think of your bed back home. that's what this is for",
-        "anyone with a bow, stay at the back"
+        "anyone with a bow, stay at the back",
+        "archers on the left, swords up the middle",
+        "shields up when they draw their bows",
+        "if they pour lava, back off and let it go",
+        "keep a water bucket on your hotbar for fire and falls",
+        "save splash potions for the big fights, not the first guy",
+        "drink fire res if they've got lava traps",
+        "we come at them from two sides. they can only watch one",
+        "half of us go round the back, the rest hold the front",
+        "if it gets dark, we use it. they can't see far",
+        "torch every wall we take so mobs don't spawn behind us",
+        "put torches down as we go, we'll need the way back",
+        "break their doors, don't bother with the walls",
+        "if they've got a gate, we pillar over it",
+        "bring blocks for their walls, we'll climb them",
+        "sprint into your first hit, it knocks them back",
+        "time your swings. spam clicking does nothing",
+        "axes break shields. if you've got one, use it",
+        "jump hits crit. use them",
+        "stay out of their doorways, that's where they'll wait",
+        "take the high ground when you can",
+        "don't fight in water, you can't swing right",
+        "if someone's on fire, splash them or push them in water",
+        "watch the edges. knockback near a cliff is a free death",
+        "bows on the hill, swords at the gate",
+        "if their archers have cover, rush them. don't trade arrows",
+        "block up a corner if you need to eat",
+        "eat between fights, never in the middle of one",
+        "keep your food bar full before the charge",
+        "a stack of cobble can save your life. bring one",
+        "if they've got a moat, bridge it. don't swim it",
+        "strength potions go to the front line",
+        "healing potions go to whoever's hurt worst",
+        "don't throw splash potions into a crowd of us",
+        "out of arrows? pick up theirs",
+        "we set fire to nothing. we want those houses standing",
+        "trampling their crops gets us nothing",
+        "we wait at the treeline till everyone's caught up",
+        "their bell rings when they see us. let it ring",
+        "keep your shield in your offhand, not in a chest",
+        "no fire arrows on their roofs. we're not monsters",
+        "i've never been prouder of this town",
+        "we didn't come this far to turn around",
+        "every block of {town} was worth fighting for",
+        "look around. these are the people who've got your back",
+        "i'd trust any of you with my last golden apple",
+        "we're stronger together than any wall they've got",
+        "they've got numbers. we've got each other",
+        "fear's fine. just don't let it pick your moves",
+        "you're braver than you think",
+        "we've survived creepers in the bedroom. we'll survive this",
+        "we lost good people to {enemy}. we haven't forgotten",
+        "some of us aren't here today because of them",
+        "this one's for the names on the wall back home",
+        "they trampled our fields once. never again",
+        "they laughed when we lost. they won't laugh today",
+        "i still think about the ones we buried",
+        "{enemy} has owed us for a long time",
+        "last time they came we weren't ready. now we are",
+        "we carry the ones who fell with us today",
+        "they never said sorry. not once",
+        "think of the kids back in {town}",
+        "the people back home are watching the road for us",
+        "our families sleep easier when this is done",
+        "every house in {town} has someone waiting",
+        "we fight out here so it never reaches our doors",
+        "someone back home kept your bed made. go back to it",
+        "loot goes in the town chest first, then we split it",
+        "first pick of the loot goes to whoever got hurt worst",
+        "take tools and food, leave their beds",
+        "don't fight over loot. there's enough for everyone",
+        "anything enchanted goes in the pile. we share it out",
+        "no looting till their leader's down",
+        "take the iron, leave the junk",
+        "nobody pockets diamonds. they go to the town",
+        "if they surrender, they live",
+        "no one hurts the ones who stay inside",
+        "leave their farmers alone, they never hurt us",
+        "we beat them. we don't wipe them out",
+        "if they put their swords down, so do we",
+        "the unarmed are off limits",
+        "we don't chase anyone who's running home",
+        "if anyone dies to a creeper on the way, i'm never letting it go",
+        "no one fall in a ravine this time pls",
+        "and yes, you can keep the pumpkin on your head",
+        "whoever brought the chicken, it stays behind",
+        "try not to die of fall damage before we even get there",
+        "if you hear hissing, it's not me",
+        "last time someone got lost following a cow. don't",
+        "no stopping to name the horses",
+        "we'll beat them so bad they move to a mushroom island",
+        "and someone wake up the one in the back",
+        "my hands are shaking too. that's normal",
+        "i didn't sleep much. none of us did",
+        "being scared means you care. that's good",
+        "if you need to throw up, do it now lol",
+        "i'm nervous. i'm going anyway",
+        "nobody's ever ready for this. we go anyway",
+        "the swamp's slow going, stay on the planks",
+        "there's a ravine on the way. go around it",
+        "skipped sleep? phantoms will come. look up",
+        "spiders climb their walls too. watch both sides",
+        "zombies join in after dark. keep the torches lit",
+        "skeletons on the hill shoot anyone. us or them",
+        "if an enderman shows up, don't look at it",
+        "the river's fast near their town. cross at the bridge",
+        "it's forest all the way there, stay in sight of each other",
+        "the desert's wide open, they'll see us coming. move quick",
+        "snow slows everyone down. pace yourselves",
+        "watch the cave openings along the path",
+        "if a witch shows up, rush it before it drinks",
+        "their iron golem hits like a truck. bait it, don't fight it",
+        "creepers love a crowd. spread out a little",
+        "when we're home, everyone sleeps in",
+        "after this, we rebuild what they broke",
+        "once it's done, we go fishing for a week",
+        "after, we light the bonfire and tell stories",
+        "when this is over i'm building a garden",
+        "we'll put today on a sign in the plaza",
+        "after this we finally finish the wall",
+        "once we're back, i owe every one of you a steak"
+      ],
+      "newbie": [
+        "i'm not great at this but i believe in us",
+        "i asked around and everyone says shields help",
+        "i made a lot of bread. take some",
+        "someone said jump hits crit. so jump i guess",
+        "i'm kinda new at leading, but i'm right here with you",
+        "if i mess up an order, just do the smart thing"
+      ],
+      "hermit": [
+        "few words. stay alive",
+        "they wronged us. that's enough",
+        "stay close. watch the dark",
+        "i fight. you fight. we go home",
+        "no talk once we're there"
+      ],
+      "helper": [
+        "if anyone's hurt, come find me. i've got potions",
+        "i packed extra bread for anyone who forgot",
+        "nobody gets left behind. i'll carry you if i have to",
+        "look after the person next to you",
+        "i've got spare armor in my bag, just ask",
+        "i'll stay near the back and patch people up"
+      ],
+      "pvp_sweat": [
+        "their best fighter is mid. i've checked",
+        "strafe, crit, back off. easy",
+        "i'll take their leader myself",
+        "they can't hit what they can't track",
+        "keep your combos clean and this is over quick",
+        "shield down means they're open. punish it",
+        "{enemy} has never fought a real sweat"
+      ],
+      "builder": [
+        "we built better walls than theirs in a week",
+        "their walls are just planks. axes will do",
+        "bring blocks. we'll build our way over",
+        "we put up a quick fort on the hill and fight from there",
+        "try not to wreck the good builds, we might want them",
+        "after this i'm making our gate twice as thick"
+      ],
+      "hoarder": [
+        "their storage room is mine to sort. don't touch it",
+        "every chest gets counted before anyone takes anything",
+        "their vault is behind the hall, i've seen it",
+        "bring empty shulkers. or at least empty pockets",
+        "loot goes in my chests first. for safekeeping"
+      ],
+      "bandit": [
+        "easy in, easy out, pockets full",
+        "their stuff is just sitting there. rude not to take it",
+        "we hit the storehouse while they're busy at the gate",
+        "if anyone asks, we were never here",
+        "the loot splits even. mostly",
+        "grab what shines and keep moving"
+      ],
+      "nomad": [
+        "i've walked past {enemy} before. their back side is weak",
+        "i know the road there. follow my markers",
+        "i've seen a dozen towns like theirs fall",
+        "travel light. the walk is long",
+        "the land's on our side, hills all the way"
+      ],
+      "homebody": [
+        "i want every single one of you back for dinner",
+        "we finish this and then we go straight home",
+        "no wandering, no side trips. in and home",
+        "our beds are waiting. let's not keep them long",
+        "i'd rather be home too. that's why we finish it fast"
+      ],
+      "miner": [
+        "if they hide underground, they're on my turf",
+        "bring a pick. walls are just stone",
+        "we can tunnel under their wall if we have to",
+        "their walls are cobble. cobble breaks",
+        "keep torches for the tunnels and the caves",
+        "i've dug through worse than their defenses"
+      ],
+      "speedrunner": [
+        "we're in and out in five minutes",
+        "no loot detours. hit, win, leave",
+        "sprint the whole road. eat on the way",
+        "pearls if you've got them. skip their walls",
+        "fastest route is through the gate. so we go through the gate"
+      ],
+      "casual": [
+        "ngl this is kinda hype",
+        "lowkey scared but whatever",
+        "we just gotta not be bad lol",
+        "they're gonna get absolutely clapped",
+        "vibes are good. gg already",
+        "if we lose we just respawn. jk pls don't die"
       ]
     },
     "war.speech_close": {
@@ -7645,38 +7933,97 @@
         "everyone with me? good",
         "lets do this!",
         "for every house in {town}!",
-        "forward!"
+        "forward!",
+        "move out, everyone!",
+        "alright, form up and follow me",
+        "enough talk. lets go",
+        "on me, {town}. lets go",
+        "that's all i've got. go",
+        "let's go get it done",
+        "alright, time to march",
+        "ok, everyone on the road. now",
+        "that's it. stay together and move",
+        "follow the road, follow me",
+        "go time, {town}",
+        "lets go make it right",
+        "to {enemy}, and back home after",
+        "come on everyone, let's march",
+        "ok, we march now",
+        "everyone fall in behind me",
+        "lets go end this",
+        "swords out, lets roll",
+        "line up behind me and let's go",
+        "onward to {enemy}",
+        "march out, {town}",
+        "let's go. watch your step",
+        "right then. let's go",
+        "off we go. stay close",
+        "alright, it's time. move",
+        "that's everything. let's go win",
+        "now we walk. together",
+        "on my lead. move out",
+        "keep up and keep quiet. let's go",
+        "lets go, and back by morning",
+        "ok. no more waiting. go",
+        "we march for {town}. let's go",
+        "stay sharp, let's move",
+        "gear up, we move now",
+        "ok team, let's head out",
+        "to the gates of {enemy}!",
+        "come on, {town}! with me!",
+        "let's go take it back",
+        "go. and come back to me, all of you",
+        "alright, i'm done talking. march",
+        "move it everyone, let's go",
+        "lets get this over with. move",
+        "to war, then. let's go",
+        "after me, everyone!",
+        "on we go"
       ],
       "hoarder": [
-        "lets go. bring back everything"
+        "lets go. bring back everything",
+        "march. and leave room in your pockets",
+        "go. and remember, it all comes back here"
       ],
       "nomad": [
-        "onward, all of you. o7"
+        "onward, all of you. o7",
+        "on the road again. follow me",
+        "let's walk. the road knows us"
       ],
       "homebody": [
-        "let's go, and be home by dark"
+        "let's go, and be home by dark",
+        "go, and come straight home after",
+        "let's be quick about it. home after"
       ],
       "miner": [
-        "lets go dig {enemy} out"
+        "lets go dig {enemy} out",
+        "picks up. move out",
+        "lets go. torches out"
       ],
       "builder": [
-        "let's go, and don't trample my flowers"
+        "let's go, and don't trample my flowers",
+        "march. and bring back blocks",
+        "lets go break some walls"
       ],
       "bandit": [
         "lets go get rich",
-        "march. the loot won't wait"
+        "march. the loot won't wait",
+        "move, before they hide the good stuff"
       ],
       "hermit": [
         "...that's all",
-        "...move"
+        "...move",
+        "...go"
       ],
       "speedrunner": [
         "done. move",
-        "go. no stops"
+        "go. no stops",
+        "timer's on. go"
       ],
       "helper": [
         "stay safe everyone. let's go",
-        "look after each other. now move"
+        "look after each other. now move",
+        "go, and come back safe"
       ],
       "pvp_sweat": [
         "now go sweat on them",
@@ -7685,11 +8032,13 @@
       ],
       "newbie": [
         "ok lets gooo!! follow me!!",
-        "that's all i had! go go!"
+        "that's all i had! go go!",
+        "um. charge!!"
       ],
       "casual": [
         "ok that's it lol",
-        "alright gang, lets roll"
+        "alright gang, lets roll",
+        "aight lets go"
       ]
     },
     "house.blown_up": {
@@ -7776,6 +8125,250 @@
       "casual": [
         "lol great. my house is a crater",
         "bro my house just exploded"
+      ]
+    },
+    "war.speech_ask": {
+      "any": [
+        "we're not losing anyone today. got it?",
+        "who's with me?",
+        "are we ready?",
+        "you with me, {town}?",
+        "can i count on every one of you?",
+        "we stick together. understood?",
+        "everyone clear on the plan?",
+        "nobody goes off alone. got it?",
+        "are you ready to fight for {town}?",
+        "who's ready to take it back?",
+        "shields up when i say. clear?",
+        "we bring everyone home. agreed?",
+        "are you with me?",
+        "do we fight for {town}?",
+        "is everyone ready?",
+        "arrows first, swords after. got it?",
+        "we hit hard and come home. yeah?",
+        "you all know what to do?",
+        "does everyone have food?",
+        "armor on, everyone?",
+        "swords sharp?",
+        "can you do this?",
+        "will you follow me?",
+        "will you stand with me today?",
+        "who's taking it back with me?",
+        "are we doing this?",
+        "ready to make them pay?",
+        "no one fights alone. understood?",
+        "if i fall, you keep going. promise?",
+        "we spare anyone who drops their sword. clear?",
+        "loot after the fight, not before. got it?",
+        "stay off their farms. got that?",
+        "everyone got a buddy?",
+        "you all hear me?",
+        "scared? good. ready too?",
+        "can {town} count on you?",
+        "who's gonna show {enemy} how it's done?",
+        "we stay on the road till i call it. ok?",
+        "when i say charge, you charge. clear?",
+        "everybody good?",
+        "is everyone with me on this?",
+        "are we going home winners?",
+        "fall back if you get low. promise me?",
+        "can we do this, {town}?",
+        "you've got my back, right?",
+        "i've got yours. you got mine?",
+        "together, yeah?",
+        "one town, one fight. yeah?",
+        "are we ready to end this?",
+        "do you trust me?",
+        "we finish what they started. agreed?",
+        "still with me?",
+        "is that clear to everyone?",
+        "no heroics today. got it?",
+        "will you fight for the ones back home?",
+        "you ready to bring it home?",
+        "we do this right. yeah?"
+      ],
+      "newbie": [
+        "is that ok with everyone?",
+        "does that make sense?",
+        "you guys ready? i think i'm ready?",
+        "we can do this, right?"
+      ],
+      "hermit": [
+        "ready?",
+        "understood?",
+        "clear?"
+      ],
+      "helper": [
+        "everyone promise to look after each other?",
+        "you'll come find me if you're hurt, ok?",
+        "nobody's too proud to fall back, right?"
+      ],
+      "pvp_sweat": [
+        "who's ready to sweat?",
+        "who's getting the first kill?",
+        "you ready to clap them?",
+        "we're winning this, yeah?"
+      ],
+      "builder": [
+        "everyone got a stack of blocks?",
+        "we build over their wall. got it?",
+        "nobody breaks the nice builds. clear?"
+      ],
+      "hoarder": [
+        "everything goes in the town chest. understood?",
+        "nobody keeps the diamonds. got it?",
+        "everyone brought empty pockets?"
+      ],
+      "bandit": [
+        "who wants to get rich?",
+        "everyone ready for payday?",
+        "in and out with the goods. got it?"
+      ],
+      "nomad": [
+        "ready for the road?",
+        "stay on my markers. clear?",
+        "boots on, everyone?"
+      ],
+      "homebody": [
+        "everyone's coming home tonight. promise?",
+        "back by dark. got it?",
+        "you'll all be careful, right?"
+      ],
+      "miner": [
+        "everyone got a pick?",
+        "torches in the hotbar?",
+        "if they dig in, we dig them out. yeah?"
+      ],
+      "speedrunner": [
+        "five minutes. can you keep up?",
+        "no stops. clear?",
+        "everyone sprinting?"
+      ],
+      "casual": [
+        "we vibing?",
+        "yall ready or what?",
+        "we got this right?"
+      ]
+    },
+    "war.speech_cry": {
+      "any": [
+        "for {town}!",
+        "they'll pay!",
+        "no one left behind!",
+        "today we take it back!",
+        "{town} stands!",
+        "for the fallen!",
+        "for our homes!",
+        "together!",
+        "never again!",
+        "remember the raid!",
+        "down with {enemy}!",
+        "{town} forever!",
+        "for everyone back home!",
+        "break their walls!",
+        "we don't back down!",
+        "stand together!",
+        "one town, one fight!",
+        "this ends today!",
+        "shields up, heads up!",
+        "for the ones we lost!",
+        "no retreat!",
+        "we take what's ours!",
+        "{enemy} falls today!",
+        "for family!",
+        "for every house in {town}!",
+        "swords up!",
+        "show no fear!",
+        "they won't forget us!",
+        "we are {town}!",
+        "strike hard, come home!",
+        "this is our day!",
+        "remember who we are!",
+        "they started it, we finish it!",
+        "stand with me!",
+        "hold the line!",
+        "all for {town}!",
+        "take it back!",
+        "no fear!",
+        "for the plaza!",
+        "for the fields!",
+        "they had their chance!",
+        "we come home together!",
+        "nobody touches {town}!",
+        "pay them back!",
+        "we never forget!",
+        "push forward!",
+        "glory to {town}!",
+        "{town} remembers!",
+        "let them hear us!",
+        "payback time!",
+        "for the bell!",
+        "break them!",
+        "we fight as one!",
+        "today we win!",
+        "long live {town}!",
+        "they took, we take back!"
+      ],
+      "newbie": [
+        "for {town} i guess!",
+        "yeah! fight!",
+        "we got this!!"
+      ],
+      "hermit": [
+        "home!",
+        "fight!",
+        "now!"
+      ],
+      "helper": [
+        "everyone comes home!",
+        "protect each other!",
+        "together, always!"
+      ],
+      "pvp_sweat": [
+        "gg ez!",
+        "clap them!",
+        "no one outplays {town}!",
+        "first blood is ours!"
+      ],
+      "builder": [
+        "for the walls we built!",
+        "{town} was built to last!",
+        "break theirs, keep ours!"
+      ],
+      "hoarder": [
+        "every chest is ours!",
+        "loot it all!",
+        "for the vault!"
+      ],
+      "bandit": [
+        "payday!",
+        "grab the goods!",
+        "fortune favors us!"
+      ],
+      "nomad": [
+        "for the open road!",
+        "onward!",
+        "no road too long!"
+      ],
+      "homebody": [
+        "home by dark!",
+        "for our hearths!",
+        "for the ones waiting at home!"
+      ],
+      "miner": [
+        "dig them out!",
+        "pickaxes up!",
+        "stone breaks, we don't!"
+      ],
+      "speedrunner": [
+        "no stops!",
+        "go go go!",
+        "fast and done!"
+      ],
+      "casual": [
+        "lets gooo!",
+        "send it!",
+        "W for {town}!"
       ]
     }
   }

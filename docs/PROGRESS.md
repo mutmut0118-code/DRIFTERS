@@ -7371,3 +7371,20 @@ come out in the middle of other lines.
 Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with nothing between; idle chatter doesn't
 run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
 "hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).
+
+## Next build (not built yet)
+
+- **The crowd answers the war speech** (`WarCrowd`; the user, 2026-11-16: "replies during the war rally? ex: we're not
+  losing anyone, got it? and twelve people say got it!/yea!/right!!", then "every idea sounds great, we gonna make it
+  dynamic"). Not every line: a question gets 2-4 answers ("got it!", "yeah!!"), a battle cry is cheered and echoed, a
+  heartfelt line now and then a murmur ("we remember"), the closing line a roar from half the raiders (at most 8). Once a
+  speech maybe a nervous one ("what if they hit us back home") steadied by a neighbour or the leader, or a joker ("W chat")
+  shushed. Staggered as typed; the same one seldom twice running. Each answers in its own voice. 352 lines in
+  `drifter/drifter_chat/war_crowd.json`.
+- **The war speech itself, bigger and mixed**: between its first and last line the leader now says plain lines mostly,
+  and up to 3 questions (`war.speech_ask`, never two running) and 3 cries (`war.speech_cry`). war.speech_open 50 -> 126
+  lines, war.speech 74 -> 262, war.speech_close 52 -> 113, war.speech_ask 95 (new), war.speech_cry 93 (new); every
+  personality its own.
+
+Headless: tools/smoke-war-speech.txt (two towns, war: the speech with cheers, a nervous one steadied, a joker, a roar of
+four at the end).
