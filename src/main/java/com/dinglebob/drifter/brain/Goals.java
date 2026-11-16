@@ -854,22 +854,72 @@ public final class Goals {
 		@Override
 		public String name(Context context) {
 			var banner = wanted(context.drifter());
-			return banner == null ? "put up its town's banner" : carrying(context.drifter(), banner) ? "put up " + banner.what() : "make " + banner.what();
+			if (banner == null) {
+				return "put up its town's banner";
+			}
+
+			Need need = need(context.drifter(), banner);
+			return need == null ? "put up " + banner.what() : need.loom() ? "weave " + banner.what() + " at a loom" : "make " + banner.what();
 		}
 
-		private static boolean carrying(DrifterEntity drifter, com.dinglebob.drifter.api.TownWork.Banner banner) {
-			return drifter.getInventory().count(stack -> stack.is(banner.item())) > 0;
+		/**
+		 * What it still needs for its banner (the user, 2026-11-15: nations' banners with a real design): null once it carries
+		 * it finished; else the plain banner, then a dye at a time for the patterns left, then a loom if it knows none near and
+		 * carries none, then to the loom ({@code loom}: everything's there).
+		 */
+		record Need(@Nullable Item item, int count, boolean loom) {
+		}
+
+		@Nullable
+		static Need need(DrifterEntity drifter, com.dinglebob.drifter.api.TownWork.Banner banner) {
+			if (com.dinglebob.drifter.brain.activity.LoomActivity.finished(drifter, banner)) {
+				return null;
+			}
+
+			// The banner furthest along toward this one it carries.
+			var inventory = drifter.getInventory();
+			int most = -1;
+			for (int slot = 0; slot < com.dinglebob.drifter.entity.DrifterInventory.MAIN_SIZE; slot++) {
+				most = Math.max(most, com.dinglebob.drifter.executor.task.LoomTask.done(banner, inventory.getItem(slot)));
+			}
+
+			if (most < 0) {
+				return new Need(banner.item(), 1, false);
+			}
+
+			// The dyes for the patterns still to go on, a colour at a time.
+			java.util.Map<net.minecraft.world.item.DyeColor, Integer> dyes = new java.util.LinkedHashMap<>();
+			for (int i = most; i < banner.layers().size(); i++) {
+				dyes.merge(banner.layers().get(i).colour(), 1, Integer::sum);
+			}
+
+			for (var dye : dyes.entrySet()) {
+				Item item = net.minecraft.world.item.DyeItem.byColor(dye.getKey());
+				if (inventory.count(stack -> stack.is(item)) < dye.getValue()) {
+					return new Need(item, dye.getValue(), false);
+				}
+			}
+
+			if (com.dinglebob.drifter.brain.Stations.usable(drifter, net.minecraft.world.level.block.Blocks.LOOM) == null
+				&& inventory.count(stack -> stack.is(Items.LOOM)) == 0) {
+				return new Need(Items.LOOM, 1, false);
+			}
+
+			return new Need(null, 0, true);
 		}
 
 		@Override
 		protected List<Item> items(Context context) {
 			var banner = wanted(context.drifter());
-			return banner == null ? List.of() : List.of(banner.item());
+			Need need = banner == null ? null : need(context.drifter(), banner);
+			return need == null || need.item() == null ? List.of() : List.of(need.item());
 		}
 
 		@Override
 		protected int count(Context context) {
-			return 1;
+			var banner = wanted(context.drifter());
+			Need need = banner == null ? null : need(context.drifter(), banner);
+			return need == null ? 0 : need.count();
 		}
 
 		@Override
@@ -880,22 +930,34 @@ public final class Goals {
 				return 0.0;
 			}
 
-			// (A one-off for its town: before the day's chores.)
-			return 0.6;
+			// (A one-off for its town: before the day's chores, and before going off mining with a friend.)
+			return 0.9;
 		}
 
 		@Override
 		public double feasibility(Context context) {
 			var banner = wanted(context.drifter());
-			return banner != null && carrying(context.drifter(), banner) ? 1.0 : super.feasibility(context);
+			if (banner == null) {
+				return 0.0;
+			}
+
+			Need need = need(context.drifter(), banner);
+			return need == null || need.loom() ? 1.0 : super.feasibility(context);
 		}
 
 		@Nullable
 		@Override
 		public Activity start(Context context) {
 			var banner = wanted(context.drifter());
-			if (banner != null && carrying(context.drifter(), banner)) {
-				return new com.dinglebob.drifter.brain.activity.PlaceBannerActivity(context.drifter(), banner);
+			if (banner != null) {
+				Need need = need(context.drifter(), banner);
+				if (need == null) {
+					return new com.dinglebob.drifter.brain.activity.PlaceBannerActivity(context.drifter(), banner);
+				}
+
+				if (need.loom()) {
+					return new com.dinglebob.drifter.brain.activity.LoomActivity(context.drifter(), banner);
+				}
 			}
 
 			return super.start(context);

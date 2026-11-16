@@ -78,7 +78,9 @@ public final class BlockNotes {
 
 		if (state.is(Blocks.CRAFTING_TABLE) || state.is(Blocks.FURNACE) || state.is(Blocks.BLAST_FURNACE) || state.is(Blocks.SMOKER)
 			|| state.is(BlockTags.BEDS) || state.is(Blocks.ENCHANTING_TABLE) || state.is(BlockTags.ANVIL) || state.is(Blocks.BREWING_STAND)
-			|| state.is(Blocks.SMITHING_TABLE)) {
+			|| state.is(Blocks.SMITHING_TABLE)
+			// (A loom: where it weaves a banner's patterns; the user, 2026-11-15, nations' banners with a design.)
+			|| state.is(Blocks.LOOM)) {
 			return new Note(MemoryKind.STATION, id, 0.7F);
 		}
 

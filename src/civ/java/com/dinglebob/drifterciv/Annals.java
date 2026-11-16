@@ -748,6 +748,13 @@ final class Annals {
 
 	/** A power's picture: its banner's colour ("b" and the dye's id), or a free town's leader's head ("s" and the skin), or "-". */
 	static String picture(UUID power) {
+		// (A nation's banner as it is: its colour and its design.)
+		for (Nations.Nation nation : Nations.all()) {
+			if (nation.id.equals(power)) {
+				return "b" + nation.colour.getId() + BannerDesigns.words(nation.design);
+			}
+		}
+
 		Integer colour = WorldPlan.powerColour(power);
 		if (colour != null) {
 			return "b" + colour;
@@ -761,7 +768,18 @@ final class Annals {
 	/** A power's picture as its story has it. */
 	private static String picture(Event e, UUID power) {
 		Integer colour = e.colours.get(power);
-		return colour != null ? "b" + colour : picture(power);
+		if (colour == null) {
+			return picture(power);
+		}
+
+		// (Its banner as the story had its colour, with its design on: plain, the war pages' banners didn't look like its own.)
+		for (Nations.Nation nation : Nations.all()) {
+			if (nation.id.equals(power) && nation.colour.getId() == colour) {
+				return "b" + colour + BannerDesigns.words(nation.design);
+			}
+		}
+
+		return "b" + colour;
 	}
 
 	private static Journal.El banners(Event e, Set<UUID> known) {

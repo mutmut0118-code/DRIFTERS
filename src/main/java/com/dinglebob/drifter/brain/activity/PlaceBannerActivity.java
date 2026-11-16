@@ -97,8 +97,9 @@ public class PlaceBannerActivity extends Activity {
 				return this.begin(new NavigateTask(this.drifter, Vec3.atBottomCenterOf(stand != null ? stand : this.spot), 2.0, "walk over to where the banner goes"));
 			}
 
-			net.minecraft.world.item.Item item = this.town.item();
-			return this.begin(new PlaceBlockTask(this.drifter, this.spot, stack -> stack.is(item), this.town.what()));
+			// (The banner as the town wants it: its colour and its patterns.)
+			var wanted = this.town;
+			return this.begin(new PlaceBlockTask(this.drifter, this.spot, wanted::is, this.town.what()));
 		}
 
 		Home home = this.drifter.getDrifterBrain().home();

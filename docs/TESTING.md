@@ -4018,7 +4018,8 @@ In a **new world**.
 - [ ] **The town stays busy**: in a new town, only about a fifth of its people are down the mine at a time; the rest
       are about the town (fields, stall, plaza, chatting, building).
 - [ ] **No pits by mossy boulders** (taiga): a road through one cuts through it.
-- [ ] **Roads stay as they are**: Drifters don't turn the mud roads (or grass near their homes) into dirt path any more.
+- [ ] **Roads stay as they are**: Drifters don't turn the mud roads, town streets or the grass beside them into dirt path any
+      more (0.23.74; paths made before stay).
 - [ ] **Town names**: walk into a town and its name fades in at the top of the screen, stays a moment and fades out. It
       doesn't show again until you've left the town and come back. F1 hides it.
 
@@ -4200,4 +4201,27 @@ In a **new world**.
       (Lower Snowmarsh, Highmoor Cross); never a doubled piece like "Hollowhollow".
 - [ ] **Nations have a country's name of their own** (the Kingdom of Valdoria, the Caelmarch Dominion, Eldoth), not their
       capital's. Their capital is a town with its own name.
+
+## 0.23.71: nation banners with a design (new)
+
+In a **new world** (old worlds: nations get a design now; banners already up stay plain until one's made anew).
+
+- [ ] **Every nation's banner has its own design**: its colour plus two or three patterns (stripes, halves, crosses,
+      diamonds, borders...) in other colours. No two nations alike.
+- [ ] **Towns made with the world** have the banner standing on the plaza, facing it.
+- [ ] **A Drifter makes a new one**: break a town's banner (`/drifterciv nations` shows which towns have theirs up).
+      Its leader makes a plain banner of the colour, gets the dyes, finds or sets up a loom near home, weaves the patterns
+      on and stands it back on the plaza. (It can take a while: wool, flowers, string for a loom, and they finish what
+      they're doing first, a mining trip can be 15 minutes.)
+- [ ] **The journal** shows nations' banners with their designs, also on history pages (wars, peace, alliances).
+
+## 0.23.72: banner colours by colour theory (new)
+
+In a **new world** (nations that already have a design keep it).
+
+- [ ] **Every nation's banner reads clearly**: a light pattern on a dark banner or a dark one on a light banner, never
+      grey on grey or blue on purple; its colours go together. Fierce-sounding nations (Dominion, Crown, Realm) lean to
+      reds and blacks, peaceful ones (League, Union, Republic) to blues, whites and greens.
+- [ ] Some banners use **black or green**; their Drifters get those dyes from squid ink or cactus.
+- Debug: `/drifterciv plan bannersamples` stands rows of sample banners where you are, to look at.
 

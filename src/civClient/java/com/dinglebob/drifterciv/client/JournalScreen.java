@@ -250,8 +250,26 @@ final class JournalScreen extends Screen {
 	private boolean picture(GuiGraphics graphics, String picture, int x, int y, int size) {
 		if (picture.startsWith("b")) {
 			try {
+				// "b<colour>" or "b<colour>|<pattern>.<colour>|...": the banner with its design on.
+				String[] parts = picture.substring(1).split("[|]");
 				var item = new net.minecraft.world.item.ItemStack(net.minecraft.world.level.block.BannerBlock.byColor(net.minecraft.world.item.DyeColor.byId(
-					Integer.parseInt(picture.substring(1)))));
+					Integer.parseInt(parts[0]))));
+				var level = net.minecraft.client.Minecraft.getInstance().level;
+				if (parts.length > 1 && level != null) {
+					var patterns = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.BANNER_PATTERN);
+					var builder = new net.minecraft.world.level.block.entity.BannerPatternLayers.Builder();
+					for (int i = 1; i < parts.length; i++) {
+						int dot = parts[i].lastIndexOf('.');
+						var id = dot > 0 ? ResourceLocation.tryParse(parts[i].substring(0, dot)) : null;
+						if (id != null) {
+							var colour = net.minecraft.world.item.DyeColor.byId(Integer.parseInt(parts[i].substring(dot + 1)));
+							patterns.get(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.BANNER_PATTERN, id))
+								.ifPresent(holder -> builder.add(holder, colour));
+						}
+					}
+
+					item.set(net.minecraft.core.component.DataComponents.BANNER_PATTERNS, builder.build());
+				}
 				graphics.pose().pushPose();
 				graphics.pose().translate(x, y, 0);
 				graphics.pose().scale(size / 16.0F, size / 16.0F, 1.0F);

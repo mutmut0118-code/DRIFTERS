@@ -73,6 +73,8 @@ final class Nations {
 		/** Where each of its towns stood its banner (and where it's to go). */
 		final Map<UUID, BlockPos> banners = new LinkedHashMap<>();
 		final Map<UUID, BlockPos> bannerSpots = new LinkedHashMap<>();
+		/** Its banner's design: the patterns on its colour, bottom first ({@link BannerDesigns}). */
+		java.util.List<TownWork.Layer> design = new java.util.ArrayList<>();
 		/** The latest about it, for its people's talk: "formed", "joined", "submitted", "rebelled", "free", "kept", "banner"; the
 		 * town it was about, and the day. */
 		String news = "";
@@ -89,6 +91,13 @@ final class Nations {
 
 		Item banner() {
 			return BannerBlock.byColor(this.colour).asItem();
+		}
+
+		/** Its design given it now if it has none (a new nation, or one from before designs), its own among the others. */
+		void designed() {
+			if (this.design.isEmpty()) {
+				this.design = BannerDesigns.design(this.id, this.colour, this.name, nations.values().stream().filter(n -> n != this).map(n -> n.design).toList());
+			}
 		}
 
 		boolean has(UUID town) {
@@ -299,6 +308,7 @@ final class Nations {
 		if (nation == null) {
 			DrifterEntity ruler = head.leader == null ? null : TownFounding.loaded(server, head.leader);
 			nation = new Nation(UUID.randomUUID(), name(server, head, ruler, conquered), head.id, colour(server), day);
+			nation.designed();
 			nations.put(nation.id, nation);
 			nation.news = "formed";
 			Chronicle.add(server, "nation", head.name + " and " + town.name + " joined together as " + nation.name + ", with " + head.name + " its capital ("
@@ -356,6 +366,7 @@ final class Nations {
 		}
 
 		nation.news = "formed";
+		nation.designed();
 		nations.put(nation.id, nation);
 	}
 
@@ -365,6 +376,8 @@ final class Nations {
 		if (nation == null) {
 			return;
 		}
+
+		raise(server, nation, town);
 
 		for (UUID one : nation.towns()) {
 			Town other = Diplomacy.byId(one.toString());
@@ -770,7 +783,41 @@ final class Nations {
 			nation.bannerSpots.put(town.id, spot);
 		}
 
-		return new TownWork.Banner(nation.banner(), spot, "the banner of " + nation.name);
+		return new TownWork.Banner(nation.banner(), nation.design, spot, "the banner of " + nation.name);
+	}
+
+	/**
+	 * A town made with the world: its nation's banner stood on its plaza with it, as its houses come built (the user, 2026-11-15:
+	 * towns made with the world start with theirs up). Those that join a nation later, or lose theirs, have their people make
+	 * one at a loom.
+	 */
+	static void raise(MinecraftServer server, Nation nation, Town town) {
+		net.minecraft.server.level.ServerLevel level = server.getLevel(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
+			net.minecraft.resources.ResourceLocation.parse(town.dimension)));
+		// (Only a town in the nation now: its plan's nation may have lost it in its history.)
+		if (level == null || !nation.has(town.id) || nation.banners.containsKey(town.id) || !level.isLoaded(town.center)) {
+			return;
+		}
+
+		BlockPos spot = spotFor(level, town);
+		if (spot == null) {
+			return;
+		}
+
+		nation.designed();
+		net.minecraft.world.item.ItemStack stack = BannerDesigns.stack(server.registryAccess(), nation.colour, nation.design);
+		// (Its face to the plaza's middle: as a player stood there facing out would put it.)
+		float yaw = (float)Math.toDegrees(Math.atan2(town.center.getZ() - spot.getZ(), town.center.getX() - spot.getX())) - 90.0F;
+		level.setBlock(spot, BannerBlock.byColor(nation.colour).defaultBlockState().setValue(net.minecraft.world.level.block.BannerBlock.ROTATION,
+			net.minecraft.world.level.block.state.properties.RotationSegment.convertToSegment(yaw + 180.0F)), 3);
+		if (level.getBlockEntity(spot) instanceof net.minecraft.world.level.block.entity.BannerBlockEntity entity) {
+			entity.applyComponentsFromItemStack(stack);
+			entity.setChanged();
+		}
+
+		nation.banners.put(town.id, spot.immutable());
+		nation.bannerSpots.put(town.id, spot.immutable());
+		DrifterCivilizations.LOGGER.info("[nation] the banner of {} up in {} at {} ({})", nation.name, town.name, spot.toShortString(), BannerDesigns.words(nation.design));
 	}
 
 	/** Who makes its banner: its leader, unless it keeps the stall (then the first of its people who doesn't, not a crook). */
@@ -954,6 +1001,7 @@ final class Nations {
 			CompoundTag banners = new CompoundTag();
 			nation.banners.forEach((town, pos) -> banners.putLong(town.toString(), pos.asLong()));
 			one.put("Banners", banners);
+			one.put("Design", BannerDesigns.save(nation.design));
 			list.add(one);
 		}
 
@@ -989,7 +1037,11 @@ final class Nations {
 				}
 			}
 
+			nation.design = BannerDesigns.load(one.getList("Design", Tag.TAG_COMPOUND));
 			nations.put(nation.id, nation);
 		}
+
+		// (Nations from before designs: one each now, kept from here on.)
+		nations.values().forEach(Nation::designed);
 	}
 }
