@@ -145,7 +145,8 @@ public final class PlayerChats {
 			// (Nor one it's at odds with, whatever it's doing about them: found in testing, "hi stranger" to the player who had
 			// just killed its friend, while it was still looking them over; and by the user, a Bandit introducing itself
 			// mid-hunt.)
-			if (Mode.atOdds(drifter, player) || PlayerConvo.quieted(drifter, player)
+			// (Nor one that would be cold with them: it doesn't come over all smiles, then turn. Found in play.)
+			if (Mode.atOdds(drifter, player) || PlayerConvo.quieted(drifter, player) || PlayerConvo.coldWhy(drifter, player, now) != null
 				|| now - lastDrifter.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) < gap(drifter)
 				|| now - lastPair.getOrDefault(drifter.getUUID() + ":" + player.getUUID(), Long.MIN_VALUE / 2) < DrifterConfig.chattyGap(PER_PAIR)) {
 				continue;

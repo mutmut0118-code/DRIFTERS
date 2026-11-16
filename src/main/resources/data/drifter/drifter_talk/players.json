@@ -46,7 +46,7 @@
           "chance": 0.5,
           "lines": [
             "im {a} btw",
-            "{a}, nice to meet you",
+            "im {a}, nice to meet you",
             "name's {a}"
           ]
         }

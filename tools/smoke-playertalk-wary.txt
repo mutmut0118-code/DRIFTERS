@@ -1,0 +1,33 @@
+# Found in play (0.23.70-side.1): Sabrina (wary of strangers) came over with "hi stranger", "sabrina, nice to meet you",
+# then was cold: "im muto" "noted", "how r u" "fine. why", "just asking :)" "find someone else", "damn okay" "yes".
+# What the lines mean; a talk in a temper ("damn okay": "mhm"); then in a good mood ("damn okay": "haha sorry, long day").
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+kill @e[type=drifter:drifter]
+wait 1
+drifter spawn Sabrina
+wait 2
+drifter lines meaning just asking :)
+drifter lines meaning damn okay
+drifter lines meaning wow ok
+drifter lines meaning ok then
+drifter lines meaning sorry for asking
+drifter lines meaning ok
+drifter lines meaning damn
+drifter lines meaning wow
+drifter mood angry
+drifter hear sabrina hi
+wait 3
+drifter hear how r u
+wait 3
+drifter hear damn okay
+wait 40
+drifter mood happy
+drifter hear sabrina hi
+wait 3
+drifter hear how r u
+wait 3
+drifter hear damn okay
+wait 4

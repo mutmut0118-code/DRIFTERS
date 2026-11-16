@@ -110,6 +110,9 @@ public final class DrifterCommands {
 				player = net.fabricmc.fabric.api.entity.FakePlayer.get((net.minecraft.server.level.ServerLevel)drifter.level());
 				net.minecraft.world.phys.Vec3 by = drifter.position().add(drifter.getViewVector(1.0F).multiply(2.0, 0.0, 2.0));
 				player.moveTo(by.x, drifter.getY(), by.z, drifter.getYRot() + 180.0F, 0.0F);
+				// (From the console it's to the nearest one, as if they'd turned to it: with others close by, unnamed, it was
+				// taken as to nobody.)
+				com.dinglebob.drifter.social.talk.PlayerTalk.focusOn(player, drifter, drifter.level().getGameTime());
 			}
 
 			boolean answered = com.dinglebob.drifter.social.talk.PlayerTalk.heard(player, text);

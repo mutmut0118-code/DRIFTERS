@@ -1,0 +1,20 @@
+# A town's story (2026-11-15: "a 3+ part conversation where a drifter can yap"): a town made ready (founded 20-60 days
+# back, with a past), one of its people asked "tell me about this town" tells it in 3+ lines: founded, its past, now, how
+# it feels. Then asked again and interrupted ("ok cool") after the first line: it stops.
+until Done_( 900
+wait 5
+drifter thoughts log false
+time set 1000
+gamerule doMobSpawning false
+difficulty peaceful
+forceload add ~-96 ~-96 ~96 ~96
+kill @e[type=drifter:drifter]
+wait 2
+execute positioned over motion_blocking_no_leaves run drifterciv town spawn 6 Storyford
+wait 40
+drifter hear palm451 hey can you tell me about this town?
+wait 25
+drifter hear palm451 whats the history of this place
+wait 3
+drifter hear palm451 ok cool
+wait 15

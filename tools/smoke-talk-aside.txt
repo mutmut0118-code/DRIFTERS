@@ -1,0 +1,16 @@
+# Something said aside in a Drifter talk (found in play: "wait muto took a horse?? can you do that??" then its own next
+# debate line, "hmm, no", read as the answer): the talk waits, then it picks it up ("anyway"). Here: two talk, one is spoken
+# to by a player in the middle.
+until Done_( 900
+wait 3
+time set 6000
+forceload add ~-32 ~-32 ~32 ~32
+kill @e[type=drifter:drifter]
+wait 1
+drifter spawn Bob
+execute positioned ~3 ~ ~ run drifter spawn Ann
+wait 2
+drifter talk
+wait 8
+drifter hear bob whats up
+wait 20

@@ -205,6 +205,44 @@ public final class Lines {
 
 	/** A line for this, in its voice, words filled in ({@code vars}: name, value, name, value...); null if there are none. */
 	@Nullable
+	/** Things said as many of, not with an "s" ("16 bone meal", "a stack of gunpowder"; found in play: "16 bone meals"). */
+	private static final Set<String> MASS = Set.of("meal", "bread", "wool", "leather", "glass", "paper", "string", "coal", "wheat", "iron", "gold",
+		"sugar", "flint", "dirt", "sand", "gravel", "stone", "cobblestone", "redstone", "quartz", "lazuli", "lapis", "clay", "kelp", "bamboo", "cane",
+		"netherrack", "obsidian", "fish", "pufferfish", "salmon", "cod", "beef", "pork", "porkchop", "mutton", "chicken", "rabbit", "honey", "milk",
+		"wood", "moss", "snow", "ice", "terracotta", "concrete", "deepslate", "andesite", "diorite", "granite", "tuff", "calcite", "soil", "rice",
+		"cabbage", "netherite", "steak", "stew", "soup", "slime", "silk", "ink", "dough", "pasta", "food", "gear", "armor");
+
+	/** An item's name said as many ("bone meal", "torches", "potatoes", "bookshelves", "iron ingots"). */
+	public static String plural(String name) {
+		String last = name.substring(name.lastIndexOf(' ') + 1);
+		if (name.isEmpty() || name.endsWith("s") || MASS.contains(last) || last.endsWith("powder") || last.endsWith("dust") || name.startsWith("cooked ")
+			|| name.startsWith("raw ")) {
+			return name;
+		}
+
+		if (last.endsWith("ch") || last.endsWith("sh") || last.endsWith("x") || last.equals("potato") || last.equals("tomato")) {
+			return name + "es";
+		}
+
+		if (last.endsWith("y") && last.length() > 1 && "aeiou".indexOf(last.charAt(last.length() - 2)) < 0) {
+			return name.substring(0, name.length() - 1) + "ies";
+		}
+
+		if (last.endsWith("fe")) {
+			return name.substring(0, name.length() - 2) + "ves";
+		}
+
+		if (last.equals("foot")) {
+			return name.substring(0, name.length() - 4) + "feet";
+		}
+
+		if (last.endsWith("lf")) {
+			return name.substring(0, name.length() - 1) + "ves";
+		}
+
+		return name + "s";
+	}
+
 	public static String pick(DrifterEntity drifter, String key, Object... vars) {
 		return pickFrom(drifter, lines.get(key), vars);
 	}

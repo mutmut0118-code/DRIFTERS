@@ -4416,14 +4416,14 @@
   "convo.gear.none": {
    "any": [
     "what {what} lol",
-    "i dont have a {what}?",
-    "uh, im not wearing a {what}",
+    "i dont have {a_what}?",
+    "uh, im not wearing {a_what}",
     "{what}? where",
     "you good? no {what} here",
     "no {what} on me",
     "pretty sure i have no {what}",
     "{what}?? you seeing things",
-    "i wish i had {what}",
+    "i wish i had {a_what}",
     "thats funny, i have no {what}",
     "what are you looking at, theres no {what}",
     "{what}? nope, not me",
@@ -4437,9 +4437,9 @@
     "no {what}."
    ],
    "newbie": [
-    "i dont have a {what}?? do i",
-    "wait i have {what}?? where",
-    "huh?? i dont think i have {what}"
+    "i dont have {a_what}?? do i",
+    "wait i have {a_what}?? where",
+    "huh?? i dont think i have {a_what}"
    ],
    "pvp_sweat": [
     "what {what} bro",
@@ -4460,10 +4460,10 @@
    ],
    "hoarder": [
      "no {what}. yet",
-     "i'd know if i had {what}"
+     "i'd know if i had {a_what}"
    ],
    "helper": [
-     "oh i dont have {what}, sorry!",
+     "oh i dont have {a_what}, sorry!",
      "no {what} on me! did you mean someone else?"
    ]
   },

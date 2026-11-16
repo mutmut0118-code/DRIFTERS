@@ -1,0 +1,1606 @@
+{
+  "_comment": "A crime played out in chat (CrimeScene; the user, 2026-11-16: 'a 2 to 4 part chat ... somebody stop them! / are you seeing this?? / get him!! / he got away :( / anyway', 'expand this to the rest of the crimes ... variations for lines for different personalities / gta style'). crime.chime: others joining in (any crime); crime.chime.<kind>: that crime; crime.got_away.<kind>: half a minute on, gone and not paid. {player}: who did it; {who}: who was killed or hit. Kinds: theft, horse, farms, livestock, peace, blood, murder, massacre, wanted, crook (a Drifter's theft), fight.",
+  "lines": {
+    "crime.chime": {
+      "any": [
+        "somebody stop them!",
+        "are you seeing this??",
+        "get them!!",
+        "guards!!",
+        "someone do something!",
+        "is nobody gonna stop them??",
+        "hey!! HEY!",
+        "omg",
+        "no way. no way",
+        "did that just happen",
+        "stop them!!",
+        "not in our town!",
+        "{player}!! seriously??",
+        "GUARDS",
+        "call the guards!",
+        "everyone saw that right??",
+        "unbelievable",
+        "bro what",
+        "i saw it too!",
+        "after them!",
+        "yo stop right there!",
+        "did everyone see that??",
+        "thats not ok!!",
+        "somebody grab them!",
+        "hey you! stop!",
+        "wow. just wow",
+        "in front of everyone too",
+        "is this really happening rn",
+        "not cool {player}!!",
+        "someone ring the bell!",
+        "where are the guards when you need them",
+        "oi!! stop!",
+        "cmon, really??",
+        "wait what did they just do",
+        "thats it, im telling everyone",
+        "get back here!!",
+        "STOP",
+        "literally in the middle of town",
+        "what is wrong with you {player}",
+        "we all saw that",
+        "nobody let them leave!",
+        "block the road!",
+        "ok that was not normal",
+        "uhh guys??",
+        "seriously, in daylight??",
+        "can somebody PLEASE stop them",
+        "i cant believe {player} did that",
+        "someone write that name down",
+        "this town used to be quiet",
+        "hey!! we saw you!",
+        "dont let them run!",
+        "come on, after them!",
+        "wow ok {player}",
+        "wait wait wait",
+        "thats messed up",
+        "yo did anyone else see that",
+        "ugh not again",
+        "i knew {player} was trouble",
+        "this is our town, {player}!",
+        "someone cut them off!"
+      ],
+      "newbie": [
+        "omg omg omg",
+        "wait is this allowed??",
+        "WHAT",
+        "someone help!! i dont know what to do",
+        "omg are we gonna get robbed",
+        "is this a raid?? what do i do",
+        "wait who is {player}??",
+        "omg should i run??",
+        "guys guys GUYS",
+        "i just got here!!",
+        "is this normal here??",
+        "help!! someone!!",
+        "what button do i press for guards"
+      ],
+      "hermit": [
+        "...typical.",
+        "and this is why i stay home",
+        "hm. trouble.",
+        "not my business. but still.",
+        "...here we go.",
+        "people.",
+        "hm.",
+        "loud. always loud.",
+        "knew it wouldnt last.",
+        "i saw nothing.",
+        "...not again.",
+        "back to the cabin soon."
+      ],
+      "helper": [
+        "everyone stay calm!",
+        "stay back, everyone!",
+        "somebody get a guard, quick!",
+        "is everyone ok??",
+        "dont panic, guards are coming",
+        "everyone stay where you are!",
+        "ok nobody panic, we got this",
+        "someone watch the doors!",
+        "kids inside please!",
+        "guards, over here!!",
+        "everyone ok? shout if youre hurt",
+        "lets stay together, ok?",
+        "ill go find a guard, stay put"
+      ],
+      "pvp_sweat": [
+        "let me at em",
+        "oh they're dead",
+        "i got this. move",
+        "1v1 me {player}",
+        "finally some action",
+        "ez. watch this",
+        "say less. on my way",
+        "{player} picked the wrong town",
+        "sword out. lets go",
+        "bet. come here {player}",
+        "they wont make it ten blocks",
+        "nobody move, i got them",
+        "gg {player}, you just dont know it yet",
+        "im so ready for this"
+      ],
+      "builder": [
+        "not near my build!!",
+        "careful with the houses!",
+        "if they break my roof i swear",
+        "please not the windows",
+        "stay off my scaffolding!!",
+        "if anything catches fire im crying",
+        "careful near the glass!!",
+        "i JUST finished that wall",
+        "dont you dare touch my build {player}",
+        "nobody run through my garden",
+        "my blueprints are in there!!"
+      ],
+      "hoarder": [
+        "MY CHESTS",
+        "lock everything!!",
+        "nobody touch my stuff",
+        "im counting my things. right now",
+        "everyone guard your chests!!",
+        "im sleeping on my chests tonight",
+        "if one item is missing...",
+        "double chest. locked. now",
+        "they better not know where i keep stuff",
+        "my diamonds!! are my diamonds ok??",
+        "counting... counting...",
+        "nobody look at my house"
+      ],
+      "bandit": [
+        "lol respect",
+        "amateur",
+        "ha, bold",
+        "not bad not bad",
+        "i'd have done it quieter",
+        "now thats a heist",
+        "not gonna lie, kinda impressive",
+        "lol the nerve",
+        "sloppy. but it works",
+        "{player} has style",
+        "amateur hour. still fun",
+        "heh. go on then",
+        "wish i thought of that",
+        "they make it look easy"
+      ],
+      "nomad": [
+        "and this is why i dont settle",
+        "towns, man",
+        "glad i travel light",
+        "another town, same story",
+        "seen it everywhere i go",
+        "ill be gone by morning anyway",
+        "every town has one",
+        "roads are safer than this",
+        "just passing through, folks",
+        "thats why i sleep in a tent",
+        "meh. moving on soon"
+      ],
+      "homebody": [
+        "im going inside",
+        "i just wanted a quiet day",
+        "lock the doors!!",
+        "door shut. done",
+        "i knew i should have stayed in",
+        "im not leaving the house today",
+        "where is my bed",
+        "inside. inside. inside",
+        "curtains closed. bye",
+        "nope. home",
+        "why cant it just be quiet"
+      ],
+      "miner": [
+        "i leave the mine for ONE minute",
+        "cant even come up for air in this town",
+        "safer in the caves honestly",
+        "creepers are more polite than this",
+        "back down the shaft for me",
+        "i had a whole vein to finish",
+        "zombies in the mine, crooks up here",
+        "pickaxe in hand. just in case",
+        "at least the dark is quiet",
+        "i was at y -50 ten minutes ago"
+      ],
+      "speedrunner": [
+        "not my problem",
+        "no time for this",
+        "skip",
+        "im on a timer",
+        "cant stop, gotta go",
+        "lost like 30 seconds to this",
+        "not resetting for this",
+        "whatever. moving",
+        "next",
+        "guards can handle it",
+        "im busy"
+      ],
+      "casual": [
+        "bro what",
+        "LMAO what",
+        "nah thats crazy",
+        "yo?? chill",
+        "bro really did that",
+        "nahhh",
+        "LMAO bro is wild",
+        "yo thats crazy lol",
+        "this town is wild",
+        "bro thinks this is gta",
+        "someone clip that",
+        "ok thats actually insane",
+        "bro chose violence today"
+      ]
+    },
+    "crime.chime.theft": {
+      "any": [
+        "{player} just robbed us!",
+        "thief!! get them!",
+        "they're taking stuff!",
+        "put it back, {player}!",
+        "who leaves a chest unlocked here??",
+        "that's not yours!",
+        "they went through the chests!",
+        "check your chests everyone!",
+        "drop it, {player}!",
+        "stop, thief!!",
+        "those are our things!",
+        "they're running with our stuff!",
+        "{player} has our loot!",
+        "empty your pockets, {player}!",
+        "whose chest was that??",
+        "they cleaned it out!",
+        "grab them, they've got our gear",
+        "they just walked in and took it",
+        "get our stuff back!",
+        "is that my pickaxe??",
+        "they took the iron!",
+        "that chest was full a minute ago",
+        "thief in town!!",
+        "come back with that!",
+        "they've got a whole stack of stuff",
+        "{player} is looting us!",
+        "give it back!!"
+      ],
+      "newbie": [
+        "wait you cant just take stuff??",
+        "omg they're stealing!!",
+        "are chests not private??",
+        "omg was that MY chest",
+        "wait i thought chests were locked",
+        "how did they open it??"
+      ],
+      "hoarder": [
+        "NOT THE CHESTS",
+        "if thats my iron, {player}, im coming for you",
+        "MY STUFF",
+        "i KNEW i should have hidden it",
+        "every single slot. i know every slot",
+        "not my enchanted stuff!!",
+        "that chest was organized!!"
+      ],
+      "bandit": [
+        "clean grab. respect",
+        "lol in broad daylight",
+        "fast hands. nice",
+        "lol they didnt even close the chest",
+        "smooth. very smooth",
+        "id have taken the diamonds first"
+      ],
+      "helper": [
+        "just give it back and nobody gets hurt!",
+        "check everyone's chests, quick",
+        "dont chase alone, go in pairs!",
+        "write down whats missing everyone",
+        "lets get the guards on this"
+      ],
+      "hermit": [
+        "told them. locks.",
+        "theft. again.",
+        "keep your valuables close.",
+        "...thats why i bury mine."
+      ],
+      "pvp_sweat": [
+        "drop it or drop dead, {player}",
+        "come here, {player}. im not asking",
+        "you picked the wrong chest",
+        "drop the loot, then we talk"
+      ],
+      "casual": [
+        "bro just robbed the place",
+        "nahh theyre stealing lol",
+        "bro just went shopping for free",
+        "LMAO five finger discount"
+      ],
+      "builder": [
+        "were my blocks in there??",
+        "that was my building stuff!!",
+        "stay out of my storage room!"
+      ],
+      "speedrunner": [
+        "lol free loot route",
+        "efficient. annoying but efficient"
+      ],
+      "miner": [
+        "thats my ore!! i mined that!",
+        "hours in the mine for THAT"
+      ],
+      "nomad": [
+        "this is why i carry everything",
+        "cant steal what i dont store"
+      ],
+      "homebody": [
+        "they were inside a house??",
+        "nobody is safe in their own home"
+      ]
+    },
+    "crime.chime.horse": {
+      "any": [
+        "omg they took a horse",
+        "the horse!! they took the horse!",
+        "get off that horse!",
+        "somebody grab another horse, after them!",
+        "they're riding off!",
+        "that horse has a name you know!",
+        "not the horse!!",
+        "stop that horse!",
+        "horse thief!!",
+        "they're getting away on our horse!",
+        "someone saddle up!",
+        "bring that horse back!",
+        "who left the gate open??",
+        "{player} stole a horse!!",
+        "get back here with the horse!",
+        "that's the town horse!",
+        "cut them off at the road!",
+        "ride after them!",
+        "they jumped the fence!",
+        "thats our fastest one too",
+        "the stable!! they hit the stable!",
+        "aim for the rider!",
+        "off the horse, {player}!",
+        "not our horse!"
+      ],
+      "newbie": [
+        "wait {player} took a horse?? can you do that??",
+        "omg the horse!!",
+        "bye horse :(",
+        "horses can be stolen??",
+        "how do they ride so fast"
+      ],
+      "bandit": [
+        "lol horse thief. classic",
+        "now thats a getaway",
+        "lol stylish exit",
+        "a horse thief, how old school"
+      ],
+      "helper": [
+        "someone get on a horse, follow them!",
+        "careful, dont spook the others!",
+        "check the other horses are ok",
+        "nobody chase on foot, youll never catch up"
+      ],
+      "hermit": [
+        "...the horse. of course.",
+        "never liked that horse anyway.",
+        "...gone in a gallop."
+      ],
+      "pvp_sweat": [
+        "give me a horse. ill catch them",
+        "bow out. aiming for the rider",
+        "i dont need a horse to catch you",
+        "{player} wont outride me"
+      ],
+      "nomad": [
+        "good horse too. shame",
+        "nice ride. wrong owner",
+        "a horse is a fine way to travel",
+        "theyll go far on that one"
+      ],
+      "casual": [
+        "bro stole a whole horse",
+        "LMAO the horse",
+        "bro yoinked the horse",
+        "horse speedrun lmao",
+        "giddy up i guess lol"
+      ],
+      "homebody": [
+        "the poor thing is so scared",
+        "i used to feed that horse apples"
+      ],
+      "speedrunner": [
+        "fast horse. good choice honestly",
+        "jumps 3 blocks too, smart pick"
+      ],
+      "builder": [
+        "they wrecked the stable fence!!",
+        "i built that stable!!"
+      ]
+    },
+    "crime.chime.farms": {
+      "any": [
+        "they're trampling the crops!",
+        "get out of the fields!",
+        "the wheat!!",
+        "stop wrecking the farm!",
+        "we need that food!",
+        "who's gonna replant that??",
+        "off the farmland, {player}!",
+        "not the farm!!",
+        "stop stomping the crops!",
+        "that's a whole harvest!",
+        "stay off the farmland!",
+        "they're wrecking the wheat!",
+        "the potatoes!!",
+        "{player} quit jumping on the crops!",
+        "well starve if they keep going",
+        "the carrots were almost ready!",
+        "you're stomping it all to dirt!",
+        "get them out of the field!",
+        "someone stop them, the fields!",
+        "that took weeks to grow!",
+        "leave the crops alone!"
+      ],
+      "newbie": [
+        "the crops!! noo",
+        "wait why are they breaking the farm",
+        "wait jumping breaks the farm??",
+        "noo i was gonna eat that"
+      ],
+      "builder": [
+        "those rows took ages to lay out!",
+        "my irrigation!! the water!",
+        "the fence around the farm too??",
+        "perfect rows. ruined"
+      ],
+      "homebody": [
+        "thats our food!!",
+        "i just planted those!",
+        "what are we gonna eat now",
+        "bread. there goes the bread"
+      ],
+      "hermit": [
+        "crops. gone. great.",
+        "...hungry winter.",
+        "stupid."
+      ],
+      "bandit": [
+        "lol the carrots",
+        "lol trample speedrun",
+        "rip salad"
+      ],
+      "casual": [
+        "bro is speedrunning the harvest",
+        "bro is just jumping on the wheat lol",
+        "LMAO the potatoes"
+      ],
+      "helper": [
+        "grab seeds, well replant it",
+        "everyone off the field, guard it!",
+        "save what you can!"
+      ],
+      "hoarder": [
+        "my seed stash. guard it!",
+        "how many stacks was that"
+      ],
+      "pvp_sweat": [
+        "touch one more crop, {player}",
+        "fight me, not the wheat"
+      ],
+      "nomad": [
+        "plenty of food out on the road",
+        "good soil too. shame"
+      ]
+    },
+    "crime.chime.livestock": {
+      "any": [
+        "they're killing the animals!",
+        "not the cows!!",
+        "leave the animals alone!",
+        "that's our food, {player}!",
+        "stop hurting them!",
+        "the pen!! they're in the pen!",
+        "those were ours!",
+        "leave the cows alone!",
+        "stop!! those are our animals!",
+        "{player} is killing the sheep!",
+        "not the chickens!!",
+        "they're slaughtering the pen!",
+        "that's our milk cow!",
+        "the pigs!! leave the pigs!",
+        "poor animals!!",
+        "get away from the pen!",
+        "they didn't do anything!",
+        "those were for breeding!",
+        "someone stop them, the pen!",
+        "they're getting all of them!",
+        "put the sword away, {player}!"
+      ],
+      "newbie": [
+        "noo the cows!!",
+        "why would you do that :(",
+        "they're killing the sheep?? why??",
+        "the baby cow!! no!!"
+      ],
+      "helper": [
+        "someone get the animals out of there!",
+        "open the back gate, let them out!",
+        "lead them away from {player}!",
+        "grab the leads, save the rest!"
+      ],
+      "homebody": [
+        "i named that one!!",
+        "the chickens!! my chickens!",
+        "i fed them every morning..."
+      ],
+      "hermit": [
+        "poor things.",
+        "...needless.",
+        "they were just grazing."
+      ],
+      "bandit": [
+        "free steak lol",
+        "lol dinners served",
+        "harsh. but tasty"
+      ],
+      "pvp_sweat": [
+        "fight something that fights back, {player}",
+        "try that with me, {player}",
+        "pick on someone with a sword"
+      ],
+      "casual": [
+        "bro is farming OUR animals",
+        "bro is speedrunning leather",
+        "LMAO not the chickens"
+      ],
+      "hoarder": [
+        "thats my wool supply!!",
+        "i needed that leather!"
+      ],
+      "nomad": [
+        "plenty of animals in the wild...",
+        "harsh way to get dinner"
+      ]
+    },
+    "crime.chime.peace": {
+      "any": [
+        "wait, where are the monsters??",
+        "was that a prank??",
+        "who rang the bell??",
+        "there's nothing out there",
+        "seriously?? for nothing??",
+        "i ran all the way here for this?",
+        "ok who did that",
+        "not funny, {player}",
+        "wheres the fire??",
+        "is there a raid or not??",
+        "i dont see anything",
+        "what are we even looking at",
+        "nothing?? really??",
+        "who rang it, come on",
+        "i grabbed my sword for this??",
+        "are we being pranked",
+        "ok very funny",
+        "stop ringing that thing!",
+        "so... nothing?",
+        "no zombies, no raid, nothing",
+        "someones bored",
+        "i left my furnace for this",
+        "{player} cut it out!",
+        "that bell is for emergencies!"
+      ],
+      "newbie": [
+        "are we under attack?? are we??",
+        "omg is it zombies",
+        "wait so we're NOT gonna die?",
+        "why did the bell ring then??",
+        "is the bell broken?"
+      ],
+      "helper": [
+        "false alarm everyone! false alarm!",
+        "its ok, nothing out there",
+        "all clear, go back to what you were doing",
+        "please only ring the bell for real danger",
+        "ok everyone, nothing to see"
+      ],
+      "hermit": [
+        "...nothing. wasted my time.",
+        "...noise. just noise.",
+        "back to bed."
+      ],
+      "pvp_sweat": [
+        "i got my sword out for NOTHING?",
+        "where's the fight??",
+        "ring it again and ill give you a reason",
+        "ugh. no mobs at all?"
+      ],
+      "bandit": [
+        "lol classic",
+        "good prank honestly",
+        "lol everyone ran out in pajamas",
+        "ten out of ten prank"
+      ],
+      "homebody": [
+        "i was in bed!!",
+        "i dropped my soup for this",
+        "i put my boots on for nothing",
+        "back inside. goodnight",
+        "my teas getting cold"
+      ],
+      "casual": [
+        "bro rang the bell for fun",
+        "LMAO the bell",
+        "bro is the bell guy now",
+        "LMAO everyone came running"
+      ],
+      "speedrunner": [
+        "wasted 20 seconds on this",
+        "cool. back to it"
+      ],
+      "miner": [
+        "climbed all the way up for nothing",
+        "i was mid vein for this"
+      ],
+      "builder": [
+        "i dropped my blocks for this??",
+        "fell off my scaffold for nothing"
+      ],
+      "nomad": [
+        "bells. towns love their bells",
+        "eh. false alarms happen"
+      ]
+    },
+    "crime.chime.blood": {
+      "any": [
+        "that's our dead's armor!",
+        "take it off, {player}!",
+        "you're wearing a dead person's gear??",
+        "show some respect!",
+        "that armor's not yours!",
+        "they took it off the body!",
+        "thats their armor!!",
+        "strip it off, {player}!",
+        "from a grave?? really??",
+        "have some respect for the dead!",
+        "thats our friends armor you're wearing",
+        "they looted our dead!",
+        "disgusting",
+        "you don't get to wear that!",
+        "we buried that armor with them!",
+        "{player} is wearing our dead!",
+        "how low can you go",
+        "thats sick"
+      ],
+      "newbie": [
+        "wait thats so creepy",
+        "ew, from the grave??",
+        "is that allowed?? the dead persons stuff??",
+        "omg i recognize that helmet"
+      ],
+      "helper": [
+        "give it back, they deserve to rest with it",
+        "give it back and well forget this",
+        "that belongs to the family",
+        "lets get it back, gently"
+      ],
+      "hermit": [
+        "robbing the dead. low.",
+        "the dead deserve better.",
+        "...grave robber."
+      ],
+      "bandit": [
+        "waste not want not lol",
+        "eh, the dead dont need it",
+        "practical, i guess lol"
+      ],
+      "pvp_sweat": [
+        "nice armor. ill take it off you myself",
+        "ill knock it off you piece by piece",
+        "that armor wont save you, {player}"
+      ],
+      "casual": [
+        "bro is wearing a ghost",
+        "bro is cosplaying a ghost",
+        "nahh thats cursed"
+      ],
+      "homebody": [
+        "thats so wrong",
+        "i cant even look"
+      ],
+      "nomad": [
+        "armors armor out on the road",
+        "the dead travel light, i suppose"
+      ],
+      "hoarder": [
+        "that was enchanted too!!",
+        "thats a full set they took"
+      ]
+    },
+    "crime.chime.murder": {
+      "any": [
+        "{who}!! no!!",
+        "they killed {who}!!",
+        "RUN!",
+        "somebody help!!",
+        "is {who} ok?? {who}??",
+        "{player} killed someone!!",
+        "MURDERER!",
+        "everyone get inside!",
+        "call the guards!! NOW!",
+        "{who} didn't do anything!",
+        "oh no. oh no no no",
+        "they're dead. they're actually dead",
+        "no no no no",
+        "somebody help {who}!!",
+        "{who} is down!!",
+        "they killed them!!",
+        "stop {player}!!",
+        "we just lost {who}",
+        "{who}... please get up",
+        "nobody is safe!",
+        "guards!! GUARDS!!",
+        "get away from {player}!",
+        "how could you, {player}??",
+        "murderer!! murderer!!",
+        "blood in the street...",
+        "{who} was just talking to me",
+        "run!! they're armed!",
+        "why {who}?? why??",
+        "everyone run!",
+        "we need to stop them",
+        "is anyone else hurt??",
+        "{player} killed {who}!!",
+        "get the guards here now!",
+        "{who} had a family",
+        "i cant believe {who} is gone",
+        "dont let {player} get away with this"
+      ],
+      "newbie": [
+        "OMG IS {who} DEAD??",
+        "what do we do what do we do",
+        "i dont wanna die!!",
+        "is {who} gonna respawn?? right??",
+        "im shaking",
+        "WHERE DO I HIDE"
+      ],
+      "helper": [
+        "everyone inside, NOW!",
+        "someone check on {who}!",
+        "stay together, dont go alone!",
+        "everyone away from {player}!",
+        "go inside and lock up, now!",
+        "ill stay with {who}"
+      ],
+      "pvp_sweat": [
+        "you're next, {player}",
+        "nobody touches our people. get them!",
+        "ok now its personal",
+        "you just signed your death warrant, {player}",
+        "for {who}. lets go",
+        "{player} wont walk away from this"
+      ],
+      "hermit": [
+        "...{who}. no.",
+        "should have stayed home today.",
+        "...it always ends like this.",
+        "rest, {who}."
+      ],
+      "bandit": [
+        "whoa. ok thats too far",
+        "even i dont do that",
+        "thats not business, thats murder",
+        "{player} crossed a line"
+      ],
+      "homebody": [
+        "lock the doors! lock everything!",
+        "im not going out there",
+        "i dont feel safe anymore",
+        "nobody open the door"
+      ],
+      "builder": [
+        "{who} helped build half this town...",
+        "{who} built that house on the corner...",
+        "whos gonna finish {who}'s build now",
+        "we were gonna build together tomorrow"
+      ],
+      "nomad": [
+        "i knew this place was trouble",
+        "ive seen this before. it never ends well",
+        "another reason to keep moving"
+      ],
+      "miner": [
+        "im going back underground",
+        "the caves feel safer than this",
+        "taking my pick and going down. now"
+      ],
+      "speedrunner": [
+        "nope. im out",
+        "not dying here. moving",
+        "too dangerous. out"
+      ],
+      "casual": [
+        "yo WHAT",
+        "bro just killed {who}??",
+        "nah bro this aint funny",
+        "yo {who} is actually dead"
+      ],
+      "hoarder": [
+        "my house is locked right?? right??",
+        "who gets {who}'s chests now"
+      ]
+    },
+    "crime.chime.massacre": {
+      "any": [
+        "they're killing everyone!!",
+        "RUN!! everyone RUN!",
+        "it's a massacre!",
+        "how many is that now??",
+        "stop them!! somebody!!",
+        "get the kids inside!",
+        "we have to fight back!",
+        "{player} has to be stopped!",
+        "not again. NOT AGAIN",
+        "they wont stop!!",
+        "everybody hide!!",
+        "so many dead!!",
+        "its a bloodbath!",
+        "no!! not more!!",
+        "we cant hold them!",
+        "somebody stop {player}!!",
+        "get to the church!",
+        "they're everywhere!",
+        "we're losing everyone!",
+        "please stop!!",
+        "how is this happening",
+        "we need every guard!!",
+        "bodies everywhere...",
+        "everyone out the back!",
+        "they're still going!",
+        "its {player}!! run!!",
+        "theres nobody left to help!"
+      ],
+      "newbie": [
+        "IM SCARED",
+        "omg omg omg we're all gonna die",
+        "help!!! HELP",
+        "i dont wanna die i dont wanna die",
+        "WHERE IS SAFE",
+        "is this the end??"
+      ],
+      "helper": [
+        "everyone to the houses! go go go!",
+        "stay together! stay together!",
+        "follow me, this way!",
+        "help the hurt ones, carry them!",
+        "dont stop moving, go!"
+      ],
+      "pvp_sweat": [
+        "everyone grab a sword. NOW",
+        "they wont get me. come on {player}",
+        "together! we rush {player} together!",
+        "im not running. come on!",
+        "everyone with a sword, on me!"
+      ],
+      "hermit": [
+        "...this town is done.",
+        "...told them this place wasnt safe.",
+        "run. just run."
+      ],
+      "bandit": [
+        "ok this is insane",
+        "{player} is a monster",
+        "this is beyond anything",
+        "even outlaws have limits"
+      ],
+      "homebody": [
+        "barricade the doors!!",
+        "hide under the bed!!",
+        "block the door with everything!",
+        "nobody make a sound"
+      ],
+      "speedrunner": [
+        "im not dying here. bye",
+        "full sprint. out of here",
+        "nope nope nope. gone"
+      ],
+      "casual": [
+        "bro this is a horror movie",
+        "bro this is not a game anymore",
+        "nah im actually scared"
+      ],
+      "builder": [
+        "forget the houses, RUN",
+        "the whole town..."
+      ],
+      "miner": [
+        "into the mine!! everyone!",
+        "the tunnels!! hide in the tunnels!"
+      ],
+      "nomad": [
+        "grab what you can and run",
+        "time to leave. for good"
+      ]
+    },
+    "crime.chime.wanted": {
+      "any": [
+        "it's them!! they're back!",
+        "the killer's back!",
+        "everyone inside!",
+        "how are they still walking around??",
+        "guards! it's {player}!",
+        "they've got some nerve showing up here",
+        "don't let them get away this time!",
+        "it's {player}! from the posters!",
+        "thats {player}!! the wanted one!",
+        "they're back in town!",
+        "lock your doors, {player}'s back",
+        "look whos back",
+        "of all the towns...",
+        "theres a bounty on them!",
+        "someone call the guards, its {player}!",
+        "why would they come back here??",
+        "they're the one from the board!",
+        "get them before they do it again!",
+        "wanted criminal in town!",
+        "its them, i swear its them",
+        "keep an eye on {player}",
+        "the face from the poster!",
+        "we remember you, {player}!",
+        "hide your stuff, they're here"
+      ],
+      "newbie": [
+        "wait is that the one from the board??",
+        "omg its really them",
+        "is that a real criminal??",
+        "omg the bounty person!!"
+      ],
+      "helper": [
+        "stay calm, stay back, guards are coming",
+        "everyone keep your distance",
+        "dont confront them alone",
+        "someone let the guards know"
+      ],
+      "pvp_sweat": [
+        "bounty's mine",
+        "oh thats free money",
+        "payday just walked in",
+        "your head's worth a lot, {player}"
+      ],
+      "bandit": [
+        "bold move coming back",
+        "respect the nerve",
+        "back for round two? nice",
+        "thats either brave or dumb",
+        "heh. a legend returns"
+      ],
+      "hermit": [
+        "...back again.",
+        "...shouldve stayed gone.",
+        "trouble walks back in."
+      ],
+      "homebody": [
+        "nope, im going in",
+        "door locked. staying locked",
+        "why here, why now",
+        "im hiding till they leave"
+      ],
+      "casual": [
+        "bro came BACK??",
+        "bro is fearless lmao",
+        "the audacity"
+      ],
+      "hoarder": [
+        "everyone lock up, NOW",
+        "theyre here for our stuff again"
+      ],
+      "nomad": [
+        "seen that face in three towns",
+        "posters everywhere. still walking"
+      ]
+    },
+    "crime.chime.crook": {
+      "any": [
+        "{player} is stealing!!",
+        "hey! that's {who}'s!",
+        "{player}, put it back!",
+        "we got a thief!",
+        "drop it, {player}!",
+        "i always knew about {player}",
+        "{player}?? really??",
+        "one of our own!!",
+        "{player} is robbing {who}!",
+        "caught you, {player}!",
+        "we trusted you, {player}!",
+        "put {who}'s stuff back!",
+        "hey hey hey, thats not yours",
+        "{player} has sticky fingers",
+        "thief!! its {player}!",
+        "wow, {player}. wow",
+        "{who} is gonna be so mad",
+        "i saw that, {player}"
+      ],
+      "newbie": [
+        "wait {player} steals??",
+        "omg {player}!!",
+        "{player}?? but they're nice!",
+        "is {player} a bad guy now??"
+      ],
+      "hoarder": [
+        "{player}!! away from the chests!",
+        "{player} has been in my chests too, havent they",
+        "im checking my stuff. right now",
+        "{player} never touches my chests again"
+      ],
+      "bandit": [
+        "heh. {player}'s one of us",
+        "{player}, you sly fox",
+        "knew {player} had it in them"
+      ],
+      "hermit": [
+        "{player}. figures.",
+        "never trusted {player}.",
+        "neighbors. bah."
+      ],
+      "casual": [
+        "{player} caught in 4k",
+        "{player} is lowkey a criminal",
+        "LMAO {player} nooo"
+      ],
+      "helper": [
+        "{player}, just give it back to {who}",
+        "lets talk this out, {player}",
+        "no one has to get hurt, just return it"
+      ],
+      "pvp_sweat": [
+        "drop it, {player}, or i drop you",
+        "{player}, outside. now"
+      ],
+      "homebody": [
+        "and {player} lives right next to me...",
+        "cant even trust the neighbors"
+      ]
+    },
+    "crime.chime.fight": {
+      "any": [
+        "fight! fight!",
+        "whoa whoa whoa",
+        "break it up!",
+        "{player} what are you doing??",
+        "leave {who} alone!",
+        "someone pull them apart!",
+        "my money's on {who}",
+        "not again you two",
+        "oh its ON",
+        "guys guys calm down!",
+        "stop hitting {who}!",
+        "someone stop this!",
+        "get off {who}!",
+        "{player}, enough!",
+        "theyre actually fighting lol",
+        "ooh that one hurt",
+        "come on, break it up!",
+        "not in the middle of the street!",
+        "they're gonna kill each other",
+        "hey!! knock it off!",
+        "{who} hit back!!",
+        "whats this even about??",
+        "somebody grab {player}!",
+        "oh dang"
+      ],
+      "newbie": [
+        "omg are they fighting??",
+        "guys stop!!",
+        "wait is this a real fight??",
+        "stop!! someone will get hurt!!"
+      ],
+      "helper": [
+        "stop it, both of you!",
+        "use your words!!",
+        "both of you, step back!",
+        "deep breaths, everyone!"
+      ],
+      "pvp_sweat": [
+        "get em {who}!!",
+        "finally some action",
+        "left hook!! LEFT HOOK",
+        "block!! you have to block!",
+        "nah {player} is spamming, no technique"
+      ],
+      "bandit": [
+        "ten emeralds on {player}",
+        "lol go go go",
+        "doubling my bet",
+        "now this is entertainment"
+      ],
+      "hermit": [
+        "fools.",
+        "children.",
+        "...waste of health."
+      ],
+      "casual": [
+        "WORLDSTAR",
+        "LMAO someone record this",
+        "bro got hands",
+        "FIGHT FIGHT FIGHT"
+      ],
+      "builder": [
+        "not near my wall!!",
+        "take it away from the houses!"
+      ],
+      "homebody": [
+        "can you two do this somewhere else",
+        "im closing the windows"
+      ],
+      "nomad": [
+        "every town, a brawl",
+        "not my fight"
+      ],
+      "speedrunner": [
+        "just crit them already",
+        "this is taking forever"
+      ]
+    },
+    "crime.got_away.theft": {
+      "any": [
+        "they got away :(",
+        "and they're gone. great",
+        "{player} got away with it",
+        "lost them",
+        "gone. with our stuff",
+        "next time, {player}. next time",
+        "anyone see where they went?",
+        "check what's missing i guess",
+        "aaand they're gone",
+        "too slow, all of us",
+        "well. they got it all",
+        "gone with the loot",
+        "they outran everyone",
+        "we let them get away",
+        "{player} is long gone",
+        "someone count the chests",
+        "nobody caught them??",
+        "great. just great",
+        "they're probably selling it already",
+        "ugh. lost them in the trees",
+        "well thats gone forever",
+        "lock your chests from now on",
+        "theyll be back for more, watch",
+        "so much for the guards"
+      ],
+      "newbie": [
+        "they got away :(",
+        "wait where'd they go??",
+        "do we get our stuff back??",
+        "how did nobody catch them"
+      ],
+      "hoarder": [
+        "i'm putting locks on EVERYTHING",
+        "i need more chests. hidden ones",
+        "never leaving my house again",
+        "inventory check. everything. now"
+      ],
+      "bandit": [
+        "clean getaway. gotta respect it",
+        "lol clean exit",
+        "{player} knows their stuff"
+      ],
+      "pvp_sweat": [
+        "i'd have caught them. just saying",
+        "if id been closer...",
+        "next time i dont miss"
+      ],
+      "hermit": [
+        "gone. told you.",
+        "...as expected.",
+        "lock it or lose it."
+      ],
+      "casual": [
+        "bro just dipped",
+        "bro is gone gone",
+        "LMAO they got away"
+      ],
+      "helper": [
+        "lets list whats missing",
+        "at least nobody got hurt"
+      ],
+      "nomad": [
+        "stuff comes and goes",
+        "travel light, lose nothing"
+      ]
+    },
+    "crime.got_away.horse": {
+      "any": [
+        "and they're gone. horse and all",
+        "they got away :(",
+        "rip horse",
+        "lost them. that horse was fast",
+        "{player} rode off with it. unreal",
+        "anyone got another horse?",
+        "that horse is gone",
+        "well, there goes the horse",
+        "nobody catches a horse on foot",
+        "they rode straight out of town",
+        "too fast. way too fast",
+        "well never see that horse again",
+        "{player} got clean away",
+        "and the horse is history",
+        "lost them past the hills",
+        "one less horse in town",
+        "should have locked the stable",
+        "miss you horse :("
+      ],
+      "newbie": [
+        "bye horse :(",
+        "they got away with the horse :(",
+        "will the horse come back??"
+      ],
+      "bandit": [
+        "clean getaway. respect",
+        "a horse and a head start. pro",
+        "lol long gone"
+      ],
+      "nomad": [
+        "good horse. wherever it's going",
+        "may the horse see good roads",
+        "theyll be three biomes over by now"
+      ],
+      "casual": [
+        "horse is gone gone",
+        "bro is on the highway now",
+        "LMAO they gone"
+      ],
+      "hermit": [
+        "...horse is gone.",
+        "shouldve used a lead."
+      ],
+      "pvp_sweat": [
+        "no horse, no chance. annoying",
+        "next time ill shoot the saddle off"
+      ],
+      "homebody": [
+        "i hope they treat it well at least",
+        "poor horse..."
+      ],
+      "speedrunner": [
+        "horse diff",
+        "fast horse wins every time"
+      ]
+    },
+    "crime.got_away.farms": {
+      "any": [
+        "and they just left",
+        "gone. who's replanting that",
+        "{player} took off",
+        "they ran. typical",
+        "they're gone and the fields wrecked",
+        "great, a dirt field",
+        "lost them",
+        "they ran and left the mess",
+        "so much for the harvest",
+        "well thats dinner gone",
+        "nobody caught them??",
+        "guess we're replanting"
+      ],
+      "homebody": [
+        "im replanting. again.",
+        "back to the seeds",
+        "well have bread again someday"
+      ],
+      "casual": [
+        "they dipped lol",
+        "bro trampled and ran lol"
+      ],
+      "helper": [
+        "grab hoes, lets fix it together",
+        "well replant by nightfall"
+      ],
+      "hermit": [
+        "...gone. so is the wheat.",
+        "replant. again."
+      ],
+      "newbie": [
+        "do crops grow back??",
+        "they just left??"
+      ],
+      "builder": [
+        "redoing all the rows...",
+        "at least the fence is still up"
+      ],
+      "bandit": [
+        "lol hit and run",
+        "farm raid complete"
+      ],
+      "hoarder": [
+        "good thing i keep spare seeds",
+        "im counting the bread now"
+      ]
+    },
+    "crime.got_away.livestock": {
+      "any": [
+        "they're gone. the pen's half empty",
+        "{player} got away",
+        "lost them. poor animals",
+        "gone. and so are the cows",
+        "we lost them",
+        "the pens empty and they're gone",
+        "no one caught them?",
+        "they ran off",
+        "poor things didnt stand a chance",
+        "well have to breed more",
+        "{player} just left them like that"
+      ],
+      "homebody": [
+        "rip...",
+        "i miss them already",
+        "whos gonna lay eggs now"
+      ],
+      "newbie": [
+        "they got away :(",
+        "where did they go??",
+        "the cows arent coming back are they"
+      ],
+      "helper": [
+        "lets round up whats left",
+        "find wheat, well breed more"
+      ],
+      "hermit": [
+        "...quiet pen now.",
+        "pointless."
+      ],
+      "casual": [
+        "bro farmed and dipped",
+        "rip the cows fr"
+      ],
+      "bandit": [
+        "lol steak to go",
+        "got away with dinner"
+      ],
+      "pvp_sweat": [
+        "shouldve let me handle it",
+        "they wont be so lucky next time"
+      ]
+    },
+    "crime.got_away.blood": {
+      "any": [
+        "and they walked off in it",
+        "gone. wearing our dead's armor",
+        "{player} got away with it",
+        "gone. in that armor",
+        "they got away in our dead's gear",
+        "lost them",
+        "theyll wear it till it breaks",
+        "we couldnt even get the armor back",
+        "disgraceful"
+      ],
+      "hermit": [
+        "no respect.",
+        "...the dead stay robbed."
+      ],
+      "helper": [
+        "well make new armor to honor them",
+        "at least we still have the memory"
+      ],
+      "newbie": [
+        "so the armor is just gone??",
+        "they got away :("
+      ],
+      "pvp_sweat": [
+        "ill take that armor back. personally",
+        "next time, that armor is mine"
+      ],
+      "bandit": [
+        "lol walked off in style",
+        "free set, clean exit"
+      ],
+      "homebody": [
+        "this is so sad",
+        "i hope they rest anyway"
+      ],
+      "casual": [
+        "bro left in dead peoples armor",
+        "nah thats cursed fr"
+      ]
+    },
+    "crime.got_away.murder": {
+      "any": [
+        "they got away...",
+        "{player}'s gone. {who} deserved better",
+        "we lost them",
+        "they'll be back. they always come back",
+        "rest easy {who}",
+        "nobody go out alone tonight",
+        "we'll get them. one day",
+        "{player} just vanished",
+        "how did they get away",
+        "{who}... im so sorry",
+        "we failed {who}",
+        "they're out there somewhere",
+        "lock your doors tonight",
+        "they killed {who} and walked away",
+        "this isnt over",
+        "we.ll remember this, {player}",
+        "justice for {who}",
+        "no one is safe till they're caught",
+        "i keep seeing it",
+        "they got away with murder. literally",
+        "someone bury {who} properly"
+      ],
+      "newbie": [
+        "they got away :( {who}...",
+        "is it over?? is it safe??",
+        "will they come back for us??"
+      ],
+      "pvp_sweat": [
+        "next time i see {player}, it's over",
+        "{player} is a dead name walking",
+        "im hunting them down"
+      ],
+      "helper": [
+        "everyone ok? stay close tonight",
+        "lets hold a service for {who}",
+        "nobody walks alone, ok?"
+      ],
+      "hermit": [
+        "{who}. gone. just like that.",
+        "...{who} deserved peace.",
+        "and the world turns on."
+      ],
+      "casual": [
+        "bro just left. wild",
+        "bro this is so messed up"
+      ],
+      "homebody": [
+        "im not leaving the house for a week",
+        "doors barricaded"
+      ],
+      "builder": [
+        "ill build {who} a proper grave",
+        "a statue for {who}. ill make it"
+      ],
+      "bandit": [
+        "even id hunt {player} for that",
+        "thats a bounty im taking"
+      ],
+      "nomad": [
+        "theyll be miles away by dawn",
+        "this town needs to move on"
+      ]
+    },
+    "crime.got_away.massacre": {
+      "any": [
+        "they're gone... for now",
+        "is it over?",
+        "how many did we lose",
+        "{player} got away. after all that",
+        "we have to do something about {player}",
+        "they're gone. so many gone",
+        "nobody stopped them",
+        "count the survivors",
+        "the whole street...",
+        "we couldnt do anything",
+        "they just left. after all that",
+        "this town will never be the same",
+        "what do we do now",
+        "we need help from the other towns",
+        "{player} has to pay for this"
+      ],
+      "newbie": [
+        "is it over?? please be over",
+        "is it really over??",
+        "i hid the whole time..."
+      ],
+      "hermit": [
+        "...quiet now. too quiet.",
+        "...the silence is worse."
+      ],
+      "helper": [
+        "help the hurt first, then the rest",
+        "everyone gather in the square",
+        "well get through this together"
+      ],
+      "pvp_sweat": [
+        "im hunting {player}. alone if i have to",
+        "every last one of them will be paid back"
+      ],
+      "homebody": [
+        "im never going outside again",
+        "keep the doors shut. all night"
+      ],
+      "bandit": [
+        "{player} is no outlaw. just a monster",
+        "every bounty board will have that face"
+      ],
+      "casual": [
+        "bro... thats so many people",
+        "nah this town is cursed"
+      ],
+      "nomad": [
+        "this place is finished. im leaving",
+        "ill warn the next town"
+      ]
+    },
+    "crime.got_away.wanted": {
+      "any": [
+        "and they're gone again",
+        "slipped away. again",
+        "{player} got away. again",
+        "lost them again",
+        "gone. AGAIN",
+        "how do they keep doing that",
+        "the bounty goes up then",
+        "slippery as ever",
+        "lost them in the crowd",
+        "someone update the poster",
+        "they always get away",
+        "next time, {player}"
+      ],
+      "pvp_sweat": [
+        "that bounty was mine",
+        "how did they outrun me"
+      ],
+      "casual": [
+        "bro escaped AGAIN",
+        "bro is uncatchable lmao"
+      ],
+      "bandit": [
+        "slippery. respect",
+        "thats how legends are made"
+      ],
+      "hermit": [
+        "...theyll be back.",
+        "same as last time."
+      ],
+      "helper": [
+        "lets warn the next towns",
+        "everyone stay alert"
+      ],
+      "homebody": [
+        "theyll come back. i know it",
+        "staying in for a while"
+      ],
+      "newbie": [
+        "how do they keep escaping??",
+        "are they ever gonna get caught?"
+      ]
+    },
+    "crime.got_away.crook": {
+      "any": [
+        "{player} got away with it",
+        "and {player}'s gone. figures",
+        "we'll deal with {player} later",
+        "{player} ran off",
+        "and {player}'s gone with the stuff",
+        "lost {player}",
+        "{player} wont show their face here again",
+        "we trusted {player}...",
+        "so {player} just leaves, huh"
+      ],
+      "hoarder": [
+        "{player} better not come back",
+        "my chests are getting new locks"
+      ],
+      "helper": [
+        "{player} might come back to say sorry",
+        "well help replace what was taken"
+      ],
+      "hermit": [
+        "{player}. always knew.",
+        "neighbors. never again."
+      ],
+      "bandit": [
+        "{player} learned from the best lol",
+        "clean getaway, {player}"
+      ],
+      "casual": [
+        "{player} really dipped lmao",
+        "{player} ran like a cartoon thief"
+      ],
+      "newbie": [
+        "is {player} not gonna live here anymore??",
+        "wait where did {player} go"
+      ]
+    }
+  }
+}

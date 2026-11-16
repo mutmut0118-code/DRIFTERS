@@ -4154,6 +4154,75 @@ In a town of a morning, listen to the crier on the plaza:
 5. "u need help?": "yeah, <what it needs>" or "im good".
 6. "got you" after a Drifter gives you a word to carry: an okay, not "lost me there".
 
+## 0.23.74-side.2: war marches that know the way (new)
+
+Your notes: the leader "stop[s] at random places at town", "they dont use the road", "make sure its on a direct continuous
+path", sneaking only "when they get to the enemy city". Works in your existing world too (no new world needed).
+
+Start a war: stand in a town, type `/drifterciv relations war <other town>` (tab completes the names). To follow the leader:
+`/drifterciv town spot leader` puts you next to it, then `/gamemode spectator` and stay near it. `/drifter wars` shows the
+raid's stage, where the leader is, how far from the target and how many are with it.
+
+1. **The crowd answers the war speech.** Stand in the plaza while the leader speaks. Questions ("you with me?") get a few
+   answers ("with you!", "yeah!!"), battle cries get cheered, the last line gets a roar from many at once. Sometimes
+   someone gets nervous and is reassured, or a joker heckles. The speech itself is far more varied now.
+2. **Off at once, the right way.** When the speech ends the leader sets off straight away (no fetching its horse first)
+   and walks out of its town **along the town's own streets** to where the road to the other town begins. It doesn't
+   wander about town, cut through gardens and bushes, or row a boat across a river.
+3. **Along the road, without stopping.** It keeps walking steadily, stretch after stretch, no little pauses. If it ever
+   gets off the road (say a river where the bridge isn't built yet: it swims), it heads back to the road.
+4. **The band behind it.** The others walk behind the leader in a loose column (not crowding in front of it); someone
+   who falls behind runs to catch up. The leader only stops for them when most of the band is far behind (over 40
+   blocks), at most once every minute and a half; it thinks "waiting for the others to catch up" (in the log).
+5. **No sneaking on the way.** Nobody crouches along the road or through town, even beside drops or on bridges. About 80
+   blocks from the other town's store they **creep up** on it (sneaking), then the war cry and the charge.
+6. **Home along the roads.** After the raid they head home the whole way at once, along the roads.
+7. Debug, from where you stand: `/drifterciv route <x> <z>` says the way a Drifter would take there: "out along N street
+   points, along the roads, ... blocks". Before this build, many trips between towns found no road (a road that began far
+   out from a city wasn't joined to it), and went straight across country.
+
+Not checked: the speed on a fully built road (the test world had only part of its roads built; on unbuilt stretches they
+walk the planned line over raw ground, about half as fast).
+
+## 0.23.74-side.1 (installed 2026-11-16; the main line 0.23.74 merged in)
+
+1. Take a "bring me" job from a townsperson who needs bone meal: it says "16 bone meal", not "bone meals".
+2. Start a war (`/drifterciv relations war <other town>` standing in a town) and stand in its plaza while the leader
+   gives its speech: nobody nearby chats about other things over it.
+3. A line like "if i fall, keep going. finish it" comes as one message, never "if i fall" alone.
+4. Listen to two Drifters chatting for a while: a happy chat ("you look happy", "slept great") never turns straight to
+   someone's dead pet, and a sad one never turns straight to a joke.
+5. A Drifter whose name tag in your journal says "Wary of you" doesn't come over to say hi. One that does say hi stays
+   friendly through the chat.
+6. Brushed off ("find someone else")? Say "damn okay": a friendly one says sorry ("haha sorry, long day"), a cold one
+   "mhm".
+7. Get fined (take a town's horse with someone watching), then toss the coins a few at a time: it says what's left, no
+   "ty ty", and no chatting after "now go". The guard says "for stealing a horse".
+8. **Crime scenes.** Steal from a chest, take a horse, trample a farm or ring the bell for nothing with townsfolk around:
+   whoever saw it shouts, then one to three others join in, each in their own way ("somebody stop them!", "omg omg omg",
+   "lol respect", "MY CHESTS"). Ride off and stay away half a minute: someone says "they got away :(". Two who were chatting
+   go back to it with "anyway". Killings get the biggest scenes. Test quickly with `/drifterciv town crime horse` (or theft,
+   farms, livestock, peace, blood, scene_murder, scene_massacre, scene_wanted) standing in a town.
+
+9. **Ask about a town's story.** Ask someone "tell me about this town", let them finish, then ask about what they said:
+   "who founded it?", "who's that?", "who was <a name they said>?", "what happened in the war?", "why?", "when was
+   that?", "tell me more", "what about <another town>?". Each gets a real answer from the town's history, sometimes over
+   a few messages. (Towns made with the world have the most history.)
+
+## 0.23.70-side.1
+
+1. A Drifter that knows you (one you've talked with, or done a job for) never says "i dont even know you" or "who are you".
+2. Back with whoever gave you a word to carry: "i told him" or "passed it on" hands it in.
+3. "thank yo" is a thanks.
+4. Shout the name of a Drifter who's far away ("2 JELLY!"): nobody close by answers.
+5. In a town, ask someone "tell me about this town" or "whats the history of this place". They tell it in several
+   messages: when it was founded (towns made with the world are old), something from its past, how it is now, how they
+   feel. Say something else partway: they stop.
+6. "nice to meet you": "you too".
+7. "got any food?", then "can i have some?": it's about food (yes or no), not "need what?".
+8. Shout a Drifter's name from far off ("JELLY!"): it calls back.
+9. Take a notice off the board, then tell its poster "i got your <thing>": "toss it over" (Q to throw it), or "you dont
+   have it on you" if you don't.
 ## 0.23.70: place and nation names (new)
 
 In a **new world**.

@@ -93,12 +93,17 @@ public final class Legs {
 
 	/** The same, at this pace (a war's leader marches at a walk, its band round it). */
 	public static Task toward(DrifterEntity drifter, BlockPos to, double near, String what, NavigateTask.Pace pace) {
+		return toward(drifter, to, near, what, pace, true);
+	}
+
+	/** The same; {@code mayFetchHorse} false: on foot (a war band marches together, its leader with it). */
+	public static Task toward(DrifterEntity drifter, BlockPos to, double near, String what, NavigateTask.Pace pace, boolean mayFetchHorse) {
 		Vec3 from = drifter.position();
 		double distance = Math.hypot(to.getX() + 0.5 - from.x, to.getZ() + 0.5 - from.z);
 		// (Far: its horse from the stable first, if it keeps one; its walk then rides it.)
 		// (No horse of its own: one bought at the stable here first, if there's one for sale and it has the money.)
-		Task horse = distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP ? com.dinglebob.drifter.skills.StableGoal.buy(drifter, distance) : null;
-		if (horse == null && distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP) {
+		Task horse = mayFetchHorse && distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP ? com.dinglebob.drifter.skills.StableGoal.buy(drifter, distance) : null;
+		if (horse == null && mayFetchHorse && distance >= com.dinglebob.drifter.skills.StableGoal.RIDE_TRIP) {
 			horse = com.dinglebob.drifter.skills.StableGoal.fetch(drifter, distance);
 		}
 

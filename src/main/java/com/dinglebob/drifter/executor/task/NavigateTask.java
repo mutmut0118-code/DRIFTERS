@@ -193,6 +193,29 @@ public class NavigateTask extends Task {
 
 	/** Follows an entity, keeping within {@code radius}, until cancelled. */
 	public static NavigateTask follow(DrifterEntity drifter, Entity entity, double radius) {
+		return follow(drifter, entity, radius, Pace.TRAVEL);
+	}
+
+	/**
+	 * Follows a leader at this pace, keeping {@code behind} blocks behind it the way it's going (a war band at its leader's
+	 * back, not crowding the way in front of it: 39 of them aiming just ahead of their leader held it in its plaza for 40
+	 * seconds, a test of it). Out of sight, where it was last seen.
+	 */
+	public static NavigateTask followBehind(DrifterEntity drifter, Entity entity, double radius, Pace pace, double behind) {
+		return new NavigateTask(drifter, () -> {
+			var awareness = drifter.getSenses().awarenessOf(entity);
+			if (awareness != null && !awareness.visibleNow && awareness.lastSeenPos != null) {
+				return awareness.lastSeenPos;
+			}
+
+			Vec3 moving = entity.getDeltaMovement().multiply(1.0, 0.0, 1.0);
+			Vec3 way = moving.lengthSqr() > 1.0E-4 ? moving.normalize() : Vec3.directionFromRotation(0.0F, entity.getYRot());
+			return entity.position().subtract(way.scale(behind));
+		}, radius, "follow " + entity.getName().getString(), true, entity, pace);
+	}
+
+	/** The same, at this pace (a war band walking with its leader). */
+	public static NavigateTask follow(DrifterEntity drifter, Entity entity, double radius, Pace pace) {
 		// Where it is while in sight; out of sight, where it was last seen (it doesn't know more: knowledge only through
 		// perception, section 1).
 		return new NavigateTask(drifter, () -> {
@@ -202,7 +225,7 @@ public class NavigateTask extends Task {
 			}
 
 			return entity.position().add(entity.getDeltaMovement().scale(CHASE_PREDICT_TICKS));
-		}, radius, "follow " + entity.getName().getString(), true, entity, Pace.TRAVEL);
+		}, radius, "follow " + entity.getName().getString(), true, entity, pace);
 	}
 
 	@Override
@@ -1195,6 +1218,7 @@ public class NavigateTask extends Task {
 					this.drifter.getMemory().onTrail(this.feet());
 				}
 
+				this.passedThrough = this.through;
 				return Status.SUCCESS;
 			}
 
@@ -1353,7 +1377,7 @@ public class NavigateTask extends Task {
 		if (status == PathSearch.Status.RUNNING) {
 			waitingTicks++;
 			// Thinking on the move only for a moment; a long think happens standing still.
-			if (++this.planningTicks == MAX_PLAN_ON_THE_MOVE_TICKS || this.level().dimensionType().ultraWarm()) {
+			if (++this.planningTicks == (this.through ? MAX_PLAN_THROUGH_TICKS : MAX_PLAN_ON_THE_MOVE_TICKS) || this.level().dimensionType().ultraWarm()) {
 				this.releaseKeys();
 			} else {
 				this.keepSafe();
@@ -2115,6 +2139,33 @@ public class NavigateTask extends Task {
 		return true;
 	}
 
+	/**
+	 * Walking or running on a road between towns or a street (a made way: a path, packed mud, gravel, cobbles, bricks, a
+	 * bridge), not hopping along: a way made to go along, as a player does without creeping at its sides (a war band's
+	 * runners crept at every drop beside a hillside road and never caught up with their leader; a test of it).
+	 */
+	private boolean walkingAWay() {
+		if (this.pace == Pace.SNEAK || this.hopping || !this.drifter.onGround()) {
+			return false;
+		}
+
+		BlockPos feet = this.feet();
+		if (!feet.equals(this.wayCheckedAt)) {
+			this.wayCheckedAt = feet;
+			BlockState under = this.level().getBlockState(feet.below());
+			String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(under.getBlock()).getPath();
+			this.onAWay = id.contains("path") || id.contains("packed_mud") || id.contains("gravel") || id.contains("cobblestone") || id.contains("brick")
+				|| id.contains("rooted_dirt") || id.contains("coarse_dirt") || id.contains("planks") || under.is(net.minecraft.tags.BlockTags.LOGS)
+				|| id.contains("slab") || com.dinglebob.drifter.nav.Legs.onRoad(feet);
+		}
+
+		return this.onAWay;
+	}
+
+	@Nullable
+	private BlockPos wayCheckedAt;
+	private boolean onAWay;
+
 	/** Is there a deep drop right beside where it stands or where it's heading? Then it sneaks, like a player. */
 	private boolean nearDeepDrop() {
 		BlockPos here = this.feet();
@@ -2345,7 +2396,10 @@ public class NavigateTask extends Task {
 			this.drifter.getCamera().track(Vec3.atBottomCenterOf(next.to()).add(0.0, 1.2, 0.0), CameraModel.TurnSpeed.NORMAL);
 		}
 
-		boolean nearEdge = !intentionalDrop && !wet && !runUp && this.nearDeepDrop();
+		// (Not on a road or a street, though: a drop beside a road on a hillside or a bridge's side is no cause to creep the way
+		// along; the user, 2026-11-16, of a war band sneaking on its way: "they should only do that when they get to the enemy
+		// city".)
+		boolean nearEdge = !intentionalDrop && !wet && !runUp && (this.isDeepDrop(this.feet()) || !this.walkingAWay() && this.nearDeepDrop());
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
 		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
@@ -2936,8 +2990,26 @@ public class NavigateTask extends Task {
 		}
 
 		this.stopSub();
-		this.releaseKeys();
+		// (A stretch of a longer trip, got to: still walking, for the next stretch to pick up on the move. The head is let go
+		// of all the same: it looks on the way it was going, not back at the point it has just passed.)
+		if (!this.passedThrough) {
+			this.releaseKeys();
+		}
+
 		this.drifter.getCamera().clearTarget();
 		this.drifter.setDebugPath(List.of(), 0);
+	}
+
+	/** One stretch of a longer trip ({@link com.dinglebob.drifter.nav.March}): it walks on through its end, and plans on the move longer. */
+	private boolean through;
+	/** It got to the end of such a stretch (the keys stay down as it stops). */
+	private boolean passedThrough;
+	/** Planning on the move this long at most, on such a stretch (it's walking a way it knows, straight on meanwhile). */
+	private static final int MAX_PLAN_THROUGH_TICKS = 30;
+
+	/** This walk is one stretch of a longer trip: no stop at its end, the next stretch picks up on the move. */
+	public NavigateTask through() {
+		this.through = true;
+		return this;
 	}
 }

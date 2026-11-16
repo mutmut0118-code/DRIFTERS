@@ -18,6 +18,13 @@
       "builder": ["anyway"],
       "pvp_sweat": ["whatever. anyway", "anyway"]
     },
+    "talk.aside_back": {
+      "any": ["anyway", "anyway. where were we", "sorry, anyway", "ok anyway", "...anyway", "anyway, back to it", "where was i. right", "ok, as i was saying"],
+      "casual": ["lol anyway", "ok anyway lol"],
+      "hermit": ["...anyway."],
+      "newbie": ["sorry!! anyway"],
+      "speedrunner": ["anyway."]
+    },
     "talk.resume": {
       "any": ["anyway, about the {about}", "so where were we. {about}", "ok back to the {about} thing", "as i was saying", "sorry about that. anyway", "ok where was i", "back. so"],
       "casual": ["ok im back lol. anyway", "lol ok where were we"],

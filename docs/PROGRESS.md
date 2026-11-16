@@ -4,6 +4,49 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## War marches that know the way: 0.23.74-side.2 (2026-11-16, branch `claude/trusting-lumiere-a5654c`)
+
+The user (in play): a war's leader "is a bit clueless ... they stop at random places at town, i never seen them go outside
+the town ... i dont like the little pauses", then "they dont use the road", "make sure its on a direct continuous path",
+and sneaking "only ... when they get to the enemy city". Reproduced in a dev client (roads2 world, Redhaven raiding
+Ironhollow, 909 blocks): 100 blocks in two minutes, still inside its city, a 10 s look-around every stretch or two.
+
+**Causes found:**
+- **No road route.** `Routes` joined a city to road points within its reach + 24 (174 blocks) only; the plan starts a
+  city's roads past its reach, sometimes 200 out. Roads sharing a way are cut off up to 10 blocks from each other (the
+  plan's `SHARE`, more where a short piece was dropped), but were joined within 5 only. Redhaven to Ironhollow came out
+  at 4,848 blocks along the roads, over `DETOUR`, so straight across country, through bushes, over a river by boat
+  (the band left behind), and off the roads it never found them again (`JOIN` 64).
+- **Stops between stretches.** Each 32-block stretch (`Legs.STRETCH`) was a `NavigateTask` that let go of the keys at
+  its end; the next one planned from a standstill.
+- **Pauses for stragglers.** The leader stood 10 s whenever any one raider was 24+ blocks behind (in its own town,
+  everyone still coming from the fields), again after every stretch.
+- **The band in the way.** Members aimed at the leader (or just ahead of it): 39 crowded its front for 40 s.
+- **Sneaking.** Every walk crouched beside any 4+ block drop: hillside roads, bridges, terraced streets.
+
+**Done:**
+- `Routes`: each road's town ends joined to that town by the plan's ids, however far out; roads joined within 12
+  (`LINK`); a loose road end joined to the nearest road within 40; off the roads, a road up to 192 off sought (the way
+  to it counted double); the way through the towns at both ends along their own streets (`Town.roadColumns`, a
+  breadth-first field per town and goal, cached), meeting the road within 128 (`Highways.MEET_WITHIN`). Redhaven to
+  Ironhollow: 1,348 blocks, 42 street points out. `/drifterciv route` says how many street points and why none.
+- `nav/March` (new): a whole trip as one activity, its `Legs` stretches one after another, each a
+  `NavigateTask.through()` (keys kept down at its end, planning on the move up to 30 ticks); `mayRide()` fetches the
+  horse first (war marches don't). `Legs.toward(..., mayFetchHorse)` overload.
+- `WarGoals`: the leader marches with `March` (`STROLL`); halts only when most of the band is 40+ behind
+  (`FALLEN_BEHIND`), at most every 90 s; creeps (`SNEAK`) for the last 80 blocks (`CREEP`), then the charge; the band
+  follows behind it, a few blocks apart (`NavigateTask.followBehind`), running when 18+ behind; the retreat is one
+  `March`; a new raid phase starts its step at once (`rethink`).
+- `NavigateTask`: no edge-sneaking on a made way (road between towns or a street's blocks) when walking or running.
+- Client test, after: off the moment the speech ended, Redhaven's streets at full walking speed, swam the river (its
+  bridge not built in that world), the road west the whole way, crept up, charged at 46 blocks: 915 blocks in 10 min.
+  On unbuilt road stretches it walked at about half speed (raw ground on the planned line).
+
+**Half-done / next:** the band still strings out on rough ground (15 to 25 of 35 within 24 blocks of the leader); the
+halt tuning (40 blocks, 90 s) checked in one more client run: 6 halts instead of 8 on the same march, 909 to 47 blocks in 10 min. Coordinate with the horse culture
+session (uncommitted in the main checkout): it changes `NavigateTask` ride code and `Legs.toward`'s returns; this branch
+adds `NavigateTask.through/followBehind/walkingAWay` and a `Legs.toward` overload. Merge it in when it lands.
+
 ## Towns and roads in the far view (paper towns): built for Voxy and Distant Horizons, 0.23.63-side.2 (2026-11-14)
 
 Design `docs/superpowers/specs/2026-11-14-lod-towns-design.md`, plan `docs/superpowers/plans/2026-11-14-lod-towns.md`,
@@ -7269,3 +7312,122 @@ From the user's play screenshots (2026-11-15: HeyNimbus, piggy270, Dino_yt):
   there").
 
 Not tested in game; headless: each of these, and the 90 ways of asking in `tools/smoke-loose.txt` as before.
+
+## 0.23.70-side.1 (installed 2026-11-15)
+
+From play screenshots:
+
+- "i dont even know you" (and "who are you", "never met you", "have we met"...) isn't said to a player it knows (met a few
+  times, or trusted): found in play from Dino_yt, who'd given them a job. Any line of an answer, by pattern (PlayerTalk.met).
+- "i told him", "told her", "passed it on", "let them know", "took care of it" hand in a word (Quests.SAYS_DONE). "i told
+  him" was "lost me there".
+- "thank yo" (and "thnks", "thanx", "thankyou") is a thanks: it got "hi there" (the "yo").
+- A far-off Drifter's name shouted ("2 JELLY!", it not loaded): nobody close by answers it (it was "didnt catch that").
+  Every Drifter of the world counts, loaded or not; "2 jelly" as one word too.
+
+Headless tested: tools/smoke-playertalk-knows.txt, tools/smoke-playertalk-farname.txt.
+- **A town's story** (`TownStory`; the user, 2026-11-15: "i want to have actual history behind these towns. but since every
+  town is loaded everyone thinks its new. i want this to be a 3+ part conversation where a drifter can yap"): "tell me about
+  this town" ("whats the history of this place", "how old is this town", "who founded this town", "lore") is told in 3 to
+  6 lines, one after another as typed: when it was founded (a town made with the world goes back to its past, W6: "about
+  6 years") and by whom when the chronicle says; one or two things from its past (a town taken, burned, rising up, a
+  ruler fallen in war; else its nation's wars; this year's said as recent, not "old folks still talk about it"; everyday
+  doings left out); how it is now (its leader, or itself if it leads, its people, its character, its nation); one of its
+  customs; how the teller feels about it. Itself in the story is "i". It stops if they say something else or walk off.
+  Lines in `drifter_civ/drifter_chat/town_story.json`, every personality its own.
+- Fixed a crash: a line said that starts another line (the story's) changed the list of replies being gone through.
+- "nice to meet you, im muto" gets "you too" / "likewise" (and they've met); it was "thank you" (the "nice").
+- "got any food?" ... "can i have some?" is food (it was "need what?"); "food" asked for finds its food (it said "none,
+  sorry" right after "plenty of food": "food" is read "fod").
+- "i like your pickaxe", "love the armor": the gear talk's (thanks for what it has, "what pickaxe?" for what it hasn't);
+  its "a {what}" lines say "a pickaxe", "an axe", "any boots". (0.23.69-side.4's own compliment check for these taken back
+  out: the gear talk already did it.)
+- Its name shouted ("2JELLY!", with a "!" or in capitals) is heard 64 blocks off, and it calls back ("who said my
+  name?"); said plainly it's 32.
+- "i got your white bed!" ("for the notice", "i have the paper") to whoever put up that notice, or asked them to bring it:
+  "toss it over" if they carry it, "toss what you got, need 3 in all", or "you dont have it on you" (it was "none spare.
+  and my bed is mine", as asking it for one). Things are handed over by tossing them.
+
+Headless tested: tools/smoke-town-story.txt (a town made ready), the shout and the notice talk (a town with notices), and
+tools/smoke-playertalk-day.txt.
+
+## 0.23.74-side.1 (installed 2026-11-16; the main line 0.23.74 merged in)
+
+From a play screenshot (a war speech, a quest):
+
+- Item names said as many follow one rule now (`Lines.plural`, `TalkApi.plural`; quests, notices, words, deals): "16 bone
+  meal" (it was "16 bone meals"), "torches", "potatoes", "bookshelves", "rabbit feet", "gunpowder", "redstone dust".
+- A leader's war speech is heard out: Drifters within chat range of it don't start idle lines or carry on their talks
+  till it's done (`WarGoals.hushedBySpeech`). Found in play: "everyone stop talking for one sec", then two went on about
+  cows.
+- A line starting "if", "when", "once", "unless", "because"... isn't split in two at its comma (`Typing.leadsOn`): "if i
+  fall" came alone, another's line, then "keep going. finish it".
+
+- A talk between Drifters doesn't turn from a good mood to a death, or from a death to a joke, when it moves on to the
+  next topic (`Conversations.clash`: grim topics are tagged death/grief/loss, glad ones happiness/jokes/silly/brag/roasts...
+  or "happy"/"good mood" in what they're about; a topic's own "next" still goes). Found in play: "you look happy" "slept
+  great" "heh", then "i miss my dog. he'd sit by the door". Of the 1,090 topics the happy one leads to, 65 were grim;
+  now none. (Talks don't run headless; checked against the topic files.)
+
+- A talk a Drifter opened itself ("hi stranger", now "im sabrina, nice to meet you", not "sabrina, nice to meet you") keeps
+  that friendly mood; and one that would be cold with them (wary: a shy one's start with strangers is below trust 0, "Wary
+  of you" in the journal; in a temper; insulted) doesn't come over and say hi at all (`PlayerChats`, `PlayerConvo.opened`,
+  `coldWhy`; a thought says why a talk is cold). Found in play: Sabrina came over all "nice to meet you", then "noted",
+  "fine. why", "find someone else".
+- "damn okay", "wow ok", "ok then", "sorry for asking", "no need to be rude": being brushed off (`brushed`): "haha sorry,
+  long day" (cold: "mhm", "bye then"). It was "yes", or "believe it or dont" (a "wow").
+- A fine paid by tossing coins: no "ty ty" for the first part (it says what's left: "keep going. 20 silver left"), and no
+  chat after "the town thanks you. now go" (`SocialWatcher.notAGift`). The guard names the crime as it was ("stealing a
+  horse", not "harming the farms").
+- Something said outside a Drifter talk (a shout at a crime, an answer to a player) pauses that talk, then it picks it
+  back up: "sorry, anyway" (`Conversations.aside`). Crime shouts are to everyone, not "[to pancakes]".
+- **Crime scenes** (`CrimeScene`; the user: "a 2 to 4 part chat ... somebody stop them! / are you seeing this?? / get him!!
+  / he got away :( / anyway", then "expand this to the rest of the crimes ... variations for lines for different
+  personalities / gta style"): the one who saw it shouts, one to three others near (24 blocks, 40 for a killing) join in
+  a few seconds apart, each as its kind would (newbie panics, bandit's impressed, sweat wants a go, helper calms everyone,
+  hoarder: "MY CHESTS"); half a minute on, if they've gone off and not paid, "they got away :(". Every crime: theft, horse,
+  farms, animals, false alarm, a dead one's armor, killing, massacre, someone wanted back, and Drifters' own (a crook's
+  theft, a fight). 351 lines in `drifter_civ/drifter_chat/crime_scene.json`. `/drifterciv town crime <kind>` works from
+  the console now (a stand-in player), with horse, livestock, peace, blood and scene_murder / scene_massacre / scene_wanted.
+
+- Crime scene lines tripled: 1,135 in `crime_scene.json` (every key about 3x, 6 or more personalities each).
+- **Asking about a town's story** (`TownStoryAsk`; the user, 2026-11-16, from the follow-up idea): for 4 minutes after a
+  Drifter tells its town's story, the one it told can ask about what it said, and it goes deeper, a line or a few at a
+  time (stopped like the story): who founded it ("who founded it?": them, then the first of them as asked after, itself as
+  "me"); who someone was ("who was mason?", "who's that", "tell me about sabrina": where they are or that they're gone,
+  what the chronicle says of them, how it feels about them); what happened ("what happened in the war?", "the fire?": what
+  set it off, it, what came of it); "why" and "when" of the last thing told; "tell me more" (up to 8 more things it
+  hadn't got to); any town or nation ("what about rivalton?"). Lines in `town_story.json` (town.story.ask.*).
+- The story itself: today's wars and peace count in its past ("earlier today, Storyford declared war on Rivalton"); towns
+  "founded by A and B" are told with their founders (they were nobody's); one that founded it says "me and A founded it",
+  not its own name; "A and B was the first ruler" no more.
+- `/drifter hear` from the console turns to the nearest one (with others close, unnamed, it went to nobody).
+
+Headless: tools/smoke-town-story-ask.txt (two towns, a war and peace, the story, then each question: all answered from
+the chronicle). Seen in passing, not this branch's: a town crier reads the chronicle's headlines in among the story.
+
+Headless: tools/smoke-crime-scene.txt (a horse, a false alarm, a killing, the animals: shouted, joined in, "they got away",
+"sorry, anyway" from one who was talking), tools/smoke-playertalk-wary.txt, tools/smoke-talk-aside.txt. Not headless (needs
+you): the fine by tossed coins, a wary Drifter not saying hi. Seen in passing, not this branch's: the crier's headlines
+come out in the middle of other lines.
+
+Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with nothing between; idle chatter doesn't
+run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
+"hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).
+
+## Next build (not built yet)
+
+- **The crowd answers the war speech** (`WarCrowd`; the user, 2026-11-16: "replies during the war rally? ex: we're not
+  losing anyone, got it? and twelve people say got it!/yea!/right!!", then "every idea sounds great, we gonna make it
+  dynamic"). Not every line: a question gets 2-4 answers ("got it!", "yeah!!"), a battle cry is cheered and echoed, a
+  heartfelt line now and then a murmur ("we remember"), the closing line a roar from half the raiders (at most 8). Once a
+  speech maybe a nervous one ("what if they hit us back home") steadied by a neighbour or the leader, or a joker ("W chat")
+  shushed. Staggered as typed; the same one seldom twice running. Each answers in its own voice. 352 lines in
+  `drifter/drifter_chat/war_crowd.json`.
+- **The war speech itself, bigger and mixed**: between its first and last line the leader now says plain lines mostly,
+  and up to 3 questions (`war.speech_ask`, never two running) and 3 cries (`war.speech_cry`). war.speech_open 50 -> 126
+  lines, war.speech 74 -> 262, war.speech_close 52 -> 113, war.speech_ask 95 (new), war.speech_cry 93 (new); every
+  personality its own.
+
+Headless: tools/smoke-war-speech.txt (two towns, war: the speech with cheers, a nervous one steadied, a joker, a roar of
+four at the end).

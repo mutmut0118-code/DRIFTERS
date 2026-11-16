@@ -73,7 +73,7 @@ final class TownTalk {
 	}
 
 	@Nullable
-	private static String leader(Town town) {
+	static String leader(Town town) {
 		DrifterGroups.Group group = town.group == null ? null : DrifterApi.groupById(town.group);
 		UUID leader = town.leader != null ? town.leader : group == null ? null : group.leader;
 		return leader == null || group == null ? null : group.names.get(leader);
@@ -254,8 +254,12 @@ final class TownTalk {
 					: count < 45 ? "thirty or forty" : "loads");
 			}
 			case "town_story" -> {
-				long age = Math.max(0, day - town.foundedDay);
-				say(drifter, player, age < 3 ? "town.talk.story.new" : "town.talk.story", null, "days", age);
+				// (Its story, in a few lines: its past, how it is now. Found in play: a town made with the world, "new. so much
+				// left to build".)
+				if (!TownStory.tell(drifter, player, town)) {
+					long age = Math.max(0, day - town.foundedDay);
+					say(drifter, player, age < 3 ? "town.talk.story.new" : "town.talk.story", null, "days", age);
+				}
 			}
 			case "where_shop" -> where(drifter, player, town, "shop", "the stall");
 			case "where_smith" -> where(drifter, player, town, "smith", "the smith");
