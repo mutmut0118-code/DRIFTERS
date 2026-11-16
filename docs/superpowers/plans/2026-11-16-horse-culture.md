@@ -57,13 +57,15 @@ Modonomicon) only in the dev `run/mods` and the user's pack.
   `bh_getCartEntity()`, `bh_bindCartEntity(HorseCartEntity)`), `icy.betterhorses.net.entity.HorseCartEntity`.
 - Produces: findings that settle Tasks 4 and 8: (a) does Icy's bond grow when a Drifter owner rides; (b) the horse's
   favourite-treat field and how to read it; (c) how a cart is made, hitched to a horse, given a chest, and sat in by a
-  player; (d) whether a Drifter riding a hitched horse moves the cart.
+  player; (d) whether a Drifter riding a hitched horse moves the cart; (e) how Icy's gaits work (`bh_getGaitGear()`,
+  `bh_setGaitGear(int)`: which numbers are walk, trot, canter, gallop; whether a non-player rider's keys follow the gait).
 
 - [ ] **Step 1:** Copy Icy's, GeckoLib and Modonomicon jars from `C:\Users\mutmu\AppData\Roaming\ModrinthApp\profiles\DRIFTER TEST\mods` to `run/mods` (not committed).
 - [ ] **Step 2:** In the flat `run/saves/lamps` world (copy it): summon an Icy horse (`/summon icys-better-horses:thoroughbred_horse`), make the nearest Drifter its owner by reflection (`bh_setOwner(drifter UUID)`), saddle it, `/drifter goto ~200 ~ ~`; log `bh_getBond()` before and after.
 - [ ] **Step 3:** Make a cart (two wheels, Icy's recipe, or `/give` it), hitch it to a horse ridden by a Drifter, sit the player in the cart, `/drifter goto ~100 ~ ~`; screenshot; note whether the cart follows and the player rides along.
 - [ ] **Step 4:** Read the bond and treat fields named in Icy's `feature/Bonding` (`treat`, `treatKnown`) by reflection; note how a favourite is found.
-- [ ] **Step 5:** Write the four findings into the spec's "Spike findings" section; commit the spec only.
+- [ ] **Step 4b:** Set the ridden horse's gait gear to each value in turn while the Drifter rides; note its speed and the animation for each (screenshots).
+- [ ] **Step 5:** Write the five findings into the spec's "Spike findings" section; commit the spec only.
 
 ### Task 2: The Icy's adapter (Drifter)
 
@@ -124,6 +126,29 @@ Modonomicon) only in the dev `run/mods` and the user's pack.
 - [ ] **Step 2:** Run it before the change: note the bond (unchanged, if Icy's doesn't count Drifters) and no grief.
 - [ ] **Step 3:** Implement the treats (favourite learned by trying the treats it has, one a day; a brush now and then; a name tag once, naming it), the riding credit (Icy's own rate and cap), never hitting its own horse, and the loss event, mood and chronicle line.
 - [ ] **Step 4:** Re-run: bond up; the treat given; after the kill, "lost its horse <name>" in the chronicle, sad thoughts; the stall freed (`DrifterBrain.setHorse(null, null)`).
+- [ ] **Step 5:** Commit.
+
+### Task 4b: Gaits: walk, trot, canter, gallop (Drifter)
+
+(The user, 2026-11-16: "trot, all the way to gallop ... a drifter trotting into town ... a group of drifters trotting to
+another town, no urgency ... a chase between two drifters with the gallop mechanic".)
+
+**Files:**
+- Modify: `src/main/java/com/dinglebob/drifter/compat/IcyHorses.java` (`int gait(AbstractHorse)`, `void setGait(AbstractHorse, Gait)`)
+- Modify: `src/main/java/com/dinglebob/drifter/executor/task/RideTask.java` (the gait for the moment)
+- Create: `src/main/java/com/dinglebob/drifter/skills/Gait.java` (`enum Gait { WALK, TROT, CANTER, GALLOP }`, `static Gait choose(DrifterEntity rider, ...)`)
+
+**Interfaces:**
+- Consumes: Task 1 finding (e).
+- Produces: `Gait.choose(rider, inTown, urgent, chasing, fleeing, companions)`: WALK within a town's land and the last 32
+  blocks of a ride; TROT on the road, no hurry (a group rides at the slowest of them, side by side); CANTER on an errand
+  that's late or a courier; GALLOP chasing or chased (`Pursuit`, fleeing on horseback), called to war or to the alarm.
+  Without Icy's: vanilla has no gaits; the same choice sets how hard it rides (walk keys vs sprint).
+
+- [ ] **Step 1:** Test script: a rider sent 300 blocks along a road into a town (screenshots on the road and coming in); a group of three sent together; a chase: one Drifter on horseback made to flee from another (`/drifter` debug pursuit) on horses.
+- [ ] **Step 2:** Run before the change: every rider at the same pace.
+- [ ] **Step 3:** Implement `Gait` and the choice in `RideTask` (set once per change, not every tick).
+- [ ] **Step 4:** Re-run: trotting on the road, walking into town; the group together at a trot; the chase at a gallop. Screenshots for the user.
 - [ ] **Step 5:** Commit.
 
 ### Task 5: Leaving the horse at the arriving town's stable (Drifter + addon)

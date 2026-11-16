@@ -140,6 +140,13 @@ a walk of 80 blocks or more, the horse within 16. Builder's check, settled.)
 - On foot otherwise, and inside its town (short trips).
 - Riding uses the roads (they cost less to walk on in its routes already; a horse keeps to them better).
 
+### 3b. Gaits (Drifter; the user, 2026-11-16)
+
+"trot, all the way to gallop ... a drifter trotting into town ... a group of drifters trotting to another town, no urgency
+... a chase between two drifters with the gallop mechanic": with Icy's gaits, a rider walks into and through a town,
+trots along the road (a group together, at the slowest one's pace), canters when hurried (late, a courier), gallops in a
+chase (chasing or chased), fleeing, or called to war. Without Icy's: walking pace or sprinting, the same choice.
+
 ### 4. Stables (addon)
 
 - Size by households: about a stall for every three households (a hamlet none, a small town two or three, a city 12 to
