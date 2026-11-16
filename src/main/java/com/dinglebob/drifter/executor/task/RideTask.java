@@ -52,6 +52,29 @@ public class RideTask extends Task {
 		this.target = target;
 		this.offAt = offAt;
 		this.hurry = hurry;
+		this.end = target;
+	}
+
+	/** Where the whole trip ends (its gait goes by that, not by this stretch's end). */
+	private Vec3 end;
+	/** A stretch of a longer trip: it stays in the saddle at the end of it, for the next. */
+	private boolean stayOn;
+	/** It got to the end of this stretch still riding. */
+	private boolean arrived;
+	/** It stops on coming into a town from outside. */
+	private boolean stopInTown;
+	private boolean wasOutside;
+
+	/**
+	 * One stretch of a road trip ending at {@code end} (found in testing: a trip along a road goes a stretch of 32 blocks at
+	 * a time, each too short to be worth getting on a horse for, so Drifters walked every road with their horse led behind
+	 * the stable): at the stretch's end it stays on for the next stretch.
+	 */
+	public RideTask onTheWayTo(Vec3 end) {
+		this.end = end;
+		this.stayOn = true;
+		this.stopInTown = true;
+		return this;
 	}
 
 	@Override
@@ -75,8 +98,9 @@ public class RideTask extends Task {
 		}
 
 		this.drifter.keepRiding();
+		this.drifter.getSenses().touched(this.horse);
 		// Its gait for now (horse culture): a walk in town and at the end, a trot on the road, a gallop in a hurry.
-		var now = com.dinglebob.drifter.skills.Gait.choose(this.drifter, this.target, this.hurry);
+		var now = com.dinglebob.drifter.skills.Gait.choose(this.drifter, this.end, this.hurry);
 		if (now != this.gait) {
 			if (this.gait != null) {
 				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), now.words() + " now");
@@ -87,9 +111,22 @@ public class RideTask extends Task {
 		}
 
 		Vec3 here = this.horse.position();
+		// Into a town from the road (a stretch of a trip): it stops at its edge, to get off and lead the horse in.
+		boolean inTown = com.dinglebob.drifter.api.DrifterApi.settled(this.horse.level(), this.horse.blockPosition());
+		if (this.stopInTown && inTown && this.wasOutside) {
+			this.arrived = true;
+			return Status.SUCCESS;
+		}
+
+		this.wasOutside |= !inTown;
 		double distance = Math.sqrt((this.target.x - here.x) * (this.target.x - here.x) + (this.target.z - here.z) * (this.target.z - here.z));
 		if (distance <= this.offAt) {
-			this.getOff();
+			if (this.stayOn) {
+				this.arrived = true;
+			} else {
+				this.getOff();
+			}
+
 			return Status.SUCCESS;
 		}
 
@@ -141,6 +178,9 @@ public class RideTask extends Task {
 		if (!com.dinglebob.drifter.api.DrifterApi.mayRide(this.drifter, this.horse)) {
 			return this.fail("not its horse");
 		}
+
+		// (Its lead off it first, back in its pack.)
+		com.dinglebob.drifter.skills.StableGoal.unlead(this.drifter, this.horse);
 
 		boolean on = this.drifter.startRiding(this.horse);
 		this.drifter.meansToRide(false);
@@ -235,6 +275,22 @@ public class RideTask extends Task {
 			this.walkTo.stop();
 		}
 
-		this.getOff();
+		if (this.arrived) {
+			// (Still on, for the next stretch: where it is now remembered all the same.)
+			this.drifter.getDrifterBrain().setHorse(this.horse.getUUID(), this.horse.blockPosition());
+		} else {
+			this.getOff();
+		}
+	}
+
+	/** The last stretch: off at the end after all (its gait still going by the trip's end). */
+	public RideTask getOffAtEnd() {
+		this.stayOn = false;
+		return this;
+	}
+
+	/** It's at this stretch's end still in the saddle. */
+	public boolean stillOn() {
+		return this.arrived && this.drifter.getVehicle() == this.horse;
 	}
 }

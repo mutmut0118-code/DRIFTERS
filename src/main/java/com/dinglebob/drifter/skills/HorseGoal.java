@@ -95,6 +95,16 @@ public final class HorseGoal extends Goals.Goal {
 			return null;
 		}
 
+		// (Riding it, or holding its lead: it knows where it is.)
+		if (drifter.getVehicle() instanceof AbstractHorse riding && riding.getUUID().equals(id) && riding.isAlive()) {
+			return riding;
+		}
+
+		for (AbstractHorse led : drifter.level().getEntitiesOfClass(AbstractHorse.class, drifter.getBoundingBox().inflate(12.0),
+			horse -> horse.getLeashHolder() == drifter && horse.getUUID().equals(id) && horse.isAlive())) {
+			return led;
+		}
+
 		long now = drifter.level().getGameTime();
 		for (Awareness awareness : drifter.getSenses().tracked()) {
 			if (awareness.entity instanceof AbstractHorse horse && horse.getUUID().equals(id) && horse.isAlive() && awareness.seenWithin(now, 20 * 10)) {

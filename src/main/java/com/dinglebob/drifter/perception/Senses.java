@@ -1804,6 +1804,21 @@ public class Senses {
 		}
 	}
 
+	/**
+	 * Touch (section 5): something in its hands or under it (the horse it's untying or riding) is known to be right there,
+	 * as if seen (found in testing: it untied its horse, turned for the road, and its senses lost the horse it was about to
+	 * get on).
+	 */
+	public void touched(Entity entity) {
+		long now = this.now();
+		Awareness awareness = this.tracked.computeIfAbsent(entity.getId(), id -> new Awareness(entity, now));
+		awareness.identified = true;
+		awareness.lastSeenPos = entity.position();
+		awareness.lastSeenTick = now;
+		awareness.value = Math.max(awareness.value, Awareness.Level.SUSPICIOUS.threshold);
+		awareness.lastLevel = awareness.level();
+	}
+
 	/** Touch (section 5): it knows which way a hit came from and what kind of thing it was, and turns to look. */
 	public void onHurt(DamageSource source, float amount) {
 		Vec3 from = source.getSourcePosition();

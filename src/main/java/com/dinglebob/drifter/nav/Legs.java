@@ -107,10 +107,10 @@ public final class Legs {
 
 		BlockPos road = alongRoad(drifter, to, distance);
 		if (road != null) {
-			return new NavigateTask(drifter, Vec3.atBottomCenterOf(road), 3.0, what + " (along the road)", pace);
+			return new NavigateTask(drifter, Vec3.atBottomCenterOf(road), 3.0, what + " (along the road)", pace).onTheWayTo(Vec3.atBottomCenterOf(to));
 		}
 
-		return new NavigateTask(drifter, Vec3.atBottomCenterOf(straight(drifter, to, distance)), 4.0, what, pace);
+		return new NavigateTask(drifter, Vec3.atBottomCenterOf(straight(drifter, to, distance)), 4.0, what, pace).onTheWayTo(Vec3.atBottomCenterOf(to));
 	}
 
 	/** A stretch along a road there, or null (no road, or it's not on the way, or the road's done: straight on). */

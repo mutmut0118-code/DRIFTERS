@@ -1057,6 +1057,22 @@ public final class DrifterApi {
 		return owner == null || owner.equals(drifter.getUUID()) || drifter.getUUID().equals(CAPTURES.get(horse.getUUID()));
 	}
 
+	private static volatile java.util.function.BiFunction<net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos> stallNear =
+		(level, pos) -> null;
+
+	/**
+	 * Where a free stall is at the stable of the town round this spot (the addon's: a stall no horse is tied in), or null:
+	 * a rider arriving there leaves its horse in it (horse culture).
+	 */
+	public static void setStallNear(java.util.function.BiFunction<net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos> which) {
+		stallNear = which;
+	}
+
+	@Nullable
+	public static net.minecraft.core.BlockPos stallNear(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+		return stallNear.apply(level, pos);
+	}
+
 	/** Horses a Drifter may take in a war (the horse, its captor). */
 	private static final java.util.Map<java.util.UUID, java.util.UUID> CAPTURES = new java.util.concurrent.ConcurrentHashMap<>();
 

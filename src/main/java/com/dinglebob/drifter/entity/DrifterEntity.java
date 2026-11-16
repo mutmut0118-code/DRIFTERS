@@ -1201,6 +1201,32 @@ public class DrifterEntity extends PathfinderMob {
 		this.rideIntentAt = this.tickCount;
 	}
 
+	/** The horse it's leading on its lead, and the tick it last meant to (horse culture: through a town on foot). */
+	@org.jetbrains.annotations.Nullable
+	private net.minecraft.world.entity.animal.horse.AbstractHorse led;
+	private int leadIntentAt;
+
+	/** Called every tick by whatever has it leading its horse on purpose. */
+	public void keepLeading(net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		this.led = horse;
+		this.leadIntentAt = this.tickCount;
+	}
+
+	/** Leading its horse with nothing using that any more (its trip given up): tied to a fence near, or let go. */
+	private void stopLeadingIfIdle() {
+		var horse = this.led;
+		if (horse == null || this.tickCount - this.leadIntentAt <= 40) {
+			return;
+		}
+
+		this.led = null;
+		if (horse.getLeashHolder() == this && !com.dinglebob.drifter.skills.StableGoal.tie(this, horse, horse.blockPosition())) {
+			com.dinglebob.drifter.skills.StableGoal.unlead(this, horse);
+		}
+
+		this.getDrifterBrain().setHorse(horse.getUUID(), horse.blockPosition());
+	}
+
 	/** Riding a horse or a boat with nothing using the ride any more (another goal took over): it gets off. */
 	private void dismountIfIdle() {
 		if ((this.getVehicle() instanceof net.minecraft.world.entity.animal.horse.AbstractHorse || this.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat)
@@ -1763,6 +1789,7 @@ public class DrifterEntity extends PathfinderMob {
 	@Override
 protected void customServerAiStep() {
 		this.dismountIfIdle();
+		this.stopLeadingIfIdle();
 		// Straight away when it's new (found in testing: up to 5 s before it even asked), then every 5 s while it has none.
 		if (this.tickCount == 2 || (this.tickCount + this.getId()) % 100 == 0) {
 			this.wantRealSkin();

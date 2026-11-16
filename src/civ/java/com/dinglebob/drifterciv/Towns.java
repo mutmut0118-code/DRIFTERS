@@ -31,6 +31,7 @@ public final class Towns {
 
 	public static void register() {
 		com.dinglebob.drifter.api.DrifterApi.setSettled(Towns::settled);
+		com.dinglebob.drifter.api.DrifterApi.setStallNear(Towns::freeStall);
 		ServerLifecycleEvents.SERVER_STARTED.register(Towns::load);
 		ServerLifecycleEvents.SERVER_STOPPING.register(Towns::save);
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> towns.clear());
@@ -59,6 +60,45 @@ public final class Towns {
 		}
 
 		return false;
+	}
+
+	/**
+	 * A free stall at the stable of the town whose land this spot is in (no horse tied within a block and a half of it),
+	 * the nearest to the spot; or null (horse culture: a rider arriving leaves its horse in it; with none free, at a fence
+	 * where it got off).
+	 */
+	@Nullable
+	static BlockPos freeStall(net.minecraft.world.level.Level level, BlockPos pos) {
+		String dimension = level.dimension().location().toString();
+		List<Town> all;
+		try {
+			all = List.copyOf(towns.values());
+		} catch (java.util.ConcurrentModificationException e) {
+			return null;
+		}
+
+		for (Town town : all) {
+			int land = town.land();
+			if (!town.dimension.equals(dimension) || town.stalls.isEmpty() || town.center.distSqr(pos) > (double)land * land) {
+				continue;
+			}
+
+			BlockPos best = null;
+			for (BlockPos stall : town.stalls) {
+				if (!level.isLoaded(stall) || !level.getEntitiesOfClass(net.minecraft.world.entity.animal.horse.AbstractHorse.class,
+					new net.minecraft.world.phys.AABB(stall).inflate(1.5), net.minecraft.world.entity.LivingEntity::isAlive).isEmpty()) {
+					continue;
+				}
+
+				if (best == null || stall.distSqr(pos) < best.distSqr(pos)) {
+					best = stall;
+				}
+			}
+
+			return best;
+		}
+
+		return null;
 	}
 
 	/** A city: one the world plan made one, or as big as one (its households). */

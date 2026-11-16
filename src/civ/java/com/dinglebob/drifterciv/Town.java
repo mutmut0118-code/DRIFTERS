@@ -132,6 +132,8 @@ public final class Town {
 	public BlockPos fire;
 	@Nullable
 	public BlockPos pen;
+	/** Its stable's stalls (horse culture: a rider from elsewhere leaves its horse in a free one), none in towns made before. */
+	public final List<BlockPos> stalls = new ArrayList<>();
 	/** Its mine (made ready since 0.23.24): the top of its stairs, the hub at their bottom, which way its corridor runs. */
 	@Nullable
 	public BlockPos mine;
@@ -395,6 +397,10 @@ public final class Town {
 			tag.putLong("Pen", this.pen.asLong());
 		}
 
+		if (!this.stalls.isEmpty()) {
+			tag.putLongArray("Stalls", this.stalls.stream().mapToLong(BlockPos::asLong).toArray());
+		}
+
 		if (!this.keepOff.isEmpty()) {
 			ListTag kept = new ListTag();
 			this.keepOff.forEach(rect -> kept.add(new net.minecraft.nbt.IntArrayTag(rect)));
@@ -600,6 +606,9 @@ public final class Town {
 		town.well = tag.contains("Well") ? BlockPos.of(tag.getLong("Well")) : null;
 		town.fire = tag.contains("Fire") ? BlockPos.of(tag.getLong("Fire")) : null;
 		town.pen = tag.contains("Pen") ? BlockPos.of(tag.getLong("Pen")) : null;
+		for (long stall : tag.getLongArray("Stalls")) {
+			town.stalls.add(BlockPos.of(stall));
+		}
 		for (Tag one : tag.getList("KeepOff", Tag.TAG_INT_ARRAY)) {
 			int[] rect = ((net.minecraft.nbt.IntArrayTag)one).getAsIntArray();
 			if (rect.length == 4) {

@@ -564,14 +564,37 @@ public class NavigateTask extends Task {
 			this.ride = this.rideFor();
 		}
 
+		Status leading = this.leadToStall();
+		if (leading != null) {
+			return leading;
+		}
+
+		if (this.led != null && this.toStall == null) {
+			if (this.led.isAlive() && this.led.getLeashHolder() == this.drifter) {
+				this.drifter.keepLeading(this.led);
+				if (this.waitForLed()) {
+					return Status.RUNNING;
+				}
+			} else {
+				this.led = null;
+			}
+		}
+
 		if (this.ride != null) {
 			Status riding = this.ride.tick();
 			if (riding == Status.RUNNING) {
 				return Status.RUNNING;
 			}
 
+			boolean stillOn = riding == Status.SUCCESS && this.ride.stillOn();
 			this.ride.stop();
 			this.ride = null;
+			this.leaveHorse();
+			if (stillOn) {
+				// (A stretch of a road trip, ridden: still in the saddle for the next one.)
+				return Status.SUCCESS;
+			}
+
 			this.path = List.of();
 			if (this.search != null) {
 				this.search.cancel();
@@ -807,23 +830,290 @@ public class NavigateTask extends Task {
 
 	@Nullable
 	private RideTask rideFor() {
-		if (this.follow || this.drifter.isPassenger() || this.level().dimension() != net.minecraft.world.level.Level.OVERWORLD) {
+		if (this.follow || this.level().dimension() != net.minecraft.world.level.Level.OVERWORLD) {
 			return null;
 		}
 
+		// Riding its own horse, leading it, or its own saddled horse right here for a long way (the whole trip's length
+		// counts, not this stretch's).
+		net.minecraft.world.entity.animal.horse.AbstractHorse own = com.dinglebob.drifter.skills.HorseGoal.ownHorse(this.drifter);
+		if (own == null) {
+			return null;
+		}
+
+		boolean riding = this.drifter.getVehicle() == own;
+		boolean leading = own.getLeashHolder() == this.drifter;
 		Vec3 target = this.target.get();
-		double dx = target.x - this.drifter.getX();
-		double dz = target.z - this.drifter.getZ();
-		if (dx * dx + dz * dz < RIDE_FROM * RIDE_FROM) {
+		Vec3 end = this.tripEnd != null ? this.tripEnd : target;
+		double left = Math.hypot(end.x - this.drifter.getX(), end.z - this.drifter.getZ());
+		BlockPos here = this.drifter.blockPosition();
+		boolean inTown = com.dinglebob.drifter.api.DrifterApi.settled(this.level(), here);
+		if (riding) {
+			if (inTown && this.arriving(here, end)) {
+				// Into a town off the road: off at its edge, and the horse led in on foot to a stall (its own at home, a free one
+				// elsewhere), tied there.
+				this.arrive(own, here);
+				return null;
+			}
+
+			return this.rideOn(own, target, end);
+		}
+
+		if (!leading && (this.drifter.isPassenger() || left < RIDE_FROM || !own.isSaddled() || own.isVehicle() || own.distanceTo(this.drifter) > HORSE_NEAR)) {
 			return null;
 		}
 
-		net.minecraft.world.entity.animal.horse.AbstractHorse horse = com.dinglebob.drifter.skills.HorseGoal.ownHorse(this.drifter);
-		if (horse == null || !horse.isSaddled() || horse.isVehicle() || horse.distanceTo(this.drifter) > HORSE_NEAR) {
+		// Through a town on foot, leading its horse (pathfinding finds the way through the streets: the horse, steered
+		// straight, got stuck on houses); on the road, up into the saddle.
+		if (inTown && this.tripEnd != null && com.dinglebob.drifter.skills.StableGoal.lead(this.drifter, own)) {
+			this.led = own;
 			return null;
 		}
 
-		return new RideTask(this.drifter, horse, target, RIDE_OFF_AT);
+		return this.rideOn(own, target, end);
+	}
+
+	/**
+	 * The town it's in is the one it's going to (not one it's riding out of, or through): the same stable answers for both,
+	 * or with no stable, the end is near.
+	 */
+	private boolean arriving(BlockPos here, Vec3 end) {
+		BlockPos to = BlockPos.containing(end);
+		if (!com.dinglebob.drifter.api.DrifterApi.settled(this.level(), to)) {
+			return false;
+		}
+
+		BlockPos stallHere = com.dinglebob.drifter.api.DrifterApi.stallNear(this.level(), here);
+		BlockPos stallThere = com.dinglebob.drifter.api.DrifterApi.stallNear(this.level(), to);
+		return stallHere != null && stallThere != null ? stallHere.closerThan(stallThere, 64.0) : here.closerThan(to, 160.0);
+	}
+
+	/** On (or up into the saddle and on) toward this stretch's end, or the trip's end on the last stretch. */
+	private RideTask rideOn(net.minecraft.world.entity.animal.horse.AbstractHorse horse, Vec3 target, Vec3 end) {
+		return this.tripEnd != null ? new RideTask(this.drifter, horse, target, Math.max(2.0, this.radius)).onTheWayTo(end)
+			: new RideTask(this.drifter, horse, target, RIDE_OFF_AT).onTheWayTo(end).getOffAtEnd();
+	}
+
+	/** Its horse it's leading this stretch, or null. */
+	@Nullable
+	private net.minecraft.world.entity.animal.horse.AbstractHorse led;
+	/** Leading its horse to a stall in the town it came to: the walk there, the horse and the stall. */
+	@Nullable
+	private NavigateTask toStall;
+	@Nullable
+	private BlockPos stallFor;
+
+	/** The horse it leads this far behind: it waits for it (a led horse is slower than a walk; a lead snaps past ten blocks). */
+	private static final double LED_WAIT = 4.5;
+	/** How long it waits for it (ticks). */
+	private static final int LED_PATIENCE = 20 * 8;
+	private int ledWait;
+	private int atStallTicks;
+
+	/** Its led horse fallen behind: it stops and looks back till it catches up. True while it waits. */
+	private boolean waitForLed() {
+		if (this.led == null || this.led.distanceTo(this.drifter) <= LED_WAIT) {
+			this.ledWait = 0;
+			if (this.backFor != null) {
+				this.backFor.stop();
+				this.backFor = null;
+			}
+
+			return false;
+		}
+
+		if (++this.ledWait > LED_PATIENCE) {
+			// Too wide for where it walks (a horse doesn't fit a gap a person does): it gets on and rides it at a walk instead,
+			// to the stall it was leading it to, or on along the way.
+			var horse = this.led;
+			this.led = null;
+			this.ledWait = 0;
+			if (this.backFor != null) {
+				this.backFor.stop();
+				this.backFor = null;
+			}
+
+			Vec3 target = this.target.get();
+			if (this.toStall != null && this.stallFor != null) {
+				this.toStall.stop();
+				this.toStall = null;
+				this.leaving = horse;
+				this.leaveAt = this.stallFor;
+				this.ride = new RideTask(this.drifter, horse, Vec3.atBottomCenterOf(this.stallFor), 1.5);
+				this.stallFor = null;
+			} else {
+				this.ride = this.rideOn(horse, target, this.tripEnd != null ? this.tripEnd : target);
+			}
+
+			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "its horse can't follow it through here; rides it instead");
+			return true;
+		}
+
+		// Past six blocks a lead only drags the horse straight at it (into a stall's wall); within six the horse finds its own
+		// way to it: it goes back for it, then waits.
+		if (this.led.distanceTo(this.drifter) > 6.0) {
+			if (this.backFor == null) {
+				this.backFor = NavigateTask.follow(this.drifter, this.led, 3.0);
+			}
+
+			this.backFor.tick();
+			return true;
+		}
+
+		if (this.backFor != null) {
+			this.backFor.stop();
+			this.backFor = null;
+		}
+
+		this.keys().releaseAll();
+		this.drifter.getCamera().track(this.led.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+		return true;
+	}
+
+	/** Back to its led horse, caught on something. */
+	@Nullable
+	private NavigateTask backFor;
+
+	/** Off at a town's edge; led in to a stall there if there's one (else tied to a fence here, or let be). */
+	private void arrive(net.minecraft.world.entity.animal.horse.AbstractHorse horse, BlockPos here) {
+		this.drifter.stopRiding();
+		this.drifter.getKeys().releaseAll();
+		this.drifter.getDrifterBrain().setHorse(horse.getUUID(), horse.blockPosition());
+		BlockPos home = this.drifter.getDrifterBrain().stall();
+		boolean homeTown = home != null && home.closerThan(here, LEAVE_FROM_HOME);
+		BlockPos stall = homeTown ? home : com.dinglebob.drifter.api.DrifterApi.stallNear(this.level(), here);
+		if (stall != null && com.dinglebob.drifter.skills.StableGoal.lead(this.drifter, horse)) {
+			this.led = horse;
+			this.stallFor = stall;
+			this.toStall = new NavigateTask(this.drifter, Vec3.atBottomCenterOf(stall), 1.5, "lead its horse to the stable", Pace.STROLL).onFoot();
+			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "got off at the edge of town, to lead its horse to the stable");
+			return;
+		}
+
+		this.leaving = horse;
+		this.leaveAt = null;
+		this.leaveHorse();
+	}
+
+	/** Leading its horse to a stall: there, it's tied up (or at a fence near, if the stall's taken now). */
+	@Nullable
+	private Status leadToStall() {
+		if (this.toStall == null) {
+			return null;
+		}
+
+		var horse = this.led;
+		if (horse == null || !horse.isAlive() || horse.getLeashHolder() != this.drifter) {
+			// (The lead broke, or the horse is gone: it walks on.)
+			this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "lost its horse's lead on the way to the stable");
+			this.toStall.stop();
+			this.toStall = null;
+			return null;
+		}
+
+		this.drifter.keepLeading(horse);
+		this.drifter.getSenses().touched(horse);
+		// (At the stall, its post in reach: done, if the horse is in or it can't get closer: found in testing, a stall with a
+		// horse in it kept it walking at it forever.)
+		BlockPos stall = this.stallFor;
+		Status walking = Status.RUNNING;
+		if (stall != null && this.drifter.position().closerThan(Vec3.atBottomCenterOf(stall), 6.0)
+			&& com.dinglebob.drifter.skills.StableGoal.canTieAt(this.drifter, stall)) {
+			walking = horse.blockPosition().closerThan(stall, 2.0) || ++this.atStallTicks > 60 && horse.distanceTo(this.drifter) <= 6.0 ? Status.SUCCESS
+				: Status.RUNNING;
+		}
+
+		if (walking == Status.RUNNING && this.waitForLed()) {
+			return Status.RUNNING;
+		}
+
+		if (walking == Status.RUNNING) {
+			walking = this.toStall.tick();
+		}
+
+		if (walking == Status.RUNNING) {
+			return Status.RUNNING;
+		}
+
+		this.toStall.stop();
+		this.toStall = null;
+		this.leaving = horse;
+		this.leaveAt = this.stallFor;
+		this.stallFor = null;
+		this.led = null;
+		this.leaveHorse();
+		this.path = List.of();
+		if (this.search != null) {
+			this.search.cancel();
+			this.search = null;
+		}
+
+		return null;
+	}
+
+	/** Where the trip this stretch is part of ends (Legs: a road trip goes a stretch at a time), or null (this is all of it). */
+	@Nullable
+	private Vec3 tripEnd;
+
+	/** Leading this horse on its lead the whole way (debug). */
+	public NavigateTask leading(net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		this.led = horse;
+		this.rideChecked = true;
+		return this;
+	}
+
+	/** On foot whatever the distance (leading its horse: found in testing, the walk to the stall got on the horse it led). */
+	public NavigateTask onFoot() {
+		this.rideChecked = true;
+		return this;
+	}
+
+	/** This walk is one stretch of a longer trip ending there (it rides its horse if the whole trip is worth it). */
+	public NavigateTask onTheWayTo(Vec3 end) {
+		this.tripEnd = end;
+		return this;
+	}
+
+	/** A stall at least this far from its own stall is another town's (it leaves its horse there). */
+	private static final double LEAVE_FROM_HOME = 96.0;
+	/** The stall it's riding its horse into at the end, and the horse, or null. */
+	@Nullable
+	private BlockPos leaveAt;
+	@Nullable
+	private net.minecraft.world.entity.animal.horse.AbstractHorse leaving;
+
+	/**
+	 * The ride or the lead over (to a stall): the horse tied there, remembered; with no post in reach, tied to a fence by
+	 * where it is; with no lead or fence, left where it is.
+	 */
+	private void leaveHorse() {
+		var horse = this.leaving;
+		BlockPos stall = this.leaveAt;
+		this.leaving = null;
+		this.leaveAt = null;
+		if (horse == null || !horse.isAlive()) {
+			return;
+		}
+
+		boolean atStall = stall != null && com.dinglebob.drifter.skills.StableGoal.tie(this.drifter, horse, stall);
+		boolean tied = atStall || com.dinglebob.drifter.skills.StableGoal.tie(this.drifter, horse, horse.blockPosition());
+		if (!tied) {
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[horse] {} couldn't tie its horse: stall {}, horse {} blocks off, leads {}", this.drifter.getName().getString(),
+				stall, String.format(java.util.Locale.ROOT, "%.1f", horse.distanceTo(this.drifter)),
+				this.drifter.getInventory().count(stack -> stack.is(net.minecraft.world.item.Items.LEAD)));
+		}
+
+		if (!tied) {
+			com.dinglebob.drifter.skills.StableGoal.unlead(this.drifter, horse);
+		}
+
+		if (this.drifter.getVehicle() == horse) {
+			this.drifter.stopRiding();
+		}
+
+		this.drifter.getDrifterBrain().setHorse(horse.getUUID(), horse.blockPosition());
+		this.drifter.getMemory().thoughts().add(this.level().getGameTime(), tied ? atStall ? "left its horse at the stable here" : "tied its horse to a fence here"
+			: "left its horse here, untied");
 	}
 
 	/**
@@ -2578,6 +2868,16 @@ public class NavigateTask extends Task {
 		if (this.retraceLeg != null) {
 			this.retraceLeg.stop();
 			this.retraceLeg = null;
+		}
+
+		if (this.toStall != null) {
+			this.toStall.stop();
+			this.toStall = null;
+		}
+
+		if (this.backFor != null) {
+			this.backFor.stop();
+			this.backFor = null;
 		}
 
 		if (this.search != null) {

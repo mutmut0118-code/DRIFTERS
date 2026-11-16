@@ -3732,6 +3732,7 @@ public final class TownBuilder {
 			// (Founded so long ago, by its past: its calendar from then.)
 			town.bornDay = day - this.foundedAgo;
 			town.pen = this.pen;
+			town.stalls.addAll(this.stalls);
 			town.mine = this.mineEntrance;
 			town.mineBottom = this.mineBottom;
 			town.mineWay = this.mineWay;
