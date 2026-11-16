@@ -22,7 +22,7 @@ that needs to be done this will start"). It is its own milestone, so its version
 | --- | --- | --- |
 | N1 | The grudge loop: deaths found out, real avengers, grudges that burn out, four ways to settle | Planned |
 | N2 | On the run: manhunts that follow sightings until the trail goes cold | Planned |
-| N3 | Crime and the law: seen or suspected, witnesses who must report, towns' own laws, about 40 crimes, ways out, masks, jail (to confirm), Drifters' crimes you can report | Planned |
+| N3 | Crime and the law: seen or suspected, witnesses who must report, towns' own laws, about 40 crimes, ways out, masks, arrest and jail, Drifters' crimes you can report | Planned |
 | N4 | Outlaws: illagers and witches replaced by half-mob Drifters; delvers become outlaw looters; the outlaw who becomes known | Planned |
 | N5 | The outlaw's life: getting in with a gang, standing with outlaws, the fence, jobs, a crew, calling a raid, the cost, getting out or betraying them | Planned |
 | N6 | Rivalries you walk into, born from the towns' and nations' history | Planned |
@@ -484,7 +484,7 @@ Three weights. The crime's place in them is a data file (tunable).
 | Weight | Examples | What happens |
 | --- | --- | --- |
 | **Petty** | Trespass after a warning, curfew, small theft (under about 4 emeralds' worth), crop theft, a little vandalism, a false alarm, brawling, insulting the leader, a mask in a strict town, reading a sealed letter | A warning the first time for some (trespass, curfew, weapons drawn); else a fine (built: emeralds, one more each time) |
-| **Serious** | Theft worth more, shoplifting, horse theft, rustling, breaking and entering, assault with a weapon, threatening a witness, poisoning, trying to bribe an honest guard, arson that burns no house down, tearing down the nation's banner, desecrating a grave or shrine, assaulting a guard, armed robbery, highway robbery, taking pay and not delivering, a debt not paid, selling stolen goods back to the town | A fine and what was taken given back; or arrest and jail (N3.7, if on); exile after repeats (built: offences before exile) |
+| **Serious** | Theft worth more, shoplifting, horse theft, rustling, breaking and entering, assault with a weapon, threatening a witness, poisoning, trying to bribe an honest guard, arson that burns no house down, tearing down the nation's banner, desecrating a grave or shrine, assaulting a guard, armed robbery, highway robbery, taking pay and not delivering, a debt not paid, selling stolen goods back to the town | A fine and what was taken given back; or arrest and jail (N3.7); exile after repeats (built: offences before exile) |
 | **Grave** | Murder, killing one who gave in, killing a guard, a massacre, a house burned down, explosives, robbing the till, treason, the leader's murder, an envoy killed | Wanted, a price on your head, hunters (N1, N2), kill on sight for the worst (built: past forgiving); treason and the leader's murder through the whole nation |
 
 - **The price on your head is told in words**, never numbers: "a small price", "a good price", "a fortune", "a king's
@@ -596,10 +596,10 @@ shopkeeper, a guard or the owner knows them.
 - The player's name tag still shows on the player's own screen and to other players (a client thing); masks are about
   what Drifters perceive.
 
-### N3.7 Arrest and jail (proposed; the user to confirm)
+### N3.7 Arrest and jail
 
-The user said in milestone 22 that prison could come "later". It's in the design here as a proposal, waiting on a yes
-(section 20).
+The user said in milestone 22 that prison could come "later"; asked again here, the user (2026-11-16): "Jail now".
+So it's part of N3.
 
 - **The jail:** towns of 12 or more households build one (a town build, like the store and the well: real stone, real
   time, by its people): two or three cells with iron bars and an iron door with a button outside, a bed in each, a chest
@@ -1067,7 +1067,7 @@ Last, because it needs its own work on fighting while steering (the user: later,
   (on); Masks (on); Blackmail (on); The outlaw's life (on).
 - Addon: Illagers and witches allowed (off: swapped for outlaws; on: vanilla ones, nothing swapped; one setting, not
   two); Outlaws loaded at most (48); Rivalries (on) and how many (few, normal, many); Town laws (full list, or the
-  built four only); How strict towns are (lax, by leader, strict); Arrest and jail (to confirm); Bribery (on).
+  built four only); How strict towns are (lax, by leader, strict); Arrest and jail (on); Bribery (on).
 - Everything is per player in multiplayer: grudges, hunts, parleys, renown, sides taken.
 
 **Debug commands** (op): `/drifter grudge [drifter]` (its grudges and why), `/drifter avenge <victim>` (send its
@@ -1107,7 +1107,7 @@ Drifter. If the mod were ever sold, get a proper opinion first.
    (finding out and avengers; then settling).
 2. **N2, on the run.**
 3. **N3, crime and the law** (needs N1's seen and suspected, N2's hunts for the wanted). Likely three steps: the crime
-   model and the witness walk; laws and the new crimes; ways out, masks and (if confirmed) jail.
+   model and the witness walk; laws and the new crimes; ways out, masks and jail.
 4. **N4, outlaws**, then the known outlaw, then looters.
 5. **N5, the outlaw's life** (needs N3's crimes and N4's gangs).
 6. **N6, rivalries** (needs N1's rules between Drifters).
@@ -1132,7 +1132,7 @@ language, an entry in the progress below and docs/PROGRESS.md.
   grudge. Each new crime once (trespass with its warning, breaking in, arson, a hold-up, a poisoned gift, the banner,
   a grave, treason as a citizen). A strict town's curfew and a lax town letting a brawl go. A mask: reported as "someone
   in a pumpkin", then known again by gear. Pay at the hall, bribe a greedy guard and fail with an honest one, a pardon.
-  Jail if confirmed: arrested, things held, a night served, a breakout. Report a crook and get its grudge; get
+  Jail: arrested, things held, a night served, a breakout. Report a crook and get its grudge; get
   blackmailed.
 - **N5:** become wanted, sell to a fence, get the telegraph instead of arrows; parley in; challenge a captain with an
   ominous banner; do two jobs; rest at the outpost; call a raid on a town with the gang; a crew that leaves when you keep
@@ -1172,9 +1172,7 @@ language, an entry in the progress below and docs/PROGRESS.md.
 
 ## 20. Questions for the user
 
-1. **Arrest and jail now** (N3.7), or keep to fines, exile and wanted until later? (Asked 2026-11-15, not answered yet.)
-   Recommendation: yes, now; it gives serious crimes a middle step between a fine and being hunted, and towns build
-   the jail like any town build.
+1. ~~Arrest and jail now?~~ Answered (2026-11-16): **"Jail now"**. N3.7 is part of the plan.
 2. **Taking over a gang:** beat a captain in a challenge (N5.3) and lead its gang and outpost yourself? The user ruled
    in milestone 22 that the player never leads a town; a gang wasn't asked. Recommendation: not at first (a crew of two
    or three is enough), maybe later.
