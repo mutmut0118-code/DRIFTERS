@@ -193,6 +193,77 @@ public final class IcyHorses {
 		}
 	}
 
+	/** This item is the horse's favourite treat (Icy's: each horse has its own, from its treat list). */
+	public static boolean isTreat(AbstractHorse horse, net.minecraft.world.item.ItemStack stack) {
+		Object feature = call(() -> bonding, horse);
+		if (feature == null || stack.isEmpty()) {
+			return false;
+		}
+
+		try {
+			Method m = feature.getClass().getMethod("isTreat", AbstractHorse.class, net.minecraft.world.item.ItemStack.class);
+			return Boolean.TRUE.equals(m.invoke(feature, horse, stack));
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return false;
+		}
+	}
+
+	/** Its favourite treat (Icy's picks it once, from its treats and snacks; whether its owner knows it yet or not), or null. */
+	@Nullable
+	public static Item treatFor(AbstractHorse horse) {
+		Object feature = call(() -> bonding, horse);
+		if (feature == null) {
+			return null;
+		}
+
+		try {
+			Method treat = feature.getClass().getDeclaredMethod("treat", AbstractHorse.class);
+			treat.setAccessible(true);
+			return treat.invoke(feature, horse) instanceof ResourceLocation id ? BuiltInRegistries.ITEM.get(id) : null;
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return null;
+		}
+	}
+
+	/** Everything a horse's favourite treat can be: Icy's treats and its snacks tag. */
+	@SuppressWarnings("unchecked")
+	public static java.util.List<Item> treats() {
+		if (!present()) {
+			return java.util.List.of();
+		}
+
+		try {
+			Class<?> type = Class.forName("icy.betterhorses.net.feature.Bonding");
+			Field treats = type.getDeclaredField("TREATS");
+			Field snacks = type.getDeclaredField("SNACKS");
+			treats.setAccessible(true);
+			snacks.setAccessible(true);
+			java.util.List<Item> all = new java.util.ArrayList<>(java.util.List.of((Item[])treats.get(null)));
+			BuiltInRegistries.ITEM.getTag((net.minecraft.tags.TagKey<Item>)snacks.get(null)).ifPresent(tag -> tag.forEach(holder -> {
+				if (!all.contains(holder.value())) {
+					all.add(holder.value());
+				}
+			}));
+			return all;
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return java.util.List.of();
+		}
+	}
+
+	/** It was fed its favourite treat by its owner: Icy's own reward (its bond, its cooldown, the treat known). */
+	public static void fedTreat(AbstractHorse horse) {
+		Object feature = call(() -> bonding, horse);
+		if (feature == null) {
+			return;
+		}
+
+		try {
+			feature.getClass().getMethod("fedTreat", AbstractHorse.class, data).invoke(feature, horse, horse);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[icy] fedTreat failed: {}", e.toString());
+		}
+	}
+
 	/** A horse of one of Icy's breeds ({@code arabian} and so on) made here, or null (without Icy's, or no such breed). */
 	@Nullable
 	public static AbstractHorse spawn(ServerLevel level, String breed, BlockPos at) {

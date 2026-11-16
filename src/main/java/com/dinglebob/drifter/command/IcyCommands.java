@@ -53,6 +53,28 @@ final class IcyCommands {
 			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {} is the player's now", horse.getName().getString());
 			source.sendSuccess(() -> Component.literal("Debug: " + horse.getName().getString() + " is yours now"), false);
 			return 1;
+		})).then(Commands.literal("keep").executes(ctx -> {
+			// (Debug: the nearest horse made the nearest Drifter's own, its stall where it stands.)
+			var source = ctx.getSource();
+			var pos = source.getPosition();
+			AbstractHorse horse = source.getLevel().getEntitiesOfClass(AbstractHorse.class, new AABB(pos, pos).inflate(16)).stream()
+				.min(Comparator.comparingDouble(h -> h.distanceToSqr(pos))).orElse(null);
+			var drifter = DrifterCommands.nearest(source);
+			if (horse == null || drifter == null) {
+				return 0;
+			}
+
+			horse.setTamed(true);
+			com.dinglebob.drifter.api.DrifterApi.keepHorse(drifter, horse, horse.blockPosition());
+			// (Debug: and one of its favourite treat in the Drifter's pocket, to see it given.)
+			var favourite = IcyHorses.treatFor(horse);
+			if (favourite != null) {
+				drifter.getInventory().add(new net.minecraft.world.item.ItemStack(favourite));
+			}
+
+			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {} is {}'s now; favourite treat {}; Icy's treats {}", horse.getName().getString(), drifter.getName().getString(),
+				IcyHorses.treatFor(horse), IcyHorses.treats());
+			return 1;
 		})).then(Commands.literal("ride").executes(ctx -> {
 			// (Debug: the nearest Drifter told to ride the nearest horse 60 blocks east, whoever's it is.)
 			var source = ctx.getSource();

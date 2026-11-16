@@ -54,6 +54,21 @@ public final class DrifterEvents {
 		}
 	});
 
+	/**
+	 * A Drifter's own horse is gone ({@code how}: "killed", "taken in war"...), for its town's talk and chronicle (horse
+	 * culture). Fired with the owner loaded, after it has grieved and let its stall go.
+	 */
+	public static final Event<HorseLost> HORSE_LOST = EventFactory.createArrayBacked(HorseLost.class, listeners -> (owner, horseName, how) -> {
+		for (HorseLost listener : listeners) {
+			listener.onHorseLost(owner, horseName, how);
+		}
+	});
+
+	@FunctionalInterface
+	public interface HorseLost {
+		void onHorseLost(DrifterEntity owner, String horseName, String how);
+	}
+
 	/** A Drifter joined a group ({@code group} its id), or left one ({@code group} null). By UUID: it may not be loaded. */
 	public static final Event<GroupChanged> GROUP_CHANGED = EventFactory.createArrayBacked(GroupChanged.class, listeners -> (member, group) -> {
 		for (GroupChanged listener : listeners) {
