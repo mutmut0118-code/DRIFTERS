@@ -3354,6 +3354,8 @@ public final class Goals {
 		// Its horse (milestone 18, section 10.7).
 		goals.add(new com.dinglebob.drifter.skills.HorseGoal());
 		goals.add(new com.dinglebob.drifter.skills.StableGoal());
+		// Looking after its horse (Icy's Better Horses: its favourite treat, the bond).
+		goals.add(new com.dinglebob.drifter.skills.HorseCare());
 		goals.add(new com.dinglebob.drifter.skills.ServiceGoal());
 		goals.add(new com.dinglebob.drifter.skills.EnchantBooksGoal());
 		goals.add(new com.dinglebob.drifter.skills.EnchantWaresGoal());

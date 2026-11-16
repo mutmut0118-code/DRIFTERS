@@ -90,6 +90,12 @@ public final class Chronicle {
 				add(drifter.getServer(), "death", how + (comesBack ? "" : " (gone for good)"));
 			}
 		});
+		// (A townsperson's horse lost: the horse culture, the user's "a drifter grieves, the chronicle remembers".)
+		DrifterEvents.HORSE_LOST.register((owner, horseName, how) -> {
+			if (counts(owner) && owner.getServer() != null) {
+				add(owner.getServer(), "horse", name(owner) + " lost " + horseName + ", its horse (" + how + ")");
+			}
+		});
 		DrifterEvents.HOME_SET.register((drifter, home) -> {
 			if (home == null || !counts(drifter) || drifter.getServer() == null) {
 				return;

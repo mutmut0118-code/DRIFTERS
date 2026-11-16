@@ -55,7 +55,8 @@ public final class DrifterRiding {
 
 		riding = true;
 		try {
-			horse.setSpeed((float)horse.getAttributeValue(Attributes.MOVEMENT_SPEED));
+			// (At its gait: Icy's speeds for it, its gait animation following the speed.)
+			horse.setSpeed(Gait.speed(horse, (float)horse.getAttributeValue(Attributes.MOVEMENT_SPEED)));
 			horse.travel(input);
 		} finally {
 			riding = false;

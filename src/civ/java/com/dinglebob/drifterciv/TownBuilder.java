@@ -631,9 +631,14 @@ public final class TownBuilder {
 		@Nullable
 		private Direction mineWay;
 		private final java.util.Set<BlockPos> mineCells = new java.util.LinkedHashSet<>();
-		/** Its stable's horses and the stall each stands in (handed to households as they settle). */
+		/** Its stable's stalls; its people's horses and the stall each stands in (handed to households as they settle). */
 		private final List<UUID> horses = new ArrayList<>();
+		private final List<BlockPos> horseStalls = new ArrayList<>();
 		private final List<BlockPos> stalls = new ArrayList<>();
+		/** Its stable's horses for sale, and its draft horse. */
+		private final List<UUID> forSale = new ArrayList<>();
+		@Nullable
+		private UUID draft;
 		private int horsesGiven;
 		/** Its apiary's hives, and the stable's insides (its people know them). */
 		private final List<BlockPos> hives = new ArrayList<>();
@@ -3169,17 +3174,28 @@ public final class TownBuilder {
 		}
 
 		/**
-		 * The town's stable (C5; the user, 2026-11-06: "bees and stables"): on a lot by its edge, eleven across and six deep,
-		 * walls of planks with log corners, a roof of slabs, open at the front; three stalls with hay at the back, a fence
-		 * between each; a horse in each (tamed and saddled, its people's: a household each), tied to the fence; a chest with
-		 * leads and wheat, a cauldron of water. A hamlet has none; a town one horse or two, a city three.
+		 * The town's stable (C5; the user, 2026-11-06: "bees and stables"; sized and stocked by horse culture): on a lot by its
+		 * edge, walls of planks with log corners, a roof of slabs, open at the front; stalls two blocks wide with hay at the
+		 * back, a fence between each; a stall for every three households (three at least, twelve at most: one row, or two back
+		 * to back), and two more kept free for riders from elsewhere. In them: its people's horses (tamed and saddled, a
+		 * household each), a draft horse (the town's, for carts), a horse or two for sale, of the breeds of its land (Icy's
+		 * Better Horses' breeds; plain horses without it), each tied to its stall's fence; a chest with leads and wheat, a
+		 * cauldron of water. A hamlet has none.
 		 */
 		private void stable() {
 			if (this.ruin || this.households <= 5) {
 				return;
 			}
 
-			Lot lot = this.lot(11, 11, this.penRect, 40, false, false);
+			int work = Stables.workStalls(this.households);
+			int all = work + Stables.VISITOR_STALLS;
+			// (One long row up to eight; more, a second row behind it facing the same way, a lane between open at both ends:
+			// found in testing, a second row back to back opened away from the street and its horses couldn't get out.)
+			int rows = all <= 8 ? 1 : 2;
+			int perRow = (all + rows - 1) / rows;
+			int width = 3 * perRow + 1;
+			int depth = rows == 1 ? 6 : 16;
+			Lot lot = this.lot(Math.max(width, depth), Math.max(width, depth), this.penRect, 40 + width, false, false);
 			if (lot == null) {
 				DrifterCivilizations.LOGGER.info("[town] {}: no lot for a stable", this.name);
 				return;
@@ -3192,11 +3208,13 @@ public final class TownBuilder {
 			Direction across = front.getClockWise();
 			int base = lot.base() != null ? lot.base() : median(this.level, site.x0(), site.z0(), site.x1(), site.z1());
 			BlockPos middle = new BlockPos((site.x0() + site.x1()) / 2, base, (site.z0() + site.z1()) / 2);
-			BlockPos frontMid = middle.relative(front, 3);
-			java.util.function.BiFunction<Integer, Integer, BlockPos> at = (a, b) -> frontMid.relative(across, a).relative(in, b);
-			for (int a = -5; a <= 5; a++) {
-				for (int b = 0; b <= 5; b++) {
-					BlockPos floor = at.apply(a, b);
+			BlockPos frontMid = middle.relative(front, depth / 2);
+			int left = -(width / 2);
+			// (x across from its left wall, b in from its front; a row is six deep, the second ten behind the first.)
+			java.util.function.BiFunction<Integer, Integer, BlockPos> at = (x, b) -> frontMid.relative(across, left + x).relative(in, b);
+			for (int x = 0; x < width; x++) {
+				for (int b = 0; b < depth; b++) {
+					BlockPos floor = at.apply(x, b);
 					for (BlockPos below = floor.below(); below.getY() > base - 6 && (this.level.getBlockState(below).isAir()
 						|| !this.level.getFluidState(below).isEmpty()); below = below.below()) {
 						set(this.level, below, Blocks.DIRT.defaultBlockState());
@@ -3207,10 +3225,21 @@ public final class TownBuilder {
 						set(this.level, floor.above(h), Blocks.AIR.defaultBlockState());
 					}
 
-					boolean wall = Math.abs(a) == 5 || b == 5;
-					if (wall) {
+					int inRow = b % 10;
+					if (inRow > 5) {
+						// (The lane between the rows: open ground, its people know it as the stable's.)
+						for (int h = 0; h <= 4; h++) {
+							this.stableCells.add(floor.above(h));
+						}
+
+						continue;
+					}
+
+					boolean end = x == 0 || x == width - 1;
+					if (end || inRow == 5) {
+						boolean corner = end && (inRow == 0 || inRow == 5);
 						for (int h = 1; h <= 3; h++) {
-							set(this.level, floor.above(h), (Math.abs(a) == 5 && (b == 0 || b == 5) ? wood("log") : wood("planks")).defaultBlockState());
+							set(this.level, floor.above(h), (corner ? wood("log") : wood("planks")).defaultBlockState());
 						}
 					}
 
@@ -3221,41 +3250,62 @@ public final class TownBuilder {
 				}
 			}
 
-			// The stalls: [-4, -3], [-1, 1], [3, 4], fences between (front to back but the first row), hay at the back.
-			for (int a : new int[] {-2, 2}) {
-				for (int b = 1; b <= 4; b++) {
-					place(this.level, at.apply(a, b).above(), wood("fence").defaultBlockState());
+			// The stalls: two blocks wide, fences between (front to back but the first row), hay at the back; each stall's post
+			// the fence beside it.
+			List<BlockPos> posts = new ArrayList<>();
+			for (int row = 0; row < rows; row++) {
+				final int r = row;
+				java.util.function.BiFunction<Integer, Integer, BlockPos> rowAt = (x, b) -> at.apply(x, 10 * r + b);
+				for (int k = 0; k < perRow && this.stalls.size() < all; k++) {
+					int x = 1 + 3 * k;
+					if (k < perRow - 1) {
+						for (int b = 1; b <= 4; b++) {
+							place(this.level, rowAt.apply(x + 2, b).above(), wood("fence").defaultBlockState());
+						}
+					}
+
+					set(this.level, rowAt.apply(x, 4).above(), Blocks.HAY_BLOCK.defaultBlockState());
+					this.stalls.add(rowAt.apply(x, 2).above());
+					posts.add(rowAt.apply(k < perRow - 1 ? x + 2 : x - 1, 2).above());
 				}
 			}
 
-			int[] middles = {-3, 0, 3};
-			for (int k = 0; k < middles.length; k++) {
-				set(this.level, at.apply(middles[k], 4).above(), Blocks.HAY_BLOCK.defaultBlockState());
-				int horses = this.city ? 3 : this.households >= 8 ? 2 : 1;
-				if (k >= horses) {
-					continue;
-				}
-
-				BlockPos stall = at.apply(middles[k], 2).above();
-				BlockPos post = at.apply(middles[k] < 0 ? -2 : 2, 2).above();
-				net.minecraft.world.entity.animal.horse.Horse horse = net.minecraft.world.entity.EntityType.HORSE.create(this.level);
+			// Its horses: its people's, the draft horse, those for sale; the last stalls left free for visitors.
+			int forSale = this.city ? Stables.FOR_SALE_CITY : Stables.FOR_SALE_TOWN;
+			int owned = Math.max(1, work - 1 - forSale);
+			List<String> breeds = Stables.breeds(this.look);
+			for (int k = 0; k < work && k < this.stalls.size(); k++) {
+				boolean draft = k == owned;
+				BlockPos stall = this.stalls.get(k);
+				var horse = DrifterApi.makeHorse(this.level, draft ? Stables.pick(Stables.DRAFT, this.random) : Stables.pick(breeds, this.random), stall);
 				if (horse == null) {
 					continue;
 				}
 
-				horse.moveTo(stall.getX() + 0.5, stall.getY(), stall.getZ() + 0.5, in.getOpposite().toYRot(), 0.0F);
-				horse.finalizeSpawn(this.level, this.level.getCurrentDifficultyAt(stall), net.minecraft.world.entity.MobSpawnType.STRUCTURE, null);
+				// (In the middle of its two-block stall: found in testing, a horse, a block and a half wide, set in the middle of its
+				// first block reached into the wall and suffocated.)
+				horse.moveTo(stall.getX() + 0.5 + across.getStepX() * 0.5, stall.getY(), stall.getZ() + 0.5 + across.getStepZ() * 0.5, front.toYRot(), 0.0F);
 				horse.setTamed(true);
 				horse.equipSaddle(new ItemStack(Items.SADDLE), null);
 				horse.setPersistenceRequired();
-				if (this.level.addFreshEntity(horse)) {
-					horse.setLeashedTo(net.minecraft.world.entity.decoration.LeashFenceKnotEntity.getOrCreateKnot(this.level, post), true);
+				if (!this.level.addFreshEntity(horse)) {
+					continue;
+				}
+
+				horse.setLeashedTo(net.minecraft.world.entity.decoration.LeashFenceKnotEntity.getOrCreateKnot(this.level, posts.get(k)), true);
+				if (k < owned) {
 					this.horses.add(horse.getUUID());
-					this.stalls.add(stall);
+					this.horseStalls.add(stall);
+				} else if (draft) {
+					this.draft = horse.getUUID();
+				} else {
+					this.forSale.add(horse.getUUID());
 				}
 			}
 
-			BlockPos chestAt = at.apply(4, 0).above();
+			// (In front of the fences between stalls: found in testing, in front of a stall they narrowed its way out to a block,
+			// too narrow for a horse.)
+			BlockPos chestAt = at.apply(3, 0).above();
 			set(this.level, chestAt, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, front));
 			if (this.level.getBlockEntity(chestAt) instanceof ChestBlockEntity chest) {
 				chest.setItem(0, new ItemStack(Items.LEAD, 2));
@@ -3263,10 +3313,11 @@ public final class TownBuilder {
 				chest.setItem(2, new ItemStack(Items.HAY_BLOCK, 4));
 			}
 
-			set(this.level, at.apply(-4, 0).above(), Blocks.WATER_CAULDRON.defaultBlockState()
+			set(this.level, at.apply(3 * (perRow - 1), 0).above(), Blocks.WATER_CAULDRON.defaultBlockState()
 				.setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
 			this.stableAt = frontMid.above();
-			DrifterCivilizations.LOGGER.info("[town] {}: its stable at {}, {} horses", this.name, frontMid.toShortString(), this.horses.size());
+			DrifterCivilizations.LOGGER.info("[town] {}: its stable at {}, {} stalls, {} horses of its people's, {} for sale, draft {}", this.name,
+				frontMid.toShortString(), this.stalls.size(), this.horses.size(), this.forSale.size(), this.draft != null);
 		}
 
 		/**
@@ -3620,7 +3671,7 @@ public final class TownBuilder {
 			// A horse of its own in the stable, while there are any to hand out.
 			if (this.horsesGiven < this.horses.size() && this.level.getEntity(this.horses.get(this.horsesGiven))
 				instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
-				DrifterApi.keepHorse(drifter, horse, this.stalls.get(this.horsesGiven));
+				DrifterApi.keepHorse(drifter, horse, this.horseStalls.get(this.horsesGiven));
 				this.horsesGiven++;
 			}
 
@@ -3732,6 +3783,9 @@ public final class TownBuilder {
 			// (Founded so long ago, by its past: its calendar from then.)
 			town.bornDay = day - this.foundedAgo;
 			town.pen = this.pen;
+			town.stalls.addAll(this.stalls);
+			town.forSale.addAll(this.forSale);
+			town.draft = this.draft;
 			town.mine = this.mineEntrance;
 			town.mineBottom = this.mineBottom;
 			town.mineWay = this.mineWay;

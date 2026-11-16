@@ -6,6 +6,29 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.75: horse culture (new, 2026-11-16)
+
+Use a **new world** (towns made before this have their old small stables and no visitor stalls). Icy's Better Horses is
+in DRIFTER TEST; everything also works without it (plain horses, no breeds, no bond).
+
+1. **Stables.** Walk into a town's stable: a row of stalls (a city: two rows with a lane between), horses of the land's
+   breed (desert Arabians, snowy Icelandics, plains Thoroughbreds/Morgans...), a big draft horse, and the last two
+   stalls empty (for visitors). `/drifter icy` standing by a horse shows its owner, breed and bond.
+2. **Riding out.** Watch a townsperson leave on a long trip (`/drifter thoughts log true` or the thoughts screen): it
+   unties its horse, **leads it out of town on foot**, gets on at the road and trots. You should see riders on the roads
+   between towns, at a trot (a canter late in the day, a gallop when chased or in a fight).
+3. **Riding in.** At the town it's going to it gets off at the edge, leads the horse in and ties it in a free stall
+   ("left its horse at the stable here"). With every stall full it leaves it at the edge.
+4. **Buying.** A Drifter with no horse and two emeralds' worth of money, setting off far, buys the stable's horse for sale
+   ("bought ... at the stable here").
+5. **War.** In a war, a raider with no horse may take an enemy's horse tied at the stable they raid; the enemy town's
+   chronicle says "... lost ..., its horse (taken in war)".
+6. **Not yet:** carts and carriages (a Drifter can hitch a cart, but can't drive it yet).
+
+Debug commands: `/drifter icy` (the nearest horse), `/drifter icy travel <x y z>` (the nearest Drifter goes there as on a
+trip: horse, road and all; its brain is switched off for it, `/drifter brain on` after), `/drifter icy keep` (the nearest
+Drifter keeps the nearest horse).
+
 ## 0.23.63-side.1: towns and roads in Voxy's far view, "paper towns" (new, 2026-11-14)
 
 Needs Voxy and Voxy SeedGen switched on (both are in DRIFTER TEST). Best seen in a **new world**: in a world you've

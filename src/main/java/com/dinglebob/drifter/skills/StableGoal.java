@@ -59,7 +59,7 @@ public final class StableGoal extends Goals.Goal {
 	public static Task fetch(DrifterEntity drifter, double trip) {
 		BlockPos stall = drifter.getDrifterBrain().stall();
 		AbstractHorse horse = trip < RIDE_TRIP || stall == null || drifter.isPassenger() ? null : horse(drifter);
-		if (horse == null || !horse.isLeashed() || !horse.isSaddled() || horse.distanceTo(drifter) > NEAR) {
+		if (horse == null || !tiedUp(horse) || !horse.isSaddled() || horse.distanceTo(drifter) > NEAR) {
 			return null;
 		}
 
@@ -78,7 +78,116 @@ public final class StableGoal extends Goals.Goal {
 				this.drifter.getCamera().track(horse.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
 				// (The lead off the post, back in its pack: as a player clicks the knot.)
 				horse.dropLeash(true, false);
+				this.drifter.getSenses().touched(horse);
 				this.drifter.getInventory().add(new net.minecraft.world.item.ItemStack(Items.LEAD));
+				return Status.SUCCESS;
+			}
+		};
+	}
+
+	/**
+	 * Before a long trip with no horse of its own: one for sale at the stable of the town it's in, if it has the money (horse
+	 * culture, "a traveller without a horse buying one"): over to it, then the sale (then its walk fetches it as its own).
+	 * Null if there's none to buy.
+	 */
+	@Nullable
+	public static Task buy(DrifterEntity drifter, double trip) {
+		if (trip < RIDE_TRIP || drifter.isPassenger() || drifter.getDrifterBrain().horse() != null) {
+			return null;
+		}
+
+		var sale = com.dinglebob.drifter.api.DrifterApi.horseForSale(drifter);
+		if (sale == null) {
+			return null;
+		}
+
+		AbstractHorse horse = sale.horse();
+		if (horse.distanceTo(drifter) > 3.0) {
+			return new NavigateTask(drifter, horse.position(), 2.0, "go and look at a horse for sale", NavigateTask.Pace.STROLL).onFoot();
+		}
+
+		return new Task(drifter) {
+			@Override
+			public String describe() {
+				return "buy a horse";
+			}
+
+			@Override
+			protected Status onTick() {
+				this.drifter.getCamera().track(horse.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+				if (!com.dinglebob.drifter.api.DrifterApi.buyHorse(this.drifter, horse)) {
+					return this.fail("couldn't buy the horse");
+				}
+
+				this.drifter.getSenses().touched(horse);
+				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), "bought " + horse.getName().getString() + " at the stable here");
+				return Status.SUCCESS;
+			}
+		};
+	}
+
+	/** An enemy's horse tied up this near is taken (seen, in reach to untie as a player would). */
+	private static final double CAPTURE_NEAR = 12.0;
+
+	/**
+	 * At an enemy town in a war, with no horse of its own: an enemy's horse tied up near (one it sees), taken (horse culture,
+	 * the user: "Only war captures"): over to it, untied, its own (its old owner's loss: "taken in war"). Null if there's none.
+	 */
+	@Nullable
+	public static Task capture(DrifterEntity drifter) {
+		if (drifter.getDrifterBrain().horse() != null || drifter.isPassenger() || !(drifter.level() instanceof ServerLevel level)) {
+			return null;
+		}
+
+		long now = level.getGameTime();
+		AbstractHorse found = null;
+		DrifterEntity enemy = null;
+		for (var awareness : drifter.getSenses().tracked()) {
+			if (!(awareness.entity instanceof AbstractHorse horse) || !horse.isAlive() || !tiedUp(horse) || !awareness.seenWithin(now, 20 * 5)
+				|| horse.distanceTo(drifter) > CAPTURE_NEAR) {
+				continue;
+			}
+
+			java.util.UUID owner = com.dinglebob.drifter.compat.IcyHorses.owner(horse);
+			if (owner == null) {
+				owner = horse.getOwnerUUID();
+			}
+
+			if (owner != null && level.getEntity(owner) instanceof DrifterEntity theirs && com.dinglebob.drifter.world.DrifterWars.hostile(drifter, theirs)) {
+				found = horse;
+				enemy = theirs;
+				break;
+			}
+		}
+
+		if (found == null) {
+			return null;
+		}
+
+		AbstractHorse horse = found;
+		DrifterEntity loser = enemy;
+		if (horse.distanceTo(drifter) > 2.5) {
+			return new NavigateTask(drifter, horse.position(), 2.0, "go for " + loser.getName().getString() + "'s horse", NavigateTask.Pace.TRAVEL).onFoot();
+		}
+
+		return new Task(drifter) {
+			@Override
+			public String describe() {
+				return "take " + loser.getName().getString() + "'s horse";
+			}
+
+			@Override
+			protected Status onTick() {
+				if (!horse.isAlive() || !tiedUp(horse)) {
+					return this.fail("the horse is gone");
+				}
+
+				this.drifter.getCamera().track(horse.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+				// (The lead off the post, into its pack, as a player clicks the knot.)
+				horse.dropLeash(true, false);
+				this.drifter.getInventory().add(new net.minecraft.world.item.ItemStack(Items.LEAD));
+				com.dinglebob.drifter.api.DrifterApi.takeHorse(this.drifter, horse, loser);
+				this.drifter.getSenses().touched(horse);
 				return Status.SUCCESS;
 			}
 		};
@@ -89,7 +198,7 @@ public final class StableGoal extends Goals.Goal {
 		DrifterEntity drifter = context.drifter();
 		BlockPos stall = drifter.getDrifterBrain().stall();
 		AbstractHorse horse = stall == null || context.threat().urgent() ? null : horse(drifter);
-		if (horse == null || horse.isLeashed() || horse.distanceTo(drifter) > NEAR || !drifter.blockPosition().closerThan(stall, NEAR)
+		if (horse == null || tiedUp(horse) || horse.distanceTo(drifter) > NEAR || !drifter.blockPosition().closerThan(stall, NEAR)
 			|| horse.blockPosition().closerThan(stall, 2.5) && !drifter.isPassenger()) {
 			return 0.0;
 		}
@@ -150,26 +259,90 @@ public final class StableGoal extends Goals.Goal {
 				}
 
 				// Tied to the stall's post with its lead (one it has: the one it untied, or any).
-				BlockPos post = post(this.drifter.level(), stall);
-				int slot = -1;
-				for (int s = 0; s < this.drifter.getInventory().getContainerSize(); s++) {
-					if (this.drifter.getInventory().getItem(s).is(Items.LEAD)) {
-						slot = s;
-						break;
-					}
-				}
-
-				if (post == null || slot < 0 || !com.dinglebob.drifter.hands.Reach.canReach(this.drifter, post) || horse.distanceTo(this.drifter) > 8.0) {
+				if (!tie(this.drifter, horse, stall)) {
 					this.think("couldn't tie its horse up");
 					return Status.SUCCESS;
 				}
 
-				this.drifter.getInventory().removeItem(slot, 1);
-				horse.setLeashedTo(LeashFenceKnotEntity.getOrCreateKnot(this.drifter.level(), post), true);
+				this.drifter.getDrifterBrain().setHorse(horse.getUUID(), stall);
 				this.think("put its horse in the stable");
 				return Status.SUCCESS;
 			}
 		};
+	}
+
+	/**
+	 * Its horse tied with a lead it has to the fence nearest this spot (within three blocks), the fence in its reach and the
+	 * horse near: true if it was.
+	 */
+	public static boolean tie(DrifterEntity drifter, AbstractHorse horse, BlockPos at) {
+		BlockPos post = post(drifter.level(), at);
+		if (post == null || !com.dinglebob.drifter.hands.Reach.canReach(drifter, post) || horse.distanceTo(drifter) > 8.0) {
+			return false;
+		}
+
+		// (Leading it: that lead, off its hand and onto the post.)
+		unlead(drifter, horse);
+		int slot = -1;
+		for (int s = 0; s < drifter.getInventory().getContainerSize(); s++) {
+			if (drifter.getInventory().getItem(s).is(Items.LEAD)) {
+				slot = s;
+				break;
+			}
+		}
+
+		if (slot < 0) {
+			return false;
+		}
+
+		if (drifter.getVehicle() == horse) {
+			drifter.stopRiding();
+		}
+
+		drifter.getInventory().removeItem(slot, 1);
+		horse.setLeashedTo(LeashFenceKnotEntity.getOrCreateKnot(drifter.level(), post), true);
+		return true;
+	}
+
+	/**
+	 * Its horse on its lead, led on foot (horse culture: through a town it leads its horse, as a player walks one through a
+	 * crowd; it rides out on the road): a lead from its pack onto the horse, in reach as a player clicks a horse with a lead.
+	 * True if it's leading it now.
+	 */
+	public static boolean lead(DrifterEntity drifter, AbstractHorse horse) {
+		if (horse.getLeashHolder() == drifter) {
+			return true;
+		}
+
+		double reach = drifter.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ENTITY_INTERACTION_RANGE);
+		int slot = drifter.getInventory().findSlot(stack -> stack.is(Items.LEAD), 0, drifter.getInventory().getContainerSize());
+		if (slot < 0 || horse.isLeashed() || horse.isVehicle() || horse.getBoundingBox().distanceToSqr(drifter.getEyePosition()) > reach * reach) {
+			return false;
+		}
+
+		drifter.getInventory().removeItem(slot, 1);
+		horse.setLeashedTo(drifter, true);
+		drifter.getSenses().touched(horse);
+		return true;
+	}
+
+	/** It can tie a horse up at this stall now: its post in reach. */
+	public static boolean canTieAt(DrifterEntity drifter, BlockPos stall) {
+		BlockPos post = post(drifter.level(), stall);
+		return post != null && com.dinglebob.drifter.hands.Reach.canReach(drifter, post);
+	}
+
+	/** Tied to a post (not led by someone). */
+	public static boolean tiedUp(AbstractHorse horse) {
+		return horse.getLeashHolder() instanceof LeashFenceKnotEntity;
+	}
+
+	/** The lead off its horse, back in its pack (to get on it, or to tie it up). */
+	public static void unlead(DrifterEntity drifter, AbstractHorse horse) {
+		if (horse.getLeashHolder() == drifter) {
+			horse.dropLeash(true, false);
+			drifter.getInventory().add(new net.minecraft.world.item.ItemStack(Items.LEAD));
+		}
 	}
 
 	/** The fence its stall's horse is tied to (the nearest within three blocks of the stall), or null. */

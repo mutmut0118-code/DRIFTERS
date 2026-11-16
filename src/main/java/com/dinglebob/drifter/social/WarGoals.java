@@ -451,7 +451,7 @@ public final class WarGoals {
 				String what = "on the way to raid " + DrifterWars.name(this.raid.defenders);
 				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping ? CHARGE - 2.0 : CREEP - 2.0,
 					this.marchCreeping ? "creep up on " + DrifterWars.name(this.raid.defenders) : what, this.marchCreeping ? NavigateTask.Pace.SNEAK
-						: NavigateTask.Pace.STROLL));
+						: NavigateTask.Pace.STROLL).onFoot());
 			}
 
 			// Lost sight of its leader, well behind: on along the roads to where they're going, at a run, till it has it in sight
@@ -464,7 +464,7 @@ public final class WarGoals {
 				}
 
 				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, CREEP - 2.0, "catch up with the band",
-					NavigateTask.Pace.TRAVEL));
+					NavigateTask.Pace.TRAVEL).onFoot());
 			}
 
 			// The band walks with its leader, at its back (each a few blocks further back than the next: a column, not a crowd in
@@ -577,6 +577,12 @@ public final class WarGoals {
 				this.raid.enter(DrifterWars.Phase.RETREAT, this.now());
 				this.think("we're done in: falling back from " + DrifterWars.name(this.raid.defenders));
 				return Status.RUNNING;
+			}
+
+			// An enemy's horse tied up here, and none of its own: it takes it (horse culture: "only war captures").
+			Task capture = com.dinglebob.drifter.skills.StableGoal.capture(this.drifter);
+			if (capture != null) {
+				return this.begin(capture);
 			}
 
 			BlockPos chest = this.chestToLoot();

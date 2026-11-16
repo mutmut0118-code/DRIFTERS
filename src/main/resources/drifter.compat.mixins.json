@@ -4,7 +4,8 @@
 	"plugin": "com.dinglebob.drifter.compat.CompatMixinPlugin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"TrinketsApiMixin"
+		"TrinketsApiMixin",
+		"IcyCartMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

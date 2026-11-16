@@ -1036,8 +1036,100 @@ public final class DrifterApi {
 	/** (A town made ready.) Its horse (tamed to it), kept in this stall of its town's stable. */
 	public static void keepHorse(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse, net.minecraft.core.BlockPos stall) {
 		horse.setOwnerUUID(drifter.getUUID());
+		// (Its owner and home in Icy's Better Horses' own terms too, so its bonding, roster and recall see them.)
+		com.dinglebob.drifter.compat.IcyHorses.setOwner(horse, drifter.getUUID());
+		com.dinglebob.drifter.compat.IcyHorses.setHome(horse, stall);
 		drifter.getDrifterBrain().setHorse(horse.getUUID(), stall);
 		drifter.getDrifterBrain().setStall(stall);
+	}
+
+	/**
+	 * Whether it may get on (or lead off) this horse: one nobody owns, or its own (vanilla's owner, or Icy's), or one it
+	 * captured in a war ({@link #allowCapture}). Never another's: Icy's own check keeps only players off others' horses, and
+	 * a bandit rode off on the player's (horse culture, the user: "Only war captures").
+	 */
+	public static boolean mayRide(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		java.util.UUID owner = com.dinglebob.drifter.compat.IcyHorses.owner(horse);
+		if (owner == null) {
+			owner = horse.getOwnerUUID();
+		}
+
+		return owner == null || owner.equals(drifter.getUUID()) || drifter.getUUID().equals(CAPTURES.get(horse.getUUID()));
+	}
+
+	/** A horse for sale at a stable: the horse, its stall, its price (points). */
+	public record HorseForSale(net.minecraft.world.entity.animal.horse.AbstractHorse horse, net.minecraft.core.BlockPos stall, double price) {
+	}
+
+	private static volatile java.util.function.Function<DrifterEntity, HorseForSale> horseForSale = drifter -> null;
+	private static volatile java.util.function.BiPredicate<DrifterEntity, net.minecraft.world.entity.animal.horse.AbstractHorse> buyHorse = (drifter, horse) -> false;
+
+	/**
+	 * The addon's horses for sale (horse culture): one it could buy here now (at the stable of the town it's in, and it has
+	 * the money), and the sale itself (its money to the town, the horse its own: {@link #keepHorse}).
+	 */
+	public static void setHorseSales(java.util.function.Function<DrifterEntity, HorseForSale> find,
+		java.util.function.BiPredicate<DrifterEntity, net.minecraft.world.entity.animal.horse.AbstractHorse> buy) {
+		horseForSale = find;
+		buyHorse = buy;
+	}
+
+	@Nullable
+	public static HorseForSale horseForSale(DrifterEntity drifter) {
+		try {
+			return horseForSale.apply(drifter);
+		} catch (RuntimeException e) {
+			return null;
+		}
+	}
+
+	/** It buys this horse: true if it's its own now. */
+	public static boolean buyHorse(DrifterEntity drifter, net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		return buyHorse.test(drifter, horse);
+	}
+
+	private static volatile java.util.function.BiFunction<net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos> stallNear =
+		(level, pos) -> null;
+
+	/**
+	 * Where a free stall is at the stable of the town round this spot (the addon's: a stall no horse is tied in), or null:
+	 * a rider arriving there leaves its horse in it (horse culture).
+	 */
+	public static void setStallNear(java.util.function.BiFunction<net.minecraft.world.level.Level, net.minecraft.core.BlockPos, net.minecraft.core.BlockPos> which) {
+		stallNear = which;
+	}
+
+	@Nullable
+	public static net.minecraft.core.BlockPos stallNear(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+		return stallNear.apply(level, pos);
+	}
+
+	/** Horses a Drifter may take in a war (the horse, its captor). */
+	private static final java.util.Map<java.util.UUID, java.util.UUID> CAPTURES = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/** This Drifter may take this horse (an enemy's, tied at a war's front: the addon decides). */
+	public static void allowCapture(net.minecraft.world.entity.animal.horse.AbstractHorse horse, DrifterEntity captor) {
+		CAPTURES.put(horse.getUUID(), captor.getUUID());
+	}
+
+	/**
+	 * A horse taken in a war (horse culture): the captor's now (owner rewritten, vanilla's and Icy's; it may ride it), no
+	 * stall yet (its town's stable gives it one when it leads it in); its old owner's loss ("taken in war": grief, its
+	 * town told), the captor's thought.
+	 */
+	public static void takeHorse(DrifterEntity captor, net.minecraft.world.entity.animal.horse.AbstractHorse horse, @Nullable DrifterEntity from) {
+		allowCapture(horse, captor);
+		horse.setOwnerUUID(captor.getUUID());
+		com.dinglebob.drifter.compat.IcyHorses.setOwner(horse, captor.getUUID());
+		if (from != null) {
+			com.dinglebob.drifter.skills.HorseCare.lost(from, horse, "taken in war");
+		}
+
+		captor.getDrifterBrain().setHorse(horse.getUUID(), horse.blockPosition());
+		captor.getMemory().thoughts().add(captor.level().getGameTime(), "took " + (from == null ? "a" : from.getName().getString() + "'s") + " horse, "
+			+ horse.getName().getString() + ", in the war");
+		com.dinglebob.drifter.Drifter.LOGGER.info("[horse] {} took {} ({}) in the war", captor.getName().getString(), horse.getName().getString(),
+			from == null ? "nobody's" : from.getName().getString() + "'s");
 	}
 
 	/** Icy's Better Horses is installed (and as Drifter expects): its breeds, bond, gaits and carts there to use. */

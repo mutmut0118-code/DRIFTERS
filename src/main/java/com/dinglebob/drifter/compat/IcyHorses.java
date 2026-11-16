@@ -92,12 +92,14 @@ public final class IcyHorses {
 		return present() && data.isInstance(horse);
 	}
 
+	/** (The method asked for after {@link #present()} has looked them up: read first, the handles were still null.) */
 	@Nullable
-	private static Object call(Method method, AbstractHorse horse, Object... args) {
+	private static Object call(java.util.function.Supplier<Method> which, AbstractHorse horse, Object... args) {
 		if (!ours(horse)) {
 			return null;
 		}
 
+		Method method = which.get();
 		try {
 			return method.invoke(horse, args);
 		} catch (ReflectiveOperationException | RuntimeException e) {
@@ -109,44 +111,44 @@ public final class IcyHorses {
 	/** Its owner in Icy's terms, or null. */
 	@Nullable
 	public static UUID owner(AbstractHorse horse) {
-		return call(getOwner, horse) instanceof UUID id ? id : null;
+		return call(() -> getOwner, horse) instanceof UUID id ? id : null;
 	}
 
 	public static void setOwner(AbstractHorse horse, UUID owner) {
-		call(setOwner, horse, owner);
+		call(() -> setOwner, horse, owner);
 	}
 
 	/** Its bond with its owner (Icy's number; 0 without Icy's). */
 	public static int bond(AbstractHorse horse) {
-		return call(getBond, horse) instanceof Integer bond ? bond : 0;
+		return call(() -> getBond, horse) instanceof Integer bond ? bond : 0;
 	}
 
 	public static void addBond(AbstractHorse horse, int amount) {
 		if (ours(horse)) {
-			call(setBond, horse, Math.max(0, bond(horse) + amount));
+			call(() -> setBond, horse, Math.max(0, bond(horse) + amount));
 		}
 	}
 
 	/** Its home (where Icy's sends it back to): its stall. */
 	public static void setHome(AbstractHorse horse, BlockPos home) {
-		call(setHome, horse, home.immutable());
+		call(() -> setHome, horse, home.immutable());
 	}
 
 	/** Its breed's id ({@code arabian}, {@code thoroughbred}...), or null. */
 	@Nullable
 	public static String breed(AbstractHorse horse) {
-		Object breed = call(getBreed, horse);
+		Object breed = call(() -> getBreed, horse);
 		return breed == null ? null : breed.toString().toLowerCase(java.util.Locale.ROOT);
 	}
 
 	/** Its gait gear (0 none, 1 walk, 2 trot, 3 canter, 4 gallop). */
 	public static int gait(AbstractHorse horse) {
-		return call(getGear, horse) instanceof Integer gear ? gear : NO_GEAR;
+		return call(() -> getGear, horse) instanceof Integer gear ? gear : NO_GEAR;
 	}
 
 	public static void setGait(AbstractHorse horse, int gear) {
 		if (gait(horse) != gear) {
-			call(setGear, horse, gear);
+			call(() -> setGear, horse, gear);
 		}
 	}
 
@@ -169,13 +171,13 @@ public final class IcyHorses {
 	/** The cart it pulls, or null. */
 	@Nullable
 	public static Entity cart(AbstractHorse horse) {
-		return call(getCart, horse) instanceof Entity cart ? cart : null;
+		return call(() -> getCart, horse) instanceof Entity cart ? cart : null;
 	}
 
 	/** The treat it likes best, once its owner has found it (Icy's bonding), or null. */
 	@Nullable
 	public static Item favouriteTreat(AbstractHorse horse) {
-		Object feature = call(bonding, horse);
+		Object feature = call(() -> bonding, horse);
 		if (feature == null) {
 			return null;
 		}
@@ -188,6 +190,77 @@ public final class IcyHorses {
 			return Boolean.TRUE.equals(known.get(feature)) && treat.get(feature) instanceof ResourceLocation id ? BuiltInRegistries.ITEM.get(id) : null;
 		} catch (ReflectiveOperationException | RuntimeException e) {
 			return null;
+		}
+	}
+
+	/** This item is the horse's favourite treat (Icy's: each horse has its own, from its treat list). */
+	public static boolean isTreat(AbstractHorse horse, net.minecraft.world.item.ItemStack stack) {
+		Object feature = call(() -> bonding, horse);
+		if (feature == null || stack.isEmpty()) {
+			return false;
+		}
+
+		try {
+			Method m = feature.getClass().getMethod("isTreat", AbstractHorse.class, net.minecraft.world.item.ItemStack.class);
+			return Boolean.TRUE.equals(m.invoke(feature, horse, stack));
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return false;
+		}
+	}
+
+	/** Its favourite treat (Icy's picks it once, from its treats and snacks; whether its owner knows it yet or not), or null. */
+	@Nullable
+	public static Item treatFor(AbstractHorse horse) {
+		Object feature = call(() -> bonding, horse);
+		if (feature == null) {
+			return null;
+		}
+
+		try {
+			Method treat = feature.getClass().getDeclaredMethod("treat", AbstractHorse.class);
+			treat.setAccessible(true);
+			return treat.invoke(feature, horse) instanceof ResourceLocation id ? BuiltInRegistries.ITEM.get(id) : null;
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return null;
+		}
+	}
+
+	/** Everything a horse's favourite treat can be: Icy's treats and its snacks tag. */
+	@SuppressWarnings("unchecked")
+	public static java.util.List<Item> treats() {
+		if (!present()) {
+			return java.util.List.of();
+		}
+
+		try {
+			Class<?> type = Class.forName("icy.betterhorses.net.feature.Bonding");
+			Field treats = type.getDeclaredField("TREATS");
+			Field snacks = type.getDeclaredField("SNACKS");
+			treats.setAccessible(true);
+			snacks.setAccessible(true);
+			java.util.List<Item> all = new java.util.ArrayList<>(java.util.List.of((Item[])treats.get(null)));
+			BuiltInRegistries.ITEM.getTag((net.minecraft.tags.TagKey<Item>)snacks.get(null)).ifPresent(tag -> tag.forEach(holder -> {
+				if (!all.contains(holder.value())) {
+					all.add(holder.value());
+				}
+			}));
+			return all;
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			return java.util.List.of();
+		}
+	}
+
+	/** It was fed its favourite treat by its owner: Icy's own reward (its bond, its cooldown, the treat known). */
+	public static void fedTreat(AbstractHorse horse) {
+		Object feature = call(() -> bonding, horse);
+		if (feature == null) {
+			return;
+		}
+
+		try {
+			feature.getClass().getMethod("fedTreat", AbstractHorse.class, data).invoke(feature, horse, horse);
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			com.dinglebob.drifter.Drifter.LOGGER.debug("[icy] fedTreat failed: {}", e.toString());
 		}
 	}
 
@@ -211,5 +284,93 @@ public final class IcyHorses {
 		horse.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360.0F, 0.0F);
 		horse.finalizeSpawn(level, level.getCurrentDifficultyAt(at), MobSpawnType.STRUCTURE, null);
 		return horse;
+	}
+
+	/** One of Icy's items ({@code upgraded_saddle}, {@code horse_cart_gear}...), or null without Icy's. */
+	@Nullable
+	public static Item item(String id) {
+		if (!present()) {
+			return null;
+		}
+
+		Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(MOD_ID, id));
+		return item == net.minecraft.world.item.Items.AIR ? null : item;
+	}
+
+	/**
+	 * A cart hitched to the horse as a player sets one up (horse culture, spike finding: Icy's drops a cart from a horse
+	 * without its cart gear): Icy's upgraded saddle from the Drifter's pack onto the horse (its old saddle back in the pack),
+	 * then the Horse Cart gear from its hand onto the horse through its helper player (Icy's own click), then the cart.
+	 * Both items must be in its pack (no free items). The cart, or null.
+	 */
+	@Nullable
+	public static Entity hitchCart(com.dinglebob.drifter.entity.DrifterEntity drifter, AbstractHorse horse) {
+		Item saddle = item("upgraded_saddle");
+		Item gear = item("horse_cart_gear");
+		if (saddle == null || gear == null || !ours(horse)) {
+			return null;
+		}
+
+		Entity cart = cart(horse);
+		if (cart != null) {
+			return cart;
+		}
+
+		var inventory = drifter.getInventory();
+		// Its upgraded saddle on.
+		if (!horse.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.BODY).is(saddle) && !saddleOf(horse).is(saddle)) {
+			int slot = inventory.findSlot(stack -> stack.is(saddle), 0, inventory.getContainerSize());
+			if (slot < 0) {
+				return null;
+			}
+
+			net.minecraft.world.item.ItemStack old = saddleOf(horse).copy();
+			horse.equipSaddle(inventory.getItem(slot).split(1), net.minecraft.sounds.SoundSource.NEUTRAL);
+			if (!old.isEmpty()) {
+				inventory.add(old);
+			}
+		}
+
+		// The cart gear from its hand, as a player clicks the horse with it.
+		int slot = inventory.findSlot(stack -> stack.is(gear), 0, inventory.getContainerSize());
+		if (slot < 0) {
+			return null;
+		}
+
+		// (What Icy's own click does once it's satisfied the clicker owns the horse: its helper player isn't the owner, the
+		// Drifter is; the gear goes into the horse's gear slot, out of its pack.)
+		try {
+			if (!Boolean.TRUE.equals(data.getMethod("bh_hasUpgradedSaddle").invoke(horse))) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {} has no upgraded saddle on for a cart", horse.getName().getString());
+				return null;
+			}
+
+			var gears = (net.minecraft.world.SimpleContainer)data.getMethod("bh_getGearContainer").invoke(horse);
+			int cartSlot = Class.forName("icy.betterhorses.net.inventory.GearSlot").getField("STABILIZER").get(null) instanceof Enum<?> e ? e.ordinal() : 3;
+			if (gears.getItem(cartSlot).isEmpty()) {
+				gears.setItem(cartSlot, inventory.getItem(slot).split(1));
+			}
+		} catch (ReflectiveOperationException | RuntimeException e) {
+			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] cart gear failed: {}", e.toString());
+			return null;
+		}
+
+		cart = cart(horse);
+		if (cart == null) {
+			try {
+				Class.forName("icy.betterhorses.net.entity.HorseCartEntity").getMethod("spawnFor", AbstractHorse.class).invoke(null, horse);
+			} catch (ReflectiveOperationException | RuntimeException e) {
+				com.dinglebob.drifter.Drifter.LOGGER.info("[icy] cart spawn failed: {}", e.toString());
+			}
+
+			cart = cart(horse);
+		}
+
+		return cart;
+	}
+
+	/** The horse's saddle slot (vanilla's slot 400, as commands reach it). */
+	private static net.minecraft.world.item.ItemStack saddleOf(AbstractHorse horse) {
+		return horse.getSlot(400).get();
 	}
 }
