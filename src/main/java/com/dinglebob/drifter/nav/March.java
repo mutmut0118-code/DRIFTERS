@@ -30,6 +30,14 @@ public final class March extends Activity {
 		this.pace = pace;
 	}
 
+	/** On foot even with its horse by it (a war band's march to the fight). */
+	private boolean onFoot;
+
+	public March onFoot() {
+		this.onFoot = true;
+		return this;
+	}
+
 	/** It fetches its horse from the stable first, if it keeps one, and rides (a trip of its own). */
 	public March mayRide() {
 		this.mayRide = true;
@@ -76,6 +84,9 @@ public final class March extends Activity {
 		Task stretch = Legs.toward(this.drifter, this.to, Math.min(this.near, 3.0), this.what, this.pace, false);
 		if (stretch instanceof NavigateTask walk) {
 			walk.through();
+			if (this.onFoot) {
+				walk.onFoot();
+			}
 		}
 
 		return this.begin(stretch);

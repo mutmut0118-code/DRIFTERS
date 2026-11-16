@@ -202,7 +202,7 @@ public class NavigateTask extends Task {
 	 * seconds, a test of it). Out of sight, where it was last seen.
 	 */
 	public static NavigateTask followBehind(DrifterEntity drifter, Entity entity, double radius, Pace pace, double behind) {
-		return new NavigateTask(drifter, () -> {
+		NavigateTask task = new NavigateTask(drifter, () -> {
 			var awareness = drifter.getSenses().awarenessOf(entity);
 			if (awareness != null && !awareness.visibleNow && awareness.lastSeenPos != null) {
 				return awareness.lastSeenPos;
@@ -212,6 +212,12 @@ public class NavigateTask extends Task {
 			Vec3 way = moving.lengthSqr() > 1.0E-4 ? moving.normalize() : Vec3.directionFromRotation(0.0F, entity.getYRot());
 			return entity.position().subtract(way.scale(behind));
 		}, radius, "follow " + entity.getName().getString(), true, entity, pace);
+		// (Forty of them planning a new route every half second, on one planning budget, stood about thinking and fell behind:
+		// a new route only when the leader's moved on a way, planned on the move a little longer, and bold at drops.)
+		task.band = true;
+		task.through = true;
+		task.bold = true;
+		return task;
 	}
 
 	/** The same, at this pace (a war band walking with its leader). */
@@ -344,8 +350,11 @@ public class NavigateTask extends Task {
 
 	private boolean atGoal() {
 		Vec3 target = this.target.get();
-		boolean near = this.looseHeight ? Math.hypot(this.drifter.getX() - target.x, this.drifter.getZ() - target.z) <= this.radius
-			&& Math.abs(this.drifter.getY() - target.y) <= PathSearch.LOOSE_HEIGHT : this.drifter.position().distanceTo(target) <= this.radius;
+		// (One walking with a band, stopped by it: it sets off again once it's fallen a few blocks behind, not at the first.)
+		double radius = this.band && this.waitingWithBand ? this.radius + BAND_SLACK : this.radius;
+		boolean near = this.looseHeight ? Math.hypot(this.drifter.getX() - target.x, this.drifter.getZ() - target.z) <= radius
+			&& Math.abs(this.drifter.getY() - target.y) <= PathSearch.LOOSE_HEIGHT : this.drifter.position().distanceTo(target) <= radius;
+		this.waitingWithBand = near && this.follow;
 		return near && (this.drifter.onGround() || this.drifter.isInWater() || this.drifter.onClimbable());
 	}
 
@@ -384,6 +393,11 @@ public class NavigateTask extends Task {
 		this.search = new PathSearch(this.drifter, this.feet(), this.plannedTarget, Math.max(this.radius, 0.5), this.lastBlocks);
 		if (this.looseHeight) {
 			this.search.loose();
+		}
+
+		// (On a march: no stopping to bridge a river, crouched at its edge a block at a time; it swims, or takes the bridge.)
+		if (this.bold) {
+			this.search.withoutBlocks();
 		}
 		this.path = List.of();
 		this.index = 0;
@@ -461,9 +475,18 @@ public class NavigateTask extends Task {
 	 */
 	private void releaseKeys() {
 		this.keys().releaseAll();
-		if (this.edgeBeside()) {
+		// (On a march, stopped: no crouch for a drop beside it, standing still; only over a gap.)
+		if (this.bold ? this.isDeepDrop(this.feet()) : this.edgeBeside()) {
 			this.keys().set(VirtualKeys.Key.SNEAK, true);
+			this.sneakWhy = "stopped by a drop";
 		}
+	}
+
+	/** Debug: why it last crouched on this walk (empty: it didn't, the last it decided), and whether it's planning now. */
+	private String sneakWhy = "";
+
+	public String sneakWhy() {
+		return this.sneakWhy + (this.search != null ? " (planning " + this.planningTicks + " ticks)" : "");
 	}
 
 	/**
@@ -474,7 +497,8 @@ public class NavigateTask extends Task {
 	private void keepSafe() {
 		boolean edge = this.edgeBeside();
 		if (edge) {
-			this.keys().set(VirtualKeys.Key.SNEAK, true);
+			// (On a march it stops by the drop, upright, as a player does: crouching only over the gap itself.)
+			this.keys().set(VirtualKeys.Key.SNEAK, !this.bold || this.isDeepDrop(this.feet()));
 			this.keys().set(VirtualKeys.Key.SPRINT, false);
 			this.keys().set(VirtualKeys.Key.JUMP, false);
 		}
@@ -1277,7 +1301,8 @@ public class NavigateTask extends Task {
 		}
 
 		this.sinceReplan++;
-		if (this.follow && this.sinceReplan % CHASE_REPATH_TICKS == 0 && this.target.get().distanceTo(this.plannedTarget) > CHASE_REPATH_DISTANCE) {
+		if (this.follow && this.sinceReplan % (this.band ? BAND_REPATH_TICKS : CHASE_REPATH_TICKS) == 0
+			&& this.target.get().distanceTo(this.plannedTarget) > (this.band ? BAND_REPATH_DISTANCE : CHASE_REPATH_DISTANCE)) {
 			this.plan("target moved", true);
 			return Status.RUNNING;
 		}
@@ -1356,7 +1381,9 @@ public class NavigateTask extends Task {
 	/** Standing still (sneaking at an edge), it sweeps its gaze across the drop or the slope: one side to the other, near to far. */
 	private Status tickEdgeLook() {
 		this.releaseKeys();
-		this.keys().set(VirtualKeys.Key.SNEAK, true);
+		// (On a march it looks it over standing up: it's stopped, nothing to carry it over.)
+		this.keys().set(VirtualKeys.Key.SNEAK, !this.bold || this.isDeepDrop(this.feet()));
+		this.sneakWhy = "looking over an edge";
 		int done = EDGE_LOOK_TICKS - this.edgeLook--;
 		double t = done / (double)EDGE_LOOK_TICKS;
 		Vec3 aim = this.edgeDirection.yRot((float)Math.toRadians(-70.0 + 140.0 * t)).scale(2.0 + 5.0 * t);
@@ -2142,7 +2169,7 @@ public class NavigateTask extends Task {
 			return false;
 		}
 
-		for (int i = 1; i <= DEEP_DROP; i++) {
+		for (int i = 1; i <= (this.bold ? BOLD_DROP : DEEP_DROP); i++) {
 			BlockPos below = pos.below(i);
 			if (!this.isClear(below) || this.level().getFluidState(below).is(FluidTags.WATER)) {
 				return false;
@@ -2158,8 +2185,14 @@ public class NavigateTask extends Task {
 	 * runners crept at every drop beside a hillside road and never caught up with their leader; a test of it).
 	 */
 	private boolean walkingAWay() {
-		if (this.pace == Pace.SNEAK || this.hopping || !this.drifter.onGround()) {
+		if (this.pace == Pace.SNEAK || this.hopping) {
 			return false;
+		}
+
+		// (In the air, a step up or a hop over a bump: as it was on the ground; a crouch flickered on at every step up a
+		// hillside road.)
+		if (!this.drifter.onGround()) {
+			return this.onAWay;
 		}
 
 		BlockPos feet = this.feet();
@@ -2167,7 +2200,7 @@ public class NavigateTask extends Task {
 			this.wayCheckedAt = feet;
 			BlockState under = this.level().getBlockState(feet.below());
 			String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(under.getBlock()).getPath();
-			this.onAWay = id.contains("path") || id.contains("packed_mud") || id.contains("gravel") || id.contains("cobblestone") || id.contains("brick")
+			this.onAWay = id.contains("path") || id.contains("packed_mud") || id.contains("gravel") || id.contains("cobblestone") || id.contains("brick") || id.contains("sandstone")
 				|| id.contains("rooted_dirt") || id.contains("coarse_dirt") || id.contains("planks") || under.is(net.minecraft.tags.BlockTags.LOGS)
 				|| id.contains("slab") || com.dinglebob.drifter.nav.Legs.onRoad(feet);
 		}
@@ -2412,7 +2445,13 @@ public class NavigateTask extends Task {
 		// (Not on a road or a street, though: a drop beside a road on a hillside or a bridge's side is no cause to creep the way
 		// along; the user, 2026-11-16, of a war band sneaking on its way: "they should only do that when they get to the enemy
 		// city".)
-		boolean nearEdge = !intentionalDrop && !wet && !runUp && (this.isDeepDrop(this.feet()) || !this.walkingAWay() && this.nearDeepDrop());
+		// (On a march, a drop beside it is no cause to crouch either, off a made way too: it walks past upright, as a player does,
+		// and runs no faster than a walk by it; it crouches only over the gap itself. The user, 2026-11-16, of the band: "im
+		// actually still seeing alot of sneaking across the path"; a test of it found 44 of 66 crouches by a drop beside, off
+		// the road, on rugged ground.)
+		boolean dropBeside = !intentionalDrop && !wet && !runUp && !this.walkingAWay() && this.nearDeepDrop();
+		boolean nearEdge = !intentionalDrop && !wet && !runUp && this.isDeepDrop(this.feet()) || !this.bold && dropBeside;
+		this.walkPastDrop = this.bold && dropBeside;
 		// Magma blocks only burn you when you don't sneak (section 15).
 		BlockPos under = this.drifter.getBlockPosBelowThatAffectsMyMovement();
 		boolean onMagma = !intentionalDrop && this.level().getBlockState(under).is(net.minecraft.world.level.block.Blocks.MAGMA_BLOCK);
@@ -2423,6 +2462,8 @@ public class NavigateTask extends Task {
 		boolean sneaking = this.pace == Pace.SNEAK || step.type() == MoveType.BRIDGE || nearEdge || this.nearSculk() || onMagma
 			|| !intentionalDrop && !wet && !onSoulSand && this.lavaHoleBeside();
 		keys.set(VirtualKeys.Key.SNEAK, sneaking);
+		this.sneakWhy = !sneaking ? "" : this.pace == Pace.SNEAK ? "sneak pace" : step.type() == MoveType.BRIDGE ? "bridging" : nearEdge
+			? (this.isDeepDrop(this.feet()) ? "over a drop" : "a drop beside, bold " + this.bold + ", on a way " + this.walkingAWay()) : onMagma ? "magma" : "sculk or lava";
 		// Lava close by (unless running for its life): the same, to drop out of a sprint it's still in.
 		if ((sneaking || this.lavaNear(2) && !this.urgent) && this.drifter.isSprinting()) {
 			// Sprinting carries on while sneaking (as for a player) until forward input stops: let go of the movement keys
@@ -2476,7 +2517,7 @@ public class NavigateTask extends Task {
 
 		// Never sprinting with lava close by: one slip or a corner cut is fatal (found by the user: imNiftyshield sprinted
 		// across a lava hole in the floor right where it had just been burned).
-		boolean sprint = !bigDrop && this.pace == Pace.TRAVEL && !sneaking && !this.unseenStepDownAhead() && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
+		boolean sprint = !bigDrop && !this.walkPastDrop && this.pace == Pace.TRAVEL && !sneaking && !this.unseenStepDownAhead() && keys.isDown(VirtualKeys.Key.FORWARD) && !this.drifter.isInWater()
 			&& !this.lavaNear(2) && (this.drifter.getHealth() > CAREFUL_HEALTH || this.urgent)
 			&& this.remainingDistance() > SPRINT_MIN_REMAINING && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL;
 		if (runUp && next.jump() != null) {
@@ -2575,6 +2616,7 @@ public class NavigateTask extends Task {
 			boolean atEdge = along >= lean - 0.12;
 			boolean still = Math.abs(speedAlong) < 0.03;
 			keys.set(VirtualKeys.Key.SNEAK, !(atEdge && still));
+			this.sneakWhy = "a hop at a walk";
 			keys.set(VirtualKeys.Key.JUMP, atEdge && still && Math.abs(side) <= 0.3);
 			return;
 		}
@@ -3023,6 +3065,24 @@ public class NavigateTask extends Task {
 	/** This walk is one stretch of a longer trip: no stop at its end, the next stretch picks up on the move. */
 	public NavigateTask through() {
 		this.through = true;
+		this.bold = true;
 		return this;
 	}
+
+	/**
+	 * On a march (a war band's, its leader's): no creeping at a drop beside it shallower than {@link #BOLD_DROP}, a fall that
+	 * hurts a little at worst (the user, 2026-11-16: "im actually still seeing alot of sneaking across the path"; a road's
+	 * banks, a terrace, a bridge's side made them crouch the way along). Real cliffs still make it careful.
+	 */
+	private boolean bold;
+	private static final int BOLD_DROP = 8;
+	/** On a march, by a drop: at a walk past it (no sprint), upright. */
+	private boolean walkPastDrop;
+	/** Walking with a band (following its leader): a new route only when the leader's moved on this far, this often. */
+	private boolean band;
+	private static final int BAND_REPATH_TICKS = 20;
+	private static final double BAND_REPATH_DISTANCE = 5.0;
+	private static final double BAND_SLACK = 3.0;
+	/** Stopped near the one it follows (a band's member): it waits till it's a little further behind. */
+	private boolean waitingWithBand;
 }

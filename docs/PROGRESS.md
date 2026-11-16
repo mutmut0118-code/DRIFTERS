@@ -93,10 +93,31 @@ Ironhollow, 909 blocks): 100 blocks in two minutes, still inside its city, a 10 
   bridge not built in that world), the road west the whole way, crept up, charged at 46 blocks: 915 blocks in 10 min.
   On unbuilt road stretches it walked at about half speed (raw ground on the planned line).
 
-**Half-done / next:** the band still strings out on rough ground (15 to 25 of 35 within 24 blocks of the leader); the
-halt tuning (40 blocks, 90 s) checked in one more client run: 6 halts instead of 8 on the same march, 909 to 47 blocks in 10 min. Coordinate with the horse culture
-session (uncommitted in the main checkout): it changes `NavigateTask` ride code and `Legs.toward`'s returns; this branch
-adds `NavigateTask.through/followBehind/walkingAWay` and a `Legs.toward` overload. Merge it in when it lands.
+The halt tuning (40 blocks, 90 s) was checked in one more client run: 6 halts instead of 8 on the same march.
+
+**0.23.75-side.1 (the main line 0.23.75, horse culture, merged in; the user on side.2: "okay the leader reaches there", "make sure the band is consistent too", "im actually
+still seeing alot of sneaking across the path"):**
+- Found with a debug line on `/drifter wars` (the band's spread, how many crouch, and in the log `[war band]`: the
+  furthest and crouching members' step, why its walk crouched (`NavigateTask.sneakWhy`), whether it sees its leader, its
+  detail tier): 44 of 66 crouches were the edge rule, by drops of 8+ blocks off the road (rugged ground, river banks);
+  others were bridging rivers block by block and crouching while stopped by a drop. Members out of sight of the leader
+  made for where they last saw it and then stood there for good (follow mode waits for a target that never moves).
+- Fixed: a march walk (`NavigateTask.through`, `followBehind`: "bold") crouches only over a gap itself, never for a drop
+  beside it, moving or stopped; a runner walks past a drop instead (no sprint); no blocks on a march route
+  (`PathSearch.withoutBlocks`: it swims or takes the bridge); in the air a step up keeps its last made-way reading. The
+  band re-plans only when the leader has moved 5+ blocks, every second at most (40 members re-planning every half second
+  on one planning budget stood thinking), plans on the move longer, and sets off again only 3 blocks past its stopping
+  distance. A member 32+ behind and out of sight of its leader marches on along the roads itself, at a run
+  (`LOST_BAND`), and falls in when it sees the leader again.
+- Test caveat found: a spectator doesn't count as a player near, so every Drifter ran at FAR detail in the earlier
+  client tests (1 sight ray a tick, the smallest planning budget); war tests now use creative and `drifter tier full all`.
+  At full detail with the lost-band march: 35 of 37 within 24 blocks of the leader after the river, half within 16.
+
+**Merged with horse culture (0.23.75):** a war march's stretches are on foot (the horse session's `NavigateTask.onFoot()`,
+also on the stragglers' own march): the leader walks with its band; the retreat home may ride (a horse taken in the raid
+too). The war-capture step comes before looting in the attack.
+
+**Next:** the user's look at the band and the crouching in play.
 
 ## Towns and roads in the far view (paper towns): built for Voxy and Distant Horizons, 0.23.63-side.2 (2026-11-14)
 
