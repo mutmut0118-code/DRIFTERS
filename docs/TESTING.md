@@ -10,8 +10,9 @@ crashes, copy the crash report the launcher shows. Paste it all into the next se
 
 Use a **new world** (stables now have a stall for every two households). When a town goes to war:
 1. At the muster, those with horses bring them to the plaza from the stable.
-2. After the leader's speech, each mounts, and one without a horse climbs up behind each ("climbed up behind ...").
-3. The band rides behind its leader along the road, at the leader's gait (faster to catch up).
+2. As the leader's speech starts, each mounts and one without a horse climbs up behind each ("climbed up behind ...");
+   the leader speaks from the saddle and waits till everyone's up ("waiting for everyone to mount up").
+3. The band canters behind its leader to war (through towns too), galloping to catch up; stuck, a rider stays on.
 4. Near the town they raid they get off and go in on foot; the horses are left there (an enemy may take one).
 5. Home again, each goes back to its horse and rides home.
 To start one on purpose: stand in a town at war and run `/drifter raid` (the nearest Drifter's town raids a town it's at

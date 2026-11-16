@@ -117,12 +117,38 @@ final class WarHorses {
 			return;
 		}
 
+		// (Behind those surest to be up: its leader first, then those whose horses are nearest; found in testing, two paired
+		// with riders whose horses were across town waited and walked.)
+		owners.sort(java.util.Comparator.comparingDouble((DrifterEntity one) -> one == leader ? -1.0 : own(one).distanceTo(one)));
+
 		for (int i = 0; i < walkers.size() && i < owners.size(); i++) {
 			raid.behind.put(walkers.get(i).getUUID(), owners.get(i).getUUID());
 		}
 
 		com.dinglebob.drifter.Drifter.LOGGER.info("[war] {}: {} with horses, {} behind them, {} on foot", DrifterWars.name(raid.attackers), owners.size(),
 			raid.behind.size(), Math.max(0, walkers.size() - raid.behind.size()));
+	}
+
+	/** Its band is up: everyone with a horse near on it, everyone paired up behind their rider. */
+	static boolean bandUp(DrifterWars.Raid raid, DrifterEntity leader) {
+		DrifterGroups.Group group = DrifterGroups.byId(raid.attackers);
+		if (group == null || leader.getServer() == null) {
+			return true;
+		}
+
+		for (UUID id : group.members) {
+			DrifterEntity member = DrifterWars.loaded(leader.getServer(), id);
+			if (member == null || member == leader || WarGoals.raidFor(member) != raid || riding(member) != null) {
+				continue;
+			}
+
+			AbstractHorse horse = own(member);
+			if (horse != null && horse.distanceTo(member) <= BRING_FROM && !horse.isVehicle() || raid.behind.containsKey(id)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/** The one whose horse it rides behind, or null. */
@@ -188,11 +214,12 @@ final class WarHorses {
 		AbstractHorse horse = riding(drifter);
 		Vec3 back = Vec3.directionFromRotation(0.0F, leader.getYRot()).scale(-BEHIND);
 		Vec3 spot = leader.position().add(back);
-		if (horse == null || horse.getFirstPassenger() != drifter || drifter.position().distanceTo(spot) < 4.0) {
+		// (Near its leader already: it sits tight, rather than jostle for its place in the crowd round it.)
+		if (horse == null || horse.getFirstPassenger() != drifter || drifter.position().distanceTo(spot) < 4.0 || drifter.distanceTo(leader) < 10.0) {
 			return sit(drifter, 10);
 		}
 
-		return new RideTask(drifter, horse, spot, 3.0).onTheWayTo(Vec3.atBottomCenterOf(toward)).keepingUpWith(leader).byRoute();
+		return new RideTask(drifter, horse, spot, 3.0).onTheWayTo(Vec3.atBottomCenterOf(toward)).keepingUpWith(leader).byRoute().keepSeat();
 	}
 
 	/** Off its horse near the town it raids (the horse left there, tied if there's a fence by it), to go in on foot. */

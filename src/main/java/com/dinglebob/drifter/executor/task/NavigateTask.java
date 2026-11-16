@@ -634,6 +634,13 @@ public class NavigateTask extends Task {
 			}
 
 			boolean stillOn = riding == Status.SUCCESS && this.ride.stillOn();
+			// (Stuck, but kept its seat (a raid): this stretch failed, the next one tries again from the saddle.)
+			if (riding == Status.FAILURE && this.drifter.getVehicle() != null && this.leaving == null) {
+				this.ride.stop();
+				this.ride = null;
+				return this.fail("the horse can't get through this way");
+			}
+
 			if (riding == Status.FAILURE) {
 				this.drifter.getMemory().thoughts().add(this.level().getGameTime(), "got off its horse: " + this.ride.failureReason());
 			}
@@ -974,8 +981,10 @@ public class NavigateTask extends Task {
 
 	/** On (or up into the saddle and on) toward this stretch's end, or the trip's end on the last stretch. */
 	private RideTask rideOn(net.minecraft.world.entity.animal.horse.AbstractHorse horse, Vec3 target, Vec3 end) {
-		return this.tripEnd != null ? new RideTask(this.drifter, horse, target, Math.max(2.0, this.radius)).onTheWayTo(end)
+		RideTask ride = this.tripEnd != null ? new RideTask(this.drifter, horse, target, Math.max(2.0, this.radius)).onTheWayTo(end)
 			: new RideTask(this.drifter, horse, target, RIDE_OFF_AT).onTheWayTo(end).getOffAtEnd();
+		// (On a raid: stuck, it stays on and tries again; the raid gets it off near the town.)
+		return com.dinglebob.drifter.social.WarGoals.raidFor(this.drifter) != null ? ride.keepSeat() : ride;
 	}
 
 	/** Its horse it's leading this stretch, or null. */

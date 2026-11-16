@@ -346,6 +346,14 @@ public final class WarGoals {
 				// speech for morale, and then they travel"), a line every few seconds; then off they go (or the leader stops
 				// waiting: see DrifterWars).
 				if (this.leader && (this.raid.speech > 0 || this.musterReady())) {
+					// (On horseback: paired, and up on its horse before it speaks; its band gets on while it speaks, and they ride
+					// off at its last word: the user, 2026-11-16, "get on during the speech".)
+					WarHorses.pair(this.raid, this.drifter);
+					Task saddleUp = this.raid.speech == 0 ? WarHorses.mount(this.raid, this.drifter, this.raid.target) : null;
+					if (saddleUp != null) {
+						return this.begin(saddleUp);
+					}
+
 					if (this.raid.speech == 0) {
 						this.raid.enter(DrifterWars.Phase.GATHER, this.now());
 						this.think("everyone's here: a few words before we go");
@@ -388,7 +396,7 @@ public final class WarGoals {
 							}
 						}
 
-						return this.begin(new LookAroundTask(this.drifter));
+						return this.begin(WarHorses.riding(this.drifter) != null ? WarHorses.sit(this.drifter, 20) : new LookAroundTask(this.drifter));
 					}
 
 					this.raid.enter(DrifterWars.Phase.TRAVEL, this.now());
@@ -403,6 +411,18 @@ public final class WarGoals {
 			// (To the leader where it's gathering them; it's on its way there. Listening, once it's speaking: facing it.)
 			// (Round the leader wherever it is about the town: stuck getting to the spot itself, the band waited there without it
 			// and the speech never came; a test of it.)
+			// (Getting on while the leader speaks; listening from the saddle: the user, 2026-11-16, "get on during the speech".)
+			if (this.raid.speech > 0 && this.raid.mounted) {
+				Task up = WarHorses.mount(this.raid, this.drifter, this.raid.target);
+				if (up != null) {
+					return this.begin(up);
+				}
+
+				if (WarHorses.riding(this.drifter) != null) {
+					return this.begin(WarHorses.sit(this.drifter, 20));
+				}
+			}
+
 			Vec3 to = leader.blockPosition().closerThan(this.raid.home, 40.0) ? leader.position() : Vec3.atBottomCenterOf(this.raid.home);
 			if (this.drifter.position().distanceTo(to) > 5.0) {
 				return this.begin(new NavigateTask(this.drifter, to, 3.0, "go to where the raid gathers"));
@@ -489,6 +509,17 @@ public final class WarGoals {
 						return this.begin(WarHorses.sit(this.drifter, 20));
 					}
 
+					// (Its leader up first waits in the saddle till its band is up too, a minute at most: found in testing, it rode
+					// off at once and the band ran after it instead of getting on their horses.)
+					if (this.leader && sat != null && this.now() - this.raid.phaseSince < 20 * 60 && !WarHorses.bandUp(this.raid, this.drifter)) {
+						if (!this.raid.saidMountUp) {
+							this.raid.saidMountUp = true;
+							this.think("waiting for everyone to mount up");
+						}
+
+						return this.begin(WarHorses.sit(this.drifter, 20));
+					}
+
 					if (sat != null && !this.leader && leader != null) {
 						return this.begin(WarHorses.follow(this.drifter, leader, this.raid.target));
 					}
@@ -529,9 +560,12 @@ public final class WarGoals {
 				// raiding, it creeps up on it, the band with it; then the charge.)
 				this.marchCreeping = this.creeping(this.drifter);
 				String what = "on the way to raid " + DrifterWars.name(this.raid.defenders);
-				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping ? CHARGE - 2.0 : CREEP - 2.0,
+				// (On foot, unless its band rides and it's on its horse: found in testing, its march on foot walked under it and it
+				// slid off every few seconds.)
+				var march = new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping ? CHARGE - 2.0 : CREEP - 2.0,
 					this.marchCreeping ? "creep up on " + DrifterWars.name(this.raid.defenders) : what, this.marchCreeping ? NavigateTask.Pace.SNEAK
-						: NavigateTask.Pace.STROLL).onFoot());
+						: NavigateTask.Pace.STROLL);
+				return this.begin(this.raid.mounted && WarHorses.riding(this.drifter) != null ? march : march.onFoot());
 			}
 
 			// Lost sight of its leader, well behind: on along the roads to where they're going, at a run, till it has it in sight
@@ -594,6 +628,13 @@ public final class WarGoals {
 			}
 
 			if (this.leader) {
+				// (On horseback and off its horse on the march, its horse near: back on it; found in testing, its horse stuck,
+				// it walked on and left it.)
+				if (this.raid.mounted && this.child() instanceof com.dinglebob.drifter.nav.March && this.now() % 20 == 0 && WarHorses.riding(this.drifter) == null
+					&& !this.creeping(this.drifter) && WarHorses.own(this.drifter) != null && WarHorses.own(this.drifter).distanceTo(this.drifter) < 24.0) {
+					return true;
+				}
+
 				return this.child() instanceof com.dinglebob.drifter.nav.March && (this.creeping(this.drifter) != this.marchCreeping
 					|| this.now() >= this.nextHalt && this.now() % 20 == 0 && this.bandBehind());
 			}

@@ -146,6 +146,8 @@ public final class DrifterWars {
 		public double horseShare = Double.NaN;
 		/** Since when its leader's been off its horse on the way (below 0: on it). */
 		public long leaderOffSince = -1;
+		/** Its leader has said it's waiting for them to mount up. */
+		public boolean saidMountUp;
 		public final java.util.Map<UUID, UUID> behind = new java.util.HashMap<>();
 
 		Raid(UUID attackers, UUID defenders, BlockPos target, BlockPos home, long now) {

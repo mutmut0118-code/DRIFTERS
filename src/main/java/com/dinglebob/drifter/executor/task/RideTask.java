@@ -151,7 +151,10 @@ public class RideTask extends Task {
 				this.route = null;
 				this.routeUntil = this.ticksRunning() + 20 * 10;
 			} else {
-				this.getOff();
+				if (!this.keepSeat) {
+					this.getOff();
+				}
+
 				return this.fail("the horse can't get through this way");
 			}
 		}
@@ -219,6 +222,14 @@ public class RideTask extends Task {
 	private int routeAge;
 	private int reroutes;
 	private static final int REROUTES = 3;
+
+	/** Stuck, it stays in the saddle (a war band's riders: off and on again went nowhere; found by the user). */
+	private boolean keepSeat;
+
+	public RideTask keepSeat() {
+		this.keepSeat = true;
+		return this;
+	}
 
 	/** It always keeps to the horse's own way (riding with someone: to its place behind them, never straight across). */
 	private boolean byRoute;
@@ -355,7 +366,7 @@ public class RideTask extends Task {
 			this.walkTo.stop();
 		}
 
-		if (this.arrived) {
+		if (this.arrived || this.keepSeat && this.drifter.getVehicle() == this.horse) {
 			// (Still on, for the next stretch: where it is now remembered all the same.)
 			this.drifter.getDrifterBrain().setHorse(this.horse.getUUID(), this.horse.blockPosition());
 		} else {

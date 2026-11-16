@@ -46,6 +46,12 @@ public enum Gait {
 			return GALLOP;
 		}
 
+		// (Riding to war: a canter, through towns too: the user, 2026-11-16, "i would love it where the gait is faster when
+		// their heading towards war".)
+		if (id.equals("raid")) {
+			return CANTER;
+		}
+
 		double away = Math.hypot(target.x - rider.getX(), target.z - rider.getZ());
 		if (away < WALK_IN || com.dinglebob.drifter.api.DrifterApi.settled(rider.level(), rider.blockPosition())) {
 			return WALK;
