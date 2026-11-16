@@ -39,6 +39,32 @@ public final class WarGoals {
 	/** The leader's speech before the march: this many lines, this far apart (ticks). */
 	private static final int SPEECH_LINES = 12;
 	private static final long SPEECH_GAP = 20L * 5;
+	/** Leaders giving a speech now: where, and till when (a line's gap and a bit). */
+	private static final java.util.Map<java.util.UUID, Speaking> speaking = new java.util.HashMap<>();
+
+	private record Speaking(net.minecraft.world.level.Level level, Vec3 at, long until) {
+	}
+
+	/**
+	 * A leader near is giving its war speech: this one keeps its own chatter down till it's done (found in play: "everyone stop
+	 * talking for one sec", then two of them went on about cows).
+	 */
+	public static boolean hushedBySpeech(DrifterEntity drifter, long now) {
+		if (speaking.isEmpty()) {
+			return false;
+		}
+
+		speaking.values().removeIf(s -> now >= s.until());
+		double range = Math.max(24.0, com.dinglebob.drifter.DrifterConfig.chatRange());
+		for (java.util.Map.Entry<java.util.UUID, Speaking> entry : speaking.entrySet()) {
+			Speaking s = entry.getValue();
+			if (!entry.getKey().equals(drifter.getUUID()) && s.level() == drifter.level() && drifter.position().distanceTo(s.at()) <= range) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 	/** On the march, the leader waits for raiders this far behind (a while). */
 	private static final double STRAGGLING = 24.0;
 	private static final long WAITS_FOR_STRAGGLERS = 20L * 10;
@@ -259,6 +285,13 @@ public final class WarGoals {
 							if (line != null) {
 								this.raid.said.add(line);
 								ChatLines.speak(this.drifter, line);
+							}
+
+							// (Till its next line, and the last a little while after.)
+							if (this.raid.speech < SPEECH_LINES) {
+								speaking.put(this.drifter.getUUID(), new Speaking(this.drifter.level(), this.drifter.position(), this.now() + SPEECH_GAP + 40));
+							} else {
+								speaking.put(this.drifter.getUUID(), new Speaking(this.drifter.level(), this.drifter.position(), this.now() + 40));
 							}
 						}
 

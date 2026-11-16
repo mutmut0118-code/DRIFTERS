@@ -323,7 +323,6 @@ final class Quests {
 	private static final int BIG = 24;
 	private static final String LETTER = "drifter_civ_letter";
 	private static final String OVERWORLD = "minecraft:overworld";
-	private static final Set<String> MASS = Set.of("bread", "wool", "leather", "glass", "paper", "string", "coal", "wheat", "iron", "gold");
 
 	private static final Map<Long, Quest> quests = new LinkedHashMap<>();
 	/** The notices each player has seen on a board (or been told of). */
@@ -1815,8 +1814,7 @@ final class Quests {
 
 	/** "iron ingots", "bread". */
 	static String plural(String name) {
-		String last = name.substring(name.lastIndexOf(' ') + 1);
-		return name.endsWith("s") || MASS.contains(last) || name.startsWith("cooked ") || name.startsWith("raw ") || name.equals("steak") ? name : name + "s";
+		return TalkApi.plural(name);
 	}
 
 	static String things(int count, Item item) {

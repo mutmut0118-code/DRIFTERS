@@ -199,7 +199,8 @@ public final class Conversations {
 			}
 
 			// (A player near is talking with someone else: these two keep it down, so their lines don't land as answers.)
-			if (now >= talk.nextAt && PlayerConvo.hush(talk.a, now)) {
+			if (now >= talk.nextAt && (PlayerConvo.hush(talk.a, now) || com.dinglebob.drifter.social.WarGoals.hushedBySpeech(talk.a, now)
+				|| com.dinglebob.drifter.social.WarGoals.hushedBySpeech(talk.b, now))) {
 				talk.nextAt = now + 60 + talk.a.getRandom().nextInt(60);
 				continue;
 			}

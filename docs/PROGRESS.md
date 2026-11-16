@@ -7214,7 +7214,7 @@ From the user's play screenshots (2026-11-15: HeyNimbus, piggy270, Dino_yt):
 
 Not tested in game; headless: each of these, and the 90 ways of asking in `tools/smoke-loose.txt` as before.
 
-## Next build (not built yet; the user, 2026-11-15: "dont build a new side yet, just work on the bugs")
+## 0.23.70-side.1 (installed 2026-11-15)
 
 From play screenshots:
 
@@ -7251,3 +7251,19 @@ Headless tested: tools/smoke-playertalk-knows.txt, tools/smoke-playertalk-farnam
 
 Headless tested: tools/smoke-town-story.txt (a town made ready), the shout and the notice talk (a town with notices), and
 tools/smoke-playertalk-day.txt.
+
+## Next build (not built yet)
+
+From a play screenshot (a war speech, a quest):
+
+- Item names said as many follow one rule now (`Lines.plural`, `TalkApi.plural`; quests, notices, words, deals): "16 bone
+  meal" (it was "16 bone meals"), "torches", "potatoes", "bookshelves", "rabbit feet", "gunpowder", "redstone dust".
+- A leader's war speech is heard out: Drifters within chat range of it don't start idle lines or carry on their talks
+  till it's done (`WarGoals.hushedBySpeech`). Found in play: "everyone stop talking for one sec", then two went on about
+  cows.
+- A line starting "if", "when", "once", "unless", "because"... isn't split in two at its comma (`Typing.leadsOn`): "if i
+  fall" came alone, another's line, then "keep going. finish it".
+
+Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with nothing between; idle chatter doesn't
+run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
+"hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).
