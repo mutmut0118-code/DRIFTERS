@@ -37,11 +37,21 @@ public class RideTask extends Task {
 	private static final int STUCK_TICKS = 20 * 6;
 	private static final double PROGRESS = 2.0;
 
+	/** In a hurry (a gallop all the way: a chase, called to war). */
+	private final boolean hurry;
+	@Nullable
+	private com.dinglebob.drifter.skills.Gait gait;
+
 	public RideTask(DrifterEntity drifter, AbstractHorse horse, Vec3 target, double offAt) {
+		this(drifter, horse, target, offAt, false);
+	}
+
+	public RideTask(DrifterEntity drifter, AbstractHorse horse, Vec3 target, double offAt, boolean hurry) {
 		super(drifter);
 		this.horse = horse;
 		this.target = target;
 		this.offAt = offAt;
+		this.hurry = hurry;
 	}
 
 	@Override
@@ -65,6 +75,17 @@ public class RideTask extends Task {
 		}
 
 		this.drifter.keepRiding();
+		// Its gait for now (horse culture): a walk in town and at the end, a trot on the road, a gallop in a hurry.
+		var now = com.dinglebob.drifter.skills.Gait.choose(this.drifter, this.target, this.hurry);
+		if (now != this.gait) {
+			if (this.gait != null) {
+				this.drifter.getMemory().thoughts().add(this.drifter.level().getGameTime(), now.words() + " now");
+			}
+
+			this.gait = now;
+			com.dinglebob.drifter.skills.Gait.set(this.horse, now);
+		}
+
 		Vec3 here = this.horse.position();
 		double distance = Math.sqrt((this.target.x - here.x) * (this.target.x - here.x) + (this.target.z - here.z) * (this.target.z - here.z));
 		if (distance <= this.offAt) {

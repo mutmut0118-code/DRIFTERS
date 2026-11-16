@@ -27,7 +27,8 @@ final class IcyCommands {
 				.min(Comparator.comparingDouble(h -> h.distanceToSqr(pos))).orElse(null);
 			String line = "Icy's: present " + IcyHorses.present() + (horse == null ? "; no horse near" : "; " + horse.getName().getString() + ": owner "
 				+ IcyHorses.owner(horse) + ", bond " + IcyHorses.bond(horse) + ", breed " + IcyHorses.breed(horse) + ", gait " + IcyHorses.gait(horse)
-				+ ", favourite " + IcyHorses.favouriteTreat(horse) + ", cart " + IcyHorses.cart(horse));
+				+ ", favourite " + IcyHorses.favouriteTreat(horse) + ", cart " + IcyHorses.cart(horse) + ", speed "
+				+ String.format(java.util.Locale.ROOT, "%.3f", horse.getDeltaMovement().horizontalDistance()) + ", gait " + com.dinglebob.drifter.skills.Gait.of(horse));
 			com.dinglebob.drifter.Drifter.LOGGER.info("[icy] {}", line);
 			source.sendSuccess(() -> Component.literal(line), false);
 			return 1;
@@ -86,8 +87,22 @@ final class IcyCommands {
 				return 0;
 			}
 
-			drifter.getTasks().start(new com.dinglebob.drifter.executor.task.RideTask(drifter, horse, drifter.position().add(60, 0, 0), 4.0), source::sendSystemMessage);
+			drifter.getTasks().start(new com.dinglebob.drifter.executor.task.RideTask(drifter, horse, drifter.position().add(300, 0, 0), 4.0), source::sendSystemMessage);
 			return 1;
-		})));
+		}).then(Commands.literal("hurry").executes(ctx -> {
+			// (Debug: the same, in a hurry: a gallop.)
+			var source = ctx.getSource();
+			var pos = source.getPosition();
+			AbstractHorse horse = source.getLevel().getEntitiesOfClass(AbstractHorse.class, new AABB(pos, pos).inflate(16)).stream()
+				.min(Comparator.comparingDouble(h -> h.distanceToSqr(pos))).orElse(null);
+			var drifter = DrifterCommands.nearest(source);
+			if (horse == null || drifter == null) {
+				return 0;
+			}
+
+			drifter.getTasks().start(new com.dinglebob.drifter.executor.task.RideTask(drifter, horse, drifter.position().add(300, 0, 0), 4.0, true),
+				source::sendSystemMessage);
+			return 1;
+		}))));
 	}
 }
