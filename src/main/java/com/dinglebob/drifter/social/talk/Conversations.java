@@ -601,6 +601,29 @@ public final class Conversations {
 		return choose(talk, any, "talk.segue.change", SEGUE_CHANGE);
 	}
 
+	/** Tags of a topic about a death or a loss. */
+	private static final Set<String> GRIM = Set.of("death", "grief", "loss");
+	/** Tags of a cheerful or silly one. */
+	private static final Set<String> GLAD = Set.of("happiness", "jokes", "silly", "brag", "celebration", "roasts", "trolls", "riddles", "would_you_rather");
+
+	private static boolean grim(Topics.Topic topic) {
+		return (topic.web().tags().stream().anyMatch(GRIM::contains) || topic.id().contains("grief")) && topic.web().tags().stream().noneMatch(GLAD::contains);
+	}
+
+	private static boolean glad(Topics.Topic topic) {
+		String about = topic.web().about();
+		return topic.web().tags().stream().noneMatch(GRIM::contains) && (topic.web().tags().stream().anyMatch(GLAD::contains) || about.contains("happy") || about.contains("good mood") || about.contains("good day")
+			|| about.contains("excited"));
+	}
+
+	/**
+	 * Its mood turned on its head: a sad one right after a glad one, or a glad one right after a sad one. Found in play: "you
+	 * look happy" "slept great" "heh", then the happy one: "i miss my dog. he'd sit by the door" (the two both "feelings").
+	 */
+	private static boolean clash(Topics.Topic now, Topics.Topic next) {
+		return glad(now) && grim(next) || grim(now) && glad(next);
+	}
+
 	/** One of these (weighted by the topic's weight and how strongly it's linked) that suits either of them to bring up. */
 	@Nullable
 	private static Choice choose(Talk talk, Map<Topics.Topic, Double> candidates, String segue, double segueChance) {
@@ -613,6 +636,11 @@ public final class Conversations {
 		for (Map.Entry<Topics.Topic, Double> candidate : candidates.entrySet()) {
 			Topics.Topic topic = candidate.getKey();
 			if (talk.done.contains(topic.id()) || topic.web().opener()) {
+				continue;
+			}
+
+			// (Not a grief right after a good mood, nor a joke right after a death; unless it's the one it says comes next.)
+			if (talk.topic != null && clash(talk.topic, topic) && !talk.topic.web().next().contains(topic.id())) {
 				continue;
 			}
 

@@ -7264,6 +7264,12 @@ From a play screenshot (a war speech, a quest):
 - A line starting "if", "when", "once", "unless", "because"... isn't split in two at its comma (`Typing.leadsOn`): "if i
   fall" came alone, another's line, then "keep going. finish it".
 
+- A talk between Drifters doesn't turn from a good mood to a death, or from a death to a joke, when it moves on to the
+  next topic (`Conversations.clash`: grim topics are tagged death/grief/loss, glad ones happiness/jokes/silly/brag/roasts...
+  or "happy"/"good mood" in what they're about; a topic's own "next" still goes). Found in play: "you look happy" "slept
+  great" "heh", then "i miss my dog. he'd sit by the door". Of the 1,090 topics the happy one leads to, 65 were grim;
+  now none. (Talks don't run headless; checked against the topic files.)
+
 Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with nothing between; idle chatter doesn't
 run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
 "hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).

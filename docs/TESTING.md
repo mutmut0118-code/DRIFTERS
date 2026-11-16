@@ -4159,6 +4159,8 @@ In a town of a morning, listen to the crier on the plaza:
 2. Start a war (`/drifterciv relations war <other town>` standing in a town) and stand in its plaza while the leader
    gives its speech: nobody nearby chats about other things over it.
 3. A line like "if i fall, keep going. finish it" comes as one message, never "if i fall" alone.
+4. Listen to two Drifters chatting for a while: a happy chat ("you look happy", "slept great") never turns straight to
+   someone's dead pet, and a sad one never turns straight to a joke.
 
 ## 0.23.70-side.1
 
