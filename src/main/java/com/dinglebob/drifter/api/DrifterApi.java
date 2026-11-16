@@ -1040,6 +1040,36 @@ public final class DrifterApi {
 		drifter.getDrifterBrain().setStall(stall);
 	}
 
+	/** Icy's Better Horses is installed (and as Drifter expects): its breeds, bond, gaits and carts there to use. */
+	public static boolean icyHorses() {
+		return com.dinglebob.drifter.compat.IcyHorses.present();
+	}
+
+	/** A horse's bond with its owner (Icy's; 0 without it). */
+	public static int horseBond(net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+		return com.dinglebob.drifter.compat.IcyHorses.bond(horse);
+	}
+
+	/**
+	 * A horse made here, not yet in the world: one of Icy's breeds ({@code arabian}, {@code icelandic}, {@code shire}...)
+	 * when it's installed, else a vanilla horse. The caller adds it ({@code level.addFreshEntity}).
+	 */
+	@Nullable
+	public static net.minecraft.world.entity.animal.horse.AbstractHorse makeHorse(ServerLevel level, String breed, net.minecraft.core.BlockPos at) {
+		var horse = com.dinglebob.drifter.compat.IcyHorses.spawn(level, breed, at);
+		if (horse != null) {
+			return horse;
+		}
+
+		var plain = net.minecraft.world.entity.EntityType.HORSE.create(level);
+		if (plain != null) {
+			plain.moveTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, level.getRandom().nextFloat() * 360.0F, 0.0F);
+			plain.finalizeSpawn(level, level.getCurrentDifficultyAt(at), net.minecraft.world.entity.MobSpawnType.STRUCTURE, null);
+		}
+
+		return plain;
+	}
+
 	/** Every group there is. */
 	public static List<DrifterGroups.Group> groups() {
 		return DrifterGroups.all();

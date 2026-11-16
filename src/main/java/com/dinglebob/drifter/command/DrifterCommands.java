@@ -686,6 +686,7 @@ public final class DrifterCommands {
 		SensesCommands.register(root);
 		NavCommands.register(root);
 		BrainCommands.register(root);
+		IcyCommands.register(root);
 		PersonalityCommands.register(root);
 		SocialCommands.register(root);
 		WhimCommands.register(root);

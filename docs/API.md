@@ -249,6 +249,10 @@ setting, four by default, up to 32).
 - `TownWork.Banner(item, layers, spot, what)`: a banner to make and stand, now with its patterns (`TownWork.Layer(pattern
   id, dye colour)`, bottom first; none: plain); the Drifter weaves them at a loom. `Banner.is(stack)` checks a stack is
   that banner (0.23.71).
+- Horses (horse culture, 2026-11-16): `DrifterApi.icyHorses()` (Icy's Better Horses installed and as expected),
+  `horseBond(horse)` (Icy's bond; 0 without it), `makeHorse(level, breed, pos)` (an Icy breed such as `arabian`,
+  `icelandic`, `shire`, or a vanilla horse without it; the caller adds it to the world). Icy's is reached by reflection
+  only (`compat.IcyHorses`); debug `/drifter icy` prints what Drifter reads of the nearest horse.
 - `TownWork.mayMine(drifter)`: whether a townsperson may set off on a mining trip now (asked before one starts; true by
   default); the addon lets a fifth of a town down its mine at once (0.23.66). `DrifterApi.mining(drifter)`: on a mining
   trip now.
