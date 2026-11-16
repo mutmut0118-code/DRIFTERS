@@ -7487,7 +7487,7 @@ Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with
 run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
 "hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).
 
-## Next build (not built yet)
+## War rally crowd (in 0.23.77: merged through the war march branch; installed 2026-11-16)
 
 - **The crowd answers the war speech** (`WarCrowd`; the user, 2026-11-16: "replies during the war rally? ex: we're not
   losing anyone, got it? and twelve people say got it!/yea!/right!!", then "every idea sounds great, we gonna make it
