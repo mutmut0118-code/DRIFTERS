@@ -54,10 +54,10 @@
     },
     "town.story.founded_by": {
       "any": [
-        "{town} goes back {ago}. {founder} founded it, first one to rule here",
+        "{town} goes back {ago}. {founder} founded it",
         "oh its old. {founder} founded {town} {ago} ago",
         "{ago} ago {founder} put {town} down right here",
-        "{town} was founded {ago} back, {founder} was the first ruler",
+        "{town} was founded {ago} back, by {founder}",
         "so {founder} founded this place, {ago} ago now",
         "ok story time. {ago} ago, {founder} founded {town}"
       ],
@@ -265,6 +265,444 @@
       ],
       "hermit": [
         "{nation}'s now. i lead it."
+      ]
+    },
+    "town.story.ask.person_me": {
+      "any": [
+        "thats me! ha",
+        "uh, thats me",
+        "...thats me lol",
+        "thats me, hi again"
+      ],
+      "hermit": [
+        "me."
+      ],
+      "newbie": [
+        "omg thats me!!"
+      ]
+    },
+    "town.story.ask.person_leads": {
+      "any": [
+        "{person}? leads {place} now",
+        "{person} runs {place}",
+        "oh {person}, they're in charge of {place}",
+        "{person}'s the leader of {place}",
+        "{person} leads {place}. has for a while"
+      ],
+      "hermit": [
+        "{person}. leads {place}."
+      ],
+      "newbie": [
+        "{person} is the leader of {place}!!"
+      ]
+    },
+    "town.story.ask.person_here": {
+      "any": [
+        "{person}? lives right here",
+        "{person}'s one of us, lives here in town",
+        "oh {person}, they live here",
+        "{person}? still around, lives here",
+        "{person}'s here. probably at home"
+      ],
+      "hermit": [
+        "{person}. lives here."
+      ],
+      "newbie": [
+        "{person} lives here! you can go say hi"
+      ]
+    },
+    "town.story.ask.person_there": {
+      "any": [
+        "{person}? lives in {place} now",
+        "{person} moved to {place}",
+        "{person}'s over in {place} these days",
+        "last i heard {person} was in {place}"
+      ],
+      "hermit": [
+        "{person}. {place} now."
+      ]
+    },
+    "town.story.ask.person_around": {
+      "any": [
+        "{person}? still out there somewhere",
+        "{person}'s around. somewhere",
+        "no idea where {person} is now honestly",
+        "{person} wanders. could be anywhere"
+      ],
+      "nomad": [
+        "{person}'s on the road, like me"
+      ]
+    },
+    "town.story.ask.person_gone": {
+      "any": [
+        "{person}? gone now",
+        "{person}'s gone. long gone",
+        "ah, {person}. they're not with us anymore",
+        "{person} died. a while back",
+        "{person}... gone. miss them"
+      ],
+      "hermit": [
+        "gone."
+      ],
+      "newbie": [
+        "oh no, {person} is gone :("
+      ]
+    },
+    "town.story.ask.person_did": {
+      "any": [
+        "{when}, {what}",
+        "what i know: {when}, {what}",
+        "well, {when}, {what}",
+        "the big thing: {when}, {what}"
+      ],
+      "hermit": [
+        "{when}, {what}."
+      ]
+    },
+    "town.story.ask.person_did_more": {
+      "any": [
+        "and {when}, {what}",
+        "then {when}, {what}",
+        "also {when}, {what}"
+      ]
+    },
+    "town.story.ask.person_quiet": {
+      "any": [
+        "not much to tell about {person} really",
+        "{person} keeps to themselves",
+        "quiet one, {person}. nothing big",
+        "never heard much about {person}"
+      ]
+    },
+    "town.story.ask.person_like": {
+      "any": [
+        "good sort, {person}",
+        "i like {person}. a lot",
+        "{person}'s one of the good ones",
+        "we get on great, me and {person}"
+      ],
+      "hermit": [
+        "{person}'s alright."
+      ],
+      "newbie": [
+        "{person} is so nice!!"
+      ],
+      "bandit": [
+        "{person}? ok, i like them"
+      ]
+    },
+    "town.story.ask.person_dislike": {
+      "any": [
+        "dont get me started on {person}",
+        "{person} and i dont get on",
+        "{person}? not my favourite",
+        "i keep away from {person}"
+      ],
+      "hermit": [
+        "{person}. no."
+      ],
+      "pvp_sweat": [
+        "{person}'s mid"
+      ]
+    },
+    "town.story.ask.person_meh": {
+      "any": [
+        "dont know {person} that well",
+        "{person}'s alright i guess",
+        "never really talked to {person}",
+        "{person}? fine, i suppose"
+      ]
+    },
+    "town.story.ask.event_start": {
+      "any": [
+        "ok so it started {when}: {what}",
+        "it goes back to {when}. {what}",
+        "well, {when}, {what}",
+        "first, {when}, {what}",
+        "you have to know this first. {when}, {what}"
+      ],
+      "hermit": [
+        "{when}. {what}."
+      ],
+      "newbie": [
+        "ok ok so {when}, {what}!"
+      ]
+    },
+    "town.story.ask.event_first": {
+      "any": [
+        "the {thing}? {when}, {what}",
+        "ok so. {when}, {what}",
+        "right, the {thing}. {when}, {what}",
+        "{when}, {what}. thats the {thing}"
+      ],
+      "hermit": [
+        "{when}. {what}."
+      ]
+    },
+    "town.story.ask.event_then": {
+      "any": [
+        "then {when}, {what}",
+        "and {when}, {what}",
+        "after that, {what}. {when}",
+        "then, {when}: {what}",
+        "{when}, {what}"
+      ],
+      "hermit": [
+        "then {what}."
+      ]
+    },
+    "town.story.ask.event_end": {
+      "any": [
+        "and thats the {thing}",
+        "thats all of it, i think",
+        "anyway. thats how it went",
+        "people still talk about it",
+        "and here we are",
+        "crazy times"
+      ],
+      "hermit": [
+        "thats it."
+      ],
+      "newbie": [
+        "crazy right!!"
+      ],
+      "pvp_sweat": [
+        "wish i'd been there"
+      ],
+      "helper": [
+        "glad it's over honestly"
+      ]
+    },
+    "town.story.ask.event_end_short": {
+      "any": [
+        "thats all i know about it",
+        "dont know much more than that",
+        "thats the gist",
+        "that's about it really"
+      ],
+      "hermit": [
+        "thats all."
+      ]
+    },
+    "town.story.ask.event_none": {
+      "any": [
+        "a {thing}? not that i know of",
+        "never heard of a {thing} here",
+        "no {thing} that i know about",
+        "hm, cant think of any {thing}"
+      ],
+      "hermit": [
+        "no {thing}."
+      ]
+    },
+    "town.story.ask.why": {
+      "any": [
+        "{when}, {what}. thats how it started",
+        "because {when}, {what}",
+        "goes back to {when}: {what}",
+        "well. {when}, {what}"
+      ],
+      "hermit": [
+        "{what}. {when}."
+      ]
+    },
+    "town.story.ask.why_unknown": {
+      "any": [
+        "honestly? nobody really remembers",
+        "old grudges i guess",
+        "no idea. it was before my time",
+        "who knows. these things just happen",
+        "people say different things"
+      ],
+      "hermit": [
+        "who knows."
+      ],
+      "newbie": [
+        "i dont know!! nobody told me"
+      ]
+    },
+    "town.story.ask.when": {
+      "any": [
+        "{when}",
+        "that was {when}",
+        "{when}, give or take",
+        "uh, {when} i think"
+      ],
+      "hermit": [
+        "{when}."
+      ]
+    },
+    "town.story.ask.when_none": {
+      "any": [
+        "when what?",
+        "hm? when was what",
+        "which part?"
+      ]
+    },
+    "town.story.ask.more": {
+      "any": [
+        "oh theres more. {when}, {what}",
+        "sure. {when}, {what}",
+        "ok, {when}, {what}",
+        "well, {when}, {what}",
+        "let me think. {when}, {what}"
+      ],
+      "hermit": [
+        "{when}, {what}."
+      ],
+      "newbie": [
+        "oh! and {when}, {what}"
+      ],
+      "helper": [
+        "happy to! {when}, {what}"
+      ]
+    },
+    "town.story.ask.more_end": {
+      "any": [
+        "thats everything i know",
+        "and thats all of it",
+        "thats all i got",
+        "and thats the whole story"
+      ],
+      "hermit": [
+        "thats all."
+      ]
+    },
+    "town.story.ask.more_none": {
+      "any": [
+        "thats all i know honestly",
+        "nothing more, sorry",
+        "thats everything",
+        "ive told you all of it",
+        "ask someone older maybe"
+      ],
+      "hermit": [
+        "thats all."
+      ],
+      "helper": [
+        "thats all i know! maybe ask the leader?"
+      ]
+    },
+    "town.story.ask.town": {
+      "any": [
+        "{place}? {leader} leads it, about {people} people",
+        "{place}'s been around {ago}. {leader} runs it",
+        "{place}, {people} of them, {leader} in charge"
+      ],
+      "hermit": [
+        "{place}. {leader} leads."
+      ]
+    },
+    "town.story.ask.town_nation": {
+      "any": [
+        "{place}? part of {nation}. {leader} leads it",
+        "{place}'s a {nation} town, {leader} runs it",
+        "{place}, {nation}'s. about {people} people"
+      ],
+      "hermit": [
+        "{place}. {nation}'s."
+      ]
+    },
+    "town.story.ask.nation": {
+      "any": [
+        "{nation}? {capital}'s their capital, {leader} rules",
+        "{nation}, {towns} towns, ruled from {capital}",
+        "{nation}'s been around {ago}. {leader} in charge"
+      ],
+      "hermit": [
+        "{nation}. {leader} rules."
+      ]
+    },
+    "town.story.ask.nation_ours": {
+      "any": [
+        "{nation}'s us! {capital}'s the capital, {leader} rules",
+        "were part of {nation}. {towns} towns, {leader} rules from {capital}",
+        "thats our nation. {leader} in {capital}"
+      ],
+      "hermit": [
+        "ours. {leader} rules."
+      ]
+    },
+    "town.story.ask.place_none": {
+      "any": [
+        "{place}? dont know much about it",
+        "never been to {place}",
+        "{place}... not sure honestly"
+      ]
+    },
+    "town.story.founded_by_me": {
+      "any": [
+        "i founded {town} myself, {ago} ago",
+        "this place? i started it. {ago} ago now",
+        "{ago} ago i put {town} down right here",
+        "ok story time. {ago} ago i founded {town}"
+      ],
+      "hermit": [
+        "i founded it. {ago} back."
+      ],
+      "newbie": [
+        "i founded it!! {ago} ago"
+      ],
+      "builder": [
+        "i built this place up from nothing, {ago} ago"
+      ]
+    },
+    "town.story.founded_by_me_with": {
+      "any": [
+        "me and {other} founded {town}, {ago} ago",
+        "{other} and i started this place {ago} ago",
+        "ok story time. {ago} ago, {other} and i founded {town}",
+        "{ago} ago {other} and i put {town} down right here"
+      ],
+      "hermit": [
+        "{other} and i. {ago} back."
+      ],
+      "newbie": [
+        "me and {other} founded it!! {ago} ago"
+      ]
+    },
+    "town.story.ask.founders": {
+      "any": [
+        "{founder} founded it",
+        "that was {founder}",
+        "{founder}, way back",
+        "{founder} started it all"
+      ],
+      "hermit": [
+        "{founder}."
+      ]
+    },
+    "town.story.ask.founders_me": {
+      "any": [
+        "i did! ha",
+        "me, actually",
+        "that was me"
+      ],
+      "hermit": [
+        "me."
+      ],
+      "newbie": [
+        "me!! :D"
+      ]
+    },
+    "town.story.ask.founders_me_with": {
+      "any": [
+        "me and {founder}",
+        "{founder} and i did",
+        "that was me and {founder}"
+      ],
+      "hermit": [
+        "{founder} and i."
+      ]
+    },
+    "town.story.ask.founders_unknown": {
+      "any": [
+        "nobody really knows who",
+        "its older than anyone remembers",
+        "no idea honestly"
+      ],
+      "hermit": [
+        "nobody knows."
       ]
     }
   }

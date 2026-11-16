@@ -4173,6 +4173,11 @@ In a town of a morning, listen to the crier on the plaza:
    go back to it with "anyway". Killings get the biggest scenes. Test quickly with `/drifterciv town crime horse` (or theft,
    farms, livestock, peace, blood, scene_murder, scene_massacre, scene_wanted) standing in a town.
 
+9. **Ask about a town's story.** Ask someone "tell me about this town", let them finish, then ask about what they said:
+   "who founded it?", "who's that?", "who was <a name they said>?", "what happened in the war?", "why?", "when was
+   that?", "tell me more", "what about <another town>?". Each gets a real answer from the town's history, sometimes over
+   a few messages. (Towns made with the world have the most history.)
+
 ## 0.23.70-side.1
 
 1. A Drifter that knows you (one you've talked with, or done a job for) never says "i dont even know you" or "who are you".

@@ -28,8 +28,9 @@ final class TownStory {
 	private TownStory() {
 	}
 
-	/** The most things from its past told. */
+	/** The most things from its past told; and kept to tell if asked for more. */
 	private static final int MOST_PAST = 2;
+	private static final int MOST_LATER = 8;
 	/** Past this far, the listener's gone: the story stops. */
 	private static final double GONE = 24.0;
 	/** When each player last said anything to a Drifter (a story stops when they say something else). */
@@ -59,17 +60,26 @@ final class TownStory {
 		List<Part> parts = new ArrayList<>();
 		String nation = nationName(town);
 
-		// Its founding.
+		// Its founding (by itself: "DRIFT_TTV and i", not its own name).
 		String founder = founder(town);
+		String me = drifter.getName().getString();
+		List<String> founders = founder == null ? List.of() : List.of(founder.split(" and |, "));
+		String others = String.join(" and ", founders.stream().filter(name -> !name.equals(me)).toList());
+		boolean foundedIt = founders.contains(me);
 		if (ago < 3) {
 			parts.add(new Part("town.story.new", vars("founder", founder == null ? "" : founder)));
+		} else if (foundedIt) {
+			parts.add(new Part(others.isEmpty() ? "town.story.founded_by_me" : "town.story.founded_by_me_with", vars("ago", ago(ago), "other", others)));
 		} else {
 			String key = founder != null ? "town.story.founded_by" : "town.story.founded";
 			parts.add(new Part(key, vars("ago", ago(ago), "founder", founder == null ? "" : founder)));
 		}
 
-		// Its past.
-		List<Chronicle.Entry> past = past(town, nation, day);
+		// Its past (the rest kept, to be asked for: "tell me more").
+		List<Chronicle.Entry> ranked = past(town, nation, day);
+		List<Chronicle.Entry> past = new ArrayList<>(ranked.subList(0, Math.min(MOST_PAST, ranked.size())));
+		List<Chronicle.Entry> rest = new ArrayList<>(ranked.subList(past.size(), Math.min(ranked.size(), MOST_PAST + MOST_LATER)));
+		past.sort((a, b) -> Long.compare(a.day(), b.day()));
 		for (int i = 0; i < past.size(); i++) {
 			Chronicle.Entry entry = past.get(i);
 			// (Long ago: "old folks still talk about it"; this year: "not long ago".)
@@ -102,7 +112,33 @@ final class TownStory {
 		// How it feels about it.
 		parts.add(new Part(leaderItself ? "town.story.feel_leader" : "town.story.feel", vars()));
 		next(drifter, player, parts, 0, player.level().getGameTime());
+
+		// (What it said, to be asked about after: "who was mason?", "what happened in the war?".)
+		List<String> names = new ArrayList<>();
+		if (founder != null) {
+			names.addAll(List.of(founder.split(" and |, ")));
+		}
+
+		if (leader != null) {
+			names.add(leader);
+		}
+
+		TownStoryAsk.told(player, drifter, town, past, rest, names, founder == null ? List.of() : List.of(founder.split(" and |, ")));
 		return true;
+	}
+
+	/** A line of a told thing: its key and words. */
+	record Line(String key, Object[] vars) {
+	}
+
+	/** These lines, one after another as typed (stopped if they say something else or walk off). */
+	static void chain(DrifterEntity drifter, ServerPlayer player, List<Line> lines) {
+		next(drifter, player, lines.stream().map(l -> new Part(l.key(), l.vars())).toList(), 0, player.level().getGameTime());
+	}
+
+	/** A line of the chronicle as it says it (itself "i"). */
+	static String said(Chronicle.Entry entry, DrifterEntity drifter) {
+		return mine(spoken(entry.text()), drifter.getName().getString());
 	}
 
 	/** The next part, once the last is said; none if they've said something else since, or gone. */
@@ -130,11 +166,19 @@ final class TownStory {
 		return nation == null ? null : nation.name;
 	}
 
-	/** Its first ruler, if the chronicle says ("X was founded, and N with it, Bob its first ruler"; "Ann founded X"). */
+	/**
+	 * Its founder (or founders), if the chronicle says ("X was founded, and N with it, Bob its first ruler"; "X was founded by
+	 * Ann and Bo"; "Ann founded X"). (Found: towns made with the world say "founded by A and B", and were told as nobody's.)
+	 */
 	@Nullable
 	private static String founder(Town town) {
 		for (Chronicle.Entry entry : Chronicle.all()) {
 			String text = entry.text();
+			if (text.startsWith(town.name + " was founded by ")) {
+				String by = text.substring((town.name + " was founded by ").length());
+				return by.endsWith(".") ? by.substring(0, by.length() - 1) : by;
+			}
+
 			if (text.startsWith(town.name + " was founded")) {
 				Matcher m = FIRST_RULER.matcher(text);
 				if (m.find()) {
@@ -164,7 +208,7 @@ final class TownStory {
 				case "war", "nation", "diplomacy", "festival" -> true;
 				default -> false;
 			};
-			if (entry.day() >= day || text.contains(" was founded") || text.contains(" founded " + town.name) || text.contains("stands where a village")
+			if (entry.day() > day || entry.day() == day && !big || text.contains(" was founded") || text.contains(" founded " + town.name) || text.contains("stands where a village")
 				|| text.contains("'s laws for ") || text.contains(" leads " + town.name) || text.startsWith(History.AFAR) || dull(text)) {
 				continue;
 			}
@@ -176,17 +220,14 @@ final class TownStory {
 			}
 		}
 
-		List<Chronicle.Entry> told = new ArrayList<>(pick(ours, MOST_PAST));
-		if (told.size() < MOST_PAST) {
-			told.addAll(pick(nations, MOST_PAST - told.size()));
-		}
-
-		told.sort((a, b) -> Long.compare(a.day(), b.day()));
+		// (Its own first, the biggest first; then its nation's.)
+		List<Chronicle.Entry> told = new ArrayList<>(pick(ours, ours.size()));
+		told.addAll(pick(nations, nations.size()));
 		return told;
 	}
 
 	/** Everyday doings, not worth a story: a house built, a trade taken up, someone setting out. */
-	private static boolean dull(String text) {
+	static boolean dull(String text) {
 		for (String everyday : new String[] {" built a house", " took up the ", " made a home", " set up as", " set out from", " moved into", " left ",
 			" arrived in ", " came to live", " was born"}) {
 			if (text.contains(everyday)) {
@@ -199,13 +240,13 @@ final class TownStory {
 	}
 
 	/** The biggest of these (a war's end or a town taken over a quarrel), at most this many. */
-	private static List<Chronicle.Entry> pick(List<Chronicle.Entry> entries, int most) {
+	static List<Chronicle.Entry> pick(List<Chronicle.Entry> entries, int most) {
 		List<Chronicle.Entry> sorted = new ArrayList<>(entries);
 		sorted.sort((a, b) -> weight(b) - weight(a));
 		return sorted.subList(0, Math.min(most, sorted.size()));
 	}
 
-	private static int weight(Chronicle.Entry entry) {
+	static int weight(Chronicle.Entry entry) {
 		String text = entry.text();
 		if (text.contains(" burned") || text.contains(" took ") || text.contains(" rose against") || text.contains(" won its freedom")
 			|| text.contains(" conquered")) {
@@ -245,7 +286,7 @@ final class TownStory {
 	}
 
 	/** How long ago it was founded, as said ("about 3 years", "200 days or so"). */
-	private static String ago(long days) {
+	static String ago(long days) {
 		long years = days / TownCulture.YEAR;
 		if (years >= 2) {
 			return "about " + years + " years";
@@ -259,7 +300,7 @@ final class TownStory {
 	}
 
 	/** When something was ("long before i was born", "a couple of years back", "last season"). */
-	private static String when(long days) {
+	static String when(long days) {
 		long years = days / TownCulture.YEAR;
 		if (years >= 10) {
 			return "way back, " + years + " years ago";
@@ -273,7 +314,7 @@ final class TownStory {
 			return "a year or so ago";
 		}
 
-		return days >= 20 ? "earlier this year" : days >= 3 ? "a few days ago" : "just the other day";
+		return days >= 20 ? "earlier this year" : days >= 3 ? "a few days ago" : days >= 1 ? "just the other day" : "earlier today";
 	}
 
 	/** One of its customs, as said; null if none. */

@@ -445,7 +445,7 @@ public final class PlayerTalk {
 	}
 
 	/** They're talking with this one now (it started a talk with them). */
-	static void focusOn(ServerPlayer player, DrifterEntity drifter, long now) {
+	public static void focusOn(ServerPlayer player, DrifterEntity drifter, long now) {
 		focus.put(player.getUUID(), new Focus(drifter.getUUID(), now + FOCUS, -1));
 		answeredAt.put(drifter.getUUID(), now);
 		PlayerConvo.touch(player, drifter, now, false);

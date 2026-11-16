@@ -7291,6 +7291,22 @@ From a play screenshot (a war speech, a quest):
   theft, a fight). 351 lines in `drifter_civ/drifter_chat/crime_scene.json`. `/drifterciv town crime <kind>` works from
   the console now (a stand-in player), with horse, livestock, peace, blood and scene_murder / scene_massacre / scene_wanted.
 
+- Crime scene lines tripled: 1,135 in `crime_scene.json` (every key about 3x, 6 or more personalities each).
+- **Asking about a town's story** (`TownStoryAsk`; the user, 2026-11-16, from the follow-up idea): for 4 minutes after a
+  Drifter tells its town's story, the one it told can ask about what it said, and it goes deeper, a line or a few at a
+  time (stopped like the story): who founded it ("who founded it?": them, then the first of them as asked after, itself as
+  "me"); who someone was ("who was mason?", "who's that", "tell me about sabrina": where they are or that they're gone,
+  what the chronicle says of them, how it feels about them); what happened ("what happened in the war?", "the fire?": what
+  set it off, it, what came of it); "why" and "when" of the last thing told; "tell me more" (up to 8 more things it
+  hadn't got to); any town or nation ("what about rivalton?"). Lines in `town_story.json` (town.story.ask.*).
+- The story itself: today's wars and peace count in its past ("earlier today, Storyford declared war on Rivalton"); towns
+  "founded by A and B" are told with their founders (they were nobody's); one that founded it says "me and A founded it",
+  not its own name; "A and B was the first ruler" no more.
+- `/drifter hear` from the console turns to the nearest one (with others close, unnamed, it went to nobody).
+
+Headless: tools/smoke-town-story-ask.txt (two towns, a war and peace, the story, then each question: all answered from
+the chronicle). Seen in passing, not this branch's: a town crier reads the chronicle's headlines in among the story.
+
 Headless: tools/smoke-crime-scene.txt (a horse, a false alarm, a killing, the animals: shouted, joined in, "they got away",
 "sorry, anyway" from one who was talking), tools/smoke-playertalk-wary.txt, tools/smoke-talk-aside.txt. Not headless (needs
 you): the fine by tossed coins, a wary Drifter not saying hi. Seen in passing, not this branch's: the crier's headlines
