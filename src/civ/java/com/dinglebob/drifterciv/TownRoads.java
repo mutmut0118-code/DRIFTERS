@@ -235,6 +235,13 @@ final class TownRoads {
 
 		@Override
 		public List<BlockPos> roads(DrifterEntity drifter) {
+			// (A town made ready, with the world, has its roads laid already, of the roads' worn mix: none to wear into path.
+			// Its people shovelled the mix and the grass by it into dirt path; the user, 2026-11-15: "people are still pathing
+			// the roads".)
+			if (this.town.spawned) {
+				return List.of();
+			}
+
 			this.refresh();
 			return this.roadColumns;
 		}

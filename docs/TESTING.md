@@ -4018,7 +4018,8 @@ In a **new world**.
 - [ ] **The town stays busy**: in a new town, only about a fifth of its people are down the mine at a time; the rest
       are about the town (fields, stall, plaza, chatting, building).
 - [ ] **No pits by mossy boulders** (taiga): a road through one cuts through it.
-- [ ] **Roads stay as they are**: Drifters don't turn the mud roads (or grass near their homes) into dirt path any more.
+- [ ] **Roads stay as they are**: Drifters don't turn the mud roads, town streets or the grass beside them into dirt path any
+      more (0.23.74; paths made before stay).
 - [ ] **Town names**: walk into a town and its name fades in at the top of the screen, stays a moment and fades out. It
       doesn't show again until you've left the town and come back. F1 hides it.
 

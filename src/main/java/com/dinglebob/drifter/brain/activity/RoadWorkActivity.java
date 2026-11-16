@@ -157,8 +157,8 @@ public class RoadWorkActivity extends Activity {
 	private static boolean pathable(Level level, BlockPos top) {
 		BlockState state = level.getBlockState(top);
 		BlockState over = level.getBlockState(top.above());
-		return (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(Blocks.COARSE_DIRT) || state.is(Blocks.PODZOL) || state.is(Blocks.MYCELIUM)
-			|| state.is(Blocks.ROOTED_DIRT)) && (over.isAir() || over.canBeReplaced() && over.getFluidState().isEmpty())
+		// (Not coarse or rooted dirt: the worn mix the roads between towns and the towns' streets are made of, left as it is.)
+		return (state.is(Blocks.GRASS_BLOCK) || state.is(Blocks.DIRT) || state.is(Blocks.PODZOL) || state.is(Blocks.MYCELIUM)) && (over.isAir() || over.canBeReplaced() && over.getFluidState().isEmpty())
 			&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isBuilt(level, top);
 	}
 }

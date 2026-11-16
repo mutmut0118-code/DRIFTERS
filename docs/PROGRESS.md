@@ -3517,6 +3517,13 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   "osama", "alqaeda" (the user likes the joke names like Vera_Bagina: those stay). Tested: 200 made on a headless server,
   every shape seen.
 
+- **0.23.74: townsfolk no longer shovel the roads into dirt path** (the user's picture, 2026-11-15: "people are still
+  pathing the roads"). It wasn't the habit taken out in 0.23.66 but the town's road work (`RoadWorkActivity`, from a
+  town's plank days): along its roads, grass, dirt, coarse and rooted dirt shovelled into path, so the roads' worn mix and
+  the grass by it. Now a town made with the world (its roads laid already) gives its people no road work
+  (`TownRoads.Work.roads`), and road work anywhere leaves coarse and rooted dirt as they are (towns its people founded
+  still wear grass into path). Paths already made in a world stay.
+
 - **0.23.73: the journal's history pages show nations' banners with their designs** (the user's picture, 2026-11-15: a war
   page with plain pink and red banners). A story's banners come from the colour its nation had then (`Annals.picture`):
   now with the nation's design on when it's still that colour.
