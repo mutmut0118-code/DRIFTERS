@@ -494,7 +494,10 @@ public final class WarGoals {
 			}
 
 			if (this.raid.mounted) {
-				boolean near = this.creeping(this.drifter) || leader != null && this.creeping(leader)
+				// (No creeping on horseback: they ride in together to the charge and get off there: the user, 2026-11-16, "take out
+				// the sneaking".)
+				boolean near = this.drifter.blockPosition().closerThan(this.raid.target, CHARGE + 8.0)
+					|| leader != null && leader.blockPosition().closerThan(this.raid.target, CHARGE + 8.0)
 					|| this.raid.leaderOffSince >= 0 && this.now() - this.raid.leaderOffSince > 20 * 15;
 				if (near) {
 					WarHorses.dismount(this.drifter);
@@ -558,11 +561,11 @@ public final class WarGoals {
 				// (The leader marches, at a walk, the whole way at once along the roads it knows (its town's people have gone
 				// between the towns for years): no stop between the stretches of the way. The last stretch, near the town it's
 				// raiding, it creeps up on it, the band with it; then the charge.)
-				this.marchCreeping = this.creeping(this.drifter);
+				this.marchCreeping = this.creeping(this.drifter) && !this.raid.mounted;
 				String what = "on the way to raid " + DrifterWars.name(this.raid.defenders);
 				// (On foot, unless its band rides and it's on its horse: found in testing, its march on foot walked under it and it
 				// slid off every few seconds.)
-				var march = new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping ? CHARGE - 2.0 : CREEP - 2.0,
+				var march = new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, this.marchCreeping || this.raid.mounted ? CHARGE - 2.0 : CREEP - 2.0,
 					this.marchCreeping ? "creep up on " + DrifterWars.name(this.raid.defenders) : what, this.marchCreeping ? NavigateTask.Pace.SNEAK
 						: NavigateTask.Pace.STROLL);
 				return this.begin(this.raid.mounted && WarHorses.riding(this.drifter) != null ? march : march.onFoot());
@@ -584,7 +587,7 @@ public final class WarGoals {
 			// (A band on horseback, and no seat for it: on foot to the town it raids along the roads itself, at a run: its leader
 			// on a horse was too fast to follow step by step, and they lost it and gave up; found in testing.)
 			if (this.raid.mounted && WarHorses.riding(leader) != null && WarHorses.riding(this.drifter) == null) {
-				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, CREEP - 2.0,
+				return this.begin(new com.dinglebob.drifter.nav.March(this.drifter, this.raid.target, CHARGE - 2.0,
 					"on the way to raid " + DrifterWars.name(this.raid.defenders), NavigateTask.Pace.TRAVEL));
 			}
 
@@ -635,7 +638,7 @@ public final class WarGoals {
 					return true;
 				}
 
-				return this.child() instanceof com.dinglebob.drifter.nav.March && (this.creeping(this.drifter) != this.marchCreeping
+				return this.child() instanceof com.dinglebob.drifter.nav.March && ((this.creeping(this.drifter) && !this.raid.mounted) != this.marchCreeping
 					|| this.now() >= this.nextHalt && this.now() % 20 == 0 && this.bandBehind());
 			}
 
@@ -703,6 +706,24 @@ public final class WarGoals {
 			// who'd got off.)
 			if (this.raid.mounted && WarHorses.riding(this.drifter) != null) {
 				WarHorses.dismount(this.drifter);
+			}
+
+			// Hunting the defenders first, the leader with the rest (the user, 2026-11-16: raids felt nothing like a town turning
+			// on you; "they charged, but thats it, no immediate fighting"): a fight it can take on now, then a defender it sees,
+			// then toward the sound of fighting; only then the chests.
+			var threat = com.dinglebob.drifter.brain.Threats.assess(this.drifter);
+			if (threat.decision().fights() && threat.main() != null) {
+				return this.begin(new com.dinglebob.drifter.brain.activity.CombatActivity(this.drifter));
+			}
+
+			DrifterEntity enemy = this.enemyInSight();
+			if (enemy != null) {
+				return this.begin(new NavigateTask(this.drifter, enemy.position(), 2.5, "go for " + enemy.getName().getString(), NavigateTask.Pace.TRAVEL));
+			}
+
+			Vec3 noise = com.dinglebob.drifter.world.Battle.Advance.fighting(this.drifter);
+			if (noise != null && noise.distanceTo(this.drifter.position()) < 48.0) {
+				return this.begin(new NavigateTask(this.drifter, noise, 3.0, "toward the fighting", NavigateTask.Pace.TRAVEL));
 			}
 
 			// Worn down: the leader calls it (the user, 2026-10-29: "if everybody gets low they retreat").
@@ -872,6 +893,23 @@ public final class WarGoals {
 				Vec3.atCenterOf(this.raid.target), LOOT_RANGE, e -> !brain.looted.contains(e.blockPos())
 					&& !com.dinglebob.drifter.world.PlayerPlacedBlocks.isPlayerPlaced(this.drifter.level(), e.blockPos()));
 			return entry == null ? null : entry.blockPos();
+		}
+
+		/** The nearest defender it sees (a Drifter of the side it's at war with, alive, within 40 blocks), or null. */
+		@Nullable
+		private DrifterEntity enemyInSight() {
+			long now = this.now();
+			DrifterEntity best = null;
+			double nearest = 40.0;
+			for (var awareness : this.drifter.getSenses().tracked()) {
+				if (awareness.entity instanceof DrifterEntity other && other.isAlive() && awareness.seenWithin(now, 20 * 3)
+					&& DrifterWars.hostile(this.drifter, other) && other.distanceTo(this.drifter) < nearest) {
+					nearest = other.distanceTo(this.drifter);
+					best = other;
+				}
+			}
+
+			return best;
 		}
 
 		private Status retreat() {

@@ -1196,6 +1196,11 @@ public class DrifterEntity extends PathfinderMob {
 	/** The tick it last meant to stay on what it's riding (a ride, breaking in a horse). */
 	private int rideIntentAt = Integer.MIN_VALUE / 2;
 
+	/** Who it's fighting now and when it last picked them (its side spreads over their enemies: Threats). */
+	@org.jetbrains.annotations.Nullable
+	public LivingEntity fightingNow;
+	public long fightingAt;
+
 	/** Called every tick by whatever has it riding on purpose. */
 	public void keepRiding() {
 		this.rideIntentAt = this.tickCount;

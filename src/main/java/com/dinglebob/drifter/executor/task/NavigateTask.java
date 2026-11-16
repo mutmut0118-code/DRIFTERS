@@ -925,6 +925,13 @@ public class NavigateTask extends Task {
 			return null;
 		}
 
+		// (In a raid's fight: on foot, whatever's far; found in testing, a raider rode to chests across the town it raided,
+		// got off, and back on, over and over.)
+		var raid = com.dinglebob.drifter.social.WarGoals.raidFor(this.drifter);
+		if (raid != null && raid.phase == com.dinglebob.drifter.world.DrifterWars.Phase.ATTACK) {
+			return null;
+		}
+
 		boolean riding = this.drifter.getVehicle() == own;
 		boolean leading = own.getLeashHolder() == this.drifter;
 		Vec3 target = this.target.get();

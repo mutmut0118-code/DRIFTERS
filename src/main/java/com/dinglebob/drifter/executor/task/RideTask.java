@@ -123,7 +123,14 @@ public class RideTask extends Task {
 		// (A stretch of a longer way passed by (its end behind it): reached, no turning back round for it; found by the user,
 		// riders at a canter overshot it and went round in circles.)
 		Vec3 facing = Vec3.directionFromRotation(0.0F, this.horse.getYRot());
-		boolean passed = this.stayOn && distance < 10.0 && (this.target.x - here.x) * facing.x + (this.target.z - here.z) * facing.z < 0.0;
+		// (Only once it's ridden at it and gone by: found in testing, a road's next point behind it before it set off counted
+		// as passed every time, and its leader stood in the plaza skipping stretches.)
+		if (Double.isNaN(this.startDistance)) {
+			this.startDistance = distance;
+		}
+
+		boolean passed = this.stayOn && distance < 10.0 && this.bestDistance < this.startDistance - 2.0
+			&& (this.target.x - here.x) * facing.x + (this.target.z - here.z) * facing.z < 0.0;
 		if (distance <= this.offAt || passed) {
 			if (this.stayOn) {
 				this.arrived = true;
@@ -234,6 +241,9 @@ public class RideTask extends Task {
 		this.keepSeat = true;
 		return this;
 	}
+
+	/** How far it was from this stretch's end when it set off on it. */
+	private double startDistance = Double.NaN;
 
 	/** Ticks till it may jump again (a tap, not a held key). */
 	private int jumpCooldown;

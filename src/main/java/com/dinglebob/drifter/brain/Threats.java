@@ -304,6 +304,9 @@ public final class Threats {
 		return health * armor * Math.max(1.0, weapon) * shield * food;
 	}
 
+	/** How much less an enemy counts as its pick for each of its side already fighting it. */
+	private static final double TAKEN = 1.5;
+
 	/** The current assessment, from what it has noticed (perception only). */
 	public static Assessment assess(DrifterEntity drifter) {
 		long now = drifter.level().getGameTime();
@@ -316,6 +319,19 @@ public final class Threats {
 		double nearest = Double.MAX_VALUE;
 		LivingEntity main = null;
 		double mainScore = 0.0;
+		// Its side about it, and who each is fighting: one already taken on by others counts for less as its own pick, so a band
+		// spreads over its enemies instead of all on one (the user, 2026-11-16, of a war: "make sure all the drifters [aren't]
+		// bunched up fighting one person and they are actually fighting different people").
+		List<DrifterEntity> side = new ArrayList<>();
+		com.dinglebob.drifter.world.DrifterGroups.Group mine = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+		if (mine != null) {
+			for (Awareness awareness : drifter.getSenses().tracked()) {
+				if (awareness.entity instanceof DrifterEntity ally && ally.isAlive() && mine.members.contains(ally.getUUID()) && awareness.seenWithin(now, 20 * 4)) {
+					side.add(ally);
+				}
+			}
+		}
+
 		for (Awareness awareness : drifter.getSenses().tracked()) {
 			if (!(awareness.entity instanceof LivingEntity living) || !living.isAlive() || living == drifter) {
 				continue;
@@ -356,8 +372,20 @@ public final class Threats {
 			nearest = Math.min(nearest, distance);
 			// The one to deal with first: the most dangerous up close, of the ones it can see (it doesn't go for one it
 			// only heard; it's on its guard and looks).
-			if (score > mainScore && (seen || recentlyHit && living == lastAttacker)) {
-				mainScore = score;
+			double pick = score;
+			if (!side.isEmpty() && !(recentlyHit && living == lastAttacker)) {
+				int taken = 0;
+				for (DrifterEntity ally : side) {
+					if (ally.fightingNow == living && now - ally.fightingAt < 40) {
+						taken++;
+					}
+				}
+
+				pick = score / (1.0 + TAKEN * taken);
+			}
+
+			if (pick > mainScore && (seen || recentlyHit && living == lastAttacker)) {
+				mainScore = pick;
 				main = living;
 			}
 		}
@@ -467,6 +495,11 @@ public final class Threats {
 		if (decision != brain.lastThreatDecision) {
 			brain.lastThreatDecision = decision;
 			brain.lastThreatDecisionAt = now;
+		}
+
+		if (decision.fights() && main != null) {
+			drifter.fightingNow = main;
+			drifter.fightingAt = now;
 		}
 
 		return new Assessment(threat, power, decision, main, List.copyOf(hostiles), nearest, recentlyHit);

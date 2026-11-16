@@ -322,7 +322,7 @@ public final class Battle {
 
 		/** The newest sound of fighting it heard (a hit, an arrow) in the last few seconds, farther than a few blocks; or null. */
 		@Nullable
-		static Vec3 fighting(DrifterEntity drifter) {
+		public static Vec3 fighting(DrifterEntity drifter) {
 			long now = drifter.level().getGameTime();
 			Vec3 best = null;
 			long bestTime = Long.MIN_VALUE;

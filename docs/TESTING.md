@@ -6,6 +6,15 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.77: raids that fight (new, 2026-11-16)
+
+Start a raid (`/drifter raid` in a town at war, or wait for one):
+1. The band rides in together, canters, no sneaking; everyone gets off at the charge line together and goes straight in.
+2. In the fight they go after the defenders first (a fight now, then a defender they see, then the sound of fighting);
+   chests and wrecking only after. The leader fights with them.
+3. They spread over the defenders: several against several, not everyone on one.
+4. Horses: no high leaps, no circling, and they keep closer to the road's bends.
+
 ## 0.23.76: war bands on horseback, two to a horse (new, 2026-11-16)
 
 Use a **new world** (stables now have a stall for every two households). When a town goes to war:
