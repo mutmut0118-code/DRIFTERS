@@ -7488,7 +7488,7 @@ Headless: tools/smoke-war-speech.txt (two towns, war: the twelve lines said with
 run headless, so the hush itself is for the game). Seen in passing in that run, not this branch's: the chronicle logs
 "hiddennn took up the builder's trade in Cowbury" and "...the hunter's trade..." every 10 seconds (21 times in 3 minutes).
 
-## Next build (not built yet)
+## War rally crowd (in 0.23.77: merged through the war march branch; installed 2026-11-16)
 
 - **The crowd answers the war speech** (`WarCrowd`; the user, 2026-11-16: "replies during the war rally? ex: we're not
   losing anyone, got it? and twelve people say got it!/yea!/right!!", then "every idea sounds great, we gonna make it
@@ -7504,3 +7504,34 @@ run headless, so the hush itself is for the game). Seen in passing in that run, 
 
 Headless: tools/smoke-war-speech.txt (two towns, war: the speech with cheers, a nervous one steadied, a joker, a roar of
 four at the end).
+
+## 0.23.77-side.1 (built 2026-11-17; the main line 0.23.77 in it)
+
+From play (2026-11-17):
+
+- **A town's story, slower and in a player's words.** Each line waits for it to be read before the next is typed (about
+  15 letters a second, at most 8 seconds; the user: "message going a bit to quick for lore"). The chronicle's lines are
+  retold as a player would say them (`Retell`: "amethyst ruled the Draberg League for 281 days, then died. saezy took
+  over", not "amethyst635, who had ruled ... died; saezy4 rules it now"; "they picked lagoon to lead us"; "we lost dora in
+  the war with Rivalton. lemon got them"), names as they're called, itself "i", its town "the town". Founders by nickname.
+  No "way back, 11 years ago," piles of commas; it no longer ends on "you staying a while?" (it couldn't follow it up). A
+  thought says why a story stopped.
+- **Where a town is** (`TownWhere`; the user: "do you know where roseridge is?" in Roseridge got "no roseridge here", and
+  "oh CITY? / i think its.. / north east? / which is / that way" with pointing): the town you're in: "lol youre in it";
+  another: as this one knows it (a neighbour within 700 blocks, one its town deals with, its own nation's: sure, "go east
+  from here", "east, not far"; else only heard of, or never heard of), a line at a time with pauses (unsure: "i think
+  its..", "north east?", "which is..", "that way"), and on "that way" it turns and punches the air toward it (a new
+  pointing gesture, `Mannerisms.point`, `TalkApi.point`). A nation asked after: its capital.
+- "its very cool", "i love this town": "that's nice", not a compliment ("you too"); a bare "cool" isn't a compliment.
+
+- **Tics answered in kind** (`SocialWatcher.answerInKind` / `mirror`; the user: "i spam crouch, and they spam crouch back, or
+  i spam jump, and they spam jump as a response. its player culture"): crouch-spam or jump-spam (3 in 3 seconds, facing
+  it, close) at a Drifter it's engaged with (talking with you, looking at you close by, or one that knows you) is
+  answered with the same, a moment later, facing you; the sociable nearly always, the shy now and then. Up to 3 times
+  running, then it laughs it off ("lol ok", "we're so silly") and rests a minute. Talking with you, now and then it starts
+  one itself; answer it in kind and it always answers back. Not engaged: crouch-spam is still "hello" (a nod and a crouch).
+  Lines in `drifter/drifter_chat/mirror.json`. Not testable headless (it watches real players): yours to try.
+
+Headless: tools/smoke-town-way.txt (its own town: "look around, this is it lol"; the other: "ohh Rivalton", "go east from
+here", "that way!"), the story alone (paced 11, 7, 5, 3, 6 seconds by length). Not headless: the unsure path's lines with
+a far town, the pointing as seen.

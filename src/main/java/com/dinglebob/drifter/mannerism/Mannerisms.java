@@ -164,6 +164,19 @@ public final class Mannerisms {
 		return true;
 	}
 
+	/**
+	 * It points somewhere, as players do: turns to face it and punches the air that way a few times (the user, 2026-11-17, of
+	 * asking where a town is: "that way (pointing at actual direction on where the city is [by spam punching the air in that
+	 * direction, like a tic])"). False if its hands or head are busy with something that won't wait.
+	 */
+	public boolean point(double x, double z) {
+		this.interrupt("pointing");
+		this.active = new Point(x, z);
+		this.forced = true;
+		this.active.start();
+		return true;
+	}
+
 	/** A tic started on purpose (a command) is running. */
 	public boolean forcedActive() {
 		return this.active != null && this.forced;
@@ -757,6 +770,52 @@ public final class Mannerisms {
 			Mannerisms.this.drifter.resetAttackTimer();
 			this.wait = this.between(3, 6);
 			return true;
+		}
+	}
+
+	/** Pointing: faces the way, a little above the horizon, and punches the air that way four to seven times, quickly. */
+	private final class Point extends Tic {
+		private final double x;
+		private final double z;
+		private int swings;
+		private int wait;
+
+		Point(double x, double z) {
+			super(Kind.SWING_AIR, EnumSet.of(BodyPart.HEAD, BodyPart.HANDS));
+			this.x = x;
+			this.z = z;
+		}
+
+		@Override
+		void start() {
+			double dx = this.x - Mannerisms.this.drifter.getX();
+			double dz = this.z - Mannerisms.this.drifter.getZ();
+			float yaw = (float)(Mth.atan2(dz, dx) * (180.0 / Math.PI)) - 90.0F;
+			this.camera().override(yaw, -8.0F, CameraModel.TurnSpeed.NORMAL);
+			// (Turning first; then the punches.)
+			this.wait = 8;
+			this.swings = this.between(4, 7);
+		}
+
+		@Override
+		boolean step(int age) {
+			if (--this.wait > 0) {
+				return true;
+			}
+
+			if (this.swings-- <= 0) {
+				return age < 60;
+			}
+
+			Mannerisms.this.drifter.swing(InteractionHand.MAIN_HAND);
+			Mannerisms.this.drifter.resetAttackTimer();
+			this.wait = this.between(2, 4);
+			return true;
+		}
+
+		@Override
+		void stop() {
+			this.camera().releaseOverride();
 		}
 	}
 

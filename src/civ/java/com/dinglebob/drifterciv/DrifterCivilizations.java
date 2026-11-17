@@ -81,6 +81,7 @@ public final class DrifterCivilizations implements ModInitializer {
 		TownFounding.register();
 		Justice.register();
 		CrimeScene.register();
+		TownStory.register();
 		// An autosave on walking into a town, with Quicksave (0.23.37).
 		Arrivals.register();
 		Diplomacy.register();

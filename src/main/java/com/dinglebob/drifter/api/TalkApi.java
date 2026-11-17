@@ -279,6 +279,11 @@ public final class TalkApi {
 		return com.dinglebob.drifter.social.Lines.pick(drifter, key, vars);
 	}
 
+	/** It points that way, as players do: faces it and punches the air toward it a few times ("that way"). */
+	public static void point(DrifterEntity drifter, net.minecraft.core.BlockPos at) {
+		drifter.getMannerisms().point(at.getX() + 0.5, at.getZ() + 0.5);
+	}
+
 	/** An item's name said as many: "bone meal", "torches", "potatoes", "iron ingots". */
 	public static String plural(String name) {
 		return com.dinglebob.drifter.social.Lines.plural(name);

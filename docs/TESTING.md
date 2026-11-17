@@ -6,6 +6,18 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.79: town stories, directions and copy-cat tics (merged from 0.23.77-side.1, 2026-11-17)
+
+1. Ask someone "tell me about this town": the lines come slower (time to read each), and sound like a person talking
+   ("they picked lagoon to lead us"), not a history book.
+2. Ask "do you know where <this town> is?" while in it: "lol youre in it". Ask about another town: a few lines with
+   pauses ("oh Fairhaven?", "i think its..", "north east?", "that way"), and they turn and punch the air toward it. Check
+   it really is that way (F3 shows your facing). A town far away they've never heard of: they say so.
+3. "its very cool" after they show you around: "right?" kind of answer, not "you too".
+4. **Copy-cat tics.** Talk to a Drifter (or stand close while it looks at you) and spam crouch (3+ quick crouches) at it:
+   it crouches back. Spam jump: it jumps back. Keep going: it answers a few times, then laughs it off ("lol ok"). Sometimes,
+   while you chat, it starts one at you; copy it and it answers again. Shy ones don't always join in.
+
 ## 0.23.78: `/drifter raid` says why (new, 2026-11-17)
 
 `/drifter raid` (stand in the town) or `/drifter raid <town>` (from anywhere; Tab suggests names). It now works at night
