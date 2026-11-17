@@ -4244,7 +4244,7 @@ raid's stage, where the leader is, how far from the target and how many are with
 Not checked: the speed on a fully built road (the test world had only part of its roads built; on unbuilt stretches they
 walk the planned line over raw ground, about half as fast).
 
-## Next build (not built yet)
+## 0.23.77-side.1
 
 1. Ask someone "tell me about this town": the lines come slower (time to read each), and sound like a person talking
    ("they picked lagoon to lead us"), not a history book.

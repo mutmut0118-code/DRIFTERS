@@ -7504,7 +7504,7 @@ run headless, so the hush itself is for the game). Seen in passing in that run, 
 Headless: tools/smoke-war-speech.txt (two towns, war: the speech with cheers, a nervous one steadied, a joker, a roar of
 four at the end).
 
-## Next build (not built yet; on top of 0.23.77)
+## 0.23.77-side.1 (built 2026-11-17; the main line 0.23.77 in it)
 
 From play (2026-11-17):
 
