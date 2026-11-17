@@ -231,13 +231,14 @@ public final class SocialCommands {
 				return raids;
 			}))));
 		// Debug: the nearest Drifter's group raids a rival it's at war with, now.
-		root.then(Commands.literal("raid").requires(source -> source.hasPermission(2)).executes(ctx -> {
-			var drifter = DrifterCommands.nearest(ctx.getSource());
-			var group = com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
-			String on = group == null ? null : com.dinglebob.drifter.world.DrifterWars.debugRaid(ctx.getSource().getServer(), group.id);
-			ctx.getSource().sendSuccess(() -> Component.literal(on == null ? "Debug: no raid (no war, or its leader isn't fit and about by day)" : "Debug: off to raid " + on), true);
-			return on == null ? 0 : 1;
-		}));
+		// (The town or group named, or the one here: the nearest Drifter's, or the one living nearest; found by the user, it said
+		// nothing useful, and at night with everyone indoors it found no Drifter near.)
+		root.then(Commands.literal("raid").requires(source -> source.hasPermission(2))
+			.executes(ctx -> raid(ctx, null))
+			.then(Commands.argument("town", StringArgumentType.word())
+				.suggests((c, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+					com.dinglebob.drifter.world.DrifterGroups.all().stream().map(g -> g.name.replace(' ', '_')), builder))
+				.executes(ctx -> raid(ctx, StringArgumentType.getString(ctx, "town")))));
 		root.then(Commands.literal("war").then(Commands.argument("one", StringArgumentType.word()).then(Commands.argument("other", StringArgumentType.word())
 			.then(Commands.argument("tension", DoubleArgumentType.doubleArg(0, 100)).executes(ctx -> {
 				DrifterEntity one = named(ctx, StringArgumentType.getString(ctx, "one"));
@@ -484,6 +485,54 @@ public final class SocialCommands {
 
 		say(ctx, "Found a mineshaft near " + found.toShortString() + " but couldn't get into it");
 		return 0;
+	}
+
+	/** Debug: a town or group sets off on a raid now (see the command). */
+	private static int raid(CommandContext<CommandSourceStack> ctx, @org.jetbrains.annotations.Nullable String town) {
+		var source = ctx.getSource();
+		com.dinglebob.drifter.world.DrifterGroups.Group group = null;
+		if (town != null) {
+			String want = town.replace('_', ' ');
+			group = com.dinglebob.drifter.world.DrifterGroups.all().stream().filter(g -> g.name.equalsIgnoreCase(want)).findFirst().orElse(null);
+			if (group == null) {
+				source.sendFailure(Component.literal("No raid: no town or group called " + want));
+				return 0;
+			}
+		} else {
+			// The one living here first (a visitor from another town may be nearer), then the nearest Drifter's.
+			var pos = source.getPosition();
+			String dimension = source.getLevel().dimension().location().toString();
+			double best = 128.0 * 128.0;
+			for (var g : com.dinglebob.drifter.world.DrifterGroups.all()) {
+				if (g.base != null && g.baseDimension.equals(dimension) && g.base.distToCenterSqr(pos) < best) {
+					best = g.base.distToCenterSqr(pos);
+					group = g;
+				}
+			}
+
+			if (group == null) {
+				DrifterEntity drifter = source.getLevel().getEntitiesOfClass(DrifterEntity.class, new net.minecraft.world.phys.AABB(pos, pos).inflate(64.0),
+					d -> d.isAlive() && com.dinglebob.drifter.world.DrifterGroups.of(d.getUUID()) != null).stream()
+					.min(java.util.Comparator.comparingDouble(d -> d.distanceToSqr(pos))).orElse(null);
+				group = drifter == null ? null : com.dinglebob.drifter.world.DrifterGroups.of(drifter.getUUID());
+			}
+
+			if (group == null) {
+				source.sendFailure(Component.literal("No raid: no town or group here (stand in a town, or name one: /drifter raid <town>)"));
+				return 0;
+			}
+		}
+
+		var raiders = group;
+		String result = com.dinglebob.drifter.world.DrifterWars.debugRaid(source.getServer(), raiders.id);
+		if (result.startsWith("-")) {
+			source.sendFailure(Component.literal("No raid: " + result.substring(1)));
+			return 0;
+		}
+
+		source.sendSuccess(() -> Component.literal("Debug: " + raiders.name + " gathers at its plaza to raid " + result.substring(1)
+			+ " (the leader speaks first, then they set off)"), true);
+		return 1;
 	}
 
 	/** Where a raid's leader is, how far it is from the target, and how many of its raiders are with it. */

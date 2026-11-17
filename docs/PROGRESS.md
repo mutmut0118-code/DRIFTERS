@@ -14,7 +14,8 @@ route, at its gait (faster to catch up); near the target (the creep line) they g
 take an untied enemy horse left at the front too); home, each back to its horse. Stables: a stall every two households
 (16 at most, smaller if no lot fits). Riding fixes: a stuck horse takes its own route round (on the land too), progress on
 a route is the horse moving, the band gets off only after its leader has been off 15 s, no stabling in a raided town.
-Debug `/drifter raid`. Tested (seed 779, Mudfall raiding Heronthorpe): "5 with horses, 2 behind them", rode out, charged,
+Debug `/drifter raid [town]` (0.23.78: forced, any hour, says why it can't: no war, leader not near, already raiding or
+raided; falls back to the town nearest you when no Drifter is close). Tested (seed 779, Mudfall raiding Heronthorpe): "5 with horses, 2 behind them", rode out, charged,
 back. Rough: a horse still sticks now and then in Mudfall's streets (its rider leads it or walks); a leader without a horse
 means a band on foot.
 

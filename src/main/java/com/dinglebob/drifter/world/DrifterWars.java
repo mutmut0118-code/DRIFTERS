@@ -537,19 +537,36 @@ public final class DrifterWars {
 
 	/** Debug: this group sets off on a raid now on a rival it's at war with (its wait between raids skipped): which, or null. */
 	@org.jetbrains.annotations.Nullable
+	/**
+	 * Debug: the group raids a rival it's at war with now, whatever the hour, its leader's health or its last raid. "+" and the
+	 * rival's name when it set off, or why not (said to whoever ran the command; found by the user: it said nothing useful).
+	 */
 	public static String debugRaid(MinecraftServer server, UUID attackers) {
 		long now = server.overworld().getGameTime();
+		DrifterGroups.Group group = DrifterGroups.byId(attackers);
+		Raid already = raids.get(attackers);
+		if (already != null) {
+			return "-" + name(attackers) + " is already raiding " + name(already.defenders) + " (" + already.phase.name().toLowerCase(java.util.Locale.ROOT) + ")";
+		}
+
+		Raid on = raidOn(attackers);
+		if (on != null) {
+			return "-" + name(attackers) + " is being raided by " + name(on.attackers) + " right now";
+		}
+
+		String why = "-" + (group == null ? "that group" : group.name) + " isn't at war with anyone (try /drifterciv relations war <town> near it first)";
 		for (Feud feud : feuds.values()) {
 			if (feud.tension >= WAR && (feud.a.equals(attackers) || feud.b.equals(attackers))) {
-				lastRaid.remove(attackers);
-				maybeRaid(server, attackers, feud.other(attackers), now);
-				if (raids.containsKey(attackers)) {
-					return name(feud.other(attackers));
+				String not = startRaid(server, attackers, feud.other(attackers), now, true);
+				if (not == null) {
+					return "+" + name(feud.other(attackers));
 				}
+
+				why = "-" + not;
 			}
 		}
 
-		return null;
+		return why;
 	}
 
 	private static void maybeRaid(MinecraftServer server, UUID attackers, UUID defenders, long now) {
@@ -557,13 +574,38 @@ public final class DrifterWars {
 			return;
 		}
 
+		startRaid(server, attackers, defenders, now, false);
+	}
+
+	/** Sets off on a raid if it can: null, or why it couldn't. Forced (debug): whatever the hour or its leader's health. */
+	@Nullable
+	private static String startRaid(MinecraftServer server, UUID attackers, UUID defenders, long now, boolean forced) {
 		DrifterGroups.Group group = DrifterGroups.byId(attackers);
 		DrifterGroups.Group rival = DrifterGroups.byId(defenders);
 		DrifterEntity leader = group == null ? null : loaded(server, group.leader);
-		if (leader == null || rival == null || leader.getHealth() < leader.getMaxHealth() * 0.75F
-			|| com.dinglebob.drifter.brain.Schedule.isNight(leader) || leader.getDrifterBrain().home() == null
-			|| !leader.level().dimension().location().toString().equals(rival.baseDimension)) {
-			return;
+		if (group == null || rival == null) {
+			return "no such group";
+		}
+
+		if (leader == null) {
+			// (Who and where, so whoever ran it can go there: the leader may be off travelling, or away in another town.)
+			String who = group.names.getOrDefault(group.leader, "its leader");
+			var known = DrifterRegistry.all().stream().filter(k -> k.id().equals(group.leader)).findFirst().orElse(null);
+			return group.name + "'s leader " + who + " isn't near" + (known == null ? "" : " (last seen at " + known.pos().toShortString() + ")")
+				+ ": it gives the speech, so go to it first (/drifter tp " + who + ") and try again";
+		}
+
+		if (!forced && (leader.getHealth() < leader.getMaxHealth() * 0.75F || com.dinglebob.drifter.brain.Schedule.isNight(leader))) {
+			return "its leader isn't fit, or it's night";
+		}
+
+		BlockPos muster = raidMusters != null ? raidMusters.apply(attackers) : null;
+		if (muster == null && leader.getDrifterBrain().home() == null) {
+			return leader.getName().getString() + " (" + group.name + "'s leader) has no home to gather at";
+		}
+
+		if (!leader.level().dimension().location().toString().equals(rival.baseDimension)) {
+			return rival.name + " lives in another dimension";
 		}
 
 		// Only a base one of them has seen (knowledge through perception), or a place another mod knows they know (a town's).
@@ -573,12 +615,11 @@ public final class DrifterWars {
 		}
 
 		if (target == null) {
-			return;
+			return "nobody in " + group.name + " knows where " + rival.name + " lives";
 		}
 
 		// (Gathering at its own town's plaza, if another mod says where: the user, 2026-10-29: "if everyone grouped up at their
 		// own town ... that way they can run in and it can be on sight".)
-		BlockPos muster = raidMusters != null ? raidMusters.apply(attackers) : null;
 		Raid raid = new Raid(attackers, defenders, target, muster != null ? muster : leader.getDrifterBrain().home().center, now);
 		var nature = leader.getPersonality();
 		double aggression = nature.get(com.dinglebob.drifter.personality.Trait.AGGRESSION);
@@ -590,6 +631,7 @@ public final class DrifterWars {
 		Drifter.LOGGER.info("[Drifter] {} sets off to raid {} at {}", group.name, rival.name, target.toShortString());
 		com.dinglebob.drifter.api.DrifterEvents.FEUD.invoker().onFeud(attackers, defenders, "set off to raid");
 		leader.getMemory().thoughts().add(now, "rallying " + group.name + " for a raid on " + rival.name);
+		return null;
 	}
 
 	/** Where the rival group lives, if one of this group has seen it (it saw one of them by their home). */

@@ -6,6 +6,15 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.78: `/drifter raid` says why (new, 2026-11-17)
+
+`/drifter raid` (stand in the town) or `/drifter raid <town>` (from anywhere; Tab suggests names). It now works at night
+and right after another raid too, and when it can't start it says why in red:
+- "isn't at war with anyone": first run `/drifterciv relations war <other town>` standing in the town, then try again.
+- "leader ... isn't near (last seen at ...)": the leader gives the speech, so `/drifter tp <leader>` and try again.
+- "is being raided by ..." or "is already raiding ...": wait for that raid to end.
+When it works it says "<town> gathers at its plaza to raid <other town>".
+
 ## 0.23.77: raids that fight (new, 2026-11-16)
 
 Start a raid (`/drifter raid` in a town at war, or wait for one):
