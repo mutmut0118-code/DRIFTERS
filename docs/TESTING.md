@@ -4244,6 +4244,15 @@ raid's stage, where the leader is, how far from the target and how many are with
 Not checked: the speed on a fully built road (the test world had only part of its roads built; on unbuilt stretches they
 walk the planned line over raw ground, about half as fast).
 
+## Next build (not built yet)
+
+1. Ask someone "tell me about this town": the lines come slower (time to read each), and sound like a person talking
+   ("they picked lagoon to lead us"), not a history book.
+2. Ask "do you know where <this town> is?" while in it: "lol youre in it". Ask about another town: a few lines with
+   pauses ("oh Fairhaven?", "i think its..", "north east?", "that way"), and they turn and punch the air toward it. Check
+   it really is that way (F3 shows your facing). A town far away they've never heard of: they say so.
+3. "its very cool" after they show you around: "right?" kind of answer, not "you too".
+
 ## 0.23.74-side.1 (installed 2026-11-16; the main line 0.23.74 merged in)
 
 1. Take a "bring me" job from a townsperson who needs bone meal: it says "16 bone meal", not "bone meals".

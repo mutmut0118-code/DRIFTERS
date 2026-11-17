@@ -64,7 +64,7 @@ final class TownStory {
 		String founder = founder(town);
 		String me = drifter.getName().getString();
 		List<String> founders = founder == null ? List.of() : List.of(founder.split(" and |, "));
-		String others = String.join(" and ", founders.stream().filter(name -> !name.equals(me)).toList());
+		String others = Retell.names(founders.stream().filter(name -> !name.equals(me)).toList(), drifter);
 		boolean foundedIt = founders.contains(me);
 		if (ago < 3) {
 			parts.add(new Part("town.story.new", vars("founder", founder == null ? "" : founder)));
@@ -72,7 +72,7 @@ final class TownStory {
 			parts.add(new Part(others.isEmpty() ? "town.story.founded_by_me" : "town.story.founded_by_me_with", vars("ago", ago(ago), "other", others)));
 		} else {
 			String key = founder != null ? "town.story.founded_by" : "town.story.founded";
-			parts.add(new Part(key, vars("ago", ago(ago), "founder", founder == null ? "" : founder)));
+			parts.add(new Part(key, vars("ago", ago(ago), "founder", founder == null ? "" : Retell.names(founders, drifter))));
 		}
 
 		// Its past (the rest kept, to be asked for: "tell me more").
@@ -85,7 +85,7 @@ final class TownStory {
 			// (Long ago: "old folks still talk about it"; this year: "not long ago".)
 			boolean old = day - entry.day() >= TownCulture.YEAR;
 			parts.add(new Part(i == 0 ? old ? "town.story.past" : "town.story.past_recent" : "town.story.past_more", vars("when", when(day - entry.day()), "what",
-				mine(spoken(entry.text()), drifter.getName().getString()))));
+				said(entry, drifter))));
 		}
 
 		// How it is now.
@@ -136,23 +136,79 @@ final class TownStory {
 		next(drifter, player, lines.stream().map(l -> new Part(l.key(), l.vars())).toList(), 0, player.level().getGameTime());
 	}
 
-	/** A line of the chronicle as it says it (itself "i"). */
+	/** A line of the chronicle as it says it: told as a player would (Retell), else as written (itself "i"). */
 	static String said(Chronicle.Entry entry, DrifterEntity drifter) {
-		return mine(spoken(entry.text()), drifter.getName().getString());
+		String told = Retell.tell(entry.text(), drifter, Retell.townOf(drifter));
+		return told != null ? told : mine(spoken(entry.text()), drifter.getName().getString());
 	}
 
 	/** The next part, once the last is said; none if they've said something else since, or gone. */
 	private static void next(DrifterEntity drifter, ServerPlayer player, List<Part> parts, int i, long began) {
 		if (i >= parts.size() || !drifter.isAlive() || player.isRemoved() || drifter.level() != player.level() || drifter.distanceTo(player) > GONE
 			|| i > 0 && spoke.getOrDefault(player.getUUID(), -1L) > began) {
+			if (i < parts.size()) {
+				DrifterApi.think(drifter, "stopped telling the story: " + (drifter.distanceTo(player) > GONE ? "they're " + Math.round(drifter.distanceTo(player))
+					+ " blocks off" : "they said something else"));
+			}
+
 			return;
 		}
 
 		Part part = parts.get(i);
-		Runnable then = () -> next(drifter, player, parts, i + 1, began);
+		// (Once it's said, a moment to read it before the next is typed: longer for a longer line. The user, 2026-11-17: "message
+		// going a bit to quick for lore".)
+		Runnable then = () -> after(reading(part), () -> next(drifter, player, parts, i + 1, began));
 		if (!TalkApi.answer(drifter, player, part.key(), then, part.vars())) {
-			then.run();
+			next(drifter, player, parts, i + 1, began);
 		}
+	}
+
+	/** Lines waiting to be typed: when, and what. */
+	private record Later(long at, Runnable run) {
+	}
+
+	private static final List<Later> later = new ArrayList<>();
+	private static long now;
+
+	static void register() {
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server -> {
+			now = server.overworld().getGameTime();
+			if (later.isEmpty()) {
+				return;
+			}
+
+			List<Later> due = later.stream().filter(l -> now >= l.at()).toList();
+			later.removeAll(due);
+			due.forEach(l -> l.run().run());
+		});
+	}
+
+	/** This, after so many ticks. */
+	private static void after(long ticks, Runnable run) {
+		later.add(new Later(now + ticks, run));
+	}
+
+	/** This, after so many ticks (for others' lines said one after another). */
+	static void later(long ticks, Runnable run) {
+		after(ticks, run);
+	}
+
+	/** They've said something to a Drifter since then. */
+	static boolean spokeSince(ServerPlayer player, long since) {
+		return spoke.getOrDefault(player.getUUID(), -1L) > since;
+	}
+
+	/** Time to read a line of this part: by how much it says (its words' length, and the line around them). */
+	private static long reading(Part part) {
+		int chars = 35;
+		for (Object var : part.vars()) {
+			if (var instanceof String s) {
+				chars += s.length();
+			}
+		}
+
+		// (About 15 letters a second, as read; at most 8 seconds.)
+		return Math.min(160, 10 + chars * 4 / 3);
 	}
 
 	private static Object[] vars(Object... vars) {
@@ -303,7 +359,7 @@ final class TownStory {
 	static String when(long days) {
 		long years = days / TownCulture.YEAR;
 		if (years >= 10) {
-			return "way back, " + years + " years ago";
+			return years + " years ago";
 		}
 
 		if (years >= 2) {

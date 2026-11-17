@@ -289,6 +289,14 @@
       "somebodys grumpy",
       "touchy",
       "who hurt you"
+    ],
+    "nice": [
+      "(its|thats|this is|it is) (very|so|really|super|pretty) (cool|awesome|nice|neat|sick)",
+      "(very|so|really|super) (cool|neat|sick)",
+      "(its|thats) (cool|awesome|neat|sick)",
+      "(this|it) (looks|seems) (cool|awesome|nice|great)",
+      "(love|loving) it here",
+      "(i|we) love this (place|town)"
     ]
   },
   "lines": {

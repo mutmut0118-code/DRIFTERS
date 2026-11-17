@@ -1,0 +1,211 @@
+{
+  "_comment": "Where a town is (TownWhere; the user, 2026-11-17: 'oh CITY? / i think its.. / north east? / which is / that way' with pointing). Said a line at a time with pauses; on that_way it turns and punches the air toward it. {town}, {dir} ('north east'), {dist} ('not far', 'pretty far, like 1200 blocks'). here: they're in it; heard_only / never: too far to know.",
+  "lines": {
+    "town.way.here": {
+      "any": [
+        "lol youre in it",
+        "you're standing in it! this is {town}",
+        "uh, this is {town}",
+        "{town}? youre here already",
+        "look around, this is it lol",
+        "this is {town} haha",
+        "welcome to {town}! youre in it"
+      ],
+      "hermit": [
+        "here. this is it."
+      ],
+      "newbie": [
+        "omg its here!! youre in {town}"
+      ],
+      "helper": [
+        "you're in it! welcome to {town}"
+      ],
+      "casual": [
+        "bro youre in it lol"
+      ],
+      "pvp_sweat": [
+        "ur literally in it"
+      ],
+      "speedrunner": [
+        "here. done"
+      ]
+    },
+    "town.way.start": {
+      "any": [
+        "oh {town}?",
+        "{town}?",
+        "{town}? yeah",
+        "ohh {town}",
+        "hmm {town}",
+        "{town}, right",
+        "oh yeah {town}"
+      ],
+      "hermit": [
+        "{town}."
+      ],
+      "newbie": [
+        "ooh {town}!"
+      ],
+      "helper": [
+        "oh {town}! sure"
+      ],
+      "casual": [
+        "{town}? ye"
+      ]
+    },
+    "town.way.sure": {
+      "any": [
+        "its {dir} of here",
+        "{dir}, cant miss it",
+        "head {dir}",
+        "go {dir} from here",
+        "straight {dir}",
+        "{dir}. follow the road"
+      ],
+      "hermit": [
+        "{dir}."
+      ],
+      "helper": [
+        "just head {dir}, you'll see it"
+      ],
+      "speedrunner": [
+        "{dir}. go"
+      ],
+      "builder": [
+        "{dir}, look for the big roofs"
+      ]
+    },
+    "town.way.sure_far": {
+      "any": [
+        "{dir}, {dist}",
+        "its {dir}. {dist}",
+        "{dir} of here, {dist}",
+        "head {dir}, {dist}"
+      ],
+      "hermit": [
+        "{dir}. {dist}."
+      ],
+      "nomad": [
+        "{dir}, {dist}. done that walk plenty"
+      ]
+    },
+    "town.way.thinking": {
+      "any": [
+        "i think its..",
+        "uhh",
+        "hmm let me think",
+        "i wanna say..",
+        "its uh..",
+        "if i remember right..",
+        "ok so i think..",
+        "ummm"
+      ],
+      "hermit": [
+        "..."
+      ],
+      "newbie": [
+        "umm i think its..",
+        "wait let me remember"
+      ],
+      "casual": [
+        "uhh lemme think"
+      ]
+    },
+    "town.way.unsure": {
+      "any": [
+        "{dir}?",
+        "{dir} maybe?",
+        "{dir}? i think",
+        "kinda {dir}?",
+        "{dir}, probably",
+        "somewhere {dir}?",
+        "{dir}? dont quote me"
+      ],
+      "hermit": [
+        "{dir}. maybe."
+      ],
+      "newbie": [
+        "{dir}?? i think??"
+      ],
+      "nomad": [
+        "{dir}, if i remember the road right"
+      ]
+    },
+    "town.way.which_is": {
+      "any": [
+        "which is..",
+        "so thats..",
+        "which would be..",
+        "meaning..",
+        "so like.."
+      ],
+      "hermit": [
+        "so."
+      ]
+    },
+    "town.way.that_way": {
+      "any": [
+        "that way",
+        "that way!",
+        "over there",
+        "that way-ish",
+        "thataway",
+        "over that way",
+        "that direction"
+      ],
+      "hermit": [
+        "there."
+      ],
+      "newbie": [
+        "that way!!"
+      ],
+      "helper": [
+        "that way! safe travels"
+      ],
+      "casual": [
+        "that way lol"
+      ],
+      "speedrunner": [
+        "there. go"
+      ],
+      "pvp_sweat": [
+        "that way. dont die"
+      ]
+    },
+    "town.way.heard_only": {
+      "any": [
+        "{town}? heard of it. no idea where though",
+        "ive heard of {town} but never been",
+        "{town}... somewhere out there, couldnt tell you where",
+        "heard the name, never been. ask a trader maybe"
+      ],
+      "hermit": [
+        "heard of it. thats all."
+      ],
+      "nomad": [
+        "{town}? never made it that far"
+      ],
+      "helper": [
+        "sorry, ive heard of it but dont know the way"
+      ]
+    },
+    "town.way.never": {
+      "any": [
+        "never heard of {town}",
+        "{town}? no clue",
+        "dont know any {town}",
+        "{town}? sorry, never heard of it",
+        "is that a real place?"
+      ],
+      "hermit": [
+        "no idea."
+      ],
+      "newbie": [
+        "ive never heard of {town}!"
+      ],
+      "casual": [
+        "{town}? never heard of it lol"
+      ]
+    }
+  }
+}
