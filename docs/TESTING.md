@@ -4252,6 +4252,9 @@ walk the planned line over raw ground, about half as fast).
    pauses ("oh Fairhaven?", "i think its..", "north east?", "that way"), and they turn and punch the air toward it. Check
    it really is that way (F3 shows your facing). A town far away they've never heard of: they say so.
 3. "its very cool" after they show you around: "right?" kind of answer, not "you too".
+4. **Copy-cat tics.** Talk to a Drifter (or stand close while it looks at you) and spam crouch (3+ quick crouches) at it:
+   it crouches back. Spam jump: it jumps back. Keep going: it answers a few times, then laughs it off ("lol ok"). Sometimes,
+   while you chat, it starts one at you; copy it and it answers again. Shy ones don't always join in.
 
 ## 0.23.74-side.1 (installed 2026-11-16; the main line 0.23.74 merged in)
 

@@ -90,6 +90,19 @@ public class SocialWatcher {
 		boolean gaveIn;
 		boolean wasCrouching;
 		final ArrayDeque<Long> crouches = new ArrayDeque<>();
+		/** Jumps (take-offs) lately, and whether they were on the ground last look (jump-spam). */
+		final ArrayDeque<Long> jumps = new ArrayDeque<>();
+		boolean wasOnGround = true;
+		/** A tic of theirs it'll answer in kind, and when (a moment to react); how many times running; when it last did. */
+		@Nullable
+		com.dinglebob.drifter.mannerism.Mannerisms.Kind mirror;
+		long mirrorAt;
+		int mirrored;
+		long lastMirrorAt = Long.MIN_VALUE / 2;
+		/** It started one at them (to see if they answer), when, and which. */
+		long startedTicAt = Long.MIN_VALUE / 2;
+		@Nullable
+		com.dinglebob.drifter.mannerism.Mannerisms.Kind startedTic;
 		long lastCrouchSpamAt = Long.MIN_VALUE / 2;
 		long lastAimAt = Long.MIN_VALUE / 2;
 		long lastSneakAt = Long.MIN_VALUE / 2;
@@ -552,6 +565,8 @@ public class SocialWatcher {
 			this.shareReputation(player, r, now);
 			this.watchBow(player, w, now, distance);
 			this.watchCrouches(player, w, now, distance);
+			this.watchJumps(player, w, now, distance);
+			this.mirror(player, w, r, now, distance);
 			this.watchGear(player, r);
 			this.watchForItsThings(player, distance);
 			if (distance < PEACEFUL_RANGE) {
@@ -641,9 +656,119 @@ public class SocialWatcher {
 			// Crouch-spam is "hello" (section 14 table): it answers in kind, unless it's against them.
 			Mode mode = Mode.toward(this.drifter, player);
 			if (!mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
-				w.giftAt = now;
-				w.thanked = false;
-				w.respondTo = "the hello";
+				if (!this.answerInKind(player, w, com.dinglebob.drifter.mannerism.Mannerisms.Kind.CROUCH_SPAM, now, distance)) {
+					w.giftAt = now;
+					w.thanked = false;
+					w.respondTo = "the hello";
+				}
+			}
+		}
+	}
+
+	/** Jumps in this many ticks make jump-spam. */
+	private static final int JUMP_WINDOW = 60;
+	private static final int JUMPS = 3;
+	/** It answers a tic in kind this many times running at most; then laughs it off and rests a while. */
+	private static final int MOST_MIRRORS = 3;
+	private static final long MIRROR_REST = 20L * 60;
+	/** Now and then, talking with them, it starts one itself (about once a minute and a half, more for the sociable). */
+	private static final double START_TIC = 0.0035;
+
+	/** Jumping up and down at it, facing it, close by: jump-spam. */
+	private void watchJumps(Player player, Watch w, long now, double distance) {
+		boolean onGround = player.onGround();
+		if (w.wasOnGround && !onGround && player.getDeltaMovement().y > 0.0 && !player.isFallFlying() && !player.isInWater()) {
+			w.jumps.addLast(now);
+		}
+
+		w.wasOnGround = onGround;
+		while (!w.jumps.isEmpty() && now - w.jumps.peekFirst() > JUMP_WINDOW) {
+			w.jumps.pollFirst();
+		}
+
+		Vec3 toIt = this.drifter.position().subtract(player.position()).normalize();
+		if (w.jumps.size() >= JUMPS && distance < 10.0 && player.getViewVector(1.0F).dot(toIt) > 0.7) {
+			w.jumps.clear();
+			Mode mode = Mode.toward(this.drifter, player);
+			if (!mode.hostile() && mode != Mode.AVOIDING && mode != Mode.WARNING) {
+				this.answerInKind(player, w, com.dinglebob.drifter.mannerism.Mannerisms.Kind.JUMP_SPAM, now, distance);
+			}
+		}
+	}
+
+	/**
+	 * Their tic answered in kind, as players do (the user, 2026-11-17: "if im looking at someone and I KNOW that we are
+	 * exchanging a conversation or they notice me and i spam crouch, they spam crouch back, or i spam jump, and they spam jump
+	 * as a response. its player culture"). Only when they're engaged with each other: talking, or it's looking at them close by,
+	 * or they know each other; and as its kind would (the sociable nearly always, the shy now and then). A few times running,
+	 * then it laughs it off. True: it will.
+	 */
+	private boolean answerInKind(Player player, Watch w, com.dinglebob.drifter.mannerism.Mannerisms.Kind kind, long now, double distance) {
+		if (now - w.lastMirrorAt > 20 * 12) {
+			w.mirrored = 0;
+		}
+
+		boolean talking = player instanceof ServerPlayer sp && this.drifter.getUUID().equals(com.dinglebob.drifter.social.talk.PlayerConvo.partner(sp));
+		Vec3 toThem = player.getEyePosition().subtract(this.drifter.getEyePosition()).normalize();
+		boolean looking = this.drifter.getViewVector(1.0F).dot(toThem) > 0.6 && distance < 10.0;
+		Relationship r = this.drifter.getSocial().get(player.getUUID());
+		boolean known = r != null && r.familiarity >= 3.0 && distance < 8.0;
+		// (They answered one it started: it lights up.)
+		boolean answered = w.startedTic == kind && now - w.startedTicAt < 20 * 8;
+		if (!(talking || looking || known || answered) || this.drifter.inAFight() || this.drifter.isSleeping() || w.mirrored >= MOST_MIRRORS + 1
+			|| now - w.lastMirrorAt < 20 * 2) {
+			return false;
+		}
+
+		double sociable = this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.SOCIABILITY);
+		if (!answered && this.drifter.getRandom().nextDouble() > 0.45 + 0.5 * sociable) {
+			return false;
+		}
+
+		w.mirror = kind;
+		w.mirrorAt = now + 4 + this.drifter.getRandom().nextInt(12);
+		w.startedTic = null;
+		return true;
+	}
+
+	/** Its answer in kind when the moment's come; now and then, talking with them, it starts one itself. */
+	private void mirror(Player player, Watch w, Relationship r, long now, double distance) {
+		var mannerisms = this.drifter.getMannerisms();
+		if (w.mirror != null && now >= w.mirrorAt) {
+			com.dinglebob.drifter.mannerism.Mannerisms.Kind kind = w.mirror;
+			w.mirror = null;
+			w.lastMirrorAt = now;
+			w.mirrored++;
+			// (Facing them first, then the tic.)
+			this.drifter.getCamera().lookAt(player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+			if (w.mirrored > MOST_MIRRORS) {
+				// Enough: it laughs it off ("lol ok"), and rests a while.
+				w.lastMirrorAt = now + MIRROR_REST;
+				if (this.drifter.getRandom().nextDouble() < 0.6 && player instanceof ServerPlayer) {
+					ChatLines.speak(this.drifter, Lines.pick(this.drifter, "mirror.enough", "player", player.getGameProfile().getName()));
+				}
+
+				return;
+			}
+
+			mannerisms.force(kind);
+			this.drifter.getMemory().thoughts().add(now, (kind == com.dinglebob.drifter.mannerism.Mannerisms.Kind.JUMP_SPAM ? "jumped" : "crouched")
+				+ " back at " + player.getGameProfile().getName());
+			return;
+		}
+
+		// Starting one itself: only talking with them, when it isn't busy.
+		if (player instanceof ServerPlayer sp && this.drifter.getUUID().equals(com.dinglebob.drifter.social.talk.PlayerConvo.partner(sp)) && distance < 8.0
+			&& now - w.lastMirrorAt > 20 * 20 && now - w.startedTicAt > 20 * 60 && !this.drifter.inAFight() && !mannerisms.forcedActive()
+			&& this.drifter.getRandom().nextDouble() < START_TIC * (0.5 + this.drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.SOCIABILITY))) {
+			com.dinglebob.drifter.mannerism.Mannerisms.Kind kind = this.drifter.getRandom().nextBoolean() ? com.dinglebob.drifter.mannerism.Mannerisms.Kind.CROUCH_SPAM
+				: com.dinglebob.drifter.mannerism.Mannerisms.Kind.JUMP_SPAM;
+			this.drifter.getCamera().lookAt(player.getEyePosition(), com.dinglebob.drifter.motor.CameraModel.TurnSpeed.NORMAL);
+			if (mannerisms.force(kind)) {
+				w.startedTic = kind;
+				w.startedTicAt = now;
+				this.drifter.getMemory().thoughts().add(now, (kind == com.dinglebob.drifter.mannerism.Mannerisms.Kind.JUMP_SPAM ? "jump" : "crouch")
+					+ "-spammed at " + player.getGameProfile().getName() + " (to see if they answer)");
 			}
 		}
 	}

@@ -1,0 +1,55 @@
+{
+  "_comment": "Laughing off a tic answered in kind a few times running (SocialWatcher.mirror; the user, 2026-11-17: 'i spam crouch, and they spam crouch back ... its player culture'). {player}: who.",
+  "lines": {
+    "mirror.enough": {
+      "any": [
+        "lol ok",
+        "haha",
+        "lmao ok ok",
+        "we're so silly",
+        "ok thats enough lol",
+        "lol what are we doing",
+        "haha ok you win",
+        "xD",
+        "hehe",
+        "ok my legs hurt now lol",
+        "lol {player}",
+        "best convo ever"
+      ],
+      "hermit": [
+        "...enough.",
+        "heh."
+      ],
+      "newbie": [
+        "hahaha this is fun!!",
+        "lol again again"
+      ],
+      "helper": [
+        "haha you're fun",
+        "lol ok hi hi"
+      ],
+      "pvp_sweat": [
+        "ok i win that",
+        "lol ur slow"
+      ],
+      "casual": [
+        "LMAO",
+        "bro we're bugging",
+        "lmaooo"
+      ],
+      "speedrunner": [
+        "ok back to it lol"
+      ],
+      "bandit": [
+        "heh. weirdo",
+        "lol ok"
+      ],
+      "builder": [
+        "lol ok back to building"
+      ],
+      "homebody": [
+        "hehe hi"
+      ]
+    }
+  }
+}

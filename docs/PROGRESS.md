@@ -7523,6 +7523,14 @@ From play (2026-11-17):
   pointing gesture, `Mannerisms.point`, `TalkApi.point`). A nation asked after: its capital.
 - "its very cool", "i love this town": "that's nice", not a compliment ("you too"); a bare "cool" isn't a compliment.
 
+- **Tics answered in kind** (`SocialWatcher.answerInKind` / `mirror`; the user: "i spam crouch, and they spam crouch back, or
+  i spam jump, and they spam jump as a response. its player culture"): crouch-spam or jump-spam (3 in 3 seconds, facing
+  it, close) at a Drifter it's engaged with (talking with you, looking at you close by, or one that knows you) is
+  answered with the same, a moment later, facing you; the sociable nearly always, the shy now and then. Up to 3 times
+  running, then it laughs it off ("lol ok", "we're so silly") and rests a minute. Talking with you, now and then it starts
+  one itself; answer it in kind and it always answers back. Not engaged: crouch-spam is still "hello" (a nod and a crouch).
+  Lines in `drifter/drifter_chat/mirror.json`. Not testable headless (it watches real players): yours to try.
+
 Headless: tools/smoke-town-way.txt (its own town: "look around, this is it lol"; the other: "ohh Rivalton", "go east from
 here", "that way!"), the story alone (paced 11, 7, 5, 3, 6 seconds by length). Not headless: the unsure path's lines with
 a far town, the pointing as seen.
