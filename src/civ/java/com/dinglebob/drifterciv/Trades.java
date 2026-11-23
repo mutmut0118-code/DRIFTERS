@@ -409,7 +409,11 @@ final class Trades {
 					DrifterEntity member = TownFounding.loaded(server, id);
 					// (Not one in this trade already: taking it up again changed nothing, and the town picked it over and over for
 					// good, its log filling with it; found in a test once the hunter had a shop.)
-					if (member == null || was == null || was.pool() < 0 || now.equals(line.name()) || now.equals("farmer") && counts.getOrDefault("farmer", 0L) <= 2) {
+					// (Nor one its own trade can't spare, short of that trade's wanted number once it went: with one to spare and
+					// two trades open, the builder's took the hunter and the hunter's took it back, every check for good, the
+					// town's log filling with both; found in a war test, 0.23.74.)
+					if (member == null || was == null || was.pool() < 0 || now.equals(line.name()) || now.equals("farmer") && counts.getOrDefault("farmer", 0L) <= 2
+						|| counts.getOrDefault(now, 0L) <= wanted(was, people)) {
 						continue;
 					}
 

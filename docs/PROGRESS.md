@@ -3640,6 +3640,17 @@ Tectonic terrain: towns on the flattest ground to hand, easy to get round withou
   (`TownRoads.Work.roads`), and road work anywhere leaves coarse and rooted dirt as they are (towns its people founded
   still wear grass into path). Paths already made in a world stay.
 
+- **Fix (0.23.80, merged from claude/magical-benz-9e0cd3): a town's trades stick; no "took up the trade" spam in its history** (found
+  in a headless war test, 2026-11-15: `[chronicle] Day 1: hiddennn took up the builder's trade in Cowbury`, then the
+  hunter's, each every 10 seconds, 21 times in 3 minutes, before any fighting). When a town keeps its trades filled
+  (`Trades.fill`) it moved someone from a common trade to an open one, even when that left the trade they came from short.
+  In a town with only one to spare and two trades open, the builder's trade took the hunter and the hunter's took them
+  back, on every check, and each move went into the town's history (which feeds town stories and news). Now someone moves
+  only from a trade with more people than it needs, so a trade stays filled once filled and the history logs each real
+  change once. Checked with `tools/smoke-war-speech.txt` (on the player talk branch) on fresh worlds: the old code, Cowbury
+  with 11 people, one Drifter went back and forth between builder and miner (7 lines in 3 minutes); the fix, Cowbury with
+  11 people again, one "took up" line (hunter), and every other town's trade lines once each.
+
 - **0.23.73: the journal's history pages show nations' banners with their designs** (the user's picture, 2026-11-15: a war
   page with plain pink and red banners). A story's banners come from the colour its nation had then (`Annals.picture`):
   now with the nation's design on when it's still that colour.
