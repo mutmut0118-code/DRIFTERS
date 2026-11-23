@@ -939,25 +939,30 @@ final class GroundPlan {
 	 * no taller than that), and how far the shore would be built up over the water's edge (a cliff of dirt into a river).
 	 */
 	static int misfit(ServerLevel level, TownBuilder.Rect rect, int base, int reach) {
+		return misfit(TownLand.of(level), level, rect, base, reach);
+	}
+
+	/** Over this land (the real one's: the level given too, so land not loaded is left out; a sketch's: no level). */
+	static int misfit(TownLand land, @org.jetbrains.annotations.Nullable ServerLevel level, TownBuilder.Rect rect, int base, int reach) {
 		int worst = 0;
 		why = "";
 		for (int x = rect.x0() - MOST_REACH; x <= rect.x1() + MOST_REACH; x++) {
 			for (int z = rect.z0() - MOST_REACH; z <= rect.z1() + MOST_REACH; z++) {
 				double d = distance(rect, x, z);
 				// (Land not loaded is left out: its height reads as the bottom of the world, and a hill town found no house fit.)
-				if (d <= 1.5 || d > MOST_REACH || level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
+				if (d <= 1.5 || d > MOST_REACH || level != null && level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
 					continue;
 				}
 
-				int g = TownBuilder.ground(level, x, z);
+				int g = land.ground(x, z);
 				int bank = (int)Math.floor(d / 2.0);
-				if (TownBuilder.wet(level, x, z)) {
+				if (land.wet(x, z)) {
 					// (The pad's bank down to here, at the least, over the water's edge by more than a block where the land beside
 					// the water's lower: a fill standing over it; up to a wall's height, a wall by the pad instead.)
 					int shore = g + 1;
 					for (Direction side : Direction.Plane.HORIZONTAL) {
-						if (!TownBuilder.wet(level, x + side.getStepX(), z + side.getStepZ())) {
-							shore = Math.max(shore, TownBuilder.ground(level, x + side.getStepX(), z + side.getStepZ()));
+						if (!land.wet(x + side.getStepX(), z + side.getStepZ())) {
+							shore = Math.max(shore, land.ground(x + side.getStepX(), z + side.getStepZ()));
 						}
 					}
 

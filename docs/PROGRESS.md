@@ -177,7 +177,37 @@ the spike's findings `docs/superpowers/specs/2026-11-14-lod-towns-spike-findings
   jungle to a city (`docs/superpowers/shots/grade-road-day.png`). The user's own game ran 0.23.63-side.2 fine (31
   places sketched in 4.8 s, Voxy painting, the far land starting over after a move): the installed jar's hookup works.
 
-**Not done yet:** Task 7 (Meridian), Task 8 (a real LAN run, timing against the main line, the whole-branch review).
+- **After the user's second look (0.23.70-side.2, branch `claude/elastic-leakey-afebd2`, with the player talk branch's 0.23.70-side.1 merged in; the user, 2026-11-15: "the
+  town itself doesnt load before the lod, so when i get to the town its just a field", "cities with stone paths are
+  shown, its always a brown path", "the house placing should be more accurate", "roads between towns stick out from
+  the ground alot, giving it a bump", "villages are shown in voxy ... something to do with the seedgen").**
+  - *Built before you get there:* while a far-view hookup has asked the painter for a column (`FarPaint.used()`), towns
+    and roads are built from 1,024 blocks out (`WorldBuild.FAR_VIEW_AHEAD`; it was view distance + 20 chunks, about
+    460) and two towns' land is loaded at a time.
+  - *Streets:* the far view's streets are what the real builder lays (`Job.paving`): a city's stone brick with cracked
+    and mossy here and there, a town's and a hamlet's worn mix, sandstone in a desert.
+  - *Houses:* a sketch is now the town planned by the real planner over the generator's land
+    (`TownBuilder.streets(land, server, look, ...)`: main roads, then `lots`, `streets`, `houses` with the real house
+    plans, stopping in `housesDone` before anything's built; the planning reads the land through `TownLand`, and
+    `GroundPlan.misfit` has a `TownLand` form). `Sketch.houses` (spot, plan id, turn, front, height;
+    `SketchVersion` 2: older saved sketches are made again) and the real job replays them first (`Job.replay`), each
+    where the real land lets it stand, then finds the rest as ever. Seed 779, six towns: 3 of 5, 39 of 48, 6 of 14, 22
+    of 43, 2 of 4, 5 of 10 stood exactly where sketched, and 5 of 6, 44 of 49, 12 of 15, 35 of 44, 3 of 5, 9 of 11 of
+    the sketch's houses had a real one within 8 blocks (before: 3 of 5, 36 of 48, 10 of 14, 36 of 43, 1 of 4, 10 of
+    12). 18 places sketched in 8.2 s (it was 7.1 s).
+  - *Roads' beds:* `FarPaint.Column.grade` is now a difference from the land under the column (the generator's bed
+    minus the generator's ground there), cut up to 6, filled 1 at most, put onto the far-view mod's own surface. As a
+    height it stood proud all along: Voxy SeedGen's far land sits a block or two under the real ground the heights
+    were lifted to. House plots and the plaza level by up to 3 the same way.
+  - *Villages:* Voxy SeedGen works villages' spots out from the seed (`Structures.carriesStructure`) and draws its own
+    captured houses there; Drifter's hook that stops villages being placed is one it can't see. A third guarded mixin
+    (`client/mixin/voxy/StructuresMixin`) answers "none here" for its VILLAGE set where `DrifterApi.villagesReplaced()`.
+    Distant Horizons SeedGen has the same code and is NOT patched yet.
+  - Dev client with Voxy, seed 779: a far city with its own-shaped houses (`docs/superpowers/shots/fix-city-day.png`);
+    log: "villages are left out of the far view"; two towns 230 to 800 blocks off made while being looked at.
+
+**Not done yet:** Task 7 (Meridian), Task 8 (a real LAN run, timing against the main line, the whole-branch review); the
+village patch for Distant Horizons SeedGen; a sketch's side roads aren't replayed by the real town (its own are laid).
 Also open: far land Voxy wrote with 0.23.63-side.2 keeps its old look (the treetop roads) until that world's far view
 is made again; a road's bed may be asked for a second or two after a world opens (worked out in the background), so
 the first columns Voxy SeedGen writes can still lie ungraded; at coarse detail a 3-wide road is sampled every 2 or 4

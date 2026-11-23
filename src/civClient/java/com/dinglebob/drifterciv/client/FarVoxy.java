@@ -97,11 +97,8 @@ public final class FarVoxy {
 		Holder<Biome> biome = biomes[ground];
 		boolean water = !states[ground].getFluidState().isEmpty();
 		int top = tops[ground];
-		if (column.y() != FarPaint.NO_Y && !water) {
-			int asked = column.y() + 1 - FarView.minY();
-			if (Math.abs(asked - top) <= FarPaint.MOST_GRADE && asked - 1 > bottoms[0]) {
-				top = asked;
-			}
+		if (column.grade() != 0 && !water && top + column.grade() - 1 > bottoms[0]) {
+			top += column.grade();
 		}
 
 		int laid = bottoms[0];

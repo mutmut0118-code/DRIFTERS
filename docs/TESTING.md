@@ -6,6 +6,15 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.80: two side branches merged in (2026-11-23)
+
+Nothing new to learn; two finished side branches are now in the main line:
+1. **Paper towns, second look** (0.23.70-side.2): in a **new world** with Voxy and Voxy SeedGen, far towns should look like
+   the real ones (same streets and house spots), cities' far streets grey stone, no villages in the far view, and the town
+   standing when you get there. Full list below under "0.23.70-side.2 (re-test after fix)".
+2. **A town's trades stick:** the journal's town history shouldn't fill with the same person "took up the builder's
+   trade", then the hunter's, over and over.
+
 ## 0.23.79: town stories, directions and copy-cat tics (merged from 0.23.77-side.1, 2026-11-17)
 
 1. Ask someone "tell me about this town": the lines come slower (time to read each), and sound like a person talking
@@ -97,6 +106,17 @@ filled by the last version keeps its old look): a far road should be one clean p
 cleared along it, no road blocks or lamps on treetops; far houses stand on level plots, not at odd heights. If a far
 town still looks like a ruin and the real one isn't, tell me its name (it's in the journal or on the signs) or the
 coordinates.
+
+**0.23.70-side.2 (re-test after fix), in a new world with Voxy and Voxy SeedGen:**
+
+1. **The town is there when you arrive.** Head for a far town on foot, by horse or flying in creative: the real town
+   should be standing when you get there, not a field. (Very fast travel, an elytra with rockets, can still outrun it.)
+2. **City streets are stone** in the far view (grey), towns' and hamlets' the brown worn mix.
+3. **Houses match.** The far houses should be about where the real ones turn out, and about their size.
+4. **Roads between towns lie in the ground**, not on a raised bank.
+5. **No villages** in the far view (only Drifter towns, ruins, and the usual outposts and temples).
+6. In the log: `[far] Voxy: villages are left out of the far view`, and for each town built
+   `[sketch] <name>: N of its sketch's M houses stand where the sketch has them`.
 
 **With Distant Horizons instead (0.23.63-side.2, new):** switch Voxy and Voxy SeedGen off and Distant Horizons on (with
 or without its SeedGen), make a new world, and check the same four things (towns far away, roads, night, walking up).
