@@ -1405,10 +1405,14 @@ public class DrifterEntity extends PathfinderMob {
 		}
 	}
 
+	/** When its shield last blocked a hit (game time): a beast's gore blocked, it hits back straight after (AttackTask). */
+	public long blockedAt = Long.MIN_VALUE / 2;
+
 	/** Player#blockUsingShield: an axe hit knocks the shield down for 5 s, as for a player. */
 	@Override
 	protected void blockUsingShield(LivingEntity attacker) {
 		super.blockUsingShield(attacker);
+		this.blockedAt = this.level().getGameTime();
 		if (attacker.canDisableShield()) {
 			this.shieldDisabledUntil = this.level().getGameTime() + 100;
 			this.stopUsingItem();
@@ -3063,6 +3067,11 @@ protected void customServerAiStep() {
 			// A player's hit (or their arrow): felt, so it always knows who (section 14 events).
 			if (source.getEntity() instanceof net.minecraft.world.entity.player.Player player) {
 				this.social.watcher().hitBy(player, healthBefore - this.getHealth(), this.getHealth());
+			}
+
+			// Gored by a dangerous beast (a tusklin): it shouts for help, and its town's armed in earshot come (BeastAlarm).
+			if (source.getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker) {
+				com.dinglebob.drifter.social.BeastAlarm.hurtBy(this, attacker);
 			}
 
 			// Hit by a mob while backing off: running isn't working (Threats turns it round to fight).

@@ -6,6 +6,21 @@ Each session updates this file with exactly what to check for everything built s
 When something fails, write down which checklist item it was and what you saw (screenshots help). If the game
 crashes, copy the crash report the launcher shows. Paste it all into the next session.
 
+## 0.23.81: tusklins (new, 2026-11-23)
+
+Needs Alex's Mobs (in DRIFTER TEST). Tusklins live in cold flat land; a town near snowy plains has them about. To make one
+on purpose, stand in a town by some townsfolk and run `/summon alexsmobs:tusklin ~ ~ ~5`.
+1. **Guards gang up.** Someone gored shouts ("TUSKLIN!! help"); armed townsfolk and guards in earshot run over ("running
+   to help" in `/drifter thoughts`). Several fight it at once: whoever it turns on raises a shield and backs off, hitting
+   back after each blocked gore, while the others hit it from behind. Guards with bows shoot it from out of its reach.
+2. **The rest keep out of reach.** Townsfolk without a sword or bow don't fight it; they run off about 20 blocks (it doesn't
+   chase far from its spot) and don't go back to work beside it while it's there.
+3. **No going back into it.** Someone it killed doesn't walk back for their things while it's still there ("waiting to go
+   back for its things: a tusklin is there").
+4. **Mushroom trick.** A Drifter holding a brown mushroom is left alone by tusklins, as a player is.
+Compare: before this, a test town by snowy plains lost 10 people to tusklins in two minutes (the same few dying over and
+over going back for their things); with this, 3.
+
 ## 0.23.80: two side branches merged in (2026-11-23)
 
 Nothing new to learn; two finished side branches are now in the main line:

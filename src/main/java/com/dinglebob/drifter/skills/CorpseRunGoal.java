@@ -61,9 +61,24 @@ public final class CorpseRunGoal extends Goals.Goal {
 			return 0.0;
 		}
 
+		// A territorial beast it saw by its things (one killed it there): it waits for it to go, or for someone to deal with it,
+		// rather than walk back into it (found with tusklins, 2026-11-23: three died twice more each, going back).
+		var beast = com.dinglebob.drifter.brain.Threats.beastNear(drifter, Vec3.atBottomCenterOf(corpse.pos()));
+		if (beast != null) {
+			if (now - SAID_WAITING.getOrDefault(drifter.getUUID(), Long.MIN_VALUE / 2) > 20L * 60) {
+				SAID_WAITING.put(drifter.getUUID(), now);
+				drifter.getMemory().thoughts().add(now, "waiting to go back for its things: a " + com.dinglebob.drifter.brain.Threats.beastName(beast) + " is there");
+			}
+
+			return 0.0;
+		}
+
 		// The sooner the better: its things won't wait.
 		return 0.82;
 	}
+
+	/** When each last said it's waiting on a beast by its things (one goal serves them all). */
+	private static final java.util.Map<java.util.UUID, Long> SAID_WAITING = new java.util.concurrent.ConcurrentHashMap<>();
 
 	/** Why it won't go back (null: it will). */
 	@Nullable

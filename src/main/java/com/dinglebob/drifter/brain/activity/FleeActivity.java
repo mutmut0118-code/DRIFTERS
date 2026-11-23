@@ -64,7 +64,9 @@ public class FleeActivity extends Activity {
 	@Override
 	protected Status next() {
 		Threats.Assessment assessment = Threats.assess(this.drifter);
-		if (assessment.decision() == Threats.Decision.NONE || assessment.nearest() > SAFE_DISTANCE || this.legs >= MAX_LEGS) {
+		// (Out of a territorial beast's ground, not just 14 blocks off: it would come again.)
+		double safe = Threats.safeDistance(assessment, SAFE_DISTANCE);
+		if (assessment.decision() == Threats.Decision.NONE || assessment.nearest() > safe || this.legs >= MAX_LEGS) {
 			return Status.SUCCESS;
 		}
 
@@ -126,6 +128,6 @@ public class FleeActivity extends Activity {
 		this.think("running away from the " + (assessment.main() == null ? "mobs"
 			: assessment.main().getType().getDescription().getString().toLowerCase(java.util.Locale.ROOT)) + " (" + assessment.describe()
 			+ ", health " + Math.round(this.drifter.getHealth()) + ")");
-		return this.begin(new RunAwayTask(this.drifter, () -> Threats.assess(this.drifter).hostiles(), SAFE_DISTANCE, 20 * 8));
+		return this.begin(new RunAwayTask(this.drifter, () -> Threats.assess(this.drifter).hostiles(), safe, 20 * 8));
 	}
 }

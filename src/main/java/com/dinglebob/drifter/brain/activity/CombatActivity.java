@@ -59,7 +59,9 @@ public class CombatActivity extends Activity {
 			return;
 		}
 
-		if ((step instanceof AttackTask || step instanceof com.dinglebob.drifter.executor.task.ShootTask) && status == Status.SUCCESS) {
+		// (Not a sword fight ended to take the bow out at a long-reach beast: AttackTask's beastBow; that one's still alive.)
+		boolean stillAlive = step instanceof AttackTask attack && attack.target().isAlive();
+		if ((step instanceof AttackTask || step instanceof com.dinglebob.drifter.executor.task.ShootTask) && status == Status.SUCCESS && !stillAlive) {
 			this.kills++;
 			// (A line per kill: the blaze tests count them against the rods it picks up. Shots too, for a bow or crossbow.)
 			int shots = step instanceof com.dinglebob.drifter.executor.task.ShootTask shoot ? shoot.shots() : 0;

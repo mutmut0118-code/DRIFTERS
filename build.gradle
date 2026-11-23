@@ -93,6 +93,13 @@ dependencies {
 	if (project.hasProperty("farmersDelight") || System.getenv("DRIFTER_FD") == "1") {
 		modLocalRuntime "maven.modrinth:farmers-delight-refabricated:${project.farmers_delight_version}"
 	}
+
+	// Test-only mods for the dev game launches (DRIFTER_DEVMODS=1): every jar in run/devmods (not in git), remapped by Loom
+	// at build time. For big mods (Alex's Mobs) the loader's own remap of run/mods at launch fails now and then
+	// ("Failed to remap mods!", a ClosedFileSystemException).
+	if (System.getenv("DRIFTER_DEVMODS") == "1") {
+		modLocalRuntime fileTree(dir: "run/devmods", include: "*.jar")
+	}
 }
 
 processResources {

@@ -78,7 +78,14 @@ public class AttackTask extends Task {
 		/** An archer: zigzag in (shield up while it draws), then melee. */
 		RANGED,
 		/** A creeper: one sprint-knockback hit, then back well off before it can blow; repeat. */
-		CREEPER;
+		CREEPER,
+		/**
+		 * A beast that hits from further off than a player can hit back (a tusklin, Threats.longReach): struck from behind while
+		 * it's on someone else, then back out of its reach; when it turns on it, behind the shield with a hit back after each
+		 * blocked gore, or out of its reach without one; a bow from out of reach. How players take one on, and how a town
+		 * does it together (the user, 2026-11-14: tusklins "keep killing off the town").
+		 */
+		BEAST;
 
 		public static Protocol of(LivingEntity target) {
 			if (target instanceof Creeper) {
@@ -98,6 +105,11 @@ public class AttackTask extends Task {
 			// (Another Drifter fights back like a player: footwork, shield and bow, not a chase after an animal. A player too:
 			// they were prey till 0.23.34, so it ran in swinging and never raised its shield at them; the user: "it seems too
 			// easy to kill drifters (with a good weapon) and i would like for them to block some of my attacks".)
+			// A dangerous animal of the threat table (a crocodile, a tusklin): a monster to fight, not prey to run down.
+			if (com.dinglebob.drifter.brain.Threats.beast(target)) {
+				return com.dinglebob.drifter.brain.Threats.longReach(target) ? BEAST : MELEE;
+			}
+
 			return target instanceof Enemy || target instanceof com.dinglebob.drifter.entity.DrifterEntity
 				|| target instanceof net.minecraft.world.entity.player.Player || target instanceof Mob mob && mob.isAggressive() ? MELEE : PREY;
 		}
@@ -370,7 +382,10 @@ public class AttackTask extends Task {
 			this.rollInTried = false;
 		}
 
-		if ((distance > CLOSE_RANGE || !visible && !inReach || this.pathTicks > 0) && this.backoff == 0 && !steerByHand) {
+		// (A long-reach beast: steered by hand further out, so backing off out of its reach doesn't path it straight back in.)
+		double close = this.protocol == Protocol.BEAST ? Math.max(CLOSE_RANGE, com.dinglebob.drifter.brain.Threats.reachAgainst(this.target, this.drifter) + BEAST_SPARE + 2.0)
+			: CLOSE_RANGE;
+		if ((distance > close || !visible && !inReach || this.pathTicks > 0) && this.backoff == 0 && !steerByHand) {
 			this.lowerShield();
 			if (this.closeMode || this.follow == null) {
 				this.closeMode = false;
@@ -407,7 +422,111 @@ public class AttackTask extends Task {
 		}
 
 		this.fight(distance);
+		// A bow and room to use it, on a long-reach beast: the fight goes on with arrows (CombatActivity takes the bow out).
+		if (this.beastBow) {
+			return Status.SUCCESS;
+		}
+
 		return Status.RUNNING;
+	}
+
+	/** It keeps this far past a long-reach beast's reach while it waits its turn. */
+	private static final double BEAST_SPARE = 1.5;
+	/** After a hit on one, it stays back this long (it may turn on it). */
+	private static final int BEAST_BACKOFF_TICKS = 12;
+	/** It hits back within this long after its shield blocked the beast's gore. */
+	private static final int BEAST_COUNTER_TICKS = 12;
+	/** Caught in its reach without a shield this long (it's faster than it can back off): it fights where it stands. */
+	private static final int BEAST_CORNERED_TICKS = 40;
+	private int beastCornered;
+	private boolean beastBow;
+
+	/** Fights a long-reach beast (Protocol.BEAST); false: cornered, it fights as at any mob. */
+	private boolean fightBeast(float strength) {
+		VirtualKeys keys = this.drifter.getKeys();
+		Vec3 at = this.target.position();
+		double theirs = com.dinglebob.drifter.brain.Threats.reachAgainst(this.target, this.drifter);
+		double apart = this.drifter.distanceTo(this.target);
+		LivingEntity victim = this.target instanceof net.minecraft.world.entity.Mob mob ? mob.getTarget() : null;
+		long now = this.drifter.level().getGameTime();
+		keys.set(VirtualKeys.Key.JUMP, false);
+		if (victim == this.drifter) {
+			if (apart >= theirs + BEAST_SPARE) {
+				// Out of its reach, and it's after it: wait here (arrows, with a bow); it can't chase far from its ground.
+				this.beastCornered = 0;
+				Steering.stopMoving(this.drifter);
+				keys.set(VirtualKeys.Key.SPRINT, false);
+				this.lowerShield();
+				this.beastBow = com.dinglebob.drifter.hands.Archery.shouldShoot(this.drifter, this.target);
+				return true;
+			}
+
+			if (this.hasShield()) {
+				// Behind the shield, facing it, stepping back: it gores the shield. Straight after a blocked gore, a hit back.
+				if (now - this.drifter.blockedAt < BEAST_COUNTER_TICKS && strength >= FULL_STRENGTH && Combat.canHit(this.drifter, this.target)) {
+					this.lowerShield();
+					this.hit();
+					return true;
+				}
+
+				this.stepBack(at);
+				this.guardFootwork(at);
+				keys.set(VirtualKeys.Key.SPRINT, false);
+				this.shieldIf(true);
+				return true;
+			}
+
+			// No shield: back out of its reach; caught all the same (it's faster), it fights back where it stands.
+			if (++this.beastCornered > BEAST_CORNERED_TICKS) {
+				return false;
+			}
+
+			this.stepBack(at);
+			this.guardFootwork(at);
+			keys.set(VirtualKeys.Key.SPRINT, false);
+			this.lowerShield();
+			return true;
+		}
+
+		this.beastCornered = 0;
+		// It's on someone else (or no one): in from behind it, a full hit, then back out of its reach (it may turn on it).
+		if (this.backoff > 0) {
+			this.backoff--;
+			if (apart < theirs + BEAST_SPARE) {
+				this.stepBack(at);
+			} else {
+				Steering.stopMoving(this.drifter);
+			}
+
+			this.strafe(keys);
+			this.guardFootwork(at);
+			keys.set(VirtualKeys.Key.SPRINT, false);
+			this.shieldIf(apart < theirs);
+			return true;
+		}
+
+		this.lowerShield();
+		Vec3 away = victim != null ? at.subtract(victim.position()) : Vec3.directionFromRotation(0.0F, this.target.getYRot()).scale(-1.0);
+		away = new Vec3(away.x, 0.0, away.z);
+		if (away.lengthSqr() < 1.0E-4) {
+			away = new Vec3(this.drifter.getX() - at.x, 0.0, this.drifter.getZ() - at.z);
+		}
+
+		Vec3 behind = away.lengthSqr() < 1.0E-4 ? at : at.add(away.normalize().scale(this.target.getBbWidth() / 2.0 + 1.8));
+		double toSpot = Math.sqrt(Math.pow(behind.x - this.drifter.getX(), 2) + Math.pow(behind.z - this.drifter.getZ(), 2));
+		if (toSpot > 0.8) {
+			Steering.pressToward(this.drifter, behind);
+		} else {
+			Steering.stopMoving(this.drifter);
+		}
+
+		keys.set(VirtualKeys.Key.SPRINT, toSpot > 4.0 && this.drifter.getFoodData().getFoodLevel() > FoodConstants.SPRINT_LEVEL);
+		if (strength >= FULL_STRENGTH && Combat.canHit(this.drifter, this.target)) {
+			this.hit();
+			this.backoff = BEAST_BACKOFF_TICKS;
+		}
+
+		return true;
 	}
 
 	private void aim() {
@@ -456,6 +575,10 @@ public class AttackTask extends Task {
 		// A creeper starting to hiss: get clear first (the reflex layer does the sprint; this keeps it from stepping back in).
 		if (this.protocol == Protocol.CREEPER && this.target instanceof Creeper creeper && creeper.getSwellDir() > 0) {
 			this.backoff = Math.max(this.backoff, CREEPER_BACKOFF_TICKS);
+		}
+
+		if (this.protocol == Protocol.BEAST && this.fightBeast(strength)) {
+			return;
 		}
 
 		// A blaze lit up to fire its burst (and a little after): shield up and held, facing it, no swings (a swing lowers the

@@ -110,7 +110,12 @@ public final class Threats {
 		}
 	}
 
-	private record Entry(double danger, boolean perSize, boolean neutral) {
+	/**
+	 * A table entry. {@code reach}: how far its hit goes past both bodies' widths, for one that hits further than a mob does
+	 * (a tusklin's tusks: 3 blocks past its 2.2-block body, Alex's Mobs' AnimalAIMeleeNearby); 0 as any mob. {@code leash}:
+	 * how far it chases from where a fight started before it turns back (a territorial beast; 0, as far as it likes).
+	 */
+	private record Entry(double danger, boolean perSize, boolean neutral, double reach, double leash) {
 	}
 
 	public static final Assessment NONE = new Assessment(0.0, 1.0, Decision.NONE, null, List.of(), Double.MAX_VALUE, false);
@@ -142,7 +147,8 @@ public final class Threats {
 				for (Map.Entry<String, JsonElement> entry : threats.entrySet()) {
 					JsonObject value = entry.getValue().getAsJsonObject();
 					loaded.put(ResourceLocation.parse(entry.getKey()), new Entry(value.get("danger").getAsDouble(),
-						value.has("per_size") && value.get("per_size").getAsBoolean(), value.has("neutral") && value.get("neutral").getAsBoolean()));
+						value.has("per_size") && value.get("per_size").getAsBoolean(), value.has("neutral") && value.get("neutral").getAsBoolean(),
+						value.has("reach") ? value.get("reach").getAsDouble() : 0.0, value.has("leash") ? value.get("leash").getAsDouble() : 0.0));
 				}
 			} catch (Exception e) {
 				Drifter.LOGGER.error("Couldn't read Drifter threats file {}", file.getKey(), e);
@@ -151,6 +157,103 @@ public final class Threats {
 
 		table = Map.copyOf(loaded);
 		Drifter.LOGGER.info("Loaded {} Drifter threat entries", loaded.size());
+	}
+
+	/**
+	 * A dangerous animal of the table, not a monster to the game (a tusklin, a crocodile): fought as a monster is (its hits
+	 * stepped back from, a shield, a bow), not run down like prey (found with tusklins, 2026-11-23: guards ran in and traded
+	 * blows with one, no shield, no bow, no stepping back).
+	 */
+	public static boolean beast(LivingEntity entity) {
+		return !(entity instanceof Enemy) && table.containsKey(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+	}
+
+	/** How far its hit reaches, feet to feet, at one this wide; 0 when its data doesn't say (as any mob). */
+	public static double reachAgainst(LivingEntity entity, LivingEntity victim) {
+		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+		return entry == null || entry.reach() <= 0.0 ? 0.0 : entry.reach() + entity.getBbWidth() + victim.getBbWidth();
+	}
+
+	/** Its data gives it a long reach (a tusklin's tusks): fought by its own rules (AttackTask.Protocol.BEAST). */
+	public static boolean longReach(LivingEntity entity) {
+		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+		return entry != null && entry.reach() > 0.0;
+	}
+
+	/** It hits from further off than a player can hit it back (a player's 3 blocks to its side, a step to spare). */
+	public static boolean outreaches(LivingEntity entity, LivingEntity victim) {
+		return reachAgainst(entity, victim) > 3.0 + entity.getBbWidth() / 2.0 + 0.5;
+	}
+
+	/** How far it chases from where a fight started (a territorial beast), or 0. */
+	public static double leash(LivingEntity entity) {
+		Entry entry = table.get(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()));
+		return entry == null ? 0.0 : entry.leash();
+	}
+
+	/** Beyond its leash and this much more, a territorial beast leaves one alone. */
+	private static final double KEEP_AWAY_MORE = 5.0;
+
+	/** How far to keep from a territorial beast while it's there (0: not one). */
+	public static double keepAway(LivingEntity entity) {
+		double leash = leash(entity);
+		return leash <= 0.0 ? 0.0 : leash + KEEP_AWAY_MORE;
+	}
+
+	/** Weapon damage a second (Combat.WeaponStats) from which it's armed for a beast: a sword or an axe, not a fist or a pick. */
+	private static final double ARMED_PER_SECOND = 6.0;
+
+	/** Armed to take on a beast with others: a real weapon (a sword, an axe), or a bow it can shoot. */
+	public static boolean armed(DrifterEntity drifter) {
+		if (com.dinglebob.drifter.hands.Archery.ready(drifter)) {
+			return true;
+		}
+
+		int slot = Combat.keptWeaponSlot(drifter);
+		return slot >= 0 && Combat.weaponStats(drifter, drifter.getInventory().getItem(slot)).perSecond() >= ARMED_PER_SECOND;
+	}
+
+	/** It keeps a territorial beast in mind this long after it last saw it (it holds its ground: it's likely still there). */
+	public static final long BEAST_REMEMBERED = 20L * 60 * 3;
+
+	/**
+	 * A territorial beast it saw lately whose ground (its keep-away round) takes in this spot: where not to go for now, or
+	 * null. Knowledge through perception: only where it saw one.
+	 */
+	@Nullable
+	public static com.dinglebob.drifter.memory.MemoryEntry beastNear(DrifterEntity drifter, net.minecraft.world.phys.Vec3 pos) {
+		long now = drifter.level().getGameTime();
+		for (com.dinglebob.drifter.memory.MemoryEntry entry : drifter.getMemory().find(com.dinglebob.drifter.memory.MemoryKind.DANGER, e -> e.label.startsWith("beast:"))) {
+			double around;
+			try {
+				around = Double.parseDouble(entry.detail);
+			} catch (RuntimeException e) {
+				around = 20.0;
+			}
+
+			if (now - entry.confirmedAt <= BEAST_REMEMBERED && entry.dimension.equals(drifter.level().dimension().location()) && entry.pos.distanceTo(pos) <= around) {
+				return entry;
+			}
+		}
+
+		return null;
+	}
+
+	/** Its ground remembered: where this territorial beast is (seen, or felt: it was just hit by it). */
+	public static void rememberBeast(DrifterEntity drifter, LivingEntity beast) {
+		if (leash(beast) <= 0.0) {
+			return;
+		}
+
+		var remembered = drifter.getMemory().remember(com.dinglebob.drifter.memory.MemoryKind.DANGER,
+			"beast:" + beast.getType().getDescription().getString().toLowerCase(Locale.ROOT), beast.position(), drifter.level().dimension().location(),
+			drifter.level().getGameTime(), com.dinglebob.drifter.memory.MemorySource.SEEN, 0.6F, beast.getUUID());
+		remembered.entry().detail = Double.toString(keepAway(beast));
+	}
+
+	/** What a beast memory is of ("tusklin"). */
+	public static String beastName(com.dinglebob.drifter.memory.MemoryEntry entry) {
+		return entry.label.substring("beast:".length());
 	}
 
 	/** Base danger of this entity right now, or 0 if it's no threat (a passive animal, a calm neutral mob). */
@@ -353,6 +456,15 @@ public final class Threats {
 			}
 
 			double danger = danger(drifter, living);
+			// A territorial beast seen: its ground remembered (where not to farm, nor go back for its things, while it's there).
+			if ((seen || recentlyHit && living == lastAttacker) && danger > 0.0 && leash(living) > 0.0) {
+				rememberBeast(drifter, living);
+				// (Seen coming: a warning to its town before it gores anyone.)
+				if (seen) {
+					com.dinglebob.drifter.social.BeastAlarm.spotted(drifter, living);
+				}
+			}
+
 			// A shield up stops arrows and fireballs dead, which is how a player takes on blazes and skeletons: shooters count
 			// for less when it has one ready (found in testing: in iron and diamond, a spawner's three or four blazes had it
 			// "outmatched", and it ran from the fortress it came for).
@@ -407,6 +519,13 @@ public final class Threats {
 		double ratio = power / threat * courage(drifter);
 		Decision decision = ratio > 2.0 ? Decision.ENGAGE : ratio >= 1.2 ? Decision.ENGAGE_CAREFUL : ratio >= 0.8 ? Decision.AVOID
 			: ratio >= 0.5 ? Decision.RETREAT : Decision.FLEE;
+		// A beast that hits from further off than it can hit back (a tusklin): without a real weapon it doesn't take it on, however
+		// many are about (they were gored one after another; the user, 2026-11-14: "they keep killing off the town"). It keeps out
+		// of reach: a territorial one doesn't chase far.
+		if (decision.fights() && main != null && outreaches(main, drifter) && !armed(drifter)) {
+			decision = Decision.RETREAT;
+		}
+
 		// A coward backs off from fights it could take (section 13 "Coward: disengages early, fights only cornered").
 		if (decision == Decision.ENGAGE_CAREFUL && drifter.getPersonality().get(com.dinglebob.drifter.personality.Trait.BRAVERY) < COWARD_BRAVERY) {
 			decision = Decision.AVOID;
@@ -420,8 +539,12 @@ public final class Threats {
 			decision = Decision.ENGAGE_CAREFUL;
 		}
 
+		// Hit by a territorial beast it isn't armed for: it runs (the beast gives up past its ground), it doesn't turn and swing
+		// its fists at it, unless it's stuck where it is.
+		boolean runFromBeast = lastAttacker != null && leash(lastAttacker) > 0.0 && !armed(drifter);
 		// Cornered: something close just hit it and it isn't hopeless: fight back.
-		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5) {
+		if ((decision == Decision.AVOID || decision == Decision.RETREAT) && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5
+			&& !runFromBeast) {
 			decision = Decision.ENGAGE_CAREFUL;
 			main = lastAttacker;
 		}
@@ -434,8 +557,8 @@ public final class Threats {
 		// Running only gets it hit in the back; a player turns and fights.
 		boolean backingOff = decision == Decision.FLEE || decision == Decision.RETREAT || decision == Decision.AVOID;
 		if (backingOff && recentlyHit && lastAttacker != null && lastAttacker.distanceTo(drifter) < 3.5
-			&& (stuckInPlace(drifter, now) || cantOutrun(lastAttacker)
-				|| drifter.getDrifterBrain().hitsWhileBackingOff >= 2 && now - drifter.getDrifterBrain().lastHitWhileBackingOff < 100)) {
+			&& (stuckInPlace(drifter, now) || !runFromBeast && (cantOutrun(lastAttacker)
+				|| drifter.getDrifterBrain().hitsWhileBackingOff >= 2 && now - drifter.getDrifterBrain().lastHitWhileBackingOff < 100))) {
 			decision = Decision.ENGAGE_CAREFUL;
 			main = lastAttacker;
 		}
@@ -503,6 +626,28 @@ public final class Threats {
 		}
 
 		return new Assessment(threat, power, decision, main, List.copyOf(hostiles), nearest, recentlyHit);
+	}
+
+	/** How far off the threats must be before it stops running: further from a territorial beast (out of its ground). */
+	public static double safeDistance(Assessment assessment, double usual) {
+		double safe = usual;
+		for (LivingEntity hostile : assessment.hostiles()) {
+			safe = Math.max(safe, keepAway(hostile));
+		}
+
+		return safe;
+	}
+
+	/** A territorial beast is this close, inside its ground (it keeps out of it, whatever it was doing). */
+	public static boolean inBeastGround(Assessment assessment, DrifterEntity drifter) {
+		for (LivingEntity hostile : assessment.hostiles()) {
+			double keep = keepAway(hostile);
+			if (keep > 0.0 && hostile.distanceTo(drifter) < keep) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

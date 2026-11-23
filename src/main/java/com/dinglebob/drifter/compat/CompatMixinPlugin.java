@@ -37,6 +37,10 @@ public final class CompatMixinPlugin implements IMixinConfigPlugin {
 			return FabricLoader.getInstance().isModLoaded(IcyHorses.MOD_ID);
 		}
 
+		if (mixinClassName.endsWith(".TusklinMushroomMixin")) {
+			return FabricLoader.getInstance().isModLoaded("alexsmobs");
+		}
+
 		return true;
 	}
 

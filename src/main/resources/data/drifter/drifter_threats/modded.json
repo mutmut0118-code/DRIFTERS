@@ -1,8 +1,8 @@
 {
-	"_comment": "Threats from mods (milestone 19). Entries for mods that aren't installed never match anything. Guard Villagers' guards only count while one is after the Drifter (a bandit raiding the village, or one that hit a guard or a villager): armoured, with a sword or crossbow, about a vindicator. Alex's Mobs: its hostile animals aren't 'monsters' to the game, so without an entry here they counted for nothing until they attacked (the user, 2026-11-06: 'Drifters tend to get killed by tusklins alot, tusklins are always hostile'); the big neutral ones only count while one is after it.",
+	"_comment": "Threats from mods (milestone 19). Entries for mods that aren't installed never match anything. Guard Villagers' guards only count while one is after the Drifter (a bandit raiding the village, or one that hit a guard or a villager): armoured, with a sword or crossbow, about a vindicator. Alex's Mobs: its hostile animals aren't 'monsters' to the game, so without an entry here they counted for nothing until they attacked (the user, 2026-11-06: 'Drifters tend to get killed by tusklins alot, tusklins are always hostile'); the big neutral ones only count while one is after it. 'reach': how far its hit goes past both bodies (a tusklin's tusks: 3 blocks past its 2.2-block body, further than a player hits back), so it's fought from behind, behind a shield or with a bow. 'leash': how far it chases from where a fight started before turning back (a tusklin: 15), so those not armed for it keep out of its ground.",
 	"threats": {
 		"guardvillagers:guard": { "danger": 2.6, "neutral": true },
-		"alexsmobs:tusklin": { "danger": 3.5 },
+		"alexsmobs:tusklin": { "danger": 3.5, "reach": 3.0, "leash": 15 },
 		"alexsmobs:crocodile": { "danger": 2.6 },
 		"alexsmobs:komodo_dragon": { "danger": 2.0 },
 		"alexsmobs:anaconda": { "danger": 2.2 },

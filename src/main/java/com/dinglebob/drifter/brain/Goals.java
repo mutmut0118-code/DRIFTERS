@@ -1420,6 +1420,11 @@ public final class Goals {
 				return 1.25;
 			}
 
+			// The beast someone shouted for help at (BeastAlarm): what it came for, the fight comes first.
+			if (com.dinglebob.drifter.social.BeastAlarm.answering(context.drifter(), threat.main())) {
+				return 1.15;
+			}
+
 			// Something coming at it that a bow can stop before it arrives (section 13 "Archer: opens with arrows").
 			if (Threats.worthShooting(context.drifter(), threat.main())) {
 				return 1.1;
@@ -1508,6 +1513,12 @@ public final class Goals {
 				|| !bucket && home.farm == null && !byWater
 				|| context.drifter().level().getGameTime() - home.farmFailedAt < 20L * 60 * 10
 				|| context.drifter().getPersonality().archetype() == com.dinglebob.drifter.personality.Archetype.NOMAD) {
+				return 0.0;
+			}
+
+			// (Not while a territorial beast it saw holds the ground by it: found with tusklins, 2026-11-23, a farmer ran off,
+			// came straight back to the farm beside it and was gored again.)
+			if (home.farm != null && Threats.beastNear(context.drifter(), net.minecraft.world.phys.Vec3.atCenterOf(home.farm)) != null) {
 				return 0.0;
 			}
 
@@ -2544,7 +2555,9 @@ public final class Goals {
 				return 0.0;
 			}
 
-			if (threat.urgent() || threat.nearest() <= 10.0) {
+			// (In a territorial beast's ground, whatever it was doing there: out of it, now. Found with tusklins, 2026-11-23: a
+			// farmer ran off, then walked back to the farm beside it and was gored again.)
+			if (threat.urgent() || threat.nearest() <= 10.0 || Threats.inBeastGround(threat, context.drifter())) {
 				return threat.decision() == Threats.Decision.FLEE ? 1.3 : 1.2;
 			}
 
@@ -3321,6 +3334,8 @@ public final class Goals {
 		goals.addAll(com.dinglebob.drifter.social.NeighbourGoals.all());
 		// Groups (milestone 12, section 21).
 		goals.addAll(com.dinglebob.drifter.social.GroupGoals.all());
+		// A shout for help at a dangerous beast (a tusklin): the armed in earshot come.
+		goals.addAll(com.dinglebob.drifter.social.BeastAlarm.goals());
 		goals.addAll(com.dinglebob.drifter.social.WarGoals.all());
 		goals.addAll(com.dinglebob.drifter.social.BanditGoals.all());
 		goals.addAll(com.dinglebob.drifter.world.Battle.goals());
