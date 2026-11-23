@@ -62,5 +62,28 @@ public final class CompatMixinPlugin implements IMixinConfigPlugin {
 		if (mixinClassName.endsWith(".TrinketsApiMixin")) {
 			trinketsHook = true;
 		}
+
+		// (Whether the tusklin's attack check really calls ours: its name differs by environment, and a new Alex's Mobs may not
+		// have it; said once in the log either way.)
+		if (mixinClassName.endsWith(".TusklinMushroomMixin")) {
+			boolean wired = false;
+			for (org.objectweb.asm.tree.MethodNode method : targetClass.methods) {
+				if (!method.name.equals("canAttack") && !method.name.equals("method_18395")) {
+					continue;
+				}
+
+				for (org.objectweb.asm.tree.AbstractInsnNode insn : method.instructions) {
+					if (insn instanceof org.objectweb.asm.tree.MethodInsnNode call && call.name.contains("sparesMushroomHolder")) {
+						wired = true;
+					}
+				}
+			}
+
+			if (wired) {
+				org.slf4j.LoggerFactory.getLogger("drifter").info("[compat] Alex's Mobs: tusklins spare a Drifter holding a mushroom, as a player");
+			} else {
+				org.slf4j.LoggerFactory.getLogger("drifter").warn("[compat] Alex's Mobs: couldn't find the tusklin's attack check; a mushroom doesn't spare Drifters");
+			}
+		}
 	}
 }
