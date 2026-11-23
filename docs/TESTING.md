@@ -18,8 +18,9 @@ on purpose, stand in a town by some townsfolk and run `/summon alexsmobs:tusklin
 3. **No going back into it.** Someone it killed doesn't walk back for their things while it's still there ("waiting to go
    back for its things: a tusklin is there").
 4. **Mushroom trick.** A Drifter holding a brown mushroom is left alone by tusklins, as a player is.
-Compare: before this, a test town by snowy plains lost 10 people to tusklins in two minutes (the same few dying over and
-over going back for their things); with this, 3.
+Compare (same test world, a town by snowy plains with four wild tusklins about, about 5 minutes): before this, 18 of its
+people killed by tusklins (the same few over and over, going back for their things) and three of the four tusklins still
+alive at the end; with this, 6 killed (all in the first half-minute), and all four tusklins dead within about 2 minutes.
 
 ## 0.23.80: two side branches merged in (2026-11-23)
 

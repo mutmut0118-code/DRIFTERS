@@ -4,6 +4,26 @@ Tracks the build roadmap from `docs/DESIGN.md` section 25. Work one milestone at
 
 Status values: **Not started**, **In progress**, **Done** (done means its "done when" test passed in-game on the user's machine).
 
+## Tusklins, fight smarter: 0.23.81 (2026-11-23, main line)
+
+The user (2026-11-14): tusklins (Alex's Mobs) "keep killing off the town"; their pick, guards gang up and the rest keep
+out of reach (not more damage: Drifters hit as players do). Found: a tusklin (40 health, 9 a hit, hits from 5.8 blocks
+centre to centre where a player reaches about 4.1, chases only 15 blocks from where a fight started, Alex's Mobs'
+AnimalAIMeleeNearby) counted as prey, so guards ran in and traded blows, no shield, no bow, no stepping back; the hit
+"fought back when cornered" with fists; farmers went back to the farm beside it; the dead went back for their things into it.
+Built: threat data `reach` and `leash` (modded.json, tusklin 3.0 / 15); `Threats.beast/longReach/outreaches/leash/keepAway/
+armed/beastNear/rememberBeast`; `AttackTask.Protocol.BEAST` (from behind while it's on someone else, then back out of reach;
+when it turns: shield up, a hit back after each blocked gore, or back off without a shield, fight where it stands if caught
+40 ticks; bow from out of reach); the unarmed never take one on and don't turn and swing when hit by one (they run, out of
+its ground: `FleeActivity` safe distance = leash + 5); `Flee` urgent inside a beast's ground; its ground remembered (seen or
+felt) 3 min: no farming there, no going back for things ("waiting to go back for its things"); `social/BeastAlarm`: a
+warning shout when one is seen coming within 24, a shout for help when gored, the armed and fit of its group within 48 come
+("running to help"), the fight with it comes first for them; `compatmixin/TusklinMushroomMixin`: a tusklin spares a Drifter
+holding a mushroom, as it does a player. Fix: a sword fight ended to take the bow out no longer counts as a kill.
+Test mods: `DRIFTER_DEVMODS=1` loads every jar in run/devmods through Loom (the loader's own remap of a big mod in run/mods
+failed with "Failed to remap mods!"). Tested, same world and time: 18 killed and 3 of 4 tusklins alive before; 6 killed and
+all 4 dead within 2 minutes after.
+
 ## War bands on horseback: 0.23.76 (2026-11-16, main line)
 
 The user: "half of the war band should have their own horse, with the other half riding on that horse ... 2 people on 1
